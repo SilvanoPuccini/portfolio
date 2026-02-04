@@ -5,7 +5,7 @@ export default defineConfig({
   root: ".",
   base: "/portfolio/",
   build: {
-    outDir: "dist",
+    outDir: "docs",
     assetsDir: "assets",
     emptyOutDir: true,
   },
