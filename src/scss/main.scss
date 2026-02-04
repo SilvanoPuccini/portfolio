@@ -1,0 +1,26 @@
+// ============================================
+// SILVANO PUCCINI PORTFOLIO
+// Main SCSS Entry Point
+// ============================================
+// Mobile First Approach
+// Breakpoints: 768px (Tablet), 1200px (Desktop)
+// Features: Dark/Light Theme, EN/ES Languages
+// ============================================
+
+// -------------------- ABSTRACTS --------------------
+@use 'variables';
+@use 'mixins';
+
+// -------------------- BASE --------------------
+@use 'base';
+
+// -------------------- COMPONENTS --------------------
+@use 'buttons';
+@use 'header';
+@use 'footer';
+
+// -------------------- SECTIONS --------------------
+@use 'hero';
+@use 'skills';
+@use 'projects';
+@use 'contact';

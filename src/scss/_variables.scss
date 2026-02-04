@@ -1,0 +1,87 @@
+// ============================================
+// VARIABLES - Design System
+// ============================================
+
+// -------------------- COLORS (Dark Theme - Default) --------------------
+$black: #151515;
+$green: #4EE1A0;
+$gray-dark: #242424;
+$gray-light: #D9D9D9;
+$white: #FFFFFF;
+$red-error: #FF6F5B;
+
+// -------------------- COLORS (Light Theme) --------------------
+$light-bg: #F5F5F5;
+$light-bg-secondary: #FFFFFF;
+$light-text: #151515;
+$light-text-secondary: #444444;
+
+// -------------------- CSS CUSTOM PROPERTIES --------------------
+:root {
+  // Dark theme (default)
+  --bg-primary: #{$black};
+  --bg-secondary: #{$gray-dark};
+  --text-primary: #{$white};
+  --text-secondary: #{$gray-light};
+  --accent: #{$green};
+  --error: #{$red-error};
+  --border-color: #{$white};
+}
+
+[data-theme="light"] {
+  --bg-primary: #{$light-bg};
+  --bg-secondary: #{$light-bg-secondary};
+  --text-primary: #{$light-text};
+  --text-secondary: #{$light-text-secondary};
+  --accent: #{$green};
+  --error: #{$red-error};
+  --border-color: #{$gray-dark};
+}
+
+// -------------------- TYPOGRAPHY --------------------
+$font-primary: 'Space Grotesk', sans-serif;
+
+$font-bold: 700;
+$font-medium: 500;
+
+// Font sizes
+$text-xl: 5.5rem;      // 88px - Heading XL
+$text-l: 3rem;         // 48px - Heading L
+$text-m: 1.5rem;       // 24px - Heading M
+$text-body: 1.125rem;  // 18px - Body
+
+// Line heights
+$leading-tight: 1;
+$leading-normal: 1.17;
+$leading-relaxed: 1.56;
+
+// Letter spacing
+$tracking-tight: -2.5px;
+$tracking-normal: -1.5px;
+
+// -------------------- SPACING --------------------
+$spacing-xs: 0.5rem;    // 8px
+$spacing-sm: 1rem;      // 16px
+$spacing-md: 1.5rem;    // 24px
+$spacing-lg: 2rem;      // 32px
+$spacing-xl: 2.5rem;    // 40px
+$spacing-2xl: 3rem;     // 48px
+$spacing-3xl: 4rem;     // 64px
+$spacing-4xl: 5rem;     // 80px
+$spacing-5xl: 6rem;     // 96px
+
+// Container
+$container-mobile: 1rem;
+$container-tablet: 1.875rem;
+$container-desktop: 10.3125rem;
+
+// -------------------- BREAKPOINTS --------------------
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1200px;
+
+// -------------------- TRANSITIONS --------------------
+$transition-fast: 200ms ease;
+$transition-normal: 300ms ease;
+
+// -------------------- BORDERS --------------------
+$border-bottom: 1px solid var(--border-color);
