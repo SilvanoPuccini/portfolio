@@ -1,0 +1,54 @@
+// ============================================
+// BUTTONS COMPONENT
+// ============================================
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.btn {
+  @include underline-hover;
+  display: inline-block;
+  font-family: $font-primary;
+  font-weight: $font-bold;
+  font-size: 1rem;
+  letter-spacing: 2.29px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color $transition-fast;
+  padding: 0;
+  
+  &::after {
+    transition: background-color $transition-fast;
+  }
+  
+  &:hover {
+    color: var(--accent);
+    
+    &::after {
+      background-color: var(--accent);
+    }
+  }
+}
+
+// -------------------- VARIANTS --------------------
+.btn--primary {
+  // Default style with underline
+}
+
+.btn--secondary {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--text-primary);
+  border-radius: 0;
+  
+  &::after {
+    display: none;
+  }
+  
+  &:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-primary);
+  }
+}

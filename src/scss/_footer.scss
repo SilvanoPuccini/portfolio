@@ -1,0 +1,65 @@
+// ============================================
+// FOOTER COMPONENT
+// ============================================
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.footer {
+  background-color: var(--bg-secondary);
+  padding: $spacing-xl $container-mobile $spacing-3xl;
+  border-top: $border-bottom;
+  
+  @include tablet {
+    padding: $spacing-lg $container-tablet $spacing-xl;
+  }
+  
+  @include desktop {
+    padding: $spacing-lg 0 $spacing-xl;
+  }
+}
+
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  
+  @include tablet {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  @include desktop {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 $container-desktop;
+  }
+}
+
+// -------------------- LOGO --------------------
+.footer__logo {
+  font-size: 1.5rem;
+  font-weight: $font-bold;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  transition: color $transition-fast;
+  
+  @include desktop {
+    font-size: 2rem;
+  }
+  
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+// -------------------- SOCIAL --------------------
+.footer__social {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  
+  @include desktop {
+    gap: $spacing-lg;
+  }
+}

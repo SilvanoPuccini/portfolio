@@ -1,0 +1,205 @@
+// ============================================
+// CONTACT SECTION
+// ============================================
+@use "variables" as *;
+@use "mixins" as *;
+
+.contact {
+  background-color: var(--bg-secondary);
+  padding: $spacing-3xl $container-mobile;
+  position: relative;
+  overflow: hidden;
+
+  @include tablet {
+    padding: $spacing-3xl $container-tablet;
+  }
+
+  @include desktop {
+    padding: $spacing-4xl 0 $spacing-5xl;
+  }
+}
+
+.contact__inner {
+  @include desktop {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 $container-desktop;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-3xl;
+  }
+}
+
+// -------------------- CONTENT --------------------
+.contact__content {
+  text-align: center;
+  margin-bottom: $spacing-2xl;
+
+  @include tablet {
+    max-width: 445px;
+    margin: 0 auto $spacing-2xl;
+  }
+
+  @include desktop {
+    text-align: left;
+    margin: 0;
+  }
+}
+
+.contact__title {
+  @include heading-xl;
+  font-size: 2.5rem;
+  margin-bottom: $spacing-md;
+
+  @include tablet {
+    font-size: 4.5rem;
+  }
+
+  @include desktop {
+    font-size: $text-xl;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.contact__description {
+  @include body-text;
+  color: var(--text-secondary);
+}
+
+// -------------------- FORM --------------------
+.contact__form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+
+  @include desktop {
+    max-width: 445px;
+    margin-left: auto;
+  }
+}
+
+.form__group {
+  position: relative;
+  border-bottom: $border-bottom;
+  padding-bottom: $spacing-sm;
+  transition: border-color $transition-fast;
+
+  &:focus-within {
+    border-color: var(--accent);
+  }
+
+  &.error {
+    border-color: var(--error);
+  }
+}
+
+.form__input,
+.form__textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0 $spacing-md;
+  font-family: $font-primary;
+  font-weight: $font-medium;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: -0.22px;
+
+  &::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.form__textarea {
+  min-height: 107px;
+  resize: vertical;
+}
+
+.form__error {
+  position: absolute;
+  right: 0;
+  bottom: -24px;
+  font-size: 0.75rem;
+  color: var(--error);
+  opacity: 0;
+  transition: opacity $transition-fast;
+
+  .form__group.error & {
+    opacity: 1;
+  }
+}
+
+.form__error-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+  transition: opacity $transition-fast;
+
+  .form__group.error & {
+    opacity: 1;
+  }
+
+  svg {
+    fill: var(--error);
+  }
+}
+
+// -------------------- SUBMIT BUTTON --------------------
+.form__submit-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $spacing-sm;
+}
+
+// -------------------- RINGS DECORATION --------------------
+.contact__rings {
+  position: absolute;
+  left: -350px;
+  bottom: 60px;
+  width: 530px;
+  height: auto;
+  z-index: 0;
+  opacity: 0.8;
+
+  @include tablet {
+    left: -300px;
+  }
+
+  @include desktop {
+    left: -200px;
+    bottom: 70px;
+  }
+}
+
+// -------------------- SUCCESS MESSAGE --------------------
+.form__success {
+  display: none;
+  text-align: center;
+  padding: $spacing-xl;
+
+  &.show {
+    display: block;
+  }
+}
+
+.form__success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto $spacing-md;
+  color: var(--accent);
+}
+
+.form__success-text {
+  @include heading-m;
+  color: var(--text-primary);
+}

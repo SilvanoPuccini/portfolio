@@ -1,0 +1,131 @@
+// ============================================
+// BASE - Reset & Global Styles
+// ============================================
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// -------------------- RESET --------------------
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-primary;
+  font-weight: $font-medium;
+  font-size: $text-body;
+  line-height: $leading-relaxed;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color $transition-normal, color $transition-normal;
+}
+
+// -------------------- TYPOGRAPHY --------------------
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-primary;
+  font-weight: $font-bold;
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color $transition-fast;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+svg {
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+input, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+// -------------------- SELECTION --------------------
+::selection {
+  background-color: var(--accent);
+  color: var(--bg-primary);
+}
+
+// -------------------- FOCUS VISIBLE --------------------
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+// -------------------- CONTAINER --------------------
+.container {
+  @include container;
+}
+
+// -------------------- SR ONLY --------------------
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// -------------------- ACCENT TEXT --------------------
+.text-accent {
+  color: var(--accent);
+}
+
+// -------------------- SECTION --------------------
+.section {
+  padding: $spacing-3xl 0;
+  
+  @include tablet {
+    padding: $spacing-4xl 0;
+  }
+  
+  @include desktop {
+    padding: $spacing-5xl 0;
+  }
+}

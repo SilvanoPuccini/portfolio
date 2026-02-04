@@ -1,0 +1,118 @@
+// ============================================
+// MIXINS
+// ============================================
+@use 'variables' as *;
+
+// -------------------- BREAKPOINTS --------------------
+@mixin tablet {
+  @media (min-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: $breakpoint-desktop) {
+    @content;
+  }
+}
+
+// -------------------- TYPOGRAPHY --------------------
+@mixin heading-xl {
+  font-family: $font-primary;
+  font-weight: $font-bold;
+  font-size: 2.5rem;
+  line-height: $leading-tight;
+  letter-spacing: -1px;
+  
+  @include tablet {
+    font-size: 4.5rem;
+    letter-spacing: $tracking-normal;
+  }
+  
+  @include desktop {
+    font-size: $text-xl;
+    letter-spacing: $tracking-tight;
+  }
+}
+
+@mixin heading-l {
+  font-family: $font-primary;
+  font-weight: $font-bold;
+  font-size: 2rem;
+  line-height: $leading-normal;
+  
+  @include tablet {
+    font-size: 2.5rem;
+  }
+  
+  @include desktop {
+    font-size: $text-l;
+  }
+}
+
+@mixin heading-m {
+  font-family: $font-primary;
+  font-weight: $font-bold;
+  font-size: 1.25rem;
+  line-height: $leading-normal;
+  
+  @include desktop {
+    font-size: $text-m;
+  }
+}
+
+@mixin body-text {
+  font-family: $font-primary;
+  font-weight: $font-medium;
+  font-size: 1rem;
+  line-height: $leading-relaxed;
+  
+  @include desktop {
+    font-size: $text-body;
+  }
+}
+
+// -------------------- CONTAINER --------------------
+@mixin container {
+  width: 100%;
+  padding: 0 $container-mobile;
+  
+  @include tablet {
+    padding: 0 $container-tablet;
+  }
+  
+  @include desktop {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 $container-desktop;
+  }
+}
+
+// -------------------- UNDERLINE EFFECT --------------------
+@mixin underline-hover {
+  position: relative;
+  display: inline-block;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent);
+  }
+}
+
+// -------------------- FLEX --------------------
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

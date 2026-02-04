@@ -1,0 +1,168 @@
+// ============================================
+// HERO SECTION
+// ============================================
+@use "variables" as *;
+@use "mixins" as *;
+
+.hero {
+  position: relative;
+  padding: 0 $container-mobile $spacing-3xl;
+  overflow: hidden;
+
+  @include tablet {
+    padding: 0 $container-tablet $spacing-3xl;
+  }
+
+  @include desktop {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0px 6.3125rem 5rem;
+  }
+}
+
+.hero__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  @include tablet {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+    text-align: left;
+    gap: $spacing-lg;
+  }
+
+  @include desktop {
+    grid-template-columns: 1.2fr 1fr;
+    gap: $spacing-xl;
+  }
+}
+
+// -------------------- CONTENT --------------------
+.hero__content {
+  order: 2;
+
+  @include tablet {
+    order: 1;
+    padding-bottom: $spacing-3xl;
+  }
+
+  @include desktop {
+    padding-bottom: $spacing-4xl;
+  }
+}
+
+.hero__greeting {
+  @include heading-xl;
+  color: var(--text-primary);
+  margin-bottom: $spacing-sm;
+}
+
+.hero__name {
+  @include heading-xl;
+  color: var(--text-primary);
+
+  .text-accent {
+    display: block;
+
+    @include desktop {
+      display: inline;
+    }
+  }
+}
+
+.hero__tagline {
+  @include heading-m;
+  color: var(--accent);
+  margin-top: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.hero__description {
+  @include body-text;
+  color: var(--text-secondary);
+  max-width: 541px;
+  margin-bottom: $spacing-md;
+
+  @include tablet {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.hero__cta {
+  margin-top: $spacing-lg;
+}
+
+// -------------------- IMAGE --------------------
+.hero__image-wrapper {
+  position: relative;
+  order: 1;
+  width: 174px;
+  margin: 0 auto $spacing-xl;
+  background-color: rgba(151, 151, 151, 0.1);
+  backdrop-filter: blur(10px);
+
+  @include tablet {
+    order: 2;
+    width: 322px;
+    margin: 0;
+    margin-left: auto;
+  }
+
+  @include desktop {
+    width: 445px;
+  }
+}
+
+.hero__image {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: auto;
+  filter: grayscale(100%);
+}
+
+.hero__oval {
+  position: absolute;
+  bottom: 165px;
+  left: 0%;
+  transform: translateX(-50%);
+  width: 32%;
+  height: auto;
+  z-index: 2;
+}
+
+// -------------------- DECORATIONS --------------------
+.hero__rings {
+  position: absolute;
+  left: -200px;
+  top: 80px;
+  width: 530px;
+  height: auto;
+  z-index: 0;
+  opacity: 0.8;
+
+  @include tablet {
+    left: -265px;
+    top: 60px;
+  }
+
+  @include desktop {
+    left: -200px;
+    top: 40px;
+  }
+}
+
+// -------------------- DIVIDER --------------------
+.hero__divider {
+  margin-top: $spacing-3xl;
+  border: none;
+  border-bottom: $border-bottom;
+
+  @include tablet {
+    margin-top: $spacing-4xl;
+  }
+}

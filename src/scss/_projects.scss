@@ -1,0 +1,212 @@
+// ============================================
+// PROJECTS SECTION
+// ============================================
+@use "variables" as *;
+@use "mixins" as *;
+
+.projects {
+  background-color: var(--bg-primary);
+  padding: $spacing-3xl $container-mobile;
+
+  @include tablet {
+    padding: $spacing-4xl $container-tablet;
+  }
+
+  @include desktop {
+    padding: $spacing-5xl 0;
+  }
+}
+
+.projects__inner {
+  @include desktop {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 $container-desktop;
+  }
+}
+
+// -------------------- HEADER --------------------
+.projects__header {
+  @include flex-between;
+  margin-bottom: $spacing-xl;
+
+  @include tablet {
+    margin-bottom: $spacing-2xl;
+  }
+
+  @include desktop {
+    margin-bottom: $spacing-3xl;
+  }
+}
+
+.projects__title {
+  @include heading-xl;
+  font-size: 2.5rem;
+
+  @include tablet {
+    font-size: 4.5rem;
+  }
+
+  @include desktop {
+    font-size: $text-xl;
+  }
+}
+
+// -------------------- GRID --------------------
+.projects__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-xl;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-lg $spacing-md;
+  }
+
+  @include desktop {
+    gap: $spacing-3xl $spacing-lg;
+  }
+}
+
+// -------------------- PROJECT CARD --------------------
+.project {
+  display: flex;
+  flex-direction: column;
+}
+
+.project__image-wrapper {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: $spacing-md;
+  aspect-ratio: 16 / 10;
+  background-color: var(--bg-primary);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    opacity: 0;
+    transition: opacity $transition-normal;
+    z-index: 1;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+.project__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform $transition-normal;
+
+  .project__image-wrapper:hover & {
+    transform: scale(1.05);
+  }
+}
+
+// -------------------- LINKS (Desktop/Tablet - dentro de imagen) --------------------
+.project__links--overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity $transition-normal;
+
+  .project__image-wrapper:hover & {
+    opacity: 1;
+  }
+
+  // Ocultar en mobile
+  @media (max-width: #{$breakpoint-tablet - 1px}) {
+    display: none;
+  }
+}
+
+// -------------------- LINKS (Mobile - fuera de imagen) --------------------
+.project__links--mobile {
+  display: none; // Oculto por defecto
+
+  @media (max-width: #{$breakpoint-tablet - 1px}) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-lg;
+    margin-top: $spacing-sm;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.project__link {
+  @include underline-hover;
+  font-family: $font-primary;
+  font-weight: $font-bold;
+  font-size: 0.875rem;
+  letter-spacing: 2.29px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  transition: color $transition-fast;
+
+  &:hover {
+    color: var(--accent);
+
+    &::after {
+      background-color: var(--accent);
+    }
+  }
+}
+
+// -------------------- PROJECT INFO --------------------
+.project__info {
+  margin-top: $spacing-sm;
+}
+
+.project__name {
+  @include heading-m;
+  color: var(--text-primary);
+  margin-bottom: $spacing-xs;
+  text-transform: uppercase;
+}
+
+.project__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.project__tag {
+  font-size: 0.875rem;
+  font-weight: $font-medium;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+// -------------------- COMING SOON --------------------
+.project--coming-soon {
+  .project__image-wrapper {
+    @include flex-center;
+
+    &::before {
+      opacity: 0.7;
+    }
+  }
+
+  .project__coming-soon {
+    position: absolute;
+    z-index: 2;
+    font-family: $font-primary;
+    font-weight: $font-bold;
+    font-size: 1.25rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
