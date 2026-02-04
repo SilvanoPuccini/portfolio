@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Silvano Puccini - Full Stack Developer in Training. Transforming business experience into digital solutions. Portfolio showcasing web development projects."
+    />
+    <meta
+      name="keywords"
+      content="Full Stack Developer, Web Developer, React, JavaScript, Python, Portfolio"
+    />
+    <meta name="author" content="Silvano Puccini" />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="Silvano Puccini | Full Stack Developer"
+    />
+    <meta
+      property="og:description"
+      content="Transforming business experience into digital solutions"
+    />
+    <meta property="og:type" content="website" />
+
+    <title>Silvano Puccini | Full Stack Developer</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Main JS/CSS (Vite will handle) -->
+    <script type="module" crossorigin src="./assets/index-IRxB01hB.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-ByssGIc1.css">
+  </head>
+  <body>
+    <!-- ==================== HEADER ==================== -->
+    <header class="header">
+      <div class="header__inner">
+        <a href="#" class="header__logo">silvanopuccini</a>
+
+        <div class="header__controls">
+          <!-- Language Toggle -->
+          <button
+            id="lang-toggle"
+            class="lang-toggle"
+            aria-label="Toggle language"
+          >
+            EN
+          </button>
+
+          <!-- Theme Toggle -->
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            aria-label="Toggle theme"
+          >
+            <svg
+              class="theme-toggle__moon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg
+              class="theme-toggle__sun"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="header__social">
+          <!-- GitHub -->
+          <a
+            href="https://github.com/silvanopuccini"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="GitHub"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"
+              />
+            </svg>
+          </a>
+          <!-- LinkedIn -->
+          <a
+            href="https://www.linkedin.com/in/silvano-jose-maria-puccini-394992265"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="LinkedIn"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+              />
+              <rect x="2" y="9" width="4" height="12" />
+              <circle cx="4" cy="4" r="2" />
+            </svg>
+          </a>
+          <!-- Discord -->
+          <a
+            href="https://discord.com/users/925401070388256778"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="Discord"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"
+              />
+            </svg>
+          </a>
+          <!-- Email -->
+          <a
+            href="mailto:silvano.jm.puccini@gmail.com"
+            class="social-link"
+            aria-label="Email"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+              />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- ==================== HERO SECTION ==================== -->
+      <section class="hero">
+        <!-- Rings Decoration -->
+        <img
+          src="data:image/svg+xml,%3csvg%20width='430'%20height='129'%20viewBox='0%200%20430%20129'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20opacity='0.25'%3e%3cpath%20d='M165%200.5C238.161%200.5%20304.385%204.97615%20352.309%2012.21C376.274%2015.8275%20395.642%2020.1318%20409.007%2024.9014C415.692%2027.2872%20420.846%2029.779%20424.319%2032.3408C427.806%2034.9124%20429.5%2037.4787%20429.5%2040C429.5%2042.5213%20427.806%2045.0876%20424.319%2047.6592C420.846%2050.221%20415.692%2052.7128%20409.007%2055.0986C395.642%2059.8682%20376.274%2064.1725%20352.309%2067.79C304.385%2075.0238%20238.161%2079.5%20165%2079.5C91.8393%2079.5%2025.6154%2075.0238%20-22.3086%2067.79C-46.2745%2064.1725%20-65.6418%2059.8682%20-79.0068%2055.0986C-85.6923%2052.7128%20-90.8463%2050.221%20-94.3193%2047.6592C-97.8055%2045.0876%20-99.5%2042.5213%20-99.5%2040C-99.5%2037.4787%20-97.8055%2034.9124%20-94.3193%2032.3408C-90.8463%2029.779%20-85.6923%2027.2872%20-79.0068%2024.9014C-65.6418%2020.1318%20-46.2745%2015.8275%20-22.3086%2012.21C25.6154%204.97615%2091.8393%200.5%20165%200.5Z'%20stroke='white'/%3e%3cpath%20d='M165%2012.5C238.161%2012.5%20304.385%2016.9762%20352.309%2024.21C376.274%2027.8275%20395.642%2032.1318%20409.007%2036.9014C415.692%2039.2872%20420.846%2041.779%20424.319%2044.3408C427.806%2046.9124%20429.5%2049.4787%20429.5%2052C429.5%2054.5213%20427.806%2057.0876%20424.319%2059.6592C420.846%2062.221%20415.692%2064.7128%20409.007%2067.0986C395.642%2071.8682%20376.274%2076.1725%20352.309%2079.79C304.385%2087.0238%20238.161%2091.5%20165%2091.5C91.8393%2091.5%2025.6154%2087.0238%20-22.3086%2079.79C-46.2745%2076.1725%20-65.6418%2071.8682%20-79.0068%2067.0986C-85.6923%2064.7128%20-90.8463%2062.221%20-94.3193%2059.6592C-97.8055%2057.0876%20-99.5%2054.5213%20-99.5%2052C-99.5%2049.4787%20-97.8055%2046.9124%20-94.3193%2044.3408C-90.8463%2041.779%20-85.6923%2039.2872%20-79.0068%2036.9014C-65.6418%2032.1318%20-46.2745%2027.8275%20-22.3086%2024.21C25.6154%2016.9762%2091.8393%2012.5%20165%2012.5Z'%20stroke='white'/%3e%3cpath%20d='M165%2025.5C238.161%2025.5%20304.385%2029.9762%20352.309%2037.21C376.274%2040.8275%20395.642%2045.1318%20409.007%2049.9014C415.692%2052.2872%20420.846%2054.779%20424.319%2057.3408C427.806%2059.9124%20429.5%2062.4787%20429.5%2065C429.5%2067.5213%20427.806%2070.0876%20424.319%2072.6592C420.846%2075.221%20415.692%2077.7128%20409.007%2080.0986C395.642%2084.8682%20376.274%2089.1725%20352.309%2092.79C304.385%20100.024%20238.161%20104.5%20165%20104.5C91.8393%20104.5%2025.6154%20100.024%20-22.3086%2092.79C-46.2745%2089.1725%20-65.6418%2084.8682%20-79.0068%2080.0986C-85.6923%2077.7128%20-90.8463%2075.221%20-94.3193%2072.6592C-97.8055%2070.0876%20-99.5%2067.5213%20-99.5%2065C-99.5%2062.4787%20-97.8055%2059.9124%20-94.3193%2057.3408C-90.8463%2054.779%20-85.6923%2052.2872%20-79.0068%2049.9014C-65.6418%2045.1318%20-46.2745%2040.8275%20-22.3086%2037.21C25.6154%2029.9762%2091.8393%2025.5%20165%2025.5Z'%20stroke='white'/%3e%3cpath%20d='M165%2037.5C238.161%2037.5%20304.385%2041.9762%20352.309%2049.21C376.274%2052.8275%20395.642%2057.1318%20409.007%2061.9014C415.692%2064.2872%20420.846%2066.779%20424.319%2069.3408C427.806%2071.9124%20429.5%2074.4787%20429.5%2077C429.5%2079.5213%20427.806%2082.0876%20424.319%2084.6592C420.846%2087.221%20415.692%2089.7128%20409.007%2092.0986C395.642%2096.8682%20376.274%20101.173%20352.309%20104.79C304.385%20112.024%20238.161%20116.5%20165%20116.5C91.8393%20116.5%2025.6154%20112.024%20-22.3086%20104.79C-46.2745%20101.173%20-65.6418%2096.8682%20-79.0068%2092.0986C-85.6923%2089.7128%20-90.8463%2087.221%20-94.3193%2084.6592C-97.8055%2082.0876%20-99.5%2079.5213%20-99.5%2077C-99.5%2074.4787%20-97.8055%2071.9124%20-94.3193%2069.3408C-90.8463%2066.779%20-85.6923%2064.2872%20-79.0068%2061.9014C-65.6418%2057.1318%20-46.2745%2052.8275%20-22.3086%2049.21C25.6154%2041.9762%2091.8393%2037.5%20165%2037.5Z'%20stroke='white'/%3e%3cpath%20d='M165%2049.5C238.161%2049.5%20304.385%2053.9762%20352.309%2061.21C376.274%2064.8275%20395.642%2069.1318%20409.007%2073.9014C415.692%2076.2872%20420.846%2078.779%20424.319%2081.3408C427.806%2083.9124%20429.5%2086.4787%20429.5%2089C429.5%2091.5213%20427.806%2094.0876%20424.319%2096.6592C420.846%2099.221%20415.692%20101.713%20409.007%20104.099C395.642%20108.868%20376.274%20113.173%20352.309%20116.79C304.385%20124.024%20238.161%20128.5%20165%20128.5C91.8393%20128.5%2025.6154%20124.024%20-22.3086%20116.79C-46.2745%20113.173%20-65.6418%20108.868%20-79.0068%20104.099C-85.6923%20101.713%20-90.8463%2099.221%20-94.3193%2096.6592C-97.8055%2094.0876%20-99.5%2091.5213%20-99.5%2089C-99.5%2086.4787%20-97.8055%2083.9124%20-94.3193%2081.3408C-90.8463%2078.779%20-85.6923%2076.2872%20-79.0068%2073.9014C-65.6418%2069.1318%20-46.2745%2064.8275%20-22.3086%2061.21C25.6154%2053.9762%2091.8393%2049.5%20165%2049.5Z'%20stroke='white'/%3e%3c/g%3e%3c/svg%3e"
+          alt=""
+          class="hero__rings"
+          aria-hidden="true"
+        />
+
+        <div class="hero__inner">
+          <div class="hero__content">
+            <p class="hero__greeting" data-i18n="greeting">Hello, I'm</p>
+            <h1 class="hero__name">
+              <span class="text-accent" data-i18n="name">Silvano Puccini</span>
+            </h1>
+            <p class="hero__tagline" data-i18n="tagline">
+              Full Stack Developer in Training
+            </p>
+            <p class="hero__description" data-i18n="description">
+              Developer in training with over ten years of experience in
+              commercial management, sales, and customer service. Currently
+              studying University Technician in Computer Application Development
+              (TUDAI) and Master's in Full Stack Web Development (Conquer
+              Blocks). I combine technical knowledge in Full Stack development
+              with experience in commercial leadership, remote team management,
+              and process optimization.
+            </p>
+            <div class="hero__cta">
+              <a href="#contact" class="btn btn--primary" data-i18n="contactMe"
+                >Contact Me</a
+              >
+            </div>
+          </div>
+
+          <div class="hero__image-wrapper">
+            <img
+              src="./assets/profile-DzPhNpm7.png"
+              alt="Silvano Puccini"
+              class="hero__image"
+            />
+            <img
+              src="data:image/svg+xml,%3csvg%20width='129'%20height='129'%20viewBox='0%200%20129%20129'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3ccircle%20cx='64.5'%20cy='64.5'%20r='64'%20stroke='white'/%3e%3c/svg%3e"
+              alt=""
+              class="hero__oval"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+
+        <hr class="hero__divider" />
+      </section>
+
+      <!-- ==================== SKILLS SECTION ==================== -->
+      <section class="skills">
+        <!-- Rings Decoration -->
+        <img
+          src="data:image/svg+xml,%3csvg%20width='291'%20height='129'%20viewBox='0%200%20291%20129'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20opacity='0.25'%3e%3cpath%20d='M265%200.5C338.161%200.5%20404.385%204.97615%20452.309%2012.21C476.274%2015.8275%20495.642%2020.1318%20509.007%2024.9014C515.692%2027.2872%20520.846%2029.779%20524.319%2032.3408C527.806%2034.9124%20529.5%2037.4787%20529.5%2040C529.5%2042.5213%20527.806%2045.0876%20524.319%2047.6592C520.846%2050.221%20515.692%2052.7128%20509.007%2055.0986C495.642%2059.8682%20476.274%2064.1725%20452.309%2067.79C404.385%2075.0238%20338.161%2079.5%20265%2079.5C191.839%2079.5%20125.615%2075.0238%2077.6914%2067.79C53.7255%2064.1725%2034.3582%2059.8682%2020.9932%2055.0986C14.3077%2052.7128%209.15368%2050.221%205.68066%2047.6592C2.19447%2045.0876%200.5%2042.5213%200.5%2040C0.5%2037.4787%202.19447%2034.9124%205.68066%2032.3408C9.15368%2029.779%2014.3077%2027.2872%2020.9932%2024.9014C34.3582%2020.1318%2053.7255%2015.8275%2077.6914%2012.21C125.615%204.97615%20191.839%200.5%20265%200.5Z'%20stroke='white'/%3e%3cpath%20d='M265%2012.5C338.161%2012.5%20404.385%2016.9762%20452.309%2024.21C476.274%2027.8275%20495.642%2032.1318%20509.007%2036.9014C515.692%2039.2872%20520.846%2041.779%20524.319%2044.3408C527.806%2046.9124%20529.5%2049.4787%20529.5%2052C529.5%2054.5213%20527.806%2057.0876%20524.319%2059.6592C520.846%2062.221%20515.692%2064.7128%20509.007%2067.0986C495.642%2071.8682%20476.274%2076.1725%20452.309%2079.79C404.385%2087.0238%20338.161%2091.5%20265%2091.5C191.839%2091.5%20125.615%2087.0238%2077.6914%2079.79C53.7255%2076.1725%2034.3582%2071.8682%2020.9932%2067.0986C14.3077%2064.7128%209.15368%2062.221%205.68066%2059.6592C2.19447%2057.0876%200.5%2054.5213%200.5%2052C0.5%2049.4787%202.19447%2046.9124%205.68066%2044.3408C9.15368%2041.779%2014.3077%2039.2872%2020.9932%2036.9014C34.3582%2032.1318%2053.7255%2027.8275%2077.6914%2024.21C125.615%2016.9762%20191.839%2012.5%20265%2012.5Z'%20stroke='white'/%3e%3cpath%20d='M265%2025.5C338.161%2025.5%20404.385%2029.9762%20452.309%2037.21C476.274%2040.8275%20495.642%2045.1318%20509.007%2049.9014C515.692%2052.2872%20520.846%2054.779%20524.319%2057.3408C527.806%2059.9124%20529.5%2062.4787%20529.5%2065C529.5%2067.5213%20527.806%2070.0876%20524.319%2072.6592C520.846%2075.221%20515.692%2077.7128%20509.007%2080.0986C495.642%2084.8682%20476.274%2089.1725%20452.309%2092.79C404.385%20100.024%20338.161%20104.5%20265%20104.5C191.839%20104.5%20125.615%20100.024%2077.6914%2092.79C53.7255%2089.1725%2034.3582%2084.8682%2020.9932%2080.0986C14.3077%2077.7128%209.15368%2075.221%205.68066%2072.6592C2.19447%2070.0876%200.5%2067.5213%200.5%2065C0.5%2062.4787%202.19447%2059.9124%205.68066%2057.3408C9.15368%2054.779%2014.3077%2052.2872%2020.9932%2049.9014C34.3582%2045.1318%2053.7255%2040.8275%2077.6914%2037.21C125.615%2029.9762%20191.839%2025.5%20265%2025.5Z'%20stroke='white'/%3e%3cpath%20d='M265%2037.5C338.161%2037.5%20404.385%2041.9762%20452.309%2049.21C476.274%2052.8275%20495.642%2057.1318%20509.007%2061.9014C515.692%2064.2872%20520.846%2066.779%20524.319%2069.3408C527.806%2071.9124%20529.5%2074.4787%20529.5%2077C529.5%2079.5213%20527.806%2082.0876%20524.319%2084.6592C520.846%2087.221%20515.692%2089.7128%20509.007%2092.0986C495.642%2096.8682%20476.274%20101.173%20452.309%20104.79C404.385%20112.024%20338.161%20116.5%20265%20116.5C191.839%20116.5%20125.615%20112.024%2077.6914%20104.79C53.7255%20101.173%2034.3582%2096.8682%2020.9932%2092.0986C14.3077%2089.7128%209.15368%2087.221%205.68066%2084.6592C2.19447%2082.0876%200.5%2079.5213%200.5%2077C0.5%2074.4787%202.19447%2071.9124%205.68066%2069.3408C9.15368%2066.779%2014.3077%2064.2872%2020.9932%2061.9014C34.3582%2057.1318%2053.7255%2052.8275%2077.6914%2049.21C125.615%2041.9762%20191.839%2037.5%20265%2037.5Z'%20stroke='white'/%3e%3cpath%20d='M265%2049.5C338.161%2049.5%20404.385%2053.9762%20452.309%2061.21C476.274%2064.8275%20495.642%2069.1318%20509.007%2073.9014C515.692%2076.2872%20520.846%2078.779%20524.319%2081.3408C527.806%2083.9124%20529.5%2086.4787%20529.5%2089C529.5%2091.5213%20527.806%2094.0876%20524.319%2096.6592C520.846%2099.221%20515.692%20101.713%20509.007%20104.099C495.642%20108.868%20476.274%20113.173%20452.309%20116.79C404.385%20124.024%20338.161%20128.5%20265%20128.5C191.839%20128.5%20125.615%20124.024%2077.6914%20116.79C53.7255%20113.173%2034.3582%20108.868%2020.9932%20104.099C14.3077%20101.713%209.15368%2099.221%205.68066%2096.6592C2.19447%2094.0876%200.5%2091.5213%200.5%2089C0.5%2086.4787%202.19447%2083.9124%205.68066%2081.3408C9.15368%2078.779%2014.3077%2076.2872%2020.9932%2073.9014C34.3582%2069.1318%2053.7255%2064.8275%2077.6914%2061.21C125.615%2053.9762%20191.839%2049.5%20265%2049.5Z'%20stroke='white'/%3e%3c/g%3e%3c/svg%3e"
+          alt=""
+          class="skills__rings"
+          aria-hidden="true"
+        />
+
+        <div class="skills__categories">
+          <!-- Frontend -->
+          <div class="skills__category">
+            <h2 class="skills__category-title" data-i18n="frontend">
+              Frontend
+            </h2>
+            <div class="skills__grid">
+              <div class="skill">
+                <h3 class="skill__name">HTML/CSS</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="90"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">JavaScript</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="90"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">TypeScript</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="75"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">React</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="75"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">WordPress</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="95"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">SASS</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="85"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backend -->
+          <div class="skills__category">
+            <h2 class="skills__category-title" data-i18n="backend">Backend</h2>
+            <div class="skills__grid">
+              <div class="skill">
+                <h3 class="skill__name">Python</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="85"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Django</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="75"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Node.js</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="90"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Java</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="75"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">SQL</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="90"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Streamlit</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="75"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tools -->
+          <div class="skills__category">
+            <h2 class="skills__category-title" data-i18n="tools">
+              Tools & Methodologies
+            </h2>
+            <div class="skills__grid">
+              <div class="skill">
+                <h3 class="skill__name">Git/GitHub</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="85"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">VS Code</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="90"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Linux/WSL</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="85"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Figma</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="80"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Vite</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="85"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="skill">
+                <h3 class="skill__name">Agile/Scrum</h3>
+                <p class="skill__experience">
+                  2 <span data-i18n="yearsExp">Years Experience</span>
+                </p>
+                <div class="skill__progress">
+                  <div class="skill__progress-bar">
+                    <div class="skill__progress-fill" data-progress="80"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== PROJECTS SECTION ==================== -->
+      <section id="projects" class="projects">
+        <div class="projects__inner">
+          <div class="projects__header">
+            <h2 class="projects__title" data-i18n="projectsTitle">Projects</h2>
+            <a href="#contact" class="btn btn--primary" data-i18n="contactMe"
+              >Contact Me</a
+            >
+          </div>
+
+          <div class="projects__grid">
+            <!-- Project 1: Modern Art Gallery -->
+            <article class="project">
+              <div class="project__image-wrapper">
+                <img
+                  src="https://raw.githubusercontent.com/SilvanoPuccini/modern-art-gallery/main/assets/images/hero.jpg"
+                  alt="Modern Art Gallery Preview"
+                  class="project__image"
+                  loading="lazy"
+                />
+
+                <div class="project__links project__links--overlay">
+                  <a
+                    href="https://silvanopuccini.github.io/modern-art-gallery/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewProject"
+                  >
+                    View Project
+                  </a>
+
+                  <a
+                    href="https://github.com/SilvanoPuccini/modern-art-gallery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewCode"
+                  >
+                    View Code
+                  </a>
+                </div>
+              </div>
+
+              <div class="project__links project__links--mobile">
+                <a
+                  href="https://silvanopuccini.github.io/modern-art-gallery/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewProject"
+                >
+                  View Project
+                </a>
+
+                <a
+                  href="https://github.com/SilvanoPuccini/modern-art-gallery"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewCode"
+                >
+                  View Code
+                </a>
+              </div>
+
+              <div class="project__info">
+                <h3 class="project__name">Modern Art Gallery</h3>
+                <div class="project__tags">
+                  <span class="project__tag">HTML</span>
+                  <span class="project__tag">CSS</span>
+                  <span class="project__tag">SASS</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 2: GathSession -->
+            <article class="project">
+              <div class="project__image-wrapper">
+                <img
+                  src="./assets/GathSession-bPbxY-br.png"
+                  alt="GathSession Preview"
+                  class="project__image"
+                  loading="lazy"
+                />
+
+                <div class="project__links project__links--overlay">
+                  <a
+                    href="https://silvanopuccini.github.io/GathSession/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewProject"
+                  >
+                    View Project
+                  </a>
+
+                  <a
+                    href="https://github.com/SilvanoPuccini/GathSession"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewCode"
+                  >
+                    View Code
+                  </a>
+                </div>
+              </div>
+
+              <div class="project__links project__links--mobile">
+                <a
+                  href="https://silvanopuccini.github.io/GathSession/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewProject"
+                >
+                  View Project
+                </a>
+
+                <a
+                  href="https://github.com/SilvanoPuccini/GathSession"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewCode"
+                >
+                  View Code
+                </a>
+              </div>
+
+              <div class="project__info">
+                <h3 class="project__name">GathSession</h3>
+                <div class="project__tags">
+                  <span class="project__tag">HTML</span>
+                  <span class="project__tag">CSS</span>
+                  <span class="project__tag">SASS</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 3: GlowQueen SPA -->
+            <article class="project">
+              <div class="project__image-wrapper">
+                <img
+                  src="./assets/GlowQueen-ChKxzPrc.png"
+                  alt="GlowQueen SPA Preview"
+                  class="project__image"
+                  loading="lazy"
+                />
+
+                <div class="project__links project__links--overlay">
+                  <a
+                    href="https://silvanopuccini.github.io/glowqueen-spa/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewProject"
+                  >
+                    View Project
+                  </a>
+
+                  <a
+                    href="https://github.com/SilvanoPuccini/glowqueen-spa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewCode"
+                  >
+                    View Code
+                  </a>
+                </div>
+              </div>
+
+              <div class="project__links project__links--mobile">
+                <a
+                  href="https://silvanopuccini.github.io/glowqueen-spa/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewProject"
+                >
+                  View Project
+                </a>
+
+                <a
+                  href="https://github.com/SilvanoPuccini/glowqueen-spa"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewCode"
+                >
+                  View Code
+                </a>
+              </div>
+
+              <div class="project__info">
+                <h3 class="project__name">GlowQueen SPA</h3>
+                <div class="project__tags">
+                  <span class="project__tag">HTML</span>
+                  <span class="project__tag">CSS</span>
+                  <span class="project__tag">JavaScript</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 4: Payment Tracker Bot -->
+            <article class="project">
+              <div class="project__image-wrapper">
+                <img
+                  src="./assets/PayTrack-C9tdMSeG.png"
+                  alt="Payment Tracker Bot Preview"
+                  class="project__image"
+                  loading="lazy"
+                />
+
+                <div class="project__links project__links--overlay">
+                  <a
+                    href="https://payment-tracker-bot.vercel.app/login"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewProject"
+                  >
+                    View Project
+                  </a>
+
+                  <a
+                    href="https://github.com/SilvanoPuccini/payment-tracker-bot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewCode"
+                  >
+                    View Code
+                  </a>
+                </div>
+              </div>
+
+              <div class="project__links project__links--mobile">
+                <a
+                  href="https://payment-tracker-bot.vercel.app/login"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewProject"
+                >
+                  View Project
+                </a>
+
+                <a
+                  href="https://github.com/SilvanoPuccini/payment-tracker-bot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewCode"
+                >
+                  View Code
+                </a>
+              </div>
+
+              <div class="project__info">
+                <h3 class="project__name">Payment Tracker Bot</h3>
+                <div class="project__tags">
+                  <span class="project__tag">React</span>
+                  <span class="project__tag">TypeScript</span>
+                  <span class="project__tag">Supabase</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 5: FacturIA 2.0 (Coming Soon) -->
+            <article class="project project--coming-soon">
+              <div class="project__image-wrapper">
+                <img
+                  src="./assets/FacturIA2.0-Fu2RpMnP.png"
+                  alt="FacturIA 2.0 Preview"
+                  class="project__image"
+                  loading="lazy"
+                />
+                <span class="project__coming-soon" data-i18n="comingSoon">
+                  Coming Soon
+                </span>
+              </div>
+
+              <div class="project__info">
+                <h3 class="project__name">FacturIA 2.0</h3>
+                <div class="project__tags">
+                  <span class="project__tag">Python</span>
+                  <span class="project__tag">Streamlit</span>
+                  <span class="project__tag">AI</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 6: Cat Gallery -->
+            <article class="project">
+              <div class="project__image-wrapper">
+                <img
+                  src="./assets/CatGallery-BCUh_qe9.png"
+                  alt="Cat Gallery Preview"
+                  class="project__image"
+                  loading="lazy"
+                />
+
+                <div class="project__links project__links--overlay">
+                  <a
+                    href="https://silvanopuccini.github.io/cat-gallery/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewProject"
+                  >
+                    View Project
+                  </a>
+
+                  <a
+                    href="https://github.com/SilvanoPuccini/cat-gallery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="project__link"
+                    data-i18n="viewCode"
+                  >
+                    View Code
+                  </a>
+                </div>
+              </div>
+
+              <div class="project__links project__links--mobile">
+                <a
+                  href="https://silvanopuccini.github.io/cat-gallery/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewProject"
+                >
+                  View Project
+                </a>
+
+                <a
+                  href="https://github.com/SilvanoPuccini/cat-gallery"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="project__link"
+                  data-i18n="viewCode"
+                >
+                  View Code
+                </a>
+              </div>
+
+              <div class="project__info">
+                <h3 class="project__name">Cat Gallery</h3>
+                <div class="project__tags">
+                  <span class="project__tag">HTML</span>
+                  <span class="project__tag">CSS</span>
+                  <span class="project__tag">JavaScript</span>
+                  <span class="project__tag">API</span>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== CONTACT SECTION ==================== -->
+      <section id="contact" class="contact">
+        <!-- Rings Decoration -->
+        <img
+          src="data:image/svg+xml,%3csvg%20width='325'%20height='129'%20viewBox='0%200%20325%20129'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20opacity='0.25'%3e%3cpath%20d='M60%200.5C133.161%200.5%20199.385%204.97615%20247.309%2012.21C271.274%2015.8275%20290.642%2020.1318%20304.007%2024.9014C310.692%2027.2872%20315.846%2029.779%20319.319%2032.3408C322.806%2034.9124%20324.5%2037.4787%20324.5%2040C324.5%2042.5213%20322.806%2045.0876%20319.319%2047.6592C315.846%2050.221%20310.692%2052.7128%20304.007%2055.0986C290.642%2059.8682%20271.274%2064.1725%20247.309%2067.79C199.385%2075.0238%20133.161%2079.5%2060%2079.5C-13.1607%2079.5%20-79.3846%2075.0238%20-127.309%2067.79C-151.274%2064.1725%20-170.642%2059.8682%20-184.007%2055.0986C-190.692%2052.7128%20-195.846%2050.221%20-199.319%2047.6592C-202.806%2045.0876%20-204.5%2042.5213%20-204.5%2040C-204.5%2037.4787%20-202.806%2034.9124%20-199.319%2032.3408C-195.846%2029.779%20-190.692%2027.2872%20-184.007%2024.9014C-170.642%2020.1318%20-151.274%2015.8275%20-127.309%2012.21C-79.3846%204.97615%20-13.1607%200.5%2060%200.5Z'%20stroke='white'/%3e%3cpath%20d='M60%2012.5C133.161%2012.5%20199.385%2016.9762%20247.309%2024.21C271.274%2027.8275%20290.642%2032.1318%20304.007%2036.9014C310.692%2039.2872%20315.846%2041.779%20319.319%2044.3408C322.806%2046.9124%20324.5%2049.4787%20324.5%2052C324.5%2054.5213%20322.806%2057.0876%20319.319%2059.6592C315.846%2062.221%20310.692%2064.7128%20304.007%2067.0986C290.642%2071.8682%20271.274%2076.1725%20247.309%2079.79C199.385%2087.0238%20133.161%2091.5%2060%2091.5C-13.1607%2091.5%20-79.3846%2087.0238%20-127.309%2079.79C-151.274%2076.1725%20-170.642%2071.8682%20-184.007%2067.0986C-190.692%2064.7128%20-195.846%2062.221%20-199.319%2059.6592C-202.806%2057.0876%20-204.5%2054.5213%20-204.5%2052C-204.5%2049.4787%20-202.806%2046.9124%20-199.319%2044.3408C-195.846%2041.779%20-190.692%2039.2872%20-184.007%2036.9014C-170.642%2032.1318%20-151.274%2027.8275%20-127.309%2024.21C-79.3846%2016.9762%20-13.1607%2012.5%2060%2012.5Z'%20stroke='white'/%3e%3cpath%20d='M60%2025.5C133.161%2025.5%20199.385%2029.9762%20247.309%2037.21C271.274%2040.8275%20290.642%2045.1318%20304.007%2049.9014C310.692%2052.2872%20315.846%2054.779%20319.319%2057.3408C322.806%2059.9124%20324.5%2062.4787%20324.5%2065C324.5%2067.5213%20322.806%2070.0876%20319.319%2072.6592C315.846%2075.221%20310.692%2077.7128%20304.007%2080.0986C290.642%2084.8682%20271.274%2089.1725%20247.309%2092.79C199.385%20100.024%20133.161%20104.5%2060%20104.5C-13.1607%20104.5%20-79.3846%20100.024%20-127.309%2092.79C-151.274%2089.1725%20-170.642%2084.8682%20-184.007%2080.0986C-190.692%2077.7128%20-195.846%2075.221%20-199.319%2072.6592C-202.806%2070.0876%20-204.5%2067.5213%20-204.5%2065C-204.5%2062.4787%20-202.806%2059.9124%20-199.319%2057.3408C-195.846%2054.779%20-190.692%2052.2872%20-184.007%2049.9014C-170.642%2045.1318%20-151.274%2040.8275%20-127.309%2037.21C-79.3846%2029.9762%20-13.1607%2025.5%2060%2025.5Z'%20stroke='white'/%3e%3cpath%20d='M60%2037.5C133.161%2037.5%20199.385%2041.9762%20247.309%2049.21C271.274%2052.8275%20290.642%2057.1318%20304.007%2061.9014C310.692%2064.2872%20315.846%2066.779%20319.319%2069.3408C322.806%2071.9124%20324.5%2074.4787%20324.5%2077C324.5%2079.5213%20322.806%2082.0876%20319.319%2084.6592C315.846%2087.221%20310.692%2089.7128%20304.007%2092.0986C290.642%2096.8682%20271.274%20101.173%20247.309%20104.79C199.385%20112.024%20133.161%20116.5%2060%20116.5C-13.1607%20116.5%20-79.3846%20112.024%20-127.309%20104.79C-151.274%20101.173%20-170.642%2096.8682%20-184.007%2092.0986C-190.692%2089.7128%20-195.846%2087.221%20-199.319%2084.6592C-202.806%2082.0876%20-204.5%2079.5213%20-204.5%2077C-204.5%2074.4787%20-202.806%2071.9124%20-199.319%2069.3408C-195.846%2066.779%20-190.692%2064.2872%20-184.007%2061.9014C-170.642%2057.1318%20-151.274%2052.8275%20-127.309%2049.21C-79.3846%2041.9762%20-13.1607%2037.5%2060%2037.5Z'%20stroke='white'/%3e%3cpath%20d='M60%2049.5C133.161%2049.5%20199.385%2053.9762%20247.309%2061.21C271.274%2064.8275%20290.642%2069.1318%20304.007%2073.9014C310.692%2076.2872%20315.846%2078.779%20319.319%2081.3408C322.806%2083.9124%20324.5%2086.4787%20324.5%2089C324.5%2091.5213%20322.806%2094.0876%20319.319%2096.6592C315.846%2099.221%20310.692%20101.713%20304.007%20104.099C290.642%20108.868%20271.274%20113.173%20247.309%20116.79C199.385%20124.024%20133.161%20128.5%2060%20128.5C-13.1607%20128.5%20-79.3846%20124.024%20-127.309%20116.79C-151.274%20113.173%20-170.642%20108.868%20-184.007%20104.099C-190.692%20101.713%20-195.846%2099.221%20-199.319%2096.6592C-202.806%2094.0876%20-204.5%2091.5213%20-204.5%2089C-204.5%2086.4787%20-202.806%2083.9124%20-199.319%2081.3408C-195.846%2078.779%20-190.692%2076.2872%20-184.007%2073.9014C-170.642%2069.1318%20-151.274%2064.8275%20-127.309%2061.21C-79.3846%2053.9762%20-13.1607%2049.5%2060%2049.5Z'%20stroke='white'/%3e%3c/g%3e%3c/svg%3e"
+          alt=""
+          class="contact__rings"
+          aria-hidden="true"
+        />
+
+        <div class="contact__inner">
+          <div class="contact__content">
+            <h2 class="contact__title" data-i18n="contactTitle">Contact</h2>
+            <p class="contact__description" data-i18n="contactDescription">
+              I would love to hear about your project and how I could help.
+              Please fill in the form, and I'll get back to you as soon as
+              possible.
+            </p>
+          </div>
+
+          <form
+            id="contact-form"
+            class="contact__form"
+            action="https://formspree.io/f/xvgvlzgk"
+            method="POST"
+          >
+            <div class="form__group">
+              <input
+                type="text"
+                name="name"
+                class="form__input"
+                required
+                data-i18n-placeholder="formName"
+                placeholder="Name"
+                autocomplete="name"
+              />
+              <span class="form__error"></span>
+            </div>
+
+            <div class="form__group">
+              <input
+                type="email"
+                name="email"
+                class="form__input"
+                required
+                data-i18n-placeholder="formEmail"
+                placeholder="Email"
+                autocomplete="email"
+              />
+              <span class="form__error"></span>
+            </div>
+
+            <div class="form__group">
+              <textarea
+                name="message"
+                class="form__textarea"
+                required
+                data-i18n-placeholder="formMessage"
+                placeholder="Message"
+              ></textarea>
+              <span class="form__error"></span>
+            </div>
+
+            <div class="form__submit-wrapper">
+              <button
+                type="submit"
+                class="btn btn--primary"
+                data-i18n="formSubmit"
+              >
+                Send Message
+              </button>
+            </div>
+          </form>
+
+          <div id="form-success" class="form__success">
+            <svg
+              class="form__success-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <p class="form__success-text" data-i18n="formSuccess">
+              Message sent successfully!
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+      <div class="footer__inner">
+        <a href="#" class="footer__logo">silvanopuccini</a>
+
+        <nav class="footer__social">
+          <a
+            href="https://github.com/silvanopuccini"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="GitHub"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://www.linkedin.com/in/silvano-jose-maria-puccini-394992265"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="LinkedIn"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+              />
+              <rect x="2" y="9" width="4" height="12" />
+              <circle cx="4" cy="4" r="2" />
+            </svg>
+          </a>
+          <a
+            href="https://discord.com/users/925401070388256778"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="Discord"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"
+              />
+            </svg>
+          </a>
+          <a
+            href="mailto:silvano.jm.puccini@gmail.com"
+            class="social-link"
+            aria-label="Email"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+              />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
