@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d8e2ff",
+                    "error-container": "#93000a",
+                    "on-secondary-container": "#e6ecff",
+                    "surface-container-lowest": "#080e1d",
+                    "on-primary-container": "#005763",
+                    "inverse-primary": "#006877",
+                    "on-secondary": "#002e6a",
+                    "surface-bright": "#33394a",
+                    "inverse-on-surface": "#2a3040",
+                    "outline-variant": "#3c494c",
+                    "on-background": "#dde2f8",
+                    "surface-dim": "#0d1322",
+                    "surface-container-low": "#151b2b",
+                    "surface-variant": "#2f3445",
+                    "primary-container": "#22d3ee",
+                    "on-error": "#690005",
+                    "on-surface": "#dde2f8",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-primary-fixed": "#001f25",
+                    "primary": "#8aebff",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "tertiary-container": "#ffb147",
+                    "surface-container-high": "#242a3a",
+                    "secondary-container": "#0566d9",
+                    "on-primary-fixed-variant": "#004e5a",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#859397",
+                    "on-primary": "#00363e",
+                    "on-tertiary-container": "#704500",
+                    "on-tertiary-fixed": "#2a1700",
+                    "background": "#0d1322",
+                    "primary-fixed": "#a2eeff",
+                    "on-secondary-fixed": "#001a42",
+                    "on-secondary-fixed-variant": "#004395",
+                    "tertiary": "#ffd6a7",
+                    "on-surface-variant": "#bbc9cd",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "on-tertiary": "#472a00",
+                    "surface": "#0d1322",
+                    "inverse-surface": "#dde2f8",
+                    "surface-container": "#191f2f",
+                    "secondary": "#adc6ff",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#2fd9f4",
+                    "surface-container-highest": "#2f3445",
+                    "primary-fixed-dim": "#2fd9f4",
+                    "tertiary-fixed-dim": "#ffb95f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0d1322;
+            color: #dde2f8;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+        }
+    </style>
+</head>
+<body class="selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/60 backdrop-blur-xl bg-gradient-to-b from-slate-900/20 to-transparent">
+<div class="flex justify-between items-center max-w-7xl mx-auto px-8 h-20">
+<span class="text-xl font-bold tracking-tighter text-slate-50 font-['Space_Grotesk']">Silvano Puccini</span>
+<div class="hidden md:flex items-center gap-10">
+<a class="text-cyan-400 font-medium border-b border-cyan-400/50 pb-1 font-['Space_Grotesk'] tracking-tight transition-all duration-300" href="#">Sobre mi</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-['Space_Grotesk'] tracking-tight transition-all duration-300" href="#">Proyectos</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-['Space_Grotesk'] tracking-tight transition-all duration-300" href="#">Servicios</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-['Space_Grotesk'] tracking-tight transition-all duration-300" href="#">Blog</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-['Space_Grotesk'] tracking-tight transition-all duration-300" href="#">Contacto</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-medium scale-95 active:scale-90 transition-transform font-['Space_Grotesk']">
+                Let's Talk
+            </button>
+</div>
+</nav>
+<main class="pt-32 pb-24">
+<!-- Hero Section: Narrative -->
+<section class="max-w-7xl mx-auto px-8 mb-32">
+<div class="editorial-grid">
+<div class="col-span-12 md:col-span-7">
+<h1 class="text-6xl md:text-8xl font-headline font-bold tracking-tighter mb-12 text-slate-50 leading-[0.9]">
+                        Curating <br/> <span class="text-primary">Digital Masterpieces.</span>
+</h1>
+<div class="space-y-6 max-w-xl">
+<p class="text-xl text-on-surface-variant font-body leading-relaxed">
+                            Soy Silvano Puccini, un desarrollador enfocado en la intersección de la arquitectura técnica y el diseño minimalista. Mi enfoque no es solo escribir código, sino construir infraestructuras digitales que respiren.
+                        </p>
+<p class="text-lg text-on-surface-variant/80 font-body leading-relaxed">
+                            Con más de 6 años de experiencia transformando visiones complejas en interfaces fluidas, me especializo en ecosistemas modernos utilizando React, TypeScript y arquitecturas serverless. Creo en la belleza de la simplicidad y en el poder de un backend robusto.
+                        </p>
+</div>
+</div>
+<div class="col-span-12 md:col-span-5 relative mt-12 md:mt-0">
+<div class="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container shadow-2xl">
+<img alt="Silvano Puccini professional portrait" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" data-alt="Close-up professional portrait of a man with focused expression in a dark studio setting with cinematic side lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg9oR_EGKy-fUw7IopnaTPJQZqWe0NgoTsIL7oHqzW4aABezA7auvuT85vwpSUpO0t93YZhCBIhYHTPO4iDkmKXPIp6puKj-_66X_jiwey3Sqo4FXP2BFsoBIdYRv-yAqA_yZs8rbcV2Yij4C9jxYLIXY9SmL1784aCZgWsK4CB5itEzeYzzdB0wr7XCXoPoBZG1ZozzZt4HQ9Lu3-4_jkgAf0zohFoG2s2gaMvXkzCIgr1fZ1r22MILiMuKQRZXFHszWoPahpT-Y"/>
+</div>
+<div class="absolute -bottom-6 -left-6 bg-secondary-container p-8 rounded-xl hidden md:block">
+<span class="block font-headline text-4xl font-bold text-white">06+</span>
+<span class="font-mono text-xs uppercase tracking-widest text-secondary-fixed">Años de Maestría</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Tech Stack Section -->
+<section class="bg-surface-container-low py-32 mb-32">
+<div class="max-w-7xl mx-auto px-8">
+<div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+<div>
+<h2 class="text-sm font-mono uppercase tracking-[0.3em] text-primary mb-4">Core Competencies</h2>
+<h3 class="text-4xl md:text-5xl font-headline font-bold text-slate-50">Tech Stack &amp; Tools</h3>
+</div>
+<p class="text-on-surface-variant max-w-sm text-right">
+                        Selecciono herramientas que priorizan el rendimiento, la escalabilidad y la experiencia del desarrollador.
+                    </p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-outline-variant/20 rounded-xl overflow-hidden border border-outline-variant/20">
+<!-- Tech Item -->
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="deployed_code">deployed_code</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">Next.js</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Framework Principal</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="javascript">javascript</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">TypeScript</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Tipado Estricto</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="css">css</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">Tailwind</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Utility First</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="database">database</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">PostgreSQL</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Data Persistence</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="terminal">terminal</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">Node.js</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Backend Logic</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="cloud">cloud</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">AWS / Vercel</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Cloud Infra</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="design_services">design_services</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">Figma</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">UI Design</p>
+</div>
+<div class="bg-surface-dim p-10 hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-4xl text-primary mb-6 group-hover:scale-110 transition-transform inline-block" data-icon="query_stats">query_stats</span>
+<h4 class="font-headline text-xl font-bold text-slate-100 mb-2">GraphQL</h4>
+<p class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">API Architecture</p>
+</div>
+</div>
+</div>
+</section>
+<!-- CV Download Section -->
+<section class="max-w-7xl mx-auto px-8 mb-32">
+<div class="bg-gradient-to-br from-surface-container to-surface-dim rounded-2xl p-12 md:p-20 flex flex-col md:flex-row items-center justify-between border border-outline-variant/10 relative overflow-hidden">
+<!-- Background decoration -->
+<div class="absolute top-0 right-0 w-96 h-96 bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
+<div class="max-w-xl mb-10 md:mb-0 relative z-10">
+<h3 class="text-4xl md:text-5xl font-headline font-bold text-slate-50 mb-6">¿Interesado en mi trayectoria completa?</h3>
+<p class="text-on-surface-variant text-lg">
+                        He preparado un dossier técnico detallado con mi historial laboral, certificaciones y proyectos destacados en formato PDF.
+                    </p>
+</div>
+<div class="flex flex-col gap-4 w-full md:w-auto relative z-10">
+<button class="bg-primary-container text-on-primary-container px-10 py-5 rounded-xl font-headline font-bold flex items-center justify-center gap-3 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all group">
+<span class="material-symbols-outlined group-hover:translate-y-1 transition-transform" data-icon="download">download</span>
+                        Descargar CV (PDF)
+                    </button>
+<p class="text-center md:text-left font-mono text-[10px] uppercase tracking-widest text-on-surface-variant/60">
+                        Ultima actualización: Octubre 2024
+                    </p>
+</div>
+</div>
+</section>
+<!-- Technical Spec Sheet (New Component from DS) -->
+<section class="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-16">
+<div>
+<h4 class="text-sm font-mono uppercase tracking-[0.3em] text-primary mb-8">Technical Specs</h4>
+<ul class="space-y-4">
+<li class="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+<span class="font-mono text-xs text-slate-400 uppercase tracking-wider">Frontend</span>
+<span class="font-mono text-xs text-primary">React / Vue / Svelte</span>
+</li>
+<li class="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+<span class="font-mono text-xs text-slate-400 uppercase tracking-wider">Styling</span>
+<span class="font-mono text-xs text-primary">Tailwind / SCSS / Motion</span>
+</li>
+<li class="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+<span class="font-mono text-xs text-slate-400 uppercase tracking-wider">Headless CMS</span>
+<span class="font-mono text-xs text-primary">Sanity / Strapi / Contentful</span>
+</li>
+</ul>
+</div>
+<div class="md:col-span-2">
+<h4 class="text-sm font-mono uppercase tracking-[0.3em] text-primary mb-8">Filosofía de Trabajo</h4>
+<p class="text-on-surface-variant font-body leading-relaxed mb-6">
+                    Priorizo el <span class="text-slate-100 font-medium">Clean Code</span> y el principio <span class="text-slate-100 font-medium">DRY</span>, pero nunca a costa de la legibilidad. Mi código está diseñado para ser heredado, mantenido y escalado.
+                </p>
+<div class="grid grid-cols-2 gap-8 mt-12">
+<div class="border-l-2 border-primary/30 pl-6">
+<p class="font-headline font-bold text-slate-100 text-lg mb-2">Performance First</p>
+<p class="text-sm text-on-surface-variant">Optimización de Core Web Vitals y carga progresiva.</p>
+</div>
+<div class="border-l-2 border-primary/30 pl-6">
+<p class="font-headline font-bold text-slate-100 text-lg mb-2">Scalable Systems</p>
+<p class="text-sm text-on-surface-variant">Arquitecturas modulares preparadas para el crecimiento.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-950 w-full py-12 px-8 border-t border-slate-900">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="text-lg font-bold text-slate-200 font-['Space_Grotesk'] tracking-tighter">Silvano Puccini</span>
+<p class="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-slate-500 text-center md:text-left">
+                    © 2024 Silvano Puccini. Built with Architectural Minimalism.
+                </p>
+</div>
+<div class="flex gap-8">
+<a class="text-slate-500 hover:text-cyan-400 transition-colors font-['JetBrains_Mono'] text-xs uppercase tracking-widest opacity-80 hover:opacity-100" href="#">LinkedIn</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors font-['JetBrains_Mono'] text-xs uppercase tracking-widest opacity-80 hover:opacity-100" href="#">GitHub</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors font-['JetBrains_Mono'] text-xs uppercase tracking-widest opacity-80 hover:opacity-100" href="#">Twitter</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors font-['JetBrains_Mono'] text-xs uppercase tracking-widest opacity-80 hover:opacity-100" href="#">Email</a>
+</div>
+</div>
+</footer>
+</body></html>

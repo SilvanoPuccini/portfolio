@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d8e2ff",
+                        "error-container": "#93000a",
+                        "on-secondary-container": "#e6ecff",
+                        "surface-container-lowest": "#080e1d",
+                        "on-primary-container": "#005763",
+                        "inverse-primary": "#006877",
+                        "on-secondary": "#002e6a",
+                        "surface-bright": "#33394a",
+                        "inverse-on-surface": "#2a3040",
+                        "outline-variant": "#3c494c",
+                        "on-background": "#dde2f8",
+                        "surface-dim": "#0d1322",
+                        "surface-container-low": "#151b2b",
+                        "surface-variant": "#2f3445",
+                        "primary-container": "#22d3ee",
+                        "on-error": "#690005",
+                        "on-surface": "#dde2f8",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-primary-fixed": "#001f25",
+                        "primary": "#8aebff",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "tertiary-container": "#ffb147",
+                        "surface-container-high": "#242a3a",
+                        "secondary-container": "#0566d9",
+                        "on-primary-fixed-variant": "#004e5a",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#859397",
+                        "on-primary": "#00363e",
+                        "on-tertiary-container": "#704500",
+                        "on-tertiary-fixed": "#2a1700",
+                        "background": "#0d1322",
+                        "primary-fixed": "#a2eeff",
+                        "on-secondary-fixed": "#001a42",
+                        "on-secondary-fixed-variant": "#004395",
+                        "tertiary": "#ffd6a7",
+                        "on-surface-variant": "#bbc9cd",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary": "#472a00",
+                        "surface": "#0d1322",
+                        "inverse-surface": "#dde2f8",
+                        "surface-container": "#191f2f",
+                        "secondary": "#adc6ff",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#2fd9f4",
+                        "surface-container-highest": "#2f3445",
+                        "primary-fixed-dim": "#2fd9f4",
+                        "tertiary-fixed-dim": "#ffb95f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0d1322;
+            color: #dde2f8;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface-dim selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/60 backdrop-blur-xl bg-gradient-to-b from-slate-900/20 to-transparent">
+<div class="flex justify-between items-center max-w-7xl mx-auto px-8 h-20">
+<div class="text-xl font-bold tracking-tighter text-slate-50 font-headline">
+                Silvano Puccini
+            </div>
+<div class="hidden md:flex items-center space-x-10 font-headline tracking-tight">
+<a class="text-slate-400 hover:text-slate-200 transition-colors" href="#">Sobre mi</a>
+<a class="text-cyan-400 font-medium border-b border-cyan-400/50 pb-1" href="#">Proyectos</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors" href="#">Servicios</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors" href="#">Blog</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors" href="#">Contacto</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-headline font-bold scale-95 active:scale-90 transition-transform hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                Let's Talk
+            </button>
+</div>
+</nav>
+<main class="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<header class="mb-20">
+<h1 class="text-5xl md:text-7xl font-headline font-bold tracking-tighter mb-6 text-on-surface">
+                Selected <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary-container">Works</span>
+</h1>
+<p class="text-xl text-on-surface-variant max-w-2xl leading-relaxed">
+                A curation of digital products, technical experiments, and open-source contributions focused on performance and architectural clarity.
+            </p>
+</header>
+<!-- Filters -->
+<div class="flex flex-wrap items-center gap-4 mb-16">
+<span class="font-mono text-xs uppercase tracking-widest text-slate-500 mr-2">Filter_by:</span>
+<button class="px-6 py-2 rounded-full bg-primary-container text-on-primary-container font-headline font-medium transition-all">All Projects</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-primary transition-all font-headline font-medium border border-outline-variant/15">Web Apps</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-primary transition-all font-headline font-medium border border-outline-variant/15">UI/UX</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-primary transition-all font-headline font-medium border border-outline-variant/15">Open Source</button>
+</div>
+<!-- Project Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Project Card 1 -->
+<div class="group relative flex flex-col bg-surface-container rounded-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:bg-surface-container-high">
+<div class="aspect-video overflow-hidden relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="abstract architectural visualization of data flows with glowing cyan lines on a dark obsidian background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDn08ML6TbNZiOT_1XPv247RSxyoi_8xYK7ObooEpMA6leWKG7moD3FDDvkR4qRs2jeq2TBV-AzvtWxldqrJRFeCza079I7jPH6PXam8aveKuVnLs4-A-s5XBLZ1UKBtMw77vpkPOrrWNcyoEuRZsbBow-SZozBADDOd8RJ3A41DEVL2BHCKmToxM2FHI8R61iFDQywaI0m6v2q6WAWoOZrBLRKvUFvkNDzpyeDLd3s57NBTKChlcVXdWSxf9mG9za7GBsBHo13708"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-60"></div>
+</div>
+<div class="p-8 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-2xl font-headline font-bold text-slate-50">Lumina Analytics</h3>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+</div>
+<p class="text-on-surface-variant mb-8 text-sm leading-relaxed">
+                        High-performance dashboard for real-time cloud infrastructure monitoring with predictive anomaly detection.
+                    </p>
+<div class="mt-auto flex flex-wrap gap-2">
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">REACT</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">TYPESCRIPT</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">D3.JS</span>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="group relative flex flex-col bg-surface-container rounded-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:bg-surface-container-high">
+<div class="aspect-video overflow-hidden relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="minimalist 3d render of glass spheres and light refraction on a deep navy surface with soft focal blur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApn1MfzrIKVxqK1SJ62FSOWfnEzBhs-GNI2S0t5-xwygV5sinQ8HfUXIgi9rJ85bid7SeJCIUlRngt1FQ6DWhSDHCTw0N3ptR3N6ZsaCoxM6WTSznVxM-DooL0Uhx4sz7kAgAWmQwrBnqY0mh3jnRT2zakVpizCWxNCICdL1Fud5O2zTylHvD8b-z14SJwbBjVJEpiEwVeb3Cf6KUp1NS35ovNcFyUQf64B7RrtGkFZuyk4rl9xn6BzBarrpPoGBSbp_gmYpBgOrU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-60"></div>
+</div>
+<div class="p-8 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-2xl font-headline font-bold text-slate-50">Kryptos Protocol</h3>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+</div>
+<p class="text-on-surface-variant mb-8 text-sm leading-relaxed">
+                        An open-source encryption layer for distributed systems, achieving zero-knowledge proof verification.
+                    </p>
+<div class="mt-auto flex flex-wrap gap-2">
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">RUST</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">WASM</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">GRPC</span>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="group relative flex flex-col bg-surface-container rounded-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:bg-surface-container-high">
+<div class="aspect-video overflow-hidden relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="macro photography of futuristic hardware circuits with glowing blue neon accents and dark metallic textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWIoTfO4vWQ2hTeCrtfP0sW0Uf3CA1SDJLNQavFInVzXDmfyOr9pR8TRGmXynTJhq0xRdXJR_5gFNPl1enTFYX0m48Gt2nPhxwvFv33n3Wzi1Mot3xT5W9VpOm_V3xfxnx9Ft68rJPykYQP48ievldj2JvHx65iR5-2Ya1d-PR6sLRld4S95fLh3CyXM2sBwwllXc8cZSP7mGPF1JWC_Ljzckz__wMm2J1cwzXhA_KiImrC5t9QKy8YoeiCQgobx4L_uhud0v067I"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-60"></div>
+</div>
+<div class="p-8 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-2xl font-headline font-bold text-slate-50">Aether UI</h3>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+</div>
+<p class="text-on-surface-variant mb-8 text-sm leading-relaxed">
+                        Design system and component library focused on accessibility and glassmorphism interaction patterns.
+                    </p>
+<div class="mt-auto flex flex-wrap gap-2">
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">FIGMA</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">TAILWIND</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">STORYBOOK</span>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="group relative flex flex-col bg-surface-container rounded-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:bg-surface-container-high lg:col-span-2">
+<div class="grid grid-cols-1 md:grid-cols-2 h-full">
+<div class="overflow-hidden relative h-full min-h-[300px]">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="wide shot of a clean workspace with multiple monitors showing complex code structures in a dim moody room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArA096Z4Au06hEDJ8zssuxViOuplXJ7yrtlnoD20HFcVJc76609SeRZ3QY-BI2Z6PCy5l1WLzmV1DtOHLRR840asaePuDcxX01tgSt8popDiRtX4lt75sKLGy6xCU4l34CyklNe9XZIX1ckiEsFQOQzhsKrvFgTzpmR6OveUQsEBhWMUREKy1l60vuK9aGwpMSpiS7DpI4-ccM2kqGXh6WfDYtAq7gMT0rLGxvScJJ2P2LB607Et-HIxRuI9C6GPaJZUpzK4W7V_g"/>
+</div>
+<div class="p-10 flex flex-col">
+<div class="mb-4">
+<span class="font-mono text-xs text-primary uppercase tracking-widest">Featured Project</span>
+</div>
+<h3 class="text-3xl font-headline font-bold text-slate-50 mb-4">Nexus OS Kernel</h3>
+<p class="text-on-surface-variant mb-10 text-base leading-relaxed">
+                            An experimental microkernel architecture built to explore memory safety in low-level systems programming. This project challenges standard threading models to reduce context-switching latency by 40%.
+                        </p>
+<div class="mt-auto">
+<div class="flex flex-wrap gap-3 mb-8">
+<span class="font-mono text-xs bg-surface-container-highest px-3 py-1 rounded-full text-primary">C++ 20</span>
+<span class="font-mono text-xs bg-surface-container-highest px-3 py-1 rounded-full text-primary">ASM</span>
+<span class="font-mono text-xs bg-surface-container-highest px-3 py-1 rounded-full text-primary">POSIX</span>
+</div>
+<button class="group/btn flex items-center gap-2 text-primary font-headline font-bold">
+                                View Case Study 
+                                <span class="material-symbols-outlined group-hover/btn:translate-x-2 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 5 -->
+<div class="group relative flex flex-col bg-surface-container rounded-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:bg-surface-container-high">
+<div class="aspect-video overflow-hidden relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="abstract close up of fiber optic cables glowing with soft blue and white light against a dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtyXApeOfvNJ_0_HKRjUzXJUfA5UkUu7NMsjAJIr2rrfDdWYM5dNsfAqDgQ2bWXeXnataQMbHi1xc2_I_b-XKQrqD4iZj_6X8mxk0NXdhWEQ4mfv2djCfy1hYZB2Q0mdTxYATke2YxYgkOJtj9n1lWc1Hm9WLWqFTyD3gNqv3T0usE3hDVsaZytFCFyaePITks4zqu0s9uLz3mASMdLM3lfQjUqTHYpXgDDiO_JWNrSTxbwK_HPBn1sb4LdN_AChZ8vkDYY3WyRjU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-60"></div>
+</div>
+<div class="p-8 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-2xl font-headline font-bold text-slate-50">Vortex CDN</h3>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+</div>
+<p class="text-on-surface-variant mb-8 text-sm leading-relaxed">
+                        A lightweight content delivery node designed for edge computing environments.
+                    </p>
+<div class="mt-auto flex flex-wrap gap-2">
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">GO</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">REDIS</span>
+<span class="font-mono text-[10px] bg-surface-container-highest px-2 py-1 rounded-full text-primary border border-primary/10">DOCKER</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Spec Sheet Component (As defined in Design System) -->
+<section class="mt-32 pt-20 border-t border-slate-900">
+<h2 class="text-3xl font-headline font-bold mb-12">Technical <span class="text-primary">Ecosystem</span></h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-12">
+<div>
+<h4 class="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Languages</h4>
+<ul class="space-y-4">
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">TypeScript</span>
+<span class="font-mono text-sm text-primary">Expert</span>
+</li>
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">Rust</span>
+<span class="font-mono text-sm text-primary">Senior</span>
+</li>
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">Go</span>
+<span class="font-mono text-sm text-primary">Mid</span>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Frontend</h4>
+<ul class="space-y-4">
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">Next.js</span>
+<span class="font-mono text-sm text-primary">92%</span>
+</li>
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">Tailwind</span>
+<span class="font-mono text-sm text-primary">100%</span>
+</li>
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">WebGL</span>
+<span class="font-mono text-sm text-primary">60%</span>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Infrastructure</h4>
+<ul class="space-y-4">
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">K8s</span>
+<span class="font-mono text-sm text-primary">Active</span>
+</li>
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">AWS</span>
+<span class="font-mono text-sm text-primary">Cert</span>
+</li>
+<li class="flex justify-between items-center group">
+<span class="font-mono text-sm text-slate-400 group-hover:text-slate-200 transition-colors">Terraform</span>
+<span class="font-mono text-sm text-primary">v1.5</span>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Availability</h4>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+<span class="font-headline font-bold text-slate-200">Open for Roles</span>
+</div>
+<p class="text-[10px] font-mono text-slate-500 leading-tight">Current capacity: 20% dedicated to OS research.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 border-t border-slate-900 bg-slate-950">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-8">
+<div class="text-lg font-bold text-slate-200 font-headline">
+                Silvano Puccini
+            </div>
+<div class="text-slate-500 font-mono text-xs uppercase tracking-widest text-center">
+                © 2024 Silvano Puccini. Built with Architectural Minimalism.
+            </div>
+<div class="flex gap-8 font-mono text-xs uppercase tracking-widest">
+<a class="text-slate-500 hover:text-cyan-400 transition-colors opacity-80 hover:opacity-100" href="#">LinkedIn</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors opacity-80 hover:opacity-100" href="#">GitHub</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors opacity-80 hover:opacity-100" href="#">Twitter</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors opacity-80 hover:opacity-100" href="#">Email</a>
+</div>
+</div>
+</footer>
+</body></html>
