@@ -1,24 +1,219 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  --background: 10 14 24;
+  --foreground: 241 245 249;
+  --surface-dim: 13 19 34;
+  --surface: 21 27 43;
+  --surface-elevated: 25 31 47;
+  --surface-glass: 25 31 47;
+  --surface-contrast: 238 244 255;
+  --text-primary: 241 245 249;
+  --text-secondary: 148 163 184;
+  --text-tertiary: 100 116 139;
+  --brand-primary: 138 235 255;
+  --brand-secondary: 5 102 217;
+  --brand-glow: 34 211 238;
+  --outline-ghost: 148 163 184;
+  --outline-strong: 226 232 240;
+  --accent-warm: 245 158 11;
   color-scheme: dark;
+  accent-color: rgb(var(--brand-primary));
+  scroll-behavior: smooth;
+}
+
+[data-theme="light"] {
+  --background: 240 244 250;
+  --foreground: 15 23 42;
+  --surface-dim: 231 238 247;
+  --surface: 248 251 255;
+  --surface-elevated: 255 255 255;
+  --surface-glass: 255 255 255;
+  --surface-contrast: 255 255 255;
+  --text-primary: 15 23 42;
+  --text-secondary: 71 85 105;
+  --text-tertiary: 100 116 139;
+  --brand-primary: 5 102 217;
+  --brand-secondary: 14 165 233;
+  --brand-glow: 8 47 107;
+  --outline-ghost: 100 116 139;
+  --outline-strong: 51 65 85;
+  color-scheme: light;
+}
+
+* {
+  @apply border-outline-ghost/15;
+}
+
+html {
+  @apply bg-background text-foreground;
 }
 
 body {
-  @apply bg-background text-slate-50 antialiased;
+  @apply min-h-screen bg-background font-sans text-base text-text-primary antialiased;
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(37, 99, 235, 0.28), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(96, 165, 250, 0.18), transparent 40%);
+    radial-gradient(circle at top left, rgba(138, 235, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 80% 10%, rgba(5, 102, 217, 0.2), transparent 26%),
+    linear-gradient(180deg, rgba(21, 27, 43, 0.72), transparent 18%);
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.24);
+  color: rgb(var(--text-primary));
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-display tracking-editorial text-text-primary;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  @apply transition-all duration-300 ease-out;
 }
 
 a {
-  @apply transition-colors duration-200;
+  @apply text-inherit no-underline;
 }
 
-.section-card {
-  @apply rounded-2xl border border-white/10 bg-surface/90 shadow-glow;
+p {
+  @apply text-text-secondary;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.55);
+  outline-offset: 4px;
+}
+
+@layer base {
+  main {
+    @apply relative flex-1;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply relative flex min-h-screen flex-col overflow-x-clip;
+  }
+
+  .site-container {
+    @apply mx-auto w-full max-w-[84rem] px-6 sm:px-8 lg:px-10;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[120] focus:rounded-pill focus:bg-brand-primary focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-slate-950 focus:shadow-glow;
+  }
+
+  .editorial-grid {
+    @apply grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)];
+  }
+
+  .surface-section {
+    @apply rounded-[1.75rem] shadow-ambient backdrop-blur-sm;
+    background-color: rgb(var(--surface) / 0.92);
+  }
+
+  .surface-panel {
+    @apply rounded-xl shadow-ambient;
+    background-color: rgb(var(--surface-elevated) / 0.88);
+  }
+
+  .interactive-surface {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:border-outline-ghost/25 hover:shadow-[0_24px_60px_rgba(2,8,23,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  .interactive-control {
+    @apply transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-outline-ghost/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  .interactive-control:hover {
+    background-color: rgb(var(--surface) / 0.92);
+  }
+
+  .field-shell {
+    @apply w-full rounded-xl border bg-surface-dim/80 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:pointer-events-none disabled:opacity-60;
+  }
+
+  .field-shell:hover {
+    border-color: rgb(var(--outline-ghost) / 0.28);
+    background-color: rgb(var(--surface) / 0.8);
+  }
+
+  .glass-panel {
+    @apply rounded-xl border border-outline-ghost/15 shadow-glass backdrop-blur-2xl;
+    background-color: rgb(var(--surface-glass) / 0.6);
+  }
+
+  .ghost-border {
+    @apply border border-outline-ghost/15;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-12 items-center justify-center rounded-[0.875rem] bg-brand-primary px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-slate-950 shadow-glow hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(34,211,238,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none;
+  }
+
+  .button-primary-soft {
+    @apply border border-transparent shadow-[0_10px_24px_rgba(34,211,238,0.14)];
+  }
+
+  .button-primary-soft:hover {
+    box-shadow: 0 12px 28px rgba(34, 211, 238, 0.18);
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-12 items-center justify-center rounded-[0.875rem] border border-outline-ghost/15 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-text-primary hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60;
+    background-color: rgb(var(--surface-elevated) / 0.8);
+  }
+
+  .button-secondary:hover {
+    background-color: rgb(var(--surface-contrast) / 0.1);
+  }
+
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.24em] text-text-secondary;
+  }
+
+  .display-title {
+    @apply font-display text-5xl tracking-editorial text-text-primary sm:text-6xl lg:text-7xl;
+  }
+
+  .technical-label {
+    @apply font-mono text-xs uppercase tracking-[0.22em] text-brand-primary;
+  }
+
+  .section-spacing {
+    @apply py-18 sm:py-22 lg:py-26;
+  }
+
+  .no-line-stack > * + * {
+    @apply mt-8;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .bg-editorial-hero {
+    background-image: theme("backgroundImage.hero-radial");
+  }
+
+  .bg-editorial-texture {
+    background-image: theme("backgroundImage.texture");
+    background-size: 24px 24px;
+  }
 }
