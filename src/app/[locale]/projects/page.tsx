@@ -5,6 +5,7 @@ import { Github, Globe } from "lucide-react";
 import ProjectCard from "@/components/blocks/ProjectCard";
 import ProjectGrid from "@/components/blocks/ProjectGrid";
 import CTACluster from "@/components/site/CTACluster";
+import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -255,33 +256,21 @@ export default async function ProjectsPage({
 
   return (
     <>
-      <section className="relative -mt-28 overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.72),rgb(var(--background)/0.96))] pt-28 sm:-mt-[7.5rem] sm:pt-[7.5rem]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgb(var(--brand-primary)/0.16),transparent_24%),radial-gradient(circle_at_80%_22%,rgb(var(--brand-secondary)/0.14),transparent_28%),linear-gradient(180deg,rgb(var(--surface-contrast)/0.18),transparent_36%)]" />
-
-        <div className="relative mx-auto w-full max-w-[92rem] px-6 pb-10 pt-14 sm:px-8 sm:pb-12 sm:pt-18 lg:px-12 lg:pb-14 lg:pt-16 xl:pt-[4.5rem]">
-          <div className="grid lg:min-h-[30rem] lg:items-start xl:min-h-[32rem]">
-            <div className="max-w-4xl -mt-1 sm:-mt-8 lg:mt-0 lg:self-start lg:-translate-y-11 xl:-translate-y-14">
-              <p className="eyebrow mb-4 sm:mb-5 lg:mb-6">{labels.hero.eyebrow}</p>
-              <h1 className="max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary text-pretty sm:text-4xl sm:leading-[1.05] lg:text-[3.75rem] lg:leading-[1.02] xl:text-[4.15rem]">
-                {labels.hero.title}
-              </h1>
-
-              <div className="mt-5 max-w-3xl space-y-3 text-lg leading-[1.82rem] text-text-secondary sm:mt-6 sm:space-y-4 sm:text-xl sm:leading-[2rem] lg:mt-6 lg:space-y-3.5 xl:mt-7">
-                <p>{labels.hero.intro}</p>
-
-                <div className="flex flex-col gap-4 pt-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:pt-1">
-                  <Link href="#projects-list" className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
-                    {labels.hero.primaryCta}
-                  </Link>
-                  <Link href={`/${currentLocale}/contact`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
-                    {labels.hero.secondaryCta}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow={labels.hero.eyebrow}
+        title={labels.hero.title}
+        subtitle={<p>{labels.hero.intro}</p>}
+        actions={
+          <>
+            <Link href="#projects-list" className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+              {labels.hero.primaryCta}
+            </Link>
+            <Link href={`/${currentLocale}/contact`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
+              {labels.hero.secondaryCta}
+            </Link>
+          </>
+        }
+      />
 
       <div id="projects-list" className="scroll-mt-28">
         <SectionShell

@@ -44,9 +44,10 @@ export default async function BlogPage({
             {content.blog.title} <span className="text-brand-primary">{content.blog.titleAccent}</span>
           </>
         }
-        description={<p>{content.blog.intro}</p>}
+        subtitle={<p>{content.blog.intro}</p>}
+        description={<p>{content.blog.editorialNote}</p>}
         aside={
-          <div className="no-line-stack">
+          <div className="surface-panel no-line-stack px-5 py-6 sm:px-7 sm:py-8 lg:px-8">
             <div>
               <p className="technical-label">Status</p>
               <p className="mt-3 text-lg font-semibold text-text-primary">

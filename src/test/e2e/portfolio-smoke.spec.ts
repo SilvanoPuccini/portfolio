@@ -78,7 +78,7 @@ test.describe("portfolio rebuild smoke", () => {
     const statusPanel = page.locator("#contact-form-status");
 
     await page.getByRole("button", { name: "Enviar propuesta" }).click();
-    await expect(statusPanel).toContainText("Revisión requerida");
+    await expect(statusPanel).toContainText("Revisión pendiente");
     await expect(statusPanel).toContainText("Revisá los campos e intentá nuevamente. Si persiste, podés escribirme directo por email.");
     await expect(form.getByText("Este campo es obligatorio.")).toHaveCount(4);
 
@@ -88,6 +88,7 @@ test.describe("portfolio rebuild smoke", () => {
     await page.getByLabel("Mensaje").fill("Running the final smoke suite.");
     await page.getByRole("button", { name: "Enviar propuesta" }).click();
 
+    await expect(page).toHaveURL(/\/es\/contact$/);
     await expect(page.getByText("Mensaje entregado")).toBeVisible();
     await expect(page.getByText("Mensaje enviado. Si todo salió bien, te responderé por email.")).toBeVisible();
   });

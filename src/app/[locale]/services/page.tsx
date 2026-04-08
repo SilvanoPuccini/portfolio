@@ -299,14 +299,18 @@ export default async function ServicesPage({
       <PageHero
         eyebrow={labels.hero.eyebrow}
         title={labels.hero.title}
-        description={
-          <div className="space-y-4">
-            <p>{labels.hero.intro}</p>
-            <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{labels.hero.support}</p>
-          </div>
+        subtitle={<p>{labels.hero.intro}</p>}
+        description={<p>{labels.hero.support}</p>}
+        actions={
+          <CTACluster
+            items={[
+              { label: labels.hero.primaryCta, href: `/${currentLocale}/contact` },
+              { label: labels.hero.secondaryCta, href: `/${currentLocale}/projects`, variant: "secondary" },
+            ]}
+          />
         }
         aside={
-          <div className="no-line-stack">
+          <div className="surface-panel no-line-stack px-5 py-6 sm:px-7 sm:py-8 lg:px-8">
             <div>
               <p className="technical-label">{labels.hero.aside.status}</p>
               <p className="mt-3 text-lg font-semibold text-text-primary">{labels.hero.aside.statusValue}</p>
@@ -330,13 +334,6 @@ export default async function ServicesPage({
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.hero.aside.experience}</p>
               <p className="mt-2 text-sm font-medium leading-6 text-text-primary">{labels.hero.aside.experienceValue}</p>
             </div>
-
-            <CTACluster
-              items={[
-                { label: labels.hero.primaryCta, href: `/${currentLocale}/contact` },
-                { label: labels.hero.secondaryCta, href: `/${currentLocale}/projects`, variant: "secondary" },
-              ]}
-            />
           </div>
         }
       />

@@ -36,7 +36,7 @@ type FormState = {
 };
 
 type ToastState = {
-  type: "success" | "error";
+  type: "success" | "error" | "warning";
   message: string;
 };
 
@@ -61,25 +61,25 @@ export default function ContactForm({
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
   const [toast, setToast] = useState<ToastState | null>(null);
   const statusMeta = {
-    submitting: {
-      icon: LoaderCircle,
-      badgeTone: "text-brand-secondary",
-      panelTone: "border-brand-secondary/20 bg-brand-secondary/10",
-      iconTone: "text-brand-secondary",
-      copyTone: "text-text-secondary",
-    },
     success: {
       icon: CheckCircle2,
-      badgeTone: "text-brand-primary",
-      panelTone: "border-brand-primary/25 bg-brand-primary/10",
-      iconTone: "text-brand-primary",
+      badgeTone: "bg-emerald-500 text-emerald-950",
+      panelTone: "border-emerald-500/30 bg-[rgb(var(--surface-elevated))]",
+      iconTone: "bg-emerald-500 text-emerald-950",
       copyTone: "text-text-primary",
     },
     error: {
       icon: AlertCircle,
-      badgeTone: "text-red-300",
-      panelTone: "border-red-400/25 bg-red-400/8",
-      iconTone: "text-red-300",
+      badgeTone: "bg-red-500 text-red-950",
+      panelTone: "border-red-500/30 bg-[rgb(var(--surface-elevated))]",
+      iconTone: "bg-red-500 text-red-950",
+      copyTone: "text-text-primary",
+    },
+    warning: {
+      icon: AlertCircle,
+      badgeTone: "bg-amber-400 text-amber-950",
+      panelTone: "border-amber-400/30 bg-[rgb(var(--surface-elevated))]",
+      iconTone: "bg-amber-400 text-amber-950",
       copyTone: "text-text-primary",
     },
   } as const;
@@ -87,11 +87,13 @@ export default function ContactForm({
     locale === "es"
       ? {
           success: "Mensaje entregado",
+          warning: "Revisión pendiente",
           error: "Revisión requerida",
         }
       : {
           success: "Message delivered",
-          error: "Review required",
+          warning: "Needs review",
+          error: "Delivery failed",
         };
   const currentStatusMeta = toast ? statusMeta[toast.type] : null;
 
@@ -100,12 +102,16 @@ export default function ContactForm({
       return;
     }
 
+    if (status === "submitting") {
+      return;
+    }
+
     const timeoutId = window.setTimeout(() => {
       setToast(null);
     }, 4200);
 
     return () => window.clearTimeout(timeoutId);
-  }, [toast]);
+  }, [status, toast]);
 
   const fieldDescriptors = useMemo(
     () => [
@@ -158,18 +164,14 @@ export default function ContactForm({
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      setToast({ type: "error", message: labels.error });
+      setToast({ type: "warning", message: labels.error });
       return;
     }
 
     setStatus("submitting");
-    setToast(null);
+    setToast({ type: "warning", message: labels.sending });
 
-    const formData = new FormData();
-    formData.append("name", values.name.trim());
-    formData.append("email", values.email.trim());
-    formData.append("subject", values.subject.trim());
-    formData.append("message", values.message.trim());
+    const formData = new FormData(event.currentTarget);
     formData.append("locale", locale);
 
     try {
@@ -182,16 +184,32 @@ export default function ContactForm({
       });
 
       if (!response.ok) {
-        throw new Error("Contact form submission failed");
+        let errorMessage = labels.error;
+
+        try {
+          const payload = (await response.json()) as { errors?: Array<{ message?: string }> };
+          const formspreeMessage = payload.errors?.find((error) => error.message?.trim())?.message;
+
+          if (formspreeMessage) {
+            errorMessage = formspreeMessage;
+          }
+        } catch {
+          // Keep the localized fallback if Formspree does not return JSON.
+        }
+
+        throw new Error(errorMessage);
       }
 
       setValues(initialState);
       setErrors({});
       setStatus("idle");
       setToast({ type: "success", message: labels.success });
-    } catch {
+    } catch (error) {
       setStatus("idle");
-      setToast({ type: "error", message: labels.error });
+      setToast({
+        type: "error",
+        message: error instanceof Error && error.message ? error.message : labels.error,
+      });
     }
   }
 
@@ -279,45 +297,60 @@ export default function ContactForm({
             ) : null}
           </label>
 
-          <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
-            <button type="submit" className="button-primary w-full sm:min-w-[13rem] sm:w-auto" disabled={status === "submitting"}>
+          <div className="grid gap-3 sm:grid-cols-[max-content_minmax(0,1fr)] sm:items-start sm:gap-4">
+            <button
+              type="submit"
+              className="button-primary w-full sm:min-w-[13rem] sm:w-auto sm:shrink-0"
+              disabled={status === "submitting"}
+            >
               <span className="inline-flex items-center gap-2">
                 {status === "submitting" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
                 <span>{status === "submitting" ? labels.sending : labels.submit}</span>
               </span>
             </button>
-          </div>
 
-        {toast && currentStatusMeta ? (() => {
-          const StatusIcon = currentStatusMeta.icon;
+            {toast && currentStatusMeta ? (() => {
+              const StatusIcon = currentStatusMeta.icon;
 
-          return (
-            <div
-              className="pointer-events-none fixed inset-x-4 bottom-4 z-50 sm:left-auto sm:right-6 sm:w-full sm:max-w-md"
-              role={toast.type === "error" ? "alert" : "status"}
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              <div
-                className={cn(
-                  "rounded-[var(--radius-soft)] border px-4 py-4 shadow-[0_18px_48px_rgba(0,0,0,0.26)] backdrop-blur-md sm:px-5",
-                  currentStatusMeta.panelTone,
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={cn("mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-soft)] border border-current/10 bg-background/35", currentStatusMeta.iconTone)}>
-                    <StatusIcon className="h-4 w-4" />
-                  </div>
+              return (
+                <div
+                  id="contact-form-status"
+                  className={cn(
+                    "relative min-h-[3.75rem] w-full rounded-[var(--radius-soft)] border px-3.5 py-3 text-left shadow-[0_18px_40px_rgba(2,6,23,0.18)] sm:min-h-12 sm:px-4 sm:py-3",
+                    currentStatusMeta.panelTone,
+                  )}
+                  role={toast.type === "error" ? "alert" : "status"}
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <div className="flex items-start gap-3 sm:items-center">
+                    <div
+                      className={cn(
+                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[calc(var(--radius-soft)-2px)] shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] sm:mt-0",
+                        currentStatusMeta.iconTone,
+                      )}
+                    >
+                      <StatusIcon className={cn("h-4 w-4", status === "submitting" ? "animate-spin" : undefined)} />
+                    </div>
 
-                  <div className="min-w-0">
-                    <p className={cn("font-mono text-[11px] uppercase tracking-[0.18em]", currentStatusMeta.badgeTone)}>{statusCopy[toast.type]}</p>
-                    <p className={cn("mt-3 text-sm leading-6", currentStatusMeta.copyTone)}>{toast.message}</p>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={cn(
+                          "inline-flex rounded-pill px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] leading-none sm:text-[11px]",
+                          currentStatusMeta.badgeTone,
+                        )}
+                      >
+                        {status === "submitting" ? labels.sending : statusCopy[toast.type]}
+                      </p>
+                      <p className={cn("mt-2 text-sm leading-6", currentStatusMeta.copyTone)}>
+                        {toast.message}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })() : null}
+              );
+            })() : null}
+          </div>
       </form>
     </div>
   );

@@ -1,8 +1,10 @@
+import type { ComponentPropsWithoutRef } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, Github, Linkedin, Mail, MapPin, MessageSquareMore, Phone } from "lucide-react";
+import { ArrowUpRight, Github, Linkedin, Mail, Phone } from "lucide-react";
 import ContactForm from "@/components/blocks/ContactForm";
-import ContactPanel from "@/components/blocks/ContactPanel";
+import ContactMethods from "@/components/blocks/ContactMethods";
+import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -50,9 +52,11 @@ const copy = {
       email: "Email directo",
       location: "Ubicación",
       phone: "WhatsApp / Teléfono",
+      phoneHeading: "¿Listo para estructurar tu próximo proyecto?",
       emailDetail: "Canal principal para propuestas, consultas y colaboración.",
       locationDetail: "Base en Pucón, Chile con trabajo remoto.",
-      phoneDetail: "Canal útil para coordinación rápida y seguimiento.",
+      phoneDetail: "Canal útil para coordinar rápido y seguimiento.",
+      phoneCta: "Agenda tu llamada",
     },
     methods: {
       linkedin: "LinkedIn",
@@ -122,9 +126,11 @@ const copy = {
       email: "Direct email",
       location: "Location",
       phone: "WhatsApp / Phone",
+      phoneHeading: "Ready to structure your next project?",
       emailDetail: "Primary channel for proposals, questions, and collaboration.",
       locationDetail: "Based in Pucon, Chile with remote work.",
-      phoneDetail: "Useful channel for fast coordination and follow-up.",
+      phoneDetail: "Useful channel for quick coordination and follow-up.",
+      phoneCta: "Schedule your call",
     },
     methods: {
       linkedin: "LinkedIn",
@@ -141,11 +147,10 @@ const copy = {
       secondary: "Go to services",
     },
     anchor: {
-      eyebrow: "Operating base",
-      title: "Wide visual block with location, availability, and working context.",
-      description:
-        "This close takes the visual-anchor logic from the reference and adapts it to the portfolio with real content instead of fictional data.",
-      mapEyebrow: "Live map",
+      eyebrow: "",
+      title: "",
+      description: "",
+      mapEyebrow: "",
       mapDetail: "Embedded view of Pucon using real cartographic data via OpenStreetMap.",
       openMap: "Open map",
       labels: {
@@ -153,11 +158,33 @@ const copy = {
         location: "Location",
         profile: "Profile",
       },
-      support:
-        "I work remotely from Pucon, Chile, on projects where product thinking, implementation, and technical clarity need to coexist in the same conversation.",
+      support: "",
     },
   },
 } as const;
+
+function DiscordIcon({ size = 18, ...props }: ComponentPropsWithoutRef<"svg"> & { size?: number | string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="currentColor"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M20.317 4.369A19.791 19.791 0 0 0 15.484 3a13.92 13.92 0 0 0-.613 1.264 18.27 18.27 0 0 0-5.742 0A13.42 13.42 0 0 0 8.516 3a19.736 19.736 0 0 0-4.835 1.37C.624 8.997-.208 13.51.208 17.962A19.9 19.9 0 0 0 6.13 21a14.37 14.37 0 0 0 1.271-2.039 12.94 12.94 0 0 1-2.004-.98c.169-.125.334-.255.495-.39a13.99 13.99 0 0 0 12.215 0c.162.135.327.265.495.39-.64.374-1.311.703-2.004.98.37.734.795 1.416 1.271 2.039a19.88 19.88 0 0 0 5.924-3.038c.488-5.159-.833-9.631-3.476-13.593ZM9.813 15.234c-1.183 0-2.156-1.091-2.156-2.424 0-1.334.95-2.425 2.156-2.425 1.214 0 2.171 1.1 2.156 2.425 0 1.333-.95 2.424-2.156 2.424Zm4.374 0c-1.183 0-2.156-1.091-2.156-2.424 0-1.334.95-2.425 2.156-2.425 1.214 0 2.171 1.1 2.156 2.425 0 1.333-.942 2.424-2.156 2.424Z" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M19.11 4.89A9.88 9.88 0 0 0 12.06 2C6.57 2 2.1 6.47 2.1 11.96c0 1.76.46 3.47 1.33 4.98L2 22l5.22-1.37a9.9 9.9 0 0 0 4.74 1.21h.01c5.49 0 9.96-4.47 9.96-9.96a9.9 9.9 0 0 0-2.82-6.99ZM12 20.16h-.01a8.21 8.21 0 0 1-4.19-1.15l-.3-.18-3.1.81.83-3.02-.2-.31a8.25 8.25 0 0 1 12.81-10.2A8.16 8.16 0 0 1 20.26 12c0 4.55-3.71 8.16-8.26 8.16Zm4.53-6.15c-.25-.13-1.47-.72-1.7-.8-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.14.17-.28.19-.53.06-.25-.13-1.05-.39-2-.25-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.28.37-.42.12-.14.16-.24.24-.41.08-.16.04-.31-.02-.44-.06-.13-.56-1.35-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.66.31-.23.25-.86.84-.86 2.05 0 1.2.88 2.36 1 2.52.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.52.1.46-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.3Z" />
+    </svg>
+  );
+}
 
 export async function generateMetadata({
   params,
@@ -190,6 +217,12 @@ export default async function ContactPage({
   const githubHref = content.metadata.socialLinks.find((item) => item.platform === "github")?.href;
   const discordHref = content.metadata.socialLinks.find((item) => item.platform === "discord")?.href;
   const socialEmailHref = content.metadata.socialLinks.find((item) => item.platform === "email")?.href ?? emailHref;
+  const socialItems = [
+    linkedinHref ? { label: labels.methods.linkedin, href: linkedinHref, icon: Linkedin } : null,
+    githubHref ? { label: labels.methods.github, href: githubHref, icon: Github, accent: "secondary" as const } : null,
+    socialEmailHref ? { label: labels.methods.email, href: socialEmailHref, icon: Mail } : null,
+    discordHref ? { label: labels.methods.discord, href: discordHref, icon: DiscordIcon, accent: "secondary" as const } : null,
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
   const puconLatitude = "-39.2731173";
   const puconLongitude = "-71.9777605";
   const puconEmbedSrc =
@@ -198,113 +231,73 @@ export default async function ContactPage({
 
   return (
     <>
-      <section className="relative -mt-28 overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.72),rgb(var(--background)/0.96))] pt-28 sm:-mt-[7.5rem] sm:pt-[7.5rem]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgb(var(--brand-primary)/0.16),transparent_24%),radial-gradient(circle_at_80%_22%,rgb(var(--brand-secondary)/0.14),transparent_28%),linear-gradient(180deg,rgb(var(--surface-contrast)/0.18),transparent_36%)]" />
-
-        <div className="relative mx-auto w-full max-w-[92rem] px-6 pb-3 pt-10 sm:px-8 sm:pb-4 sm:pt-14 lg:px-12 lg:pb-5 lg:pt-12 xl:pt-[3.5rem]">
-          <div className="grid lg:min-h-[19rem] lg:items-start xl:min-h-[20.5rem]">
-            <div className="max-w-4xl lg:self-start">
-              <p className="eyebrow mb-4 text-white/72 sm:mb-5 lg:mb-6">{content.contact.eyebrow}</p>
-              <h1 className="max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.03em] text-pretty text-white sm:text-4xl sm:leading-[1.05] lg:text-[3.75rem] lg:leading-[1.02] xl:text-[4.15rem]">
-                {labels.hero.titlePrefix} {labels.hero.titleAccent}
-              </h1>
-
-              <div className="mt-5 max-w-3xl space-y-3 text-lg leading-[1.82rem] text-white/72 sm:mt-6 sm:space-y-4 sm:text-xl sm:leading-[2rem] lg:mt-5 lg:space-y-3 xl:mt-6">
-                <p>{labels.hero.lead}</p>
-                <p className="text-base leading-7 text-white/68 sm:text-lg sm:leading-8">{labels.hero.support}</p>
-              </div>
-
-              <div className="mt-6 rounded-[var(--radius-surface)] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm sm:px-5 lg:mt-7 lg:px-6 lg:py-4">
-                <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1fr)_auto] lg:items-center lg:gap-5">
-                  <p className="technical-label whitespace-nowrap text-white/64">{labels.ctaBanner.eyebrow}</p>
-                  <p className="text-sm font-medium leading-6 text-white sm:text-[0.95rem] sm:leading-6 lg:text-base">
-                    {labels.ctaBanner.title}
-                  </p>
-                  <p className="text-sm leading-6 text-white/70 sm:text-[0.95rem] sm:leading-6">
-                    {labels.ctaBanner.description}
-                  </p>
-                  <Link
-                    href={`/${currentLocale}/services`}
-                    className="button-secondary min-h-10 px-4 py-2 text-[11px] tracking-[0.16em] sm:w-fit"
-                  >
-                    {labels.ctaBanner.secondary}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow={content.contact.eyebrow}
+        title={
+          <>
+            {labels.hero.titlePrefix} {labels.hero.titleAccent}
+          </>
+        }
+        subtitle={<p>{labels.hero.lead}</p>}
+        description={<p>{labels.hero.support}</p>}
+        actions={
+          <>
+            <Link href={emailHref} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+              {labels.ctaBanner.primary}
+            </Link>
+            <Link href={`/${currentLocale}/services`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
+              {labels.ctaBanner.secondary}
+            </Link>
+          </>
+        }
+      />
 
       <SectionShell
         sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.28))]"
         containerClassName="pt-4 pb-7 sm:pt-5 sm:pb-9 lg:pt-6 lg:pb-10"
-        surface="plain"
       >
-        <div className="grid gap-6 lg:grid-cols-12 lg:items-stretch">
-          <div className="lg:col-span-7 xl:col-span-8">
-            <ContactForm action={content.contact.formspreeAction} locale={currentLocale} labels={labels.form} />
-          </div>
-
-          <div className="lg:col-span-5 lg:h-full xl:col-span-4">
-            <div className="grid h-full auto-rows-fr gap-4">
-              <ContactPanel
-                icon={Mail}
-                eyebrow={labels.direct.email}
-                title={content.metadata.email}
-                detail={labels.direct.emailDetail}
-                href={emailHref}
-              />
-              <ContactPanel
-                icon={MapPin}
-                eyebrow={labels.direct.location}
-                title={content.metadata.location}
-                detail={labels.direct.locationDetail}
-              />
-              <ContactPanel
-                icon={Phone}
-                eyebrow={labels.direct.phone}
-                title={content.metadata.phone}
-                detail={labels.direct.phoneDetail}
-                href={phoneHref}
-                accent="secondary"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 lg:mt-6">
-          <div className="surface-panel no-line-stack px-5 py-5 sm:px-6 sm:py-5">
-            <div>
-              <p className="technical-label">{labels.main.socialTitle}</p>
-              <p className="mt-2 text-xs leading-5 text-text-secondary sm:text-sm sm:leading-6">{content.contact.intro}</p>
+        <div className="mx-auto max-w-6xl space-y-5 lg:space-y-6">
+          <div className="grid gap-5 lg:grid-cols-12 lg:items-stretch xl:gap-6">
+            <div className="lg:col-span-7 xl:col-span-8">
+              <ContactForm action={content.contact.formspreeAction} locale={currentLocale} labels={labels.form} />
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2 sm:gap-2.5">
-              {[
-                linkedinHref ? { label: labels.methods.linkedin, href: linkedinHref, icon: Linkedin } : null,
-                githubHref ? { label: labels.methods.github, href: githubHref, icon: Github } : null,
-                socialEmailHref ? { label: labels.methods.email, href: socialEmailHref, icon: Mail } : null,
-                discordHref ? { label: labels.methods.discord, href: discordHref, icon: MessageSquareMore } : null,
-              ]
-                .filter((item): item is NonNullable<typeof item> => Boolean(item))
-                .map((item) => {
-                  const Icon = item.icon;
+            <div className="lg:col-span-5 lg:h-full xl:col-span-4">
+              <div className="flex h-full flex-col gap-3 lg:gap-3.5">
+                <a
+                  href={phoneHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`${labels.direct.phone}: ${labels.direct.phoneCta}`}
+                  className="surface-panel interactive-surface group flex min-h-[7.75rem] flex-col justify-between gap-3 rounded-[var(--radius-soft)] border border-outline-ghost/10 px-4.5 py-3.5 sm:px-5 sm:py-4"
+                >
+                  <div className="space-y-1.5">
+                    <div className="inline-flex items-center gap-2.5 text-text-tertiary sm:gap-3">
+                      <Phone size={14} strokeWidth={1.9} className="shrink-0" />
+                      <p className="font-mono text-[11px] uppercase tracking-[0.18em]">{labels.direct.phone}</p>
+                    </div>
+                    <h2 className="max-w-[18ch] text-[0.98rem] font-medium leading-5 text-text-primary sm:text-[1.02rem] sm:leading-5">
+                      {labels.direct.phoneHeading}
+                    </h2>
+                    <p className="max-w-[26ch] text-sm leading-5 text-text-secondary">{labels.direct.phoneDetail}</p>
+                  </div>
 
-                  return (
-                    <a
-                      key={`${item.label}-${item.href}`}
-                      href={item.href}
-                      target={item.href.startsWith("http") ? "_blank" : undefined}
-                      rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-                      className="surface-subpanel inline-flex min-h-0 items-center gap-2.5 border border-outline-ghost/10 bg-surface/65 px-3 py-2 text-sm text-text-primary transition-colors hover:border-outline-ghost/20 hover:text-text-primary"
-                    >
-                      <Icon size={15} strokeWidth={1.8} className="text-brand-primary" />
-                      <span>{item.label}</span>
-                      <ArrowUpRight size={14} strokeWidth={1.8} className="text-text-tertiary" />
-                    </a>
-                  );
-                })}
+                  <div className="inline-flex items-center gap-2 self-start text-brand-primary transition-opacity group-hover:opacity-80">
+                    <WhatsAppIcon className="h-[1rem] w-[1rem] shrink-0" />
+                    <span className="text-sm font-semibold leading-none">{labels.direct.phoneCta}</span>
+                    <ArrowUpRight className="h-[0.95rem] w-[0.95rem] shrink-0" strokeWidth={1.8} />
+                  </div>
+                </a>
+
+                <div className="surface-panel no-line-stack flex min-h-[10rem] flex-1 flex-col justify-between gap-3.5 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.78),rgb(var(--surface)/0.62))] px-4.5 py-4 sm:px-5 sm:py-4.5">
+                  <div className="space-y-1.5">
+                    <p className="technical-label">{labels.main.socialTitle}</p>
+                    <p className="max-w-[29ch] text-sm leading-5.5 text-text-secondary">{content.contact.intro}</p>
+                  </div>
+
+                  <ContactMethods items={socialItems} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -317,10 +310,10 @@ export default async function ContactPage({
         containerClassName="pt-0 pb-10 sm:pb-12 lg:-mt-2 lg:pb-14"
         surface="plain"
       >
-        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-          <div className="space-y-4 lg:space-y-5">
-            <div className="surface-panel no-line-stack overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.92),rgb(var(--surface)/0.9))]">
-              <div className="flex flex-col gap-4 border-b border-outline-ghost/10 px-5 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-start lg:justify-between lg:px-7">
+        <div className="py-5 sm:py-6 lg:py-8">
+          <div className="space-y-5 lg:space-y-6">
+            <div className="surface-panel no-line-stack overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.88))]">
+              <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-end lg:justify-between lg:px-7 lg:py-7">
                 <div className="max-w-3xl">
                   {labels.anchor.mapEyebrow ? <p className="technical-label">{labels.anchor.mapEyebrow}</p> : null}
                   <p className="mt-2 text-xl font-medium text-text-primary sm:text-2xl">{content.metadata.location}</p>
@@ -337,8 +330,8 @@ export default async function ContactPage({
                 </a>
               </div>
 
-              <div className="bg-[rgb(var(--surface)/0.98)] px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
-                <div className="relative overflow-hidden rounded-[calc(var(--radius-soft)-0.1rem)] bg-[rgb(var(--surface-dim)/0.96)]">
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4 lg:px-5 lg:pb-5">
+                <div className="relative overflow-hidden rounded-[calc(var(--radius-soft)-0.08rem)] bg-[rgb(var(--surface-dim)/0.96)]">
                   <div className="relative aspect-[16/10] w-full sm:aspect-[18/9] lg:aspect-[21/8]">
                     <iframe
                       title={`Map of ${content.metadata.location}`}
@@ -353,15 +346,15 @@ export default async function ContactPage({
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="surface-subpanel flex h-full min-h-[7.75rem] flex-col justify-between bg-surface/60 px-5 py-4">
+              <div className="surface-subpanel flex h-full min-h-[7.75rem] flex-col justify-between bg-surface/58 px-5 py-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.anchor.labels.availability}</p>
                 <p className="mt-3 text-sm font-medium leading-6 text-text-primary">{content.contact.availability}</p>
               </div>
-              <div className="surface-subpanel flex h-full min-h-[7.75rem] flex-col justify-between bg-surface/60 px-5 py-4">
+              <div className="surface-subpanel flex h-full min-h-[7.75rem] flex-col justify-between bg-surface/58 px-5 py-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.anchor.labels.location}</p>
                 <p className="mt-3 text-sm font-medium leading-6 text-text-primary">{content.metadata.location}</p>
               </div>
-              <div className="surface-subpanel flex h-full min-h-[7.75rem] flex-col justify-between bg-surface/60 px-5 py-4">
+              <div className="surface-subpanel flex h-full min-h-[7.75rem] flex-col justify-between bg-surface/58 px-5 py-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.anchor.labels.profile}</p>
                 <p className="mt-3 text-sm font-medium leading-6 text-text-primary">{content.metadata.role}</p>
               </div>
