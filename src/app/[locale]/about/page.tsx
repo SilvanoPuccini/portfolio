@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Globe, Server } from "lucide-react";
 import profileImage from "@/assets/images/profile.png";
+import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 
@@ -441,53 +442,51 @@ export default async function AboutPage({
 
   return (
     <>
-      <section className="relative -mt-28 overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.72),rgb(var(--background)/0.96))] pt-28 sm:-mt-[7.5rem] sm:pt-[7.5rem]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgb(var(--brand-primary)/0.16),transparent_24%),radial-gradient(circle_at_80%_22%,rgb(var(--brand-secondary)/0.14),transparent_28%),linear-gradient(180deg,rgb(var(--surface-contrast)/0.18),transparent_36%)]" />
-
-        <div className="relative mx-auto w-full max-w-[92rem] px-6 pb-10 pt-14 sm:px-8 sm:pb-12 sm:pt-18 lg:px-12 lg:pb-14 lg:pt-16 xl:pt-[4.5rem]">
-          <div className="grid gap-10 lg:min-h-[30rem] lg:grid-cols-[minmax(0,1.02fr)_minmax(20rem,0.62fr)] lg:items-start lg:gap-14 xl:min-h-[32rem] xl:gap-16">
-            <div className="max-w-4xl -mt-1 sm:-mt-8 lg:mt-0 lg:self-start lg:-translate-y-11 xl:-translate-y-14">
-              <p className="eyebrow mb-4 sm:mb-5 lg:mb-6">{heroContent.eyebrow}</p>
-              <h1 className="max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary text-pretty sm:text-4xl sm:leading-[1.05] lg:text-[3.75rem] lg:leading-[1.02] xl:text-[4.15rem]">
-                {heroContent.title}
-              </h1>
-
-              <div className="mt-5 max-w-3xl space-y-3 text-lg leading-[1.82rem] text-text-secondary sm:mt-6 sm:space-y-4 sm:text-xl sm:leading-[2rem] lg:mt-6 lg:space-y-3.5 xl:mt-7">
-                {heroContent.body.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-
-                <div className="pt-0.5 sm:pt-1">
-                  <Link href={content.metadata.cv.downloadHref} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
-                    {labels.hero.ctas.cv}
-                  </Link>
-                </div>
-              </div>
+      <PageHero
+        eyebrow={heroContent.eyebrow}
+        title={heroContent.title}
+        subtitle={<p>{heroContent.body[0]}</p>}
+        description={
+          <div className="space-y-3 sm:space-y-4">
+            {heroContent.body.slice(1).map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        }
+        actions={
+          <>
+            <Link href={content.metadata.cv.downloadHref} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+              {labels.hero.ctas.cv}
+            </Link>
+            <Link href={`/${currentLocale}/contact`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
+              {labels.hero.ctas.contact}
+            </Link>
+          </>
+        }
+        asideClassName="pt-2 lg:pt-4"
+        aside={
+          <>
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-surface)] bg-[linear-gradient(180deg,rgb(var(--surface)/0.9),rgb(var(--surface-dim)/0.92))] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
+              <Image
+                src={profileImage}
+                alt={heroContent.imageAlt}
+                fill
+                priority
+                sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
+                className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%]"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
             </div>
 
-            <aside className="relative self-start -mt-4 sm:-mt-6 lg:-mt-2 lg:-translate-y-4 xl:-mt-3 xl:-translate-y-6">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-surface)] bg-[linear-gradient(180deg,rgb(var(--surface)/0.9),rgb(var(--surface-dim)/0.92))] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
-                <Image
-                  src={profileImage}
-                  alt={heroContent.imageAlt}
-                  fill
-                  priority
-                  sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                  className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%]"
-                />
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
-              </div>
-
-              <div className="absolute -left-7 -bottom-4 w-fit max-w-[14.75rem] rounded-[var(--radius-soft)] bg-[rgba(13,19,34,0.94)] px-2.5 py-1.5 shadow-[0_18px_36px_rgba(13,19,34,0.28)] backdrop-blur sm:-left-8 sm:-bottom-5 sm:max-w-[16rem] sm:px-3 sm:py-2 lg:-left-10 lg:-bottom-6 xl:-left-11 xl:-bottom-7">
-                <p className="font-mono text-[12px] font-semibold leading-4 tracking-[0.16em] text-white sm:text-[13px]">{heroContent.badge[0]}</p>
-                <p className="mt-1 max-w-full font-mono text-[10px] font-semibold leading-4 tracking-[0.04em] text-white sm:text-[11px] sm:leading-[1.3rem]">
-                  {heroContent.badge[1]}
-                </p>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </section>
+            <div className="absolute -left-7 -bottom-4 w-fit max-w-[14.75rem] rounded-[var(--radius-soft)] bg-[rgba(13,19,34,0.94)] px-2.5 py-1.5 shadow-[0_18px_36px_rgba(13,19,34,0.28)] backdrop-blur sm:-left-8 sm:-bottom-5 sm:max-w-[16rem] sm:px-3 sm:py-2 lg:-left-10 lg:-bottom-6 xl:-left-11 xl:-bottom-7">
+              <p className="font-mono text-[12px] font-semibold leading-4 tracking-[0.16em] text-white sm:text-[13px]">{heroContent.badge[0]}</p>
+              <p className="mt-1 max-w-full font-mono text-[10px] font-semibold leading-4 tracking-[0.04em] text-white sm:text-[11px] sm:leading-[1.3rem]">
+                {heroContent.badge[1]}
+              </p>
+            </div>
+          </>
+        }
+      />
 
       <section className="bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.26))] py-12 sm:py-14 lg:py-16">
         <div className="site-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-start">

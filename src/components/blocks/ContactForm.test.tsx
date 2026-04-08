@@ -52,19 +52,64 @@ describe("ContactForm", () => {
     });
 
     expect(screen.getAllByText(labels.validation.required)).toHaveLength(4);
-    expect(screen.getByText("Review required")).toBeInTheDocument();
+    expect(document.getElementById("contact-form-status")).not.toBeNull();
+    expect(screen.getByText("Needs review")).toBeInTheDocument();
     expect(screen.getByText(labels.error)).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(4200);
     });
 
-    expect(screen.queryByText("Review required")).not.toBeInTheDocument();
+    expect(screen.queryByText("Needs review")).not.toBeInTheDocument();
     expect(screen.queryByText(labels.error)).not.toBeInTheDocument();
   });
 
   it("shows a temporary success toast after a valid submission", async () => {
-    vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
+    let resolveFetch: ((value: Response) => void) | undefined;
+
+    vi.mocked(fetch).mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
+
+    fireEvent.change(screen.getByLabelText(labels.fields.name), { target: { value: "Silvano" } });
+    fireEvent.change(screen.getByLabelText(labels.fields.email), { target: { value: "silvano@example.com" } });
+    fireEvent.change(screen.getByLabelText(labels.fields.subject), { target: { value: "Portfolio rebuild" } });
+    fireEvent.change(screen.getByLabelText(labels.fields.message), { target: { value: "Need help with final QA." } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: labels.submit }));
+    });
+
+    expect(document.getElementById("contact-form-status")).not.toBeNull();
+    expect(screen.getAllByText(labels.sending).length).toBeGreaterThan(0);
+
+    await act(async () => {
+      resolveFetch?.({ ok: true } as Response);
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Message delivered")).toBeInTheDocument();
+    expect(screen.getByText(labels.success)).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4200);
+    });
+
+    expect(screen.queryByText("Message delivered")).not.toBeInTheDocument();
+    expect(screen.queryByText(labels.success)).not.toBeInTheDocument();
+  });
+
+  it("shows a temporary error message when the remote submission fails", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, json: vi.fn().mockResolvedValue({}) } as unknown as Response);
 
     render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
 
@@ -81,14 +126,7 @@ describe("ContactForm", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByText("Message delivered")).toBeInTheDocument();
-    expect(screen.getByText(labels.success)).toBeInTheDocument();
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(4200);
-    });
-
-    expect(screen.queryByText("Message delivered")).not.toBeInTheDocument();
-    expect(screen.queryByText(labels.success)).not.toBeInTheDocument();
+    expect(screen.getByText("Delivery failed")).toBeInTheDocument();
+    expect(screen.getByText(labels.error)).toBeInTheDocument();
   });
 });
