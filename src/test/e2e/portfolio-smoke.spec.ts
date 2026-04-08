@@ -30,7 +30,7 @@ test.describe("portfolio rebuild smoke", () => {
     await expect(page.getByText("Placeholder temporal").first()).toBeVisible();
     await expect(page.getByText("Suscribite al radar")).toBeVisible();
     await expect(page.getByRole("contentinfo").getByRole("link", { name: /Portfolio/i })).toHaveCount(0);
-    await expect(page.getByRole("contentinfo").getByRole("link", { name: /Código/i })).toBeVisible();
+    await expect(page.getByRole("contentinfo").getByRole("link", { name: /GitHub/i })).toBeVisible();
     await expect(page.getByRole("contentinfo").getByRole("link", { name: /LinkedIn/i })).toBeVisible();
   });
 
@@ -42,7 +42,7 @@ test.describe("portfolio rebuild smoke", () => {
     await page.getByRole("button", { name: "Cambiar tema" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
-    await expect(page.getByRole("heading", { level: 2, name: "Currículum listo para descargar desde About." })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Disponible para construir productos reales." })).toBeVisible();
     await expect(page.getByRole("link", { name: "Descargar CV" }).first()).toHaveAttribute("href", "/cv");
 
     await page.getByRole("link", { name: "EN", exact: true }).click();
@@ -58,7 +58,7 @@ test.describe("portfolio rebuild smoke", () => {
 
     await page.goto("/en/cv");
     await expect(page).toHaveURL(/\/en\/about#cv$/);
-    await expect(page.getByRole("heading", { level: 2, name: "Resume ready to download from About." })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Available to build real products." })).toBeVisible();
   });
 
   test("shows spanish contact feedback for validation and successful submission", async ({ page }) => {

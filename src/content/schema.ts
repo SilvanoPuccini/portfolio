@@ -168,6 +168,10 @@ export type Project = {
     demo?: string;
     repo?: string;
   };
+  demoAccess?: Localized<{
+    label: string;
+    credentials: string;
+  }>;
   media: {
     cover: string;
     alt: Localized<string>;

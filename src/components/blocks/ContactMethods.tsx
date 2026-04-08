@@ -15,7 +15,7 @@ export default function ContactMethods({
   items: readonly ContactMethod[];
 }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid auto-rows-fr grid-cols-2 gap-3">
       {items.map((item) => {
         const Icon = item.icon;
 
@@ -25,20 +25,20 @@ export default function ContactMethods({
             href={item.href}
             target={item.href.startsWith("http") ? "_blank" : undefined}
             rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-            className="surface-panel interactive-surface group flex aspect-square flex-col justify-between border border-outline-ghost/10 px-5 py-5"
+            className="surface-panel interactive-surface group flex aspect-square min-h-[8.25rem] flex-col justify-between border border-outline-ghost/10 px-4 py-4 sm:min-h-[9rem] sm:px-5 sm:py-5"
           >
             <div
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-2xl border border-outline-ghost/10 bg-surface-dim/80 transition-transform duration-300 group-hover:scale-[1.03]",
+                "flex h-10 w-10 items-center justify-center rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-surface-dim/80 transition-transform duration-300 group-hover:scale-[1.03]",
                 item.accent === "secondary" ? "text-brand-secondary" : "text-brand-primary",
               )}
             >
-              <Icon size={20} strokeWidth={1.75} />
+              <Icon size={18} strokeWidth={1.75} />
             </div>
 
-            <div className="space-y-3">
-              <ArrowUpRight className="text-text-tertiary transition-colors group-hover:text-text-primary" size={18} strokeWidth={1.75} />
-              <p className="font-display text-lg uppercase tracking-tight text-text-primary sm:text-xl">{item.label}</p>
+            <div className="flex items-end justify-between gap-3">
+              <p className="font-display text-sm uppercase tracking-tight text-text-primary sm:text-base">{item.label}</p>
+              <ArrowUpRight className="shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary" size={17} strokeWidth={1.75} />
             </div>
           </a>
         );

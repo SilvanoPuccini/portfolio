@@ -10,42 +10,56 @@ export const projects: Project[] = [
     status: "live",
     year: "2026",
     headline: {
-      es: "E-commerce profesional para ferretería con Django 5.",
-      en: "Professional hardware e-commerce built with Django 5.",
+      es: "E-commerce Django 5 para ferretería con pagos reales, tracking y reviews.",
+      en: "Django 5 hardware e-commerce with real payments, shipment tracking, and reviews.",
     },
     summary: {
-      es: "Sistema de e-commerce diseñado para operar en tiempo real, con catálogo dinámico, gestión de pedidos y arquitectura preparada para escalar. Enfoque en performance, experiencia de usuario y flujo de compra optimizado.",
-      en: "Full stack case study with catalog, dynamic cart, payments, shipping tracking, and production-ready operations.",
+      es: "E-commerce para ferretería y corralón desarrollado con Django 5, con catálogo filtrable por categorías y marcas, carrito sin recarga con HTMX, checkout con Stripe y Mercado Pago, tracking de envíos y valoraciones de productos.",
+      en: "Django 5 e-commerce for a hardware store with category and brand filters, an HTMX-powered cart, Stripe and Mercado Pago checkout, shipment tracking, and product reviews.",
     },
     challenge: {
-      es: "Diseñar una solución capaz de manejar catálogo, stock y pedidos en un entorno de alta interacción, manteniendo fluidez y tiempos de respuesta bajos.",
-      en: "Solve a real online hardware-store workflow with no-refresh UX and a robust back office.",
+      es: "Transformar el Proyecto 11 de ConquerBlocks en un e-commerce completo y desplegado, manteniendo Django como base con arquitectura MVT modular, pagos reales y flujos operativos de tienda.",
+      en: "Turn ConquerBlocks Project 11 into a complete deployed e-commerce product while keeping Django at the core with modular MVT architecture, real payments, and operational store workflows.",
     },
     impact: {
       es: [
-        "Mejora en la experiencia de compra.",
-        "Reducción de fricción en el flujo.",
-        "Base sólida para escalar el sistema.",
+        "Catálogo con búsqueda fuzzy, filtros por categoría y marca, y carrito en sesión actualizado con HTMX + Alpine.js.",
+        "Checkout con Stripe y Mercado Pago, envíos por zonas y transportistas, tracking con timeline y webhooks de carrier.",
+        "Arquitectura MVT en 7 apps modulares, PostgreSQL 16 + Cloudinary en producción y 65 tests automatizados.",
       ],
       en: [
-        "Real-time interactive cart powered by HTMX + Alpine.js.",
-        "Checkout integrated with Stripe and Mercado Pago.",
-        "7 modular apps, 14 data models, and 65 automated tests.",
+        "Catalog with fuzzy search, category and brand filters, plus a session cart updated with HTMX and Alpine.js.",
+        "Checkout with Stripe and Mercado Pago, shipping by zone and carrier, and a tracking timeline backed by webhooks.",
+        "MVT architecture split into 7 modular apps, PostgreSQL 16 + Cloudinary in production, and 65 automated tests.",
       ],
     },
     stack: [
+      "Python 3.10",
       "Django 5",
       "PostgreSQL 16",
-      "Tailwind CSS",
       "HTMX",
       "Alpine.js",
+      "Flowbite",
+      "Tailwind CSS",
+      "Stripe",
+      "Mercado Pago",
       "Cloudinary",
-      "Gunicorn",
+      "django-allauth",
       "pytest-django",
     ],
     links: {
       demo: "https://ferrelonstock.onrender.com",
       repo: "https://github.com/SilvanoPuccini/ferrelonstock",
+    },
+    demoAccess: {
+      es: {
+        label: "Credenciales demo",
+        credentials: "admin / FerrelonAdmin2026!",
+      },
+      en: {
+        label: "Demo credentials",
+        credentials: "admin / FerrelonAdmin2026!",
+      },
     },
     media: {
       cover: "/projects/ferrelonstock.png",
@@ -56,8 +70,7 @@ export const projects: Project[] = [
       assetStatus: "real",
     },
     sourceUrls: [
-      "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
-      "https://github.com/SilvanoPuccini/SilvanoPuccini",
+      "https://raw.githubusercontent.com/SilvanoPuccini/ferrelonstock/main/README.md",
       "https://github.com/SilvanoPuccini/ferrelonstock",
       "https://ferrelonstock.onrender.com",
     ],
@@ -75,7 +88,7 @@ export const projects: Project[] = [
       en: "LATAM group-activities network with integrated trip logistics.",
     },
     summary: {
-      es: "Plataforma orientada a experiencia y performance, diseñada para comunicar valor de producto con claridad. Optimización de interacción y arquitectura frontend centrada en usuario.",
+      es: "Plataforma enfocada en experiencia y performance, con frontend centrado en usuario y una propuesta de valor clara.",
       en: "Full stack platform with maps, real-time chat, payments, and carpooling workflows for group experiences.",
     },
     challenge: {
@@ -226,6 +239,68 @@ export const projects: Project[] = [
       "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
       "https://github.com/SilvanoPuccini/payment-tracker-bot",
       "https://payment-tracker-bot.vercel.app/login",
+    ],
+  },
+  {
+    slug: "ferrestock",
+    name: "FerreStock",
+    featured: true,
+    priority: false,
+    category: "platform",
+    status: "live",
+    year: "2026",
+    headline: {
+      es: "Sistema de inventario para ferreteria con compras, reportes y control por roles.",
+      en: "Inventory system for hardware stores with purchasing flows, reporting, and role-based access.",
+    },
+    summary: {
+      es: "Sistema de inventario profesional desarrollado con Django para gestionar productos, categorias, proveedores, movimientos de stock y ordenes de compra.",
+      en: "Professional Django inventory system for products, categories, suppliers, stock movements, and purchase orders.",
+    },
+    challenge: {
+      es: "Llevar una entrega academica de Django hacia una solucion funcional mas cercana a un producto real para operacion diaria.",
+      en: "Push an academic Django delivery toward a functional solution closer to a real operational product.",
+    },
+    impact: {
+      es: [
+        "Dashboard con metricas, graficos y alertas de stock bajo.",
+        "Importacion masiva por CSV y reportes exportables en CSV, Excel y PDF.",
+        "Demo publica en Railway con roles Administrador, Operador y Consulta.",
+      ],
+      en: [
+        "Dashboard with metrics, charts, and low-stock alerts.",
+        "Bulk CSV import plus exportable CSV, Excel, and PDF reports.",
+        "Public Railway demo with Administrator, Operator, and Viewer roles.",
+      ],
+    },
+    stack: ["Python 3.12", "Django 5", "PostgreSQL", "Bootstrap 5", "openpyxl", "reportlab", "Cloudinary"],
+    links: {
+      demo: "https://ferrestock.up.railway.app",
+      repo: "https://github.com/SilvanoPuccini/ferrestock",
+    },
+    demoAccess: {
+      es: {
+        label: "Usuarios demo",
+        credentials: "admin_demo / Admin12345!",
+      },
+      en: {
+        label: "Demo users",
+        credentials: "admin_demo / Admin12345!",
+      },
+    },
+    media: {
+      cover: "https://res.cloudinary.com/dukgz1lpn/image/upload/v1775621645/Inicio-FerreStock_tp9n5y.png",
+      alt: {
+        es: "Captura del dashboard de FerreStock.",
+        en: "FerreStock dashboard screenshot.",
+      },
+      assetStatus: "real",
+    },
+    sourceUrls: [
+      "https://raw.githubusercontent.com/SilvanoPuccini/ferrestock/main/README.md",
+      "https://github.com/SilvanoPuccini/ferrestock",
+      "https://ferrestock.up.railway.app",
+      "https://res.cloudinary.com/dukgz1lpn/image/upload/v1775621645/Inicio-FerreStock_tp9n5y.png",
     ],
   },
   {

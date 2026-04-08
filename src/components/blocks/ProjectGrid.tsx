@@ -12,7 +12,7 @@ export default function ProjectGrid({
   return (
     <div
       className={cn(
-        "grid gap-5",
+        "grid gap-4 sm:gap-5",
         columns === "two" ? "lg:grid-cols-2" : "lg:grid-cols-2 2xl:grid-cols-3",
       )}
     >

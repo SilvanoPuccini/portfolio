@@ -73,7 +73,7 @@ export default function ServiceCard({
           <p className="technical-label">{referencesLabel}</p>
           <div className={cn("mt-4 grid gap-4", isFeature ? "lg:grid-cols-3" : "md:grid-cols-2")}>
             {references.map((reference) => (
-              <div key={`${reference.label}-${reference.value}`} className="rounded-2xl border border-outline-ghost/10 bg-surface-dim/65 px-5 py-4">
+              <div key={`${reference.label}-${reference.value}`} className="surface-subpanel px-5 py-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{reference.label}</p>
                 <p className="mt-3 text-base font-medium leading-7 text-text-primary">{reference.value}</p>
                 <p className="mt-2 text-sm leading-6 text-text-secondary">{reference.detail}</p>

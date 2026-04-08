@@ -47,7 +47,7 @@ export default function BlogCard({
   return (
     <article
       className={cn(
-        "group overflow-hidden rounded-[1.35rem] bg-surface-elevated/92 shadow-ambient transition-all duration-300 hover:-translate-y-1 hover:bg-surface/95",
+        "group overflow-hidden rounded-[var(--radius-soft)] bg-surface-elevated/92 shadow-ambient transition-all duration-300 hover:-translate-y-1 hover:bg-surface/95",
         isWide && "md:col-span-2",
       )}
     >

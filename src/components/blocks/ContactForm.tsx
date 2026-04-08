@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, LoaderCircle, SendHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,6 @@ type ContactFormLabels = {
   sending: string;
   success: string;
   error: string;
-  helper: string;
   validation: {
     required: string;
     email: string;
@@ -33,6 +32,11 @@ type FormState = {
   name: string;
   email: string;
   subject: string;
+  message: string;
+};
+
+type ToastState = {
+  type: "success" | "error";
   message: string;
 };
 
@@ -52,20 +56,11 @@ export default function ContactForm({
   locale: string;
   labels: ContactFormLabels;
 }) {
-  const helperId = "contact-form-helper";
-  const statusId = "contact-form-status";
   const [values, setValues] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting">("idle");
+  const [toast, setToast] = useState<ToastState | null>(null);
   const statusMeta = {
-    idle: {
-      icon: SendHorizontal,
-      badgeTone: "text-text-tertiary",
-      panelTone: "border-outline-ghost/12 bg-surface-dim/40",
-      iconTone: "text-brand-primary",
-      copyTone: "text-text-secondary",
-    },
     submitting: {
       icon: LoaderCircle,
       badgeTone: "text-brand-secondary",
@@ -91,19 +86,26 @@ export default function ContactForm({
   const statusCopy =
     locale === "es"
       ? {
-          idle: "Listo para recibir tu mensaje",
-          submitting: "Enviando a Formspree",
           success: "Mensaje entregado",
           error: "Revisión requerida",
         }
       : {
-          idle: "Ready to receive your message",
-          submitting: "Sending to Formspree",
           success: "Message delivered",
           error: "Review required",
         };
-  const currentStatusMeta = statusMeta[status];
-  const StatusIcon = currentStatusMeta.icon;
+  const currentStatusMeta = toast ? statusMeta[toast.type] : null;
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, 4200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
 
   const fieldDescriptors = useMemo(
     () => [
@@ -144,9 +146,8 @@ export default function ContactForm({
   function updateField(key: keyof FormState, value: string) {
     setValues((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
-    if (status !== "idle") {
-      setStatus("idle");
-      setMessage("");
+    if (toast) {
+      setToast(null);
     }
   }
 
@@ -157,13 +158,12 @@ export default function ContactForm({
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      setStatus("error");
-      setMessage(labels.error);
+      setToast({ type: "error", message: labels.error });
       return;
     }
 
     setStatus("submitting");
-    setMessage("");
+    setToast(null);
 
     const formData = new FormData();
     formData.append("name", values.name.trim());
@@ -187,23 +187,21 @@ export default function ContactForm({
 
       setValues(initialState);
       setErrors({});
-      setStatus("success");
-      setMessage(labels.success);
+      setStatus("idle");
+      setToast({ type: "success", message: labels.success });
     } catch {
-      setStatus("error");
-      setMessage(labels.error);
+      setStatus("idle");
+      setToast({ type: "error", message: labels.error });
     }
   }
 
   return (
-    <div className="surface-panel relative overflow-hidden px-6 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
-      <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 translate-x-1/3 -translate-y-1/3 rounded-full bg-brand-secondary/15 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 -translate-x-1/3 translate-y-1/3 rounded-full bg-brand-primary/10 blur-3xl" />
+    <div className="surface-panel no-line-stack h-full border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-6 py-7 sm:px-7 sm:py-8 lg:px-8">
+      <div>
+        <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.title}</h2>
+      </div>
 
-      <div className="relative">
-        <h2 className="text-2xl font-semibold text-text-primary sm:text-3xl">{labels.title}</h2>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate aria-describedby={`${helperId} ${statusId}`} aria-busy={status === "submitting"}>
+      <form className="relative space-y-6" onSubmit={handleSubmit} noValidate aria-busy={status === "submitting"}>
           <div className="grid gap-6 md:grid-cols-2">
             {fieldDescriptors.map((field) => (
               <label key={field.key} htmlFor={field.key} className="block space-y-2">
@@ -262,7 +260,7 @@ export default function ContactForm({
             <textarea
               id="message"
               name="message"
-              rows={6}
+              rows={5}
               required
               value={values.message}
               onChange={(event) => updateField("message", event.target.value)}
@@ -288,33 +286,39 @@ export default function ContactForm({
                 <span>{status === "submitting" ? labels.sending : labels.submit}</span>
               </span>
             </button>
+          </div>
 
+        {toast && currentStatusMeta ? (() => {
+          const StatusIcon = currentStatusMeta.icon;
+
+          return (
             <div
-              id={statusId}
-              role={status === "error" ? "alert" : "status"}
+              className="pointer-events-none fixed inset-x-4 bottom-4 z-50 sm:left-auto sm:right-6 sm:w-full sm:max-w-md"
+              role={toast.type === "error" ? "alert" : "status"}
               aria-live="polite"
               aria-atomic="true"
-              className={cn(
-                "rounded-[1.35rem] border px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] sm:px-5",
-                currentStatusMeta.panelTone,
-              )}
             >
-              <div className="flex items-start gap-3">
-                <div className={cn("mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-current/10 bg-background/20", currentStatusMeta.iconTone)}>
-                  <StatusIcon className={cn("h-4 w-4", status === "submitting" && "animate-spin")} />
-                </div>
+              <div
+                className={cn(
+                  "rounded-[var(--radius-soft)] border px-4 py-4 shadow-[0_18px_48px_rgba(0,0,0,0.26)] backdrop-blur-md sm:px-5",
+                  currentStatusMeta.panelTone,
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn("mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-soft)] border border-current/10 bg-background/35", currentStatusMeta.iconTone)}>
+                    <StatusIcon className="h-4 w-4" />
+                  </div>
 
-                <div className="min-w-0">
-                  <p className={cn("font-mono text-[11px] uppercase tracking-[0.18em]", currentStatusMeta.badgeTone)}>{statusCopy[status]}</p>
-                  <p id={helperId} className={cn("mt-3 text-sm leading-6", currentStatusMeta.copyTone)}>
-                    {message || labels.helper}
-                  </p>
+                  <div className="min-w-0">
+                    <p className={cn("font-mono text-[11px] uppercase tracking-[0.18em]", currentStatusMeta.badgeTone)}>{statusCopy[toast.type]}</p>
+                    <p className={cn("mt-3 text-sm leading-6", currentStatusMeta.copyTone)}>{toast.message}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </form>
-      </div>
+          );
+        })() : null}
+      </form>
     </div>
   );
 }

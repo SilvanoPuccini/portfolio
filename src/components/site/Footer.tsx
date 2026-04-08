@@ -33,7 +33,7 @@ export default function Footer({ locale }: { locale: Locale }) {
     .map((platform) => content.metadata.socialLinks.find((link) => link.platform === platform))
     .filter(isFooterSocialLink);
   return (
-    <footer className="mt-14 w-full bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.78),rgb(var(--background)/0.96))]">
+    <footer className="w-full bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.56),rgb(var(--background)/0.92))]">
       <div className="site-container py-8 sm:py-10">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -72,7 +72,7 @@ export default function Footer({ locale }: { locale: Locale }) {
                   className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none"
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span>{link.platform === "github" ? (locale === "es" ? "Código" : "Code") : link.label}</span>
+                  <span>{link.platform === "github" ? "GitHub" : link.label}</span>
                 </a>
               );
             })}

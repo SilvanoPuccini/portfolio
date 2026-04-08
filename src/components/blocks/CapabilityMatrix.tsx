@@ -25,7 +25,7 @@ export default function CapabilityMatrix({
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
-          <div key={`${item.label}-${item.title}`} className="rounded-2xl border border-outline-ghost/10 bg-surface-dim/65 px-5 py-5">
+          <div key={`${item.label}-${item.title}`} className="surface-subpanel px-5 py-5">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.label}</p>
             <p className="mt-3 text-lg font-semibold text-text-primary">{item.title}</p>
             <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">{item.detail}</p>

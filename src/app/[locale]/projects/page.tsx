@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { Github, Globe } from "lucide-react";
 import ProjectCard from "@/components/blocks/ProjectCard";
 import ProjectGrid from "@/components/blocks/ProjectGrid";
-import SpecSheet from "@/components/blocks/SpecSheet";
 import CTACluster from "@/components/site/CTACluster";
-import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -15,145 +16,191 @@ const primarySlugs = ["ferrelonstock", "aktivar", "modern-art-gallery", "paytrac
 const copy = {
   es: {
     hero: {
-      eyebrow: "Proyectos",
-      title: "Casos reales curados con jerarquía editorial, criterio técnico y foco en producto.",
-      intro:
-        "La página prioriza los proyectos que mejor explican cómo trabajo: sistemas full stack, producto digital, automatización aplicada y ejecución con material verificable.",
-      support:
-        "Los cuatro casos principales concentran la lectura del portfolio y FacturIA 2.0 entra como proyecto real adicional para mostrar la capa de automatización e IA sin diluir la selección principal.",
-      deck: "Selección principal",
-      sources: "Material verificable",
-      output: "Cobertura",
-      outputValue: "5 proyectos reales",
+      eyebrow: "PROYECTOS",
+      title: "Casos reales con foco en producto, ejecución y sistemas en producción.",
+      intro: "Desarrollo soluciones donde la arquitectura, la experiencia y el negocio funcionan como un sistema.",
+      primaryCta: "Ver proyectos",
+      secondaryCta: "Hablemos",
+      visualEyebrow: "Sistema en producción",
+      visualSourcesSuffix: "fuentes",
     },
     lead: {
-      eyebrow: "Caso principal",
-      title: "Proyecto ancla para abrir la lectura del portfolio.",
-      description:
-        "FerrelonStock funciona como dossier de apertura: combina producto, backend, checkout, operación real y una narrativa visual suficientemente sólida para sostener la página completa.",
-      sheetEyebrow: "Spec sheet",
-      sheetTitle: "Por qué esta selección se siente terminada y no placeholder.",
-      items: {
-        selection: "Selección",
-        editorial: "Lectura",
-        proof: "Prueba",
-        scope: "Cobertura",
-      },
-      selectionValue: "4 proyectos principales + 1 caso adicional",
-      demoValue: "Demo",
-      repoValue: "Repositorio",
-      sourcesValue: "fuentes",
+      eyebrow: "PROYECTO PRINCIPAL",
+      description: [
+        "E-commerce para ferretería y corralón construido con Django 5, catálogo filtrable, carrito sin recarga y checkout en producción.",
+        "Integra Stripe, Mercado Pago, tracking de envíos y una arquitectura MVT modular respaldada por tests automatizados.",
+      ],
+      challengeTitle: "DESAFÍO",
+      challenge: "Convertir una entrega del módulo de Django en un e-commerce funcional con catálogo, carrito, pagos, envíos y administración listos para demo pública.",
+      solutionTitle: "SOLUCIÓN",
+      solution: "Implementación 100% Django con templates, HTMX y Alpine.js; 7 apps modulares, PostgreSQL y servicios como Cloudinary, Stripe y Mercado Pago.",
+      impactTitle: "IMPACTO",
+      impact: [
+        "Carrito y filtros dinámicos sin recargar la página",
+        "Pagos reales con Stripe y Mercado Pago, más seguimiento de envíos",
+        "65 tests automatizados y deploy público en Render",
+      ],
+      primaryCta: "Ver demo",
+      secondaryCta: "Código",
     },
     grid: {
-      eyebrow: "Catálogo principal",
-      title: "Cuatro proyectos foco, cada uno con una señal distinta de valor.",
-      description:
-        "Aktivar, Modern Art Gallery y PayTrack completan la lectura principal desde plataforma, branding frontend y producto SaaS. Cada ficha conserva lenguaje editorial, datos reales y accesos concretos.",
-      accent: "Proyecto principal",
+      eyebrow: "PROYECTOS SELECCIONADOS",
+      title: "Cuatro proyectos donde cada uno representa un enfoque distinto: performance, experiencia, producto y ejecución técnica.",
+      ctaDemo: "Ver demo",
+      ctaCode: "Código",
+      cards: {
+        aktivar: {
+          description:
+            "Plataforma orientada a performance y claridad de producto, con foco en interacción y comunicación visual.",
+          bullets: [
+            "Sistema frontend optimizado",
+            "Arquitectura modular",
+            "Experiencia centrada en usuario",
+          ],
+        },
+        "modern-art-gallery": {
+          description:
+            "Experiencia visual basada en narrativa y jerarquía de contenido, con implementación cuidada de layout y accesibilidad.",
+          bullets: [
+            "Diseño orientado a storytelling",
+            "UI limpia y estructurada",
+            "Navegación optimizada",
+          ],
+        },
+        paytrack: {
+          description:
+            "Aplicación de gestión financiera con integración de APIs y estructura preparada para evolución futura.",
+          bullets: [
+            "Integración con servicios externos",
+            "Arquitectura escalable",
+            "Base para automatización",
+          ],
+        },
+      },
     },
     automation: {
-      eyebrow: "Capa adicional",
-      title: "FacturIA 2.0 suma profundidad real en automatización e IA aplicada.",
-      description:
-        "No compite con los cuatro proyectos foco, pero sí refuerza una parte importante del perfil: pipelines auditables, procesamiento documental y producto orientado a eficiencia operativa.",
-      accent: "Proyecto real adicional",
+      eyebrow: "PROYECTOS ADICIONALES",
     },
-    closing: {
-      eyebrow: "Criterio editorial",
-      title: "Un portfolio de proyectos tiene que ayudar a elegir, no sólo a mostrar.",
-      description:
-        "La página cierra explicando el patrón de selección: prioridad a casos navegables, stack visible, desafíos concretos y acceso directo a demo o repositorio siempre que exista.",
-      stats: {
-        primary: "Proyectos principales",
-        additional: "Proyecto adicional",
-        sources: "Fuentes reunidas",
-      },
-      noteTitle: "Qué comunica esta página",
-      notes: [
-        "Trabajo full stack con base real en despliegue, pagos, dashboards y operación.",
-        "Sensibilidad editorial para presentar producto y frontend premium sin perder claridad técnica.",
-        "Automatización e IA como capacidad respaldada por proyectos concretos, no como claim vacío.",
+    editorial: {
+      title: "ENFOQUE",
+      intro: [
+        "Un portfolio no es solo una colección de proyectos.",
+        "Es una forma de entender cómo se construyen soluciones reales.",
       ],
-      primaryCta: "Hablemos de un producto real",
-      secondaryCta: "Ver Sobre mí",
+      listTitle: "Trabajo con una lógica simple y repetible:",
+      itemTitles: ["Arquitectura primero", "Experiencia con intención", "Negocio como criterio"],
+      bullets: [
+        "Defino una base técnica clara para que el producto pueda crecer sin fricción, con estructura modular y decisiones sostenibles.",
+        "Ordeno la interfaz para que cada pantalla tenga jerarquía, ritmo y una interacción fácil de entender desde el primer recorrido.",
+        "Bajo cada decisión al contexto real del proyecto: objetivos, tiempos, mantenimiento y valor para quien lo usa o lo opera.",
+      ],
+    },
+    cta: {
+      title: "¿Tenés un producto o idea en desarrollo?",
+      description: "Puedo ayudarte a construir una solución clara, escalable y orientada a resultados.",
+      primaryCta: "CONTACTAR",
+      secondaryCta: "Ver más proyectos",
     },
     labels: {
       challenge: "Desafío",
       impact: "Impacto",
       liveDemo: "Ver demo",
-      repository: "GitHub",
+      repository: "Código",
       sourceBacked: "Fuentes reales",
     },
   },
   en: {
     hero: {
-      eyebrow: "Projects",
-      title: "Real case studies curated with editorial hierarchy, technical judgment, and product focus.",
-      intro:
-        "This page prioritizes the projects that best explain how I work: full stack systems, digital product thinking, applied automation, and execution backed by verifiable material.",
-      support:
-        "The four lead cases drive the portfolio narrative, while FacturIA 2.0 appears as an additional real project to reinforce the automation and AI layer without diluting the primary selection.",
-      deck: "Lead selection",
-      sources: "Verified material",
-      output: "Coverage",
-      outputValue: "5 real projects",
+      eyebrow: "PROJECTS",
+      title: "Real case studies focused on product, execution, and systems running in production.",
+      intro: "I build solutions where architecture, experience, and business work as one system.",
+      primaryCta: "View projects",
+      secondaryCta: "Let’s talk",
+      visualEyebrow: "Production system",
+      visualSourcesSuffix: "sources",
     },
     lead: {
-      eyebrow: "Lead case",
-      title: "Anchor project that opens the portfolio narrative.",
-      description:
-        "FerrelonStock works as the opening dossier: product thinking, backend depth, checkout flows, real operations, and enough visual strength to carry the full page.",
-      sheetEyebrow: "Spec sheet",
-      sheetTitle: "Why this selection feels finished instead of placeholder.",
-      items: {
-        selection: "Selection",
-        editorial: "Reading",
-        proof: "Proof",
-        scope: "Coverage",
-      },
-      selectionValue: "4 lead projects + 1 additional case",
-      demoValue: "Demo",
-      repoValue: "Repository",
-      sourcesValue: "sources",
+      eyebrow: "FEATURED PROJECT",
+      description: [
+        "Hardware and building-supplies e-commerce built with Django 5, featuring a filterable catalog, no-refresh cart, and production checkout.",
+        "It integrates Stripe, Mercado Pago, shipping tracking, and a modular MVT architecture backed by automated tests.",
+      ],
+      challengeTitle: "CHALLENGE",
+      challenge: "Turn a Django course delivery into a functional e-commerce product with catalog, cart, payments, shipping, and admin flows ready for a public demo.",
+      solutionTitle: "SOLUTION",
+      solution: "A 100% Django implementation using templates, HTMX, and Alpine.js; 7 modular apps, PostgreSQL, and services such as Cloudinary, Stripe, and Mercado Pago.",
+      impactTitle: "IMPACT",
+      impact: [
+        "Dynamic cart and filters without full page reloads",
+        "Real payments with Stripe and Mercado Pago plus shipping tracking",
+        "65 automated tests and a public Render deployment",
+      ],
+      primaryCta: "View demo",
+      secondaryCta: "Code",
     },
     grid: {
-      eyebrow: "Core catalog",
-      title: "Four focus projects, each showing a different value signal.",
-      description:
-        "Aktivar, Modern Art Gallery, and PayTrack complete the main read through platform work, premium frontend branding, and SaaS/product execution. Each card keeps the editorial language, real data, and concrete links.",
-      accent: "Lead project",
+      eyebrow: "SELECTED PROJECTS",
+      title: "Four projects where each one represents a different focus: performance, experience, product, and technical execution.",
+      ctaDemo: "View demo",
+      ctaCode: "Code",
+      cards: {
+        aktivar: {
+          description:
+            "Platform centered on performance and product clarity, with a strong focus on interaction and visual communication.",
+          bullets: [
+            "Optimized frontend system",
+            "Modular architecture",
+            "User-centered experience",
+          ],
+        },
+        "modern-art-gallery": {
+          description:
+            "Visual experience built around storytelling and content hierarchy, with careful layout and accessibility work.",
+          bullets: [
+            "Storytelling-driven design",
+            "Clean, structured UI",
+            "Optimized navigation",
+          ],
+        },
+        paytrack: {
+          description:
+            "Financial management app with API integrations and a structure ready to evolve over time.",
+          bullets: [
+            "External service integrations",
+            "Scalable architecture",
+            "Foundation for automation",
+          ],
+        },
+      },
     },
     automation: {
-      eyebrow: "Additional layer",
-      title: "FacturIA 2.0 adds real depth in automation and applied AI.",
-      description:
-        "It does not compete with the four lead projects, but it strengthens an important part of the profile: auditable pipelines, document processing, and efficiency-oriented product thinking.",
-      accent: "Additional real project",
+      eyebrow: "ADDITIONAL PROJECTS",
     },
-    closing: {
-      eyebrow: "Editorial criteria",
-      title: "A projects portfolio should help someone choose, not just browse.",
-      description:
-        "The page closes by making the selection logic explicit: priority goes to navigable cases, visible stacks, concrete challenges, and direct access to demos or repositories whenever they exist.",
-      stats: {
-        primary: "Lead projects",
-        additional: "Additional project",
-        sources: "Sources gathered",
-      },
-      noteTitle: "What this page communicates",
-      notes: [
-        "Real full stack work across deployments, payments, dashboards, and operations.",
-        "Editorial sensitivity to present premium frontend and product work without losing technical clarity.",
-        "Automation and AI as a source-backed capability, not an empty claim.",
+    editorial: {
+      title: "APPROACH",
+      intro: [
+        "A portfolio is not just a collection of projects.",
+        "It is a way to understand how real solutions are built.",
       ],
-      primaryCta: "Let’s talk about a real product",
-      secondaryCta: "View About",
+      listTitle: "I work on systems where:",
+      itemTitles: ["Architecture", "Experience", "Business"],
+      bullets: [
+        "architecture supports growth",
+        "experience guides interaction",
+        "business shapes decisions",
+      ],
+    },
+    cta: {
+      title: "Do you have a product or idea in progress?",
+      description: "I can help you build a clear, scalable solution focused on results.",
+      primaryCta: "CONTACT",
+      secondaryCta: "View more projects",
     },
     labels: {
       challenge: "Challenge",
       impact: "Impact",
       liveDemo: "View demo",
-      repository: "GitHub",
+      repository: "Code",
       sourceBacked: "Real sources",
     },
   },
@@ -186,154 +233,246 @@ export default async function ProjectsPage({
   const primaryProjects = primarySlugs
     .map((slug) => content.projects.find((project) => project.slug === slug))
     .filter((project): project is NonNullable<typeof project> => Boolean(project));
+  const ferreStockProject = content.projects.find((project) => project.slug === "ferrestock");
+  const facturiaProject = content.projects.find((project) => project.slug === "facturia-2-0");
   const leadProject = primaryProjects[0];
-  const supportingProjects = primaryProjects.slice(1);
-  const automationProject = content.projects.find((project) => project.slug === "facturia-2-0");
-  const totalSources = content.projects.reduce((total, project) => total + project.sourceUrls.length, 0);
-
+  const supportingProjects = [...primaryProjects.slice(1), ferreStockProject].filter(
+    (project): project is NonNullable<typeof project> => Boolean(project),
+  );
+  const additionalProjects = [facturiaProject].filter((project): project is NonNullable<typeof project> => Boolean(project));
+  const githubProfile = content.metadata.socialLinks.find((link) => link.platform === "github")?.href;
   if (!leadProject) {
     return null;
   }
 
+  const sectionBackgrounds = {
+    lead: "bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.26))]",
+    grid: "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.12),rgb(var(--surface)/0.08))]",
+    automation: "bg-[linear-gradient(180deg,rgb(var(--surface)/0.1),rgb(var(--surface-dim)/0.24))]",
+    editorial: "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.3),rgb(var(--surface)/0.18))]",
+    cta: "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.26),rgb(var(--surface)/0.14))]",
+  } as const;
+
   return (
     <>
-      <PageHero
-        eyebrow={labels.hero.eyebrow}
-        title={labels.hero.title}
-        description={
-          <div className="space-y-4">
-            <p>{labels.hero.intro}</p>
-            <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{labels.hero.support}</p>
+      <section className="relative -mt-28 overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.72),rgb(var(--background)/0.96))] pt-28 sm:-mt-[7.5rem] sm:pt-[7.5rem]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgb(var(--brand-primary)/0.16),transparent_24%),radial-gradient(circle_at_80%_22%,rgb(var(--brand-secondary)/0.14),transparent_28%),linear-gradient(180deg,rgb(var(--surface-contrast)/0.18),transparent_36%)]" />
+
+        <div className="relative mx-auto w-full max-w-[92rem] px-6 pb-10 pt-14 sm:px-8 sm:pb-12 sm:pt-18 lg:px-12 lg:pb-14 lg:pt-16 xl:pt-[4.5rem]">
+          <div className="grid lg:min-h-[30rem] lg:items-start xl:min-h-[32rem]">
+            <div className="max-w-4xl -mt-1 sm:-mt-8 lg:mt-0 lg:self-start lg:-translate-y-11 xl:-translate-y-14">
+              <p className="eyebrow mb-4 sm:mb-5 lg:mb-6">{labels.hero.eyebrow}</p>
+              <h1 className="max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary text-pretty sm:text-4xl sm:leading-[1.05] lg:text-[3.75rem] lg:leading-[1.02] xl:text-[4.15rem]">
+                {labels.hero.title}
+              </h1>
+
+              <div className="mt-5 max-w-3xl space-y-3 text-lg leading-[1.82rem] text-text-secondary sm:mt-6 sm:space-y-4 sm:text-xl sm:leading-[2rem] lg:mt-6 lg:space-y-3.5 xl:mt-7">
+                <p>{labels.hero.intro}</p>
+
+                <div className="flex flex-col gap-4 pt-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:pt-1">
+                  <Link href="#projects-list" className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+                    {labels.hero.primaryCta}
+                  </Link>
+                  <Link href={`/${currentLocale}/contact`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
+                    {labels.hero.secondaryCta}
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-        }
-        aside={
-          <div className="no-line-stack">
-            <div>
-              <p className="technical-label">{labels.hero.deck}</p>
-              <div className="mt-4 space-y-4">
-                {primaryProjects.map((project) => (
-                  <div key={project.slug}>
-                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-secondary">
-                      {project.year} · {project.category}
-                    </p>
-                    <p className="mt-2 text-base font-semibold text-text-primary">{project.name}</p>
-                  </div>
+        </div>
+      </section>
+
+      <div id="projects-list" className="scroll-mt-28">
+        <SectionShell
+          eyebrow={labels.lead.eyebrow}
+          sectionClassName={sectionBackgrounds.lead}
+          containerClassName="py-10 sm:py-12 lg:py-14"
+          surface="plain"
+        >
+          <article className="surface-panel overflow-hidden">
+            <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.92),rgb(var(--surface)/0.88))]">
+              <div className="project-media-hover project-media-hover-contained relative aspect-[16/10] w-full overflow-hidden sm:aspect-[16/9] lg:aspect-[16/8.4]">
+                <div className="project-media-asset absolute inset-1 sm:inset-2 lg:inset-3">
+                  <Image
+                    src={leadProject.media.cover}
+                    alt={leadProject.media.alt}
+                    fill
+                    sizes="(min-width: 1280px) 88vw, (min-width: 1024px) 92vw, 100vw"
+                    className="object-contain object-center"
+                  />
+                </div>
+                <div className="project-media-overlay pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.08))]" />
+              </div>
+            </div>
+
+            <div className="no-line-stack px-5 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                  {leadProject.year} · {leadProject.category} · {leadProject.status}
+                </p>
+                <p className="technical-label mt-4">{labels.lead.eyebrow}</p>
+                <h2 className="mt-3 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-text-primary sm:text-[2.3rem] lg:text-[2.45rem]">
+                  {leadProject.name}
+                </h2>
+                <div className="mt-4 space-y-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                  {labels.lead.description.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {leadProject.stack.slice(0, 6).map((item) => (
+                  <span
+                    key={`${leadProject.slug}-${item}`}
+                    className="project-stack-chip rounded-pill border border-transparent bg-surface-dim/80 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-secondary"
+                  >
+                    {item}
+                  </span>
                 ))}
               </div>
-            </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.hero.sources}</p>
-                <p className="mt-2 text-sm font-medium leading-6 text-text-primary">{totalSources}+</p>
+              <div className="grid gap-3.5 lg:grid-cols-3">
+                <div className="surface-subpanel px-4 py-4 sm:px-5 sm:py-5">
+                  <p className="technical-label">{labels.lead.challengeTitle}</p>
+                  <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">{labels.lead.challenge}</p>
+                </div>
+
+                <div className="surface-subpanel px-4 py-4 sm:px-5 sm:py-5">
+                  <p className="technical-label">{labels.lead.solutionTitle}</p>
+                  <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">{labels.lead.solution}</p>
+                </div>
+
+                <div className="surface-subpanel px-4 py-4 sm:px-5 sm:py-5">
+                  <p className="technical-label">{labels.lead.impactTitle}</p>
+                  <ul className="mt-3 space-y-2 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                    {labels.lead.impact.map((item) => (
+                      <li key={item}>- {item}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.hero.output}</p>
-                <p className="mt-2 text-sm font-medium leading-6 text-text-primary">{labels.hero.outputValue}</p>
+
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                  {labels.labels.sourceBacked} · {leadProject.sourceUrls.length}
+                </p>
+
+                <CTACluster
+                  items={[
+                    ...(leadProject.links.demo
+                      ? [{ label: labels.lead.primaryCta, href: leadProject.links.demo, external: true, icon: Globe }]
+                      : []),
+                    ...(leadProject.links.repo
+                      ? [{ label: labels.lead.secondaryCta, href: leadProject.links.repo, external: true, icon: Github, variant: "secondary" as const }]
+                      : []),
+                  ]}
+                />
               </div>
             </div>
-
-            <CTACluster
-              items={[
-                { label: labels.closing.primaryCta, href: `/${currentLocale}/contact` },
-                { label: labels.closing.secondaryCta, href: `/${currentLocale}/about`, variant: "secondary" },
-              ]}
-            />
-          </div>
-        }
-      />
-
-      <SectionShell
-        eyebrow={labels.lead.eyebrow}
-        title={labels.lead.title}
-        description={<p>{labels.lead.description}</p>}
-      >
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_22rem]">
-          <ProjectCard project={leadProject} labels={labels.labels} variant="feature" accentLabel={labels.grid.accent} />
-
-          <SpecSheet
-            eyebrow={labels.lead.sheetEyebrow}
-            title={labels.lead.sheetTitle}
-            items={[
-              { label: labels.lead.items.selection, value: labels.lead.selectionValue },
-              { label: labels.lead.items.editorial, value: leadProject.headline },
-              {
-                label: labels.lead.items.proof,
-                value: `${leadProject.links.demo ? labels.lead.demoValue : labels.lead.repoValue} + ${leadProject.sourceUrls.length} ${labels.lead.sourcesValue}`,
-              },
-              { label: labels.lead.items.scope, value: `${leadProject.category} · ${leadProject.status} · ${leadProject.year}` },
-            ]}
-            stack={leadProject.stack.slice(0, 8)}
-          />
-        </div>
-      </SectionShell>
+          </article>
+        </SectionShell>
+      </div>
 
       <SectionShell
         eyebrow={labels.grid.eyebrow}
-        title={labels.grid.title}
-        description={<p>{labels.grid.description}</p>}
-      >
-        <ProjectGrid>
-          {supportingProjects.map((project) => (
-            <ProjectCard key={project.slug} project={project} labels={labels.labels} accentLabel={labels.grid.accent} />
-          ))}
-        </ProjectGrid>
-      </SectionShell>
+        description={<p className="max-w-[52rem] text-[0.95rem] leading-7 sm:text-base sm:leading-7">{labels.grid.title}</p>}
+        sectionClassName={sectionBackgrounds.grid}
+        containerClassName="py-10 sm:py-12 lg:py-14"
+        surface="plain"
+        >
+          <ProjectGrid columns="two">
+            {supportingProjects.map((project) => (
+              <ProjectCard key={project.slug} project={project} labels={labels.labels} />
+            ))}
+          </ProjectGrid>
+        </SectionShell>
 
-      {automationProject ? (
+      {additionalProjects.length ? (
         <SectionShell
           eyebrow={labels.automation.eyebrow}
-          title={labels.automation.title}
-          description={<p>{labels.automation.description}</p>}
+          sectionClassName={sectionBackgrounds.automation}
+          containerClassName="py-10 sm:py-12 lg:py-14"
+          surface="plain"
         >
-          <ProjectCard
-            project={automationProject}
-            labels={labels.labels}
-            variant="feature"
-            accentLabel={labels.automation.accent}
-          />
+          {additionalProjects.length === 1 ? (
+            <ProjectCard project={additionalProjects[0]} labels={labels.labels} variant="feature" />
+          ) : (
+            <ProjectGrid columns="two">
+              {additionalProjects.map((project) => (
+                <ProjectCard key={project.slug} project={project} labels={labels.labels} />
+              ))}
+            </ProjectGrid>
+          )}
         </SectionShell>
       ) : null}
 
       <SectionShell
-        eyebrow={labels.closing.eyebrow}
-        title={labels.closing.title}
-        description={<p>{labels.closing.description}</p>}
+        sectionClassName={sectionBackgrounds.editorial}
+        containerClassName="py-10 sm:py-12 lg:py-14"
+        surface="plain"
       >
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">
-            {[
-              { label: labels.closing.stats.primary, value: String(primaryProjects.length) },
-              { label: labels.closing.stats.additional, value: automationProject ? "1" : "0" },
-              { label: labels.closing.stats.sources, value: `${totalSources}+` },
-            ].map((item) => (
-              <article key={item.label} className="surface-panel px-6 py-6 sm:px-7">
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.label}</p>
-                <p className="mt-4 text-3xl font-semibold text-text-primary">{item.value}</p>
-              </article>
-            ))}
-          </div>
+        <article className="no-line-stack space-y-8">
+          <div className="max-w-3xl space-y-4">
+            <h2 className="text-[2rem] leading-[1.02] font-semibold tracking-editorial text-text-primary sm:text-[2.35rem] lg:text-[2.7rem]">
+              {labels.editorial.title}
+            </h2>
 
-          <article className="surface-panel no-line-stack px-6 py-6 sm:px-7 sm:py-7">
-            <div>
-              <p className="technical-label">{labels.closing.noteTitle}</p>
-              <h3 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">{labels.closing.title}</h3>
-            </div>
-
-            <div className="space-y-4 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
-              {labels.closing.notes.map((note) => (
-                <p key={note}>{note}</p>
+            <div className="space-y-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+              {labels.editorial.intro.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
 
-            <CTACluster
-              items={[
-                { label: labels.closing.primaryCta, href: `/${currentLocale}/contact` },
-                { label: labels.closing.secondaryCta, href: `/${currentLocale}/about`, variant: "secondary" },
-              ]}
-            />
-          </article>
-        </div>
+            <p className="technical-label pt-1">{labels.editorial.listTitle}</p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
+            {labels.editorial.bullets.map((item, index) => (
+              <article
+                key={item}
+                className="surface-panel no-line-stack border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.84),rgb(var(--surface)/0.72))] px-5 py-5 sm:px-6 sm:py-6"
+              >
+                <div className="border-b border-outline-ghost/10 pb-4">
+                  <span className="font-display text-[2.5rem] leading-none tracking-[-0.04em] text-brand-primary sm:text-[2.8rem]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold tracking-tight text-text-primary sm:text-[1.35rem]">
+                    {labels.editorial.itemTitles[index]}
+                  </h3>
+                  <p className="text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">{item}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
+      </SectionShell>
+
+      <SectionShell
+        title={<span className="text-[2rem] leading-[1.06] sm:text-[2.3rem]">{labels.cta.title}</span>}
+        description={<p className="text-[0.95rem] leading-7 sm:text-base sm:leading-7">{labels.cta.description}</p>}
+        sectionClassName={sectionBackgrounds.cta}
+        containerClassName="py-10 sm:py-12 lg:py-14"
+        surface="plain"
+      >
+        <article className="surface-panel no-line-stack max-w-[46rem] border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.88),rgb(var(--surface)/0.74))] px-5 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+          <CTACluster
+            items={[
+              { label: labels.cta.primaryCta, href: `/${currentLocale}/contact` },
+              {
+                label: labels.cta.secondaryCta,
+                href: githubProfile ?? `/${currentLocale}/projects#projects-list`,
+                external: Boolean(githubProfile),
+                variant: "secondary",
+              },
+            ]}
+            size="default"
+          />
+        </article>
       </SectionShell>
     </>
   );

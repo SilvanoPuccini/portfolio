@@ -1,10 +1,12 @@
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 
 type CTAItem = {
   label: string;
   href: string;
   external?: boolean;
   variant?: "primary" | "secondary";
+  icon?: LucideIcon;
 };
 
 export default function CTACluster({
@@ -29,6 +31,13 @@ export default function CTACluster({
     >
       {items.map((item) => {
         const className = `${item.variant === "secondary" ? "button-secondary" : "button-primary"} ${sizeClass} w-full sm:w-auto`;
+        const Icon = item.icon;
+        const content = (
+          <>
+            {Icon ? <Icon aria-hidden="true" className="h-4 w-4 shrink-0" /> : null}
+            <span className={Icon ? "ml-0.5" : undefined}>{item.label}</span>
+          </>
+        );
 
         if (item.external) {
           return (
@@ -39,14 +48,14 @@ export default function CTACluster({
               rel="noreferrer"
               className={className}
             >
-              {item.label}
+              {content}
             </a>
           );
         }
 
         return (
           <Link key={`${item.label}-${item.href}`} href={item.href} className={className}>
-            {item.label}
+            {content}
           </Link>
         );
       })}

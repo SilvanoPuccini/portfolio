@@ -19,6 +19,8 @@
   --outline-ghost: 148 163 184;
   --outline-strong: 226 232 240;
   --accent-warm: 245 158 11;
+  --radius-soft: 0.5rem;
+  --radius-surface: 0.625rem;
   color-scheme: dark;
   accent-color: rgb(var(--brand-primary));
   scroll-behavior: smooth;
@@ -118,13 +120,95 @@ p {
   }
 
   .surface-section {
-    @apply rounded-[1.75rem] shadow-ambient backdrop-blur-sm;
+    @apply shadow-ambient backdrop-blur-sm;
+    border-radius: var(--radius-surface);
     background-color: rgb(var(--surface) / 0.92);
   }
 
   .surface-panel {
-    @apply rounded-xl shadow-ambient;
+    @apply shadow-ambient;
+    border-radius: var(--radius-soft);
     background-color: rgb(var(--surface-elevated) / 0.88);
+  }
+
+  .surface-subpanel {
+    @apply border border-outline-ghost/10;
+    border-radius: var(--radius-soft);
+    background-color: rgb(var(--surface-dim) / 0.65);
+  }
+
+  .surface-media {
+    border-radius: var(--radius-soft);
+    background-color: rgb(var(--surface-dim) / 1);
+  }
+
+  .project-media-hover {
+    @apply relative overflow-hidden;
+  }
+
+  .project-media-asset {
+    transition:
+      filter 420ms ease-out,
+      transform 420ms ease-out;
+    transform-origin: center;
+    will-change: filter, transform;
+  }
+
+  .project-media-overlay {
+    transition: opacity 420ms ease-out;
+  }
+
+  .project-stack-chip {
+    position: relative;
+    overflow: hidden;
+    transition:
+      color 320ms ease-out,
+      background-color 320ms ease-out,
+      border-color 320ms ease-out,
+      box-shadow 320ms ease-out,
+      transform 320ms ease-out;
+    will-change: color, background-color, border-color, box-shadow, transform;
+  }
+
+  .project-stack-chip::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background:
+      radial-gradient(circle at 18% 50%, rgb(var(--brand-glow) / 0.18), transparent 58%),
+      linear-gradient(112deg, transparent 14%, rgb(var(--brand-primary) / 0.14) 46%, transparent 78%);
+    transition:
+      opacity 360ms ease-out,
+      transform 360ms ease-out;
+    transform: translate3d(-8%, 0, 0) scale(0.985);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .project-media-hover:hover .project-media-asset {
+      filter: brightness(1.08) contrast(1.02) saturate(1.01);
+      transform: scale(1.016);
+    }
+
+    .project-media-hover:hover .project-media-overlay {
+      opacity: 0.74;
+    }
+
+    .project-stack-chip:hover {
+      color: rgb(var(--text-primary));
+      border-color: rgb(var(--brand-primary) / 0.22);
+      background-color: rgb(var(--surface-elevated) / 0.94);
+      box-shadow:
+        0 10px 26px rgb(var(--brand-glow) / 0.12),
+        inset 0 1px 0 rgb(var(--brand-primary) / 0.08);
+      transform: translateY(-1px);
+    }
+
+    .project-stack-chip:hover::before {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
   }
 
   .interactive-surface {
@@ -140,7 +224,8 @@ p {
   }
 
   .field-shell {
-    @apply w-full rounded-xl border bg-surface-dim/80 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:pointer-events-none disabled:opacity-60;
+    @apply w-full border bg-surface-dim/80 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:pointer-events-none disabled:opacity-60;
+    border-radius: var(--radius-soft);
   }
 
   .field-shell:hover {
@@ -149,7 +234,8 @@ p {
   }
 
   .glass-panel {
-    @apply rounded-xl border border-outline-ghost/15 shadow-glass backdrop-blur-2xl;
+    @apply border border-outline-ghost/15 shadow-glass backdrop-blur-2xl;
+    border-radius: var(--radius-soft);
     background-color: rgb(var(--surface-glass) / 0.6);
   }
 
@@ -158,7 +244,8 @@ p {
   }
 
   .button-primary {
-    @apply inline-flex min-h-12 items-center justify-center rounded-[0.875rem] bg-brand-primary px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-slate-950 shadow-glow hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(34,211,238,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none;
+    @apply inline-flex min-h-12 items-center justify-center bg-brand-primary px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-slate-950 shadow-glow hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(34,211,238,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none;
+    border-radius: var(--radius-soft);
   }
 
   .button-primary-soft {
@@ -170,7 +257,8 @@ p {
   }
 
   .button-secondary {
-    @apply inline-flex min-h-12 items-center justify-center rounded-[0.875rem] border border-outline-ghost/15 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-text-primary hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60;
+    @apply inline-flex min-h-12 items-center justify-center border border-outline-ghost/15 px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-text-primary hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60;
+    border-radius: var(--radius-soft);
     background-color: rgb(var(--surface-elevated) / 0.8);
   }
 

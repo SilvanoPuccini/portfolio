@@ -73,10 +73,10 @@ export default function TrustStrip({ locale }: { locale: Locale }) {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {labels.cards.map((card, index) => (
-            <article
-              key={`${card.eyebrow}-${card.title}`}
-               className={`rounded-[1.4rem] px-5 py-5 sm:px-6 sm:py-6 ${index % 2 === 0 ? "bg-[rgb(var(--background)/0.14)]" : "bg-[rgb(var(--background)/0.1)]"}`}
-            >
+              <article
+                key={`${card.eyebrow}-${card.title}`}
+                className={`surface-subpanel px-5 py-5 sm:px-6 sm:py-6 ${index % 2 === 0 ? "bg-[rgb(var(--background)/0.14)]" : "bg-[rgb(var(--background)/0.1)]"}`}
+              >
               <p className="technical-label">{card.eyebrow}</p>
               <h3 className="mt-3 text-xl font-semibold text-text-primary">{card.title}</h3>
               <p className="mt-3 text-base leading-7 text-text-primary">{card.body}</p>
