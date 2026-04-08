@@ -54,7 +54,7 @@ test.describe("portfolio rebuild http smoke", () => {
     expect(headerHtml).toContain("border-b");
     expect(headerHtml).not.toContain("rounded-[1.5rem]");
 
-    expect(footerHtml).toContain("Código");
+    expect(footerHtml).toContain("GitHub");
     expect(footerHtml).toContain("LinkedIn");
     expect(footerHtml).toContain("Email");
     expect(footerHtml).toContain("Discord");
@@ -93,14 +93,13 @@ test.describe("portfolio rebuild http smoke", () => {
     expect(html).toContain("Blog activo en navegación");
   });
 
-  test("renders /es/contact with visible feedback states", async ({ request }) => {
+  test("renders /es/contact without permanent submit feedback copy", async ({ request }) => {
     const response = await request.get("/es/contact");
     const html = await response.text();
 
     expect(response.ok()).toBeTruthy();
     expect(html).toContain("Enviar propuesta");
-    expect(html).toContain("Mensaje enviado. Si todo salió bien, te responderé por email.");
-    expect(html).toContain("Revisá los campos e intentá nuevamente. Si persiste, podés escribirme directo por email.");
-    expect(html).toContain("Listo para recibir tu mensaje");
+    expect(html).not.toContain("Listo para recibir tu mensaje");
+    expect(html).not.toContain("El mensaje se envía por Formspree y queda integrado al mismo lenguaje visual editorial del sitio.");
   });
 });

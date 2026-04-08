@@ -21,7 +21,7 @@ export default function ContactPanel({
     <div className="surface-panel interactive-surface group flex items-start gap-4 border border-outline-ghost/10 px-5 py-5 sm:px-6">
       <div
         className={cn(
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-outline-ghost/10 bg-surface-dim/80 transition-transform duration-300 group-hover:scale-[1.03]",
+          "flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-surface-dim/80 transition-transform duration-300 group-hover:scale-[1.03]",
           accent === "secondary" ? "text-brand-primary" : "text-brand-secondary",
         )}
       >
@@ -51,7 +51,7 @@ export default function ContactPanel({
       href={href}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer" : undefined}
-      className="block rounded-2xl"
+      className="block rounded-[var(--radius-soft)]"
     >
       {panel}
     </a>

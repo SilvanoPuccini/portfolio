@@ -23,7 +23,7 @@ export default function SpecSheet({
 
       <div className="space-y-4">
         {items.map((item) => (
-          <div key={`${item.label}-${item.value}`} className="rounded-2xl border border-outline-ghost/10 bg-surface-dim/65 px-5 py-4">
+          <div key={`${item.label}-${item.value}`} className="surface-subpanel px-5 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.label}</p>
             <p className="mt-3 text-base font-medium leading-7 text-text-primary">{item.value}</p>
           </div>

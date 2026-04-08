@@ -33,7 +33,7 @@ const home: HomeContent = {
     en: "I build digital products that work in real-world scenarios, from architecture to the final experience.",
   },
   intro: {
-    es: "Full Stack Developer enfocado en ejecución, performance y sistemas escalables. Arquitectura y desarrollo de sistemas web modernos, pensados para escalar y operar en producción.",
+    es: "Full Stack Developer enfocado en ejecución, performance y sistemas escalables. Trabajo en plataformas, automatización y soluciones que funcionan en producción.",
     en: "Full Stack Developer focused on execution, performance, and scalable systems. I work on platforms, automation, and products with real business impact.",
   },
   narrative: {
@@ -77,28 +77,30 @@ const about: AboutContent = {
   },
   summary: {
     es: [
-      "Desarrollador Full Stack con formación universitaria en curso (TUDAI, 3º año) y Máster en Desarrollo Web Full Stack completado en Conquer Blocks.",
-      "Trabajo con React, TypeScript, Next.js, Python, Django, Node.js, PostgreSQL y Supabase, sumando herramientas de IA y automatización cuando realmente agregan valor.",
-      "Antes de pasar al software construí más de diez años de experiencia en gestión comercial, ventas y coordinación de equipos, incluyendo seis años en Tarjeta Naranja S.A.",
+      "Ingeniería, criterio de producto y claridad en la misma capa.",
+      "Construyo productos combinando desarrollo técnico, sensibilidad editorial y lectura de negocio real.",
+      "No separo frontend, backend o negocio: todo forma parte del mismo sistema.",
     ],
     en: [
-      "Full Stack Developer currently pursuing a university degree (TUDAI, 3rd year) and having completed the Full Stack Web Development master's program at Conquer Blocks.",
-      "I work with React, TypeScript, Next.js, Python, Django, Node.js, PostgreSQL, and Supabase, adding AI and automation tools when they truly improve outcomes.",
-      "Before moving into software, I built more than ten years of experience in commercial management, sales, and team coordination, including six years at Tarjeta Naranja S.A.",
+      "Engineering, product judgment, and clarity in the same layer.",
+      "I build products by combining technical development, editorial sensitivity, and real business awareness.",
+      "I do not separate frontend, backend, or business: everything is part of the same system.",
     ],
   },
   strengths: {
     es: [
-      "Resolución de problemas con foco en producto y usuario.",
-      "Trabajo remoto, autonomía y comunicación efectiva.",
-      "Arquitecturas escalables, buenas prácticas y testing.",
-      "Automatización e IA aplicadas a problemas concretos de negocio.",
+      "Resolución de problemas con foco en producto",
+      "Experiencia en negocio real aplicada a tecnología",
+      "Arquitecturas escalables y mantenibles",
+      "Comunicación clara entre negocio y desarrollo",
+      "Automatización aplicada a casos reales",
     ],
     en: [
-      "Problem solving with product and user focus.",
-      "Remote work, autonomy, and effective communication.",
-      "Scalable architectures, good practices, and testing.",
-      "AI and automation applied to concrete business problems.",
+      "Problem solving with product focus",
+      "Real business experience applied to technology",
+      "Scalable and maintainable architectures",
+      "Clear communication between business and development",
+      "Automation applied to real use cases",
     ],
   },
   languages: {
@@ -108,32 +110,33 @@ const about: AboutContent = {
   education: [
     {
       title: {
-        es: "Tecnicatura Universitaria en Desarrollo de Aplicaciones Informáticas",
-        en: "University Technician in Application Development",
-      },
-      institution: "Universidad de la Defensa Nacional — Centro Regional Universitario IUA",
-      period: {
-        es: "En curso · 3º año",
-        en: "In progress · 3rd year",
-      },
-      detail: {
-        es: "Programación, bases de datos, arquitectura, redes, testing, seguridad y calidad de software.",
-        en: "Programming, databases, architecture, networking, testing, security, and software quality.",
-      },
-    },
-    {
-      title: {
         es: "Máster en Desarrollo Web Full Stack",
         en: "Master’s in Full Stack Web Development",
       },
       institution: "Conquer Blocks (España)",
       period: {
-        es: "Completado 2025",
-        en: "Completed in 2025",
+        es: "Completado 2026",
+        en: "Completed in 2026",
       },
       detail: {
-        es: "Formación intensiva en frontend, backend, despliegue, buenas prácticas y herramientas de desarrollo modernas.",
-        en: "Intensive training across frontend, backend, deployment, good practices, and modern development tooling.",
+        es: "Formación intensiva en frontend, backend y despliegue",
+        en: "Intensive training in frontend, backend, and deployment",
+      },
+    },
+    {
+      title: {
+        es: "Tecnicatura Universitaria en Desarrollo de Aplicaciones Informáticas (TUDAI)",
+        en: "University Technician Degree in Computer Application Development (TUDAI)",
+      },
+      institution:
+        "Universidad de la Defensa Nacional (UNDEF) — Centro Regional Universitario de Córdoba, IUA",
+      period: {
+        es: "feb. 2024 – ago. 2026 · En curso · 3º año",
+        en: "Feb 2024 – Aug 2026 · In progress · 3rd year",
+      },
+      detail: {
+        es: "Programación, bases de datos, arquitectura de computadoras, redes, diseño de interfaces, testing y calidad de software, desarrollo de software I y II, sistemas operativos, gestión de proyectos y seguridad informática.",
+        en: "Programming, databases, computer architecture, networks, interface design, testing and software quality, software development I and II, operating systems, project management, and information security.",
       },
     },
   ],
@@ -148,8 +151,8 @@ const about: AboutContent = {
         en: "Azul, Buenos Aires · 2012 — 2018",
       },
       detail: {
-        es: "Campañas promocionales, acuerdos con comercios, apertura de nueva sucursal y gestión integral del ciclo comercial.",
-        en: "Promotional campaigns, merchant agreements, branch opening, and full commercial-cycle management.",
+        es: "Gestión de clientes, acuerdos comerciales y apertura de nuevas operaciones.",
+        en: "Client management, commercial agreements, and launch of new operations.",
       },
     },
     {
@@ -162,8 +165,8 @@ const about: AboutContent = {
         en: "Tandil, Buenos Aires · 2019 — 2021",
       },
       detail: {
-        es: "Cobro de cuotas, atención al cliente y soporte comercial con foco en estabilidad operativa.",
-        en: "Collections, customer support, and commercial assistance focused on operational stability.",
+        es: "Operación financiera, atención al cliente y soporte comercial.",
+        en: "Financial operations, customer support, and commercial assistance.",
       },
     },
     {
@@ -176,34 +179,31 @@ const about: AboutContent = {
         en: "Tandil, Buenos Aires · 2022 — 2023",
       },
       detail: {
-        es: "Venta mayorista nacional, gestión de cuentas corporativas y coordinación de vendedores remotos.",
-        en: "Nationwide wholesale sales, corporate account management, and remote sales-team coordination.",
+        es: "Gestión de ventas mayoristas, cuentas corporativas y coordinación de equipos remotos.",
+        en: "Wholesale sales management, corporate accounts, and coordination of remote teams.",
       },
     },
   ],
   skillGroups: [
     {
       title: { es: "Frontend", en: "Frontend" },
-      items: ["React", "Next.js", "TypeScript", "Tailwind CSS", "HTMX", "Alpine.js"],
+      items: ["React", "Next.js", "TypeScript", "Javascript", "HTML", "Tailwind CSS"],
     },
     {
       title: { es: "Backend", en: "Backend" },
-      items: ["Python", "Django 5", "Node.js", "Express.js", "Java", "REST APIs"],
+      items: ["Node.js", "Express.js", "Python", "Django", "APIs REST"],
     },
     {
-      title: { es: "Datos, IA y tooling", en: "Data, AI, and tooling" },
-      items: [
-        "PostgreSQL",
-        "MySQL",
-        "MongoDB",
-        "Supabase",
-        "Streamlit",
-        "Google Gemini AI",
-        "Git/GitHub",
-        "Linux",
-        "Vercel",
-        "Render",
-      ],
+      title: { es: "Datos", en: "Data" },
+      items: ["PostgreSQL", "MySQL", "MongoDB", "Supabase"],
+    },
+    {
+      title: { es: "Infraestructura", en: "Infrastructure" },
+      items: ["Git/GitHub", "VSCode", "Figma", "Linux/WSL"],
+    },
+    {
+      title: { es: "Deploy", en: "Deploy" },
+      items: ["VPS", "Vercel", "AWS", "Render", "Digital Ocean", "Cloudinary"],
     },
   ],
   cvLabel: {
@@ -760,6 +760,7 @@ export function getSiteContent(locale: Locale) {
       summary: project.summary[locale],
       challenge: project.challenge[locale],
       impact: project.impact[locale],
+      demoAccess: project.demoAccess?.[locale],
       media: {
         ...project.media,
         alt: project.media.alt[locale],

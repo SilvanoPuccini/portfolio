@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Github, Globe } from "lucide-react";
+import CTACluster from "@/components/site/CTACluster";
 import type { getFeaturedProjects } from "@/content/site";
 import type { Locale } from "@/lib/i18n";
 
@@ -12,7 +14,7 @@ const copy = {
     description:
       "Proyectos con arquitectura visible, decisiones técnicas claras y resultados en producción.",
     allProjects: "Explorar proyectos",
-    liveDemo: "Ver producto",
+    liveDemo: "Ver demo",
     repository: "Código",
   },
   en: {
@@ -21,7 +23,7 @@ const copy = {
     description:
       "Product thinking, execution, and technical decisions made visible. One main case and three supporting projects for a fast read.",
     allProjects: "Explore projects",
-    liveDemo: "View product",
+    liveDemo: "View demo",
     repository: "Code",
   },
 } as const;
@@ -36,6 +38,7 @@ export default function FeaturedProjects({
   const labels = copy[locale];
   const priorityProjects = projects.filter((project) => project.priority).slice(0, 4);
   const [mainProject, ...secondaryProjects] = priorityProjects;
+  const isFerrerlonMainProject = mainProject?.slug === "ferrelonstock";
 
   if (!mainProject) {
     return null;
@@ -66,84 +69,158 @@ export default function FeaturedProjects({
         </div>
 
         <div className="grid gap-5">
-          <article className="overflow-hidden rounded-[1.5rem] bg-[rgb(var(--surface-elevated)/0.46)] shadow-[0_18px_40px_rgba(2,8,23,0.1)]">
-            <div className="grid gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-              <div className="relative aspect-[16/10] overflow-hidden bg-surface-dim lg:aspect-auto lg:min-h-[24rem]">
-                <div className="absolute inset-2 sm:inset-3 lg:inset-4">
-                  <Image
-                    src={mainProject.media.cover}
-                    alt={mainProject.media.alt}
-                    fill
-                    sizes="(min-width: 1024px) 42vw, 100vw"
-                    className="object-contain object-center"
+          <article className="surface-panel overflow-hidden">
+            {isFerrerlonMainProject ? (
+              <>
+                <div className="project-media-hover project-media-hover-contained relative aspect-[16/10] overflow-hidden bg-surface-dim sm:aspect-[16/9] lg:aspect-[16/8.4]">
+                  <div className="project-media-asset absolute inset-3 sm:inset-4 lg:inset-6">
+                    <Image
+                      src={mainProject.media.cover}
+                      alt={mainProject.media.alt}
+                      fill
+                      sizes="(min-width: 1024px) 72vw, 100vw"
+                      className="object-contain object-center"
+                    />
+                  </div>
+                  <div className="project-media-overlay absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.02),rgba(10,14,24,0.34))]" />
+                </div>
+
+                <div className="space-y-6 px-6 py-6 sm:px-7 sm:py-7 lg:px-8 lg:py-8">
+                  <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-start">
+                    <div>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                        {mainProject.year} · {mainProject.category} · {mainProject.status}
+                      </p>
+                      <h3 className="mt-3 text-2xl font-semibold text-text-primary sm:text-[2rem] lg:text-[2.2rem]">
+                        {mainProject.name}
+                      </h3>
+                      <p className="mt-3 max-w-3xl text-base leading-7 text-text-primary sm:text-[1.05rem] sm:leading-8">
+                        {mainProject.headline}
+                      </p>
+                      <p className="mt-4 max-w-3xl text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                        {mainProject.summary}
+                      </p>
+                    </div>
+
+                    {mainProject.demoAccess ? (
+                      <div className="surface-subpanel bg-[rgb(var(--background)/0.16)] px-4 py-4 sm:px-5">
+                        <p className="technical-label">{mainProject.demoAccess.label}</p>
+                        <p className="mt-3 break-words font-mono text-xs leading-6 text-text-primary sm:text-[0.82rem]">
+                          {mainProject.demoAccess.credentials}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2.5">
+                    {mainProject.stack.slice(0, 6).map((item) => (
+                      <span
+                        key={item}
+                        className="project-stack-chip rounded-pill bg-[rgb(var(--background)/0.34)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+                    <div className="surface-subpanel bg-[rgb(var(--background)/0.14)] px-4 py-4 sm:px-5 sm:py-5">
+                      <p className="technical-label">{locale === "es" ? "Desafío" : "Challenge"}</p>
+                      <p className="mt-3 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
+                        {mainProject.challenge}
+                      </p>
+                    </div>
+
+                    <div className="surface-subpanel bg-[rgb(var(--background)/0.1)] px-4 py-4 sm:px-5 sm:py-5">
+                      <p className="technical-label">{locale === "es" ? "Impacto" : "Impact"}</p>
+                      <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
+                        {mainProject.impact.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <CTACluster
+                    items={[
+                      ...(mainProject.links.demo
+                        ? [{ label: labels.liveDemo, href: mainProject.links.demo, external: true, icon: Globe }]
+                        : []),
+                      ...(mainProject.links.repo
+                        ? [{ label: labels.repository, href: mainProject.links.repo, external: true, icon: Github, variant: "secondary" as const }]
+                        : []),
+                    ]}
                   />
                 </div>
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.02),rgba(10,14,24,0.38))]" />
-              </div>
-
-              <div className="space-y-6 px-6 py-6 sm:px-7 sm:py-7 lg:px-8 lg:py-8">
-                <div>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-                    {mainProject.year} · {mainProject.category} · {mainProject.status}
-                  </p>
-                  <h3 className="mt-3 text-2xl font-semibold text-text-primary sm:text-[2rem]">{mainProject.name}</h3>
-                  <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
-                    {mainProject.summary}
-                  </p>
+              </>
+            ) : (
+                <div className="grid gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+                  <div className="project-media-hover project-media-hover-contained relative aspect-[16/10] overflow-hidden bg-surface-dim lg:min-h-[24rem] lg:aspect-auto">
+                  <div className="project-media-asset absolute inset-2 sm:inset-3 lg:inset-4">
+                    <Image
+                      src={mainProject.media.cover}
+                      alt={mainProject.media.alt}
+                      fill
+                      sizes="(min-width: 1024px) 42vw, 100vw"
+                      className="object-contain object-center"
+                    />
+                  </div>
+                  <div className="project-media-overlay absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.02),rgba(10,14,24,0.38))]" />
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {mainProject.stack.slice(0, 4).map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-pill bg-[rgb(var(--background)/0.34)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.2rem] bg-[rgb(var(--background)/0.14)] px-4 py-4 sm:px-5">
-                    <p className="technical-label">{locale === "es" ? "Desafío" : "Challenge"}</p>
-                    <p className="mt-3 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
-                      {mainProject.challenge}
+                <div className="space-y-6 px-6 py-6 sm:px-7 sm:py-7 lg:px-8 lg:py-8">
+                  <div>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                      {mainProject.year} · {mainProject.category} · {mainProject.status}
+                    </p>
+                    <h3 className="mt-2.5 text-2xl font-semibold text-text-primary sm:mt-3 sm:text-[2rem]">{mainProject.name}</h3>
+                    <p className="mt-3.5 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                      {mainProject.summary}
                     </p>
                   </div>
 
-                  <div className="rounded-[1.2rem] bg-[rgb(var(--background)/0.1)] px-4 py-4 sm:px-5">
-                    <p className="technical-label">{locale === "es" ? "Impacto" : "Impact"}</p>
-                    <p className="mt-3 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
-                      {mainProject.impact.join("; ")}
-                    </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {mainProject.stack.slice(0, 4).map((item) => (
+                      <span
+                        key={item}
+                        className="project-stack-chip rounded-pill bg-[rgb(var(--background)/0.34)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
+                      >
+                        {item}
+                      </span>
+                    ))}
                   </div>
-                </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  {mainProject.links.demo ? (
-                    <a
-                      href={mainProject.links.demo}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="button-primary w-full sm:w-auto"
-                    >
-                      {labels.liveDemo}
-                    </a>
-                  ) : null}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="surface-subpanel bg-[rgb(var(--background)/0.14)] px-4 py-4 sm:px-5">
+                      <p className="technical-label">{locale === "es" ? "Desafío" : "Challenge"}</p>
+                      <p className="mt-3 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
+                        {mainProject.challenge}
+                      </p>
+                    </div>
 
-                  {mainProject.links.repo ? (
-                    <a
-                      href={mainProject.links.repo}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="button-secondary w-full sm:w-auto"
-                    >
-                      {labels.repository}
-                    </a>
-                  ) : null}
+                    <div className="surface-subpanel bg-[rgb(var(--background)/0.1)] px-4 py-4 sm:px-5">
+                      <p className="technical-label">{locale === "es" ? "Impacto" : "Impact"}</p>
+                      <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
+                        {mainProject.impact.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <CTACluster
+                    items={[
+                      ...(mainProject.links.demo
+                        ? [{ label: labels.liveDemo, href: mainProject.links.demo, external: true, icon: Globe }]
+                        : []),
+                      ...(mainProject.links.repo
+                        ? [{ label: labels.repository, href: mainProject.links.repo, external: true, icon: Github, variant: "secondary" as const }]
+                        : []),
+                    ]}
+                  />
                 </div>
               </div>
-            </div>
+            )}
           </article>
 
           {secondaryProjects.length ? (
@@ -151,10 +228,18 @@ export default function FeaturedProjects({
               {secondaryProjects.map((project) => (
                 <article
                   key={project.slug}
-                  className="overflow-hidden rounded-[1.5rem] bg-[rgb(var(--surface-elevated)/0.42)] shadow-[0_18px_40px_rgba(2,8,23,0.1)]"
+                  className="surface-panel flex h-full flex-col overflow-hidden"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-surface-dim">
-                    <div className={project.slug === "aktivar" ? "absolute inset-2 sm:inset-3" : "absolute inset-0"}>
+                  <div
+                    className={
+                      project.slug === "aktivar"
+                        ? "project-media-hover project-media-hover-contained relative aspect-[16/9] overflow-hidden bg-surface-dim"
+                        : "project-media-hover relative aspect-[16/9] overflow-hidden bg-surface-dim"
+                    }
+                  >
+                    <div
+                      className={project.slug === "aktivar" ? "project-media-asset absolute inset-2 sm:inset-3" : "project-media-asset absolute inset-0"}
+                    >
                       <Image
                         src={project.media.cover}
                         alt={project.media.alt}
@@ -163,51 +248,42 @@ export default function FeaturedProjects({
                         className={project.slug === "aktivar" ? "object-contain object-center" : "object-cover"}
                       />
                     </div>
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.02),rgba(10,14,24,0.38))]" />
+                    <div className="project-media-overlay absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.02),rgba(10,14,24,0.38))]" />
                   </div>
 
-                  <div className="space-y-5 px-6 py-6 sm:px-7 sm:py-7">
-                    <div>
+                  <div className="flex flex-1 flex-col px-6 py-4 sm:px-7 sm:py-4.5">
+                    <div className="min-h-[9.5rem] space-y-2.5">
                       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                         {project.year} · {project.category} · {project.status}
                       </p>
-                      <h3 className="mt-3 text-2xl font-semibold text-text-primary">{project.name}</h3>
-                      <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base">{project.summary}</p>
+                      <h3 className="text-2xl font-semibold text-text-primary">{project.name}</h3>
+                      <p className="text-sm leading-6 text-text-secondary sm:text-base">{project.summary}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5">
-                      {project.stack.slice(0, 4).map((item) => (
-                        <span
-                          key={item}
-                          className="rounded-pill bg-[rgb(var(--background)/0.34)] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-secondary"
-                        >
-                          {item}
-                        </span>
-                      ))}
-                    </div>
+                    <div className="mt-auto flex flex-col gap-3 pt-4">
+                      <div className="grid min-h-[4.5rem] grid-cols-2 content-start gap-2">
+                        {project.stack.slice(0, 4).map((item) => (
+                          <span
+                            key={item}
+                            className="project-stack-chip inline-flex min-h-8 items-center rounded-pill bg-[rgb(var(--background)/0.34)] px-2.5 py-1 text-left font-mono text-[10px] uppercase tracking-[0.12em] text-text-secondary"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                      {project.links.demo ? (
-                        <a
-                          href={project.links.demo}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="button-primary w-full sm:w-auto"
-                        >
-                          {labels.liveDemo}
-                        </a>
-                      ) : null}
-
-                      {project.links.repo ? (
-                        <a
-                          href={project.links.repo}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="button-secondary w-full sm:w-auto"
-                        >
-                          {labels.repository}
-                        </a>
-                      ) : null}
+                      <div className="min-h-[3.25rem]">
+                        <CTACluster
+                          items={[
+                            ...(project.links.demo
+                              ? [{ label: labels.liveDemo, href: project.links.demo, external: true, icon: Globe }]
+                              : []),
+                            ...(project.links.repo
+                              ? [{ label: labels.repository, href: project.links.repo, external: true, icon: Github, variant: "secondary" as const }]
+                              : []),
+                          ]}
+                        />
+                      </div>
                     </div>
                   </div>
                 </article>

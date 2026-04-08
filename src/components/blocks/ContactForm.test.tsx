@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ContactForm from "@/components/blocks/ContactForm";
 
@@ -20,7 +20,6 @@ const labels = {
   sending: "Sending…",
   success: "Message sent. If everything went through, I’ll reply by email.",
   error: "Review the fields and try again. If it persists, you can contact me directly by email.",
-  helper: "This message is sent through Formspree and stays integrated with the same editorial language used across the site.",
   validation: {
     required: "This field is required.",
     email: "Enter a valid email address.",
@@ -30,23 +29,41 @@ const labels = {
 describe("ContactForm", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
-  it("shows inline validation and keeps feedback integrated inside the form panel", async () => {
+  it("does not render a permanent helper message before submission", () => {
     render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
 
-    fireEvent.click(screen.getByRole("button", { name: labels.submit }));
-
-    expect(await screen.findAllByText(labels.validation.required)).toHaveLength(4);
-    expect(screen.getByText("Review required")).toBeInTheDocument();
-    expect(screen.getByText(labels.error)).toBeInTheDocument();
+    expect(screen.queryByText("Ready to receive your message")).not.toBeInTheDocument();
   });
 
-  it("shows a success state after a valid submission", async () => {
+  it("shows inline validation and an error toast when submission is invalid", async () => {
+    render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: labels.submit }));
+    });
+
+    expect(screen.getAllByText(labels.validation.required)).toHaveLength(4);
+    expect(screen.getByText("Review required")).toBeInTheDocument();
+    expect(screen.getByText(labels.error)).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4200);
+    });
+
+    expect(screen.queryByText("Review required")).not.toBeInTheDocument();
+    expect(screen.queryByText(labels.error)).not.toBeInTheDocument();
+  });
+
+  it("shows a temporary success toast after a valid submission", async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
     render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
@@ -55,11 +72,23 @@ describe("ContactForm", () => {
     fireEvent.change(screen.getByLabelText(labels.fields.email), { target: { value: "silvano@example.com" } });
     fireEvent.change(screen.getByLabelText(labels.fields.subject), { target: { value: "Portfolio rebuild" } });
     fireEvent.change(screen.getByLabelText(labels.fields.message), { target: { value: "Need help with final QA." } });
-    fireEvent.click(screen.getByRole("button", { name: labels.submit }));
 
-    await waitFor(() => {
-      expect(screen.getByText("Message delivered")).toBeInTheDocument();
-      expect(screen.getByText(labels.success)).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: labels.submit }));
     });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Message delivered")).toBeInTheDocument();
+    expect(screen.getByText(labels.success)).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4200);
+    });
+
+    expect(screen.queryByText("Message delivered")).not.toBeInTheDocument();
+    expect(screen.queryByText(labels.success)).not.toBeInTheDocument();
   });
 });
