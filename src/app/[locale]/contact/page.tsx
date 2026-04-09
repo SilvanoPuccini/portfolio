@@ -238,8 +238,12 @@ export default async function ContactPage({
             {labels.hero.titlePrefix} {labels.hero.titleAccent}
           </>
         }
+        contentClassName="max-w-[68rem]"
+        bodyClassName="space-y-7 sm:space-y-8"
         subtitle={<p>{labels.hero.lead}</p>}
+        subtitleClassName="max-w-[48rem] text-[1.95rem] leading-[1.08] sm:text-[2.4rem] lg:text-[2.95rem]"
         description={<p>{labels.hero.support}</p>}
+        descriptionClassName="max-w-[44rem] text-[1.05rem] leading-8 text-text-secondary sm:text-[1.18rem] sm:leading-8 lg:text-[1.24rem]"
         actions={
           <>
             <Link href={emailHref} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">

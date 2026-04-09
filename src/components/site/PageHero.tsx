@@ -13,6 +13,7 @@ export default function PageHero({
   containerClassName,
   contentClassName,
   layoutClassName,
+  bodyClassName,
   titleClassName,
   subtitleClassName,
   descriptionClassName,
@@ -28,6 +29,7 @@ export default function PageHero({
   containerClassName?: string;
   contentClassName?: string;
   layoutClassName?: string;
+  bodyClassName?: string;
   titleClassName?: string;
   subtitleClassName?: string;
   descriptionClassName?: string;
@@ -56,7 +58,7 @@ export default function PageHero({
           )}
         >
           <div className={cn("max-w-5xl xl:max-w-6xl", contentClassName)}>
-            <div className="space-y-5 sm:space-y-6">
+            <div className={cn("space-y-5 sm:space-y-6", bodyClassName)}>
               {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
               <h1
                 className={cn(

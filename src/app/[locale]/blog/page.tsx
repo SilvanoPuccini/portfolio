@@ -44,6 +44,7 @@ export default async function BlogPage({
             {content.blog.title} <span className="text-brand-primary">{content.blog.titleAccent}</span>
           </>
         }
+        bodyClassName="space-y-7 sm:space-y-8"
         subtitle={<p>{content.blog.intro}</p>}
         description={<p>{content.blog.editorialNote}</p>}
         aside={

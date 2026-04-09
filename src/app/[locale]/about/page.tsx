@@ -445,6 +445,7 @@ export default async function AboutPage({
       <PageHero
         eyebrow={heroContent.eyebrow}
         title={heroContent.title}
+        bodyClassName="space-y-7 sm:space-y-8"
         subtitle={<p>{heroContent.body[0]}</p>}
         description={
           <div className="space-y-3 sm:space-y-4">
