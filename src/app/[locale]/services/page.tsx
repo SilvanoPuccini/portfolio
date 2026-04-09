@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import CapabilityMatrix from "@/components/blocks/CapabilityMatrix";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
 import ServiceCard from "@/components/blocks/ServiceCard";
 import CTACluster from "@/components/site/CTACluster";
 import PageHero from "@/components/site/PageHero";
@@ -12,221 +14,266 @@ type LocaleParams = Promise<{ locale: string }>;
 const copy = {
   es: {
     metaDescription:
-      "Servicios y capacidades reales de Silvano Puccini: desarrollo full stack, automatización aplicada e ingeniería con visión de producto.",
+      "Servicios de desarrollo web, automatización con IA y auditoría técnica, adaptados al sistema editorial del portfolio y respaldados por experiencia verificable.",
     hero: {
       eyebrow: "Servicios",
-      title: "Capacidades reales para producto, plataformas y automatización con criterio técnico.",
+      titleStart: "Soluciones con",
+      titleAccent: "Precisión Técnica.",
       intro:
-        "La página de servicios no vende paquetes vacíos: ordena el tipo de trabajo que ya aparece en proyectos, CV y experiencia profesional para que el posicionamiento se lea claro y creíble.",
+        "Diseño, construyo y ordeno productos digitales con una lógica clara: resolver negocio real con software bien pensado, mantenible y listo para crecer.",
       support:
-        "El enfoque combina ejecución full stack, automatización aplicada y lectura de negocio. Todo lo que aparece acá está respaldado por casos publicados o por trayectoria verificable.",
-      aside: {
-        status: "Posicionamiento",
-        statusValue: "Perfil técnico con lectura de producto y negocio",
-        proof: "Prueba reunida",
-        proofValueSuffix: "proyectos reales",
-        coverage: "Cobertura",
-        coverageValue: "3 frentes de servicio",
-        experience: "Trayectoria",
-        experienceValue: "10+ años en gestión comercial y coordinación",
-      },
-      primaryCta: "Ir a contacto",
-      secondaryCta: "Ver proyectos",
+        "El perfil es híbrido por una razón concreta: combina ingeniería full stack, automatización aplicada y lectura comercial para tomar mejores decisiones antes, durante y después de construir.",
+      primaryCta: "Agenda tu llamada",
+      secondaryCta: "Ir a contacto",
     },
-    lead: {
-      eyebrow: "Servicio ancla",
-      title: "Desarrollo end-to-end para construir productos que funcionen en frontend, backend y operación.",
-      description:
-        "La combinación más repetida del portfolio está en sistemas completos: aplicaciones con UX cuidada, lógica de negocio, datos, pagos, despliegue y una narrativa técnica entendible para quien toma decisiones.",
-      proofLabel: "Capas verificables",
-      referencesLabel: "Pruebas concretas",
-      linkPrimary: "Hablemos de un producto real",
-      linkSecondary: "Ver proyectos publicados",
-    },
-    cards: {
+    services: {
       eyebrow: "Cobertura real",
-      title: "Tres líneas de servicio sostenidas por trabajo publicado y experiencia verificable.",
+      title:
+        "Tres líneas de servicio sostenidas por trabajo publicado y experiencia verificable.",
       description:
         "No son categorías decorativas: cada frente conecta con proyectos reales, tecnologías visibles y decisiones que ya aparecen en el portfolio, el CV o repositorios públicos.",
       proofLabel: "Señales de prueba",
       referencesLabel: "Referencias",
     },
-    process: {
-      eyebrow: "Cómo trabajo",
-      title: "Proceso orientado a claridad, viabilidad técnica y resultado utilizable.",
-      intro:
-        "La metodología nace de dos capas combinadas: experiencia comercial para entender contexto y práctica de ingeniería para convertirlo en una solución ejecutable, medible y mantenible.",
+    approach: {
+      ctaQuestion: "¿Tenés un proyecto en mente?",
+      ctaTitle: "Agendá una conversación de 30 minutos sin compromiso.",
+      ctaLabel: "Iniciar conversación",
+      eyebrow: "Approach",
+      titleLines: [
+        "Proceso orientado a claridad,",
+        "viabilidad técnica y resultado.",
+      ],
+      description:
+        "La metodología nace de dos capas: experiencia comercial para entender contexto, y práctica de desarrollo para construir soluciones estables.",
       steps: [
         {
-          label: "01 · Contexto",
-          title: "Traducir necesidad de negocio en alcance técnico legible.",
+          label: "01",
+          titleLines: ["Entender el", "problema"],
           detail:
-            "La base comercial ayuda a detectar prioridades, restricciones operativas y señales de valor antes de escribir arquitectura o interfaz.",
+            "Escucho, pregunto y analizo. 10 años en gestión comercial me enseñaron que el primer paso es entender el negocio, no el código.",
         },
         {
-          label: "02 · Construcción",
-          title: "Resolver producto, datos y experiencia como un mismo sistema.",
+          label: "02",
+          titleLines: ["Diseñar la", "solución"],
           detail:
-            "Los proyectos publicados muestran trabajo sobre frontend, backend, integraciones, persistencia y despliegue, sin separar artificialmente lo visual de lo funcional.",
+            "Arquitectura, estructura de datos, wireframes. Planifico antes de escribir una línea para evitar rehacer después.",
         },
         {
-          label: "03 · Cierre",
-          title: "Entregar algo auditable, navegable y con siguiente paso claro.",
+          label: "03",
+          titleLines: ["Desarrollar", "con calidad"],
           detail:
-            "Roadmaps, demos, repositorios y pruebas visibles pesan más que cualquier claim abstracto: el objetivo es que el resultado pueda evaluarse rápido.",
+            "Código limpio, testing automatizado, documentación. No se entrega sin testear. 65 tests en FerrelonStock no fueron casualidad.",
+        },
+        {
+          label: "04",
+          titleLines: ["Entregar y", "acompañar"],
+          detail:
+            "Deploy en producción, capacitación de uso, 30 días de soporte. El proyecto no termina cuando el código está listo.",
         },
       ],
     },
-    approach: {
-      eyebrow: "Approach técnico",
-      title: "El trabajo cruza producto, stack y ejecución real.",
-      intro:
-        "Las capacidades no se presentan como lista genérica de skills sino como combinación concreta de tecnologías, dominios y resultados visibles en casos publicados.",
-      items: [
-        {
-          label: "Frontend",
-          title: "React, Next.js, TypeScript y UI editorial premium.",
-          detail:
-            "Base fuerte para interfaces claras, rápidas y con criterio visual, visible en este portfolio, Modern Art Gallery y parte del stack de Aktivar y PayTrack.",
-        },
-        {
-          label: "Backend",
-          title: "Python, Django, Node.js, APIs, datos y operaciones.",
-          detail:
-            "FerrelonStock y Aktivar muestran profundidad en lógica de negocio, autenticación, pagos, mapas, chat, modelos y despliegue productivo.",
-        },
-        {
-          label: "Automation",
-          title: "IA aplicada, pipelines y tooling para eficiencia real.",
-          detail:
-            "FacturIA 2.0 y el trabajo explorado en PayTrack sostienen una línea concreta de automatización con auditoría, procesamiento documental y flujos útiles.",
-        },
+    philosophy: {
+      eyebrow: "Filosofía",
+      title:
+        "La mejor solución no siempre es la más grande: es la que ordena complejidad sin perder precisión.",
+      paragraphs: [
+        "Mi forma de trabajar evita el ruido de vender 'de todo'. Prefiero definir con claridad qué problema conviene resolver, con qué nivel de sofisticación y bajo qué restricciones reales.",
+        "La experiencia comercial previa agrega algo que suele faltar en perfiles puramente técnicos: sensibilidad para priorizar, explicar impacto y sostener conversaciones útiles con negocio.",
+        "Cuando frontend, backend, automatización y producto se piensan como partes del mismo sistema, la ejecución gana foco y el resultado se vuelve más estable.",
       ],
-    },
-    closing: {
-      eyebrow: "Cierre editorial",
-      title: "Si el problema exige producto, claridad técnica y ejecución real, este es el tipo de colaboración que mejor encaja.",
-      description:
-        "La lectura final busca dejar algo nítido: no se trata de vender “de todo”, sino de concentrar fortalezas reales donde el cruce entre software, negocio y narrativa aporta valor.",
-      notesTitle: "Lo que esta página deja claro",
-      notes: [
-        "El foco está en producto digital, plataformas y automatizaciones con evidencia pública o trazabilidad documental.",
-        "La experiencia previa en gestión comercial mejora discovery, priorización y comunicación con negocio.",
-        "La ejecución técnica cubre desde UI y arquitectura hasta datos, integraciones y despliegue.",
-      ],
-      primaryCta: "Abrir conversación",
-      secondaryCta: "Ver Sobre mí",
+      statsTitle: "Señales concretas",
+      statsFootnote:
+        "Las métricas no reemplazan evidencia, pero ayudan a leer rápido el tipo de colaboración que esta página propone.",
+      statLabels: {
+        projects: "Proyectos publicados",
+        services: "Servicios principales",
+        background: "Años de experiencia previa",
+      },
     },
   },
   en: {
     metaDescription:
-      "Silvano Puccini services and real capabilities: full stack development, applied automation, and engineering with product perspective.",
+      "Web development, AI automation, and technical audit services adapted to the portfolio's editorial system and backed by verifiable experience.",
     hero: {
-      eyebrow: "Services",
-      title: "Real capabilities for product, platforms, and automation with technical judgment.",
+      eyebrow: "Digital capabilities",
+      titleStart: "Solutions with",
+      titleAccent: "Technical Precision.",
       intro:
-        "This services page does not sell empty packages: it organizes the type of work already visible across projects, resume, and professional background so positioning feels clear and credible.",
+        "I design, build, and structure digital products with a clear logic: solve real business problems through thoughtful, maintainable software ready to scale.",
       support:
-        "The focus combines full stack execution, applied automation, and business awareness. Everything shown here is backed by published work or verifiable experience.",
-      aside: {
-        status: "Positioning",
-        statusValue: "Technical profile with product and business perspective",
-        proof: "Proof gathered",
-        proofValueSuffix: "real projects",
-        coverage: "Coverage",
-        coverageValue: "3 service fronts",
-        experience: "Background",
-        experienceValue: "10+ years in commercial management and coordination",
-      },
-      primaryCta: "Go to contact",
-      secondaryCta: "View projects",
+        "The profile is hybrid for a practical reason: it combines full stack engineering, applied automation, and commercial awareness to make better decisions before, during, and after shipping.",
+      profileLabel: "Hybrid profile",
+      profileTitle: "Product, system, and business in the same conversation.",
+      profileBody:
+        "I work from architecture to final experience, avoiding generic packages and prioritizing solutions that can be audited, operated, and evolved with judgment.",
+      metrics: [
+        { label: "Coverage", value: "3 core fronts" },
+        { label: "Background", value: "10+ years in business" },
+        { label: "Evidence", value: "Real projects and cases" },
+      ],
+      primaryCta: "Schedule your call",
+      secondaryCta: "Go to contact",
     },
-    lead: {
-      eyebrow: "Lead service",
-      title: "End-to-end development to build products that work across frontend, backend, and operations.",
-      description:
-        "The most repeated pattern across the portfolio is complete systems: applications with strong UX, business logic, data, payments, deployment, and technical storytelling that decision-makers can read quickly.",
-      proofLabel: "Verified layers",
-      referencesLabel: "Concrete proof",
-      linkPrimary: "Let’s discuss a real product",
-      linkSecondary: "View published projects",
-    },
-    cards: {
+    services: {
       eyebrow: "Real coverage",
-      title: "Three service lines sustained by published work and verifiable background.",
+      title:
+        "Three service lines sustained by published work and verifiable background.",
       description:
         "These are not decorative categories: each line connects to real projects, visible technologies, and decisions already present in the portfolio, resume, or public repositories.",
       proofLabel: "Proof signals",
       referencesLabel: "References",
     },
-    process: {
-      eyebrow: "How I work",
-      title: "Process oriented to clarity, technical viability, and usable outcomes.",
-      intro:
-        "The method comes from combining two layers: commercial experience to understand context and engineering practice to turn it into something executable, measurable, and maintainable.",
+    approach: {
+      ctaQuestion: "Do you have a project in mind?",
+      ctaTitle: "Schedule a 30-minute conversation with no commitment.",
+      ctaLabel: "Start the conversation",
+      eyebrow: "Approach",
+      titleLines: [
+        "A process built for clarity,",
+        "technical viability, and outcome.",
+      ],
+      description:
+        "The method comes from two layers: commercial experience to understand context, and development practice to build stable solutions.",
       steps: [
         {
-          label: "01 · Context",
-          title: "Translate business needs into readable technical scope.",
+          label: "01",
+          titleLines: ["Understand the", "problem"],
           detail:
-            "The commercial background helps identify priorities, operational constraints, and value signals before architecture or interface work begins.",
+            "I listen, ask, and analyze. Ten years in commercial management taught me that the first step is understanding the business, not the code.",
         },
         {
-          label: "02 · Build",
-          title: "Solve product, data, and experience as one system.",
+          label: "02",
+          titleLines: ["Design the", "solution"],
           detail:
-            "Published projects show work across frontend, backend, integrations, persistence, and deployment without artificially separating visual quality from functionality.",
+            "Architecture, data structure, and wireframes. I plan before writing a single line to avoid rework later.",
         },
         {
-          label: "03 · Delivery",
-          title: "Ship something auditable, navigable, and easy to evaluate.",
+          label: "03",
+          titleLines: ["Develop with", "quality"],
           detail:
-            "Roadmaps, demos, repositories, and visible proof matter more than abstract claims: the goal is to make the result easy to assess.",
+            "Clean code, automated testing, and documentation. Nothing ships untested. The 65 tests in FerrelonStock were not accidental.",
+        },
+        {
+          label: "04",
+          titleLines: ["Deliver and", "support"],
+          detail:
+            "Production deploy, usage training, and 30 days of support. The project does not end when the code is ready.",
         },
       ],
     },
-    approach: {
-      eyebrow: "Technical approach",
-      title: "The work sits at the intersection of product, stack, and real execution.",
-      intro:
-        "Capabilities are not shown as a generic skills list but as a concrete blend of technologies, domains, and outcomes visible in published work.",
-      items: [
-        {
-          label: "Frontend",
-          title: "React, Next.js, TypeScript, and premium editorial UI.",
-          detail:
-            "A strong base for clear, fast interfaces with visual judgment, visible in this portfolio, Modern Art Gallery, and parts of the Aktivar and PayTrack stack.",
-        },
-        {
-          label: "Backend",
-          title: "Python, Django, Node.js, APIs, data, and operations.",
-          detail:
-            "FerrelonStock and Aktivar show depth in business logic, authentication, payments, maps, chat, data models, and production deployment.",
-        },
-        {
-          label: "Automation",
-          title: "Applied AI, pipelines, and tooling for real efficiency.",
-          detail:
-            "FacturIA 2.0 and the direction explored in PayTrack sustain a concrete automation line with auditing, document processing, and useful workflows.",
-        },
+    philosophy: {
+      eyebrow: "Philosophy",
+      title:
+        "The best solution is not always the biggest one: it is the one that organizes complexity without losing precision.",
+      paragraphs: [
+        "My way of working avoids the noise of offering everything. I prefer to define clearly which problem should be solved, at what level of sophistication, and under which real constraints.",
+        "Previous commercial experience adds something that purely technical profiles often miss: sensitivity to prioritize, explain impact, and sustain useful conversations with business stakeholders.",
+        "When frontend, backend, automation, and product are treated as parts of the same system, execution gains focus and the outcome becomes more stable.",
       ],
-    },
-    closing: {
-      eyebrow: "Editorial close",
-      title: "If the problem needs product thinking, technical clarity, and real execution, this is the collaboration shape that fits best.",
-      description:
-        "The closing point is simple: this is not about offering everything, but about focusing on real strengths where software, business, and narrative intersect meaningfully.",
-      notesTitle: "What this page makes explicit",
-      notes: [
-        "The focus is digital product, platforms, and automation with public evidence or documented traceability.",
-        "Previous commercial-management experience improves discovery, prioritization, and communication with business stakeholders.",
-        "Technical execution covers UI and architecture as well as data, integrations, and deployment.",
-      ],
-      primaryCta: "Start a conversation",
-      secondaryCta: "View About",
+      statsTitle: "Concrete signals",
+      statsFootnote:
+        "Metrics do not replace evidence, but they help frame the kind of collaboration this page is proposing.",
+      statLabels: {
+        projects: "Published projects",
+        services: "Primary services",
+        background: "Years of previous background",
+      },
     },
   },
 } as const;
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M19.11 4.89A9.88 9.88 0 0 0 12.06 2C6.57 2 2.1 6.47 2.1 11.96c0 1.76.46 3.47 1.33 4.98L2 22l5.22-1.37a9.9 9.9 0 0 0 4.74 1.21h.01c5.49 0 9.96-4.47 9.96-9.96a9.9 9.9 0 0 0-2.82-6.99ZM12 20.16h-.01a8.21 8.21 0 0 1-4.19-1.15l-.3-.18-3.1.81.83-3.02-.2-.31a8.25 8.25 0 0 1 12.81-10.2A8.16 8.16 0 0 1 20.26 12c0 4.55-3.71 8.16-8.26 8.16Zm4.53-6.15c-.25-.13-1.47-.72-1.7-.8-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.14.17-.28.19-.53.06-.25-.13-1.05-.39-2-.25-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.28.37-.42.12-.14.16-.24.24-.41.08-.16.04-.31-.02-.44-.06-.13-.56-1.35-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.66.31-.23.25-.86.84-.86 2.05 0 1.2.88 2.36 1 2.52.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.52.1.46-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.3Z" />
+    </svg>
+  );
+}
+
+const sectionBackgrounds = {
+  services:
+    "bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.26))]",
+  approach:
+    "bg-[linear-gradient(180deg,rgb(var(--surface)/0.08),rgb(var(--surface-dim)/0.22))]",
+  philosophy:
+    "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.18),rgb(var(--surface)/0.1))]",
+} as const;
+
+const spanishDigitalCapabilities = [
+  {
+    number: "01",
+    title: "Desarrollo web a medida",
+    description:
+      "Construcción end-to-end de productos, plataformas y herramientas internas con frontend, backend, datos, autenticación, despliegue y criterio editorial en la experiencia.",
+    details: [
+      {
+        label: "Frontend",
+        value: "Next.js / React / TypeScript",
+      },
+      {
+        label: "Backend",
+        value: "Node.js / Python / APIs",
+      },
+      {
+        label: "Data",
+        value: "PostgreSQL / Supabase / flujos",
+      },
+    ],
+    references: ["FerrelonStock", "Aktivar", "PayTrack"],
+  },
+  {
+    number: "02",
+    title: "Automatización con IA",
+    description:
+      "Diseño de flujos asistidos por IA para reducir tareas manuales, clasificar información, documentar procesos y convertir operaciones repetitivas en sistemas auditables.",
+    details: [
+      {
+        label: "Procesos",
+        value: "Clasificación / extracción / validación",
+      },
+      {
+        label: "Tooling",
+        value: "Pipelines / agentes / dashboards",
+      },
+      {
+        label: "Objetivo",
+        value: "Velocidad con trazabilidad",
+      },
+    ],
+    references: ["FacturIA 2.0", "PayTrack", "MCP / agentes IA"],
+  },
+  {
+    number: "03",
+    title: "Auditoría técnica",
+    description:
+      "Revisión de arquitectura, UX técnica, performance y claridad de producto para detectar fricción, ordenar prioridades y proponer un siguiente paso ejecutable.",
+    details: [
+      {
+        label: "Arquitectura",
+        value: "Stack / escalabilidad / deuda",
+      },
+      {
+        label: "Producto",
+        value: "UX / narrativa / prioridades",
+      },
+      {
+        label: "Salida",
+        value: "Diagnóstico + roadmap",
+      },
+    ],
+    references: [
+      "Roadmaps técnicos",
+      "Auditoría 360",
+      "Visión negocio + ejecución",
+    ],
+  },
+] as const;
 
 export async function generateMetadata({
   params,
@@ -253,10 +300,18 @@ export default async function ServicesPage({
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
-  const projectBySlug = new Map(content.projects.map((project) => [project.slug, project]));
+  const englishHero = currentLocale === "en" ? copy.en.hero : null;
+  const projectBySlug = new Map(
+    content.projects.map((project) => [project.slug, project]),
+  );
+  const publishedProjects = content.projects.length;
+  const phoneHref = `https://wa.me/${content.metadata.phone.replace(/\D/g, "")}`;
+
   const fullStackCases = ["ferrelonstock", "aktivar", "paytrack"]
     .map((slug) => projectBySlug.get(slug))
-    .filter((project): project is NonNullable<typeof project> => Boolean(project));
+    .filter((project): project is NonNullable<typeof project> =>
+      Boolean(project),
+    );
 
   const serviceReferences = {
     "full-stack-builds": fullStackCases.map((project) => ({
@@ -266,7 +321,9 @@ export default async function ServicesPage({
     })),
     "automation-ai": ["facturia-2-0", "paytrack"]
       .map((slug) => projectBySlug.get(slug))
-      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+      .filter((project): project is NonNullable<typeof project> =>
+        Boolean(project),
+      )
       .map((project) => ({
         label: project.name,
         value: `${project.category} · ${project.status}`,
@@ -274,8 +331,12 @@ export default async function ServicesPage({
       })),
     "product-ux-engineering": [
       {
-        label: currentLocale === "es" ? "Experiencia previa" : "Previous background",
-        value: currentLocale === "es" ? "Gestión comercial + coordinación" : "Commercial management + coordination",
+        label:
+          currentLocale === "es" ? "Experiencia previa" : "Previous background",
+        value:
+          currentLocale === "es"
+            ? "Gestión comercial + coordinación"
+            : "Commercial management + coordination",
         detail: content.about.summary[2],
       },
       {
@@ -291,162 +352,301 @@ export default async function ServicesPage({
     ],
   } as const;
 
-  const leadService = content.services[0];
-  const sourceBackedProjects = content.projects.length;
+  const philosophyStats = [
+    {
+      label: labels.philosophy.statLabels.projects,
+      value: String(publishedProjects),
+    },
+    {
+      label: labels.philosophy.statLabels.services,
+      value: String(content.services.length),
+    },
+    { label: labels.philosophy.statLabels.background, value: "10+" },
+  ];
 
   return (
     <>
       <PageHero
         eyebrow={labels.hero.eyebrow}
-        title={labels.hero.title}
+        title={
+          <>
+            {labels.hero.titleStart}{" "}
+            <span className="text-brand-primary">{labels.hero.titleAccent}</span>
+          </>
+        }
+        contentClassName="max-w-[72rem]"
+        bodyClassName="space-y-7 sm:space-y-8"
+        titleClassName="leading-[0.97]"
         subtitle={<p>{labels.hero.intro}</p>}
+        subtitleClassName="max-w-[54rem] text-[2rem] leading-[1.08] sm:text-[2.5rem] lg:text-[3.05rem]"
         description={<p>{labels.hero.support}</p>}
+        descriptionClassName="max-w-[50rem] text-[1.08rem] leading-8 text-text-secondary sm:text-[1.22rem] sm:leading-9 lg:text-[1.28rem]"
         actions={
-          <CTACluster
-            items={[
-              { label: labels.hero.primaryCta, href: `/${currentLocale}/contact` },
-              { label: labels.hero.secondaryCta, href: `/${currentLocale}/projects`, variant: "secondary" },
-            ]}
-          />
+          <>
+            <a
+              href={phoneHref}
+              target="_blank"
+              rel="noreferrer"
+              className="button-primary w-full gap-2.5 sm:min-w-[13.5rem] sm:w-auto"
+            >
+              <WhatsAppIcon className="h-[1.1rem] w-[1.1rem] shrink-0" />
+              <span>{labels.hero.primaryCta}</span>
+              <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+            </a>
+
+            <Link
+              href={`/${currentLocale}/contact`}
+              className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto"
+            >
+              {labels.hero.secondaryCta}
+            </Link>
+          </>
         }
         aside={
-          <div className="surface-panel no-line-stack px-5 py-6 sm:px-7 sm:py-8 lg:px-8">
-            <div>
-              <p className="technical-label">{labels.hero.aside.status}</p>
-              <p className="mt-3 text-lg font-semibold text-text-primary">{labels.hero.aside.statusValue}</p>
-              <p className="mt-2 text-sm leading-6 text-text-secondary">{content.metadata.role}</p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
+          englishHero ? (
+            <div className="surface-panel no-line-stack border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))] px-5 py-6 sm:px-7 sm:py-8 lg:px-8">
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.hero.aside.proof}</p>
-                <p className="mt-2 text-sm font-medium leading-6 text-text-primary">
-                  {sourceBackedProjects} {labels.hero.aside.proofValueSuffix}
+                <p className="technical-label">{englishHero.profileLabel}</p>
+                <h2 className="mt-3 text-[1.4rem] font-semibold leading-tight text-text-primary sm:text-[1.55rem]">
+                  {englishHero.profileTitle}
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                  {englishHero.profileBody}
                 </p>
               </div>
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.hero.aside.coverage}</p>
-                <p className="mt-2 text-sm font-medium leading-6 text-text-primary">{labels.hero.aside.coverageValue}</p>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                {englishHero.metrics.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[var(--radius-soft)] bg-[rgb(var(--background)/0.14)] px-4 py-4"
+                  >
+                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                      {item.label}
+                    </p>
+                    <p className="mt-2 text-base font-semibold leading-6 text-text-primary">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{labels.hero.aside.experience}</p>
-              <p className="mt-2 text-sm font-medium leading-6 text-text-primary">{labels.hero.aside.experienceValue}</p>
-            </div>
-          </div>
+          ) : null
         }
       />
 
-      {leadService ? (
+      {currentLocale === "es" ? (
         <SectionShell
-          eyebrow={labels.lead.eyebrow}
-          title={labels.lead.title}
-          description={<p>{labels.lead.description}</p>}
+          eyebrow="Capacidades digitales"
+          title="Desarrollo, automatización e ingeniería para productos reales."
+          description={
+            <p>
+              La referencia de contenido se traduce al lenguaje del sitio: foco editorial, estructura clara y pruebas concretas conectadas con proyectos, stack y experiencia previa.
+            </p>
+          }
+          sectionClassName={sectionBackgrounds.services}
+          containerClassName="py-10 sm:py-12 lg:py-14"
+          surface="plain"
         >
-          <ServiceCard
-            variant="feature"
-            eyebrow={leadService.title}
-            title={leadService.title}
-            description={`${leadService.description} ${labels.lead.description}`}
-            proofLabel={labels.lead.proofLabel}
-            proofPoints={leadService.proofPoints}
-            referencesLabel={labels.lead.referencesLabel}
-            references={serviceReferences[leadService.slug as keyof typeof serviceReferences]}
-            links={[
-              { label: labels.lead.linkPrimary, href: `/${currentLocale}/contact` },
-              { label: labels.lead.linkSecondary, href: `/${currentLocale}/projects`, variant: "secondary" },
-            ]}
-          />
-        </SectionShell>
-      ) : null}
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {spanishDigitalCapabilities.map((service, index) => (
+              <article
+                key={service.number}
+                className={`surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 px-5 py-6 sm:px-6 sm:py-7 ${
+                  index === 1
+                    ? "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]"
+                    : "bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
+                }`}
+              >
+                <div className="border-b border-outline-ghost/10 pb-4">
+                  <p className="technical-label">
+                    {service.number}
+                  </p>
+                </div>
 
-      <SectionShell
-        eyebrow={labels.cards.eyebrow}
-        title={labels.cards.title}
-        description={<p>{labels.cards.description}</p>}
-      >
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {content.services.map((service) => (
-            <ServiceCard
-              key={service.slug}
-              eyebrow={service.slug}
-              title={service.title}
-              description={service.description}
-              proofLabel={labels.cards.proofLabel}
-              proofPoints={service.proofPoints}
-              referencesLabel={labels.cards.referencesLabel}
-              references={serviceReferences[service.slug as keyof typeof serviceReferences]}
-            />
-          ))}
-        </div>
-      </SectionShell>
+                <div className="mt-8 flex flex-1 flex-col">
+                  <div>
+                    <h3 className="text-2xl font-semibold text-text-primary">
+                      {service.title}
+                    </h3>
+                    <p className="mt-4 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                      {service.description}
+                    </p>
+                  </div>
 
-      <SectionShell>
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-          <CapabilityMatrix
-            eyebrow={labels.process.eyebrow}
-            title={labels.process.title}
-            intro={labels.process.intro}
-            items={labels.process.steps}
-          />
+                  <div className="mt-8 grid gap-3">
+                    {service.details.map((detail) => (
+                      <div
+                        key={`${service.number}-${detail.label}`}
+                        className="rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-4 py-4"
+                      >
+                        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                          {detail.label}
+                        </p>
+                        <p className="mt-3 text-base font-medium leading-7 text-text-primary">
+                          {detail.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
 
-          <CapabilityMatrix
-            eyebrow={labels.approach.eyebrow}
-            title={labels.approach.title}
-            intro={labels.approach.intro}
-            items={labels.approach.items}
-          />
-        </div>
-      </SectionShell>
-
-      <SectionShell
-        eyebrow={labels.closing.eyebrow}
-        title={labels.closing.title}
-        description={<p>{labels.closing.description}</p>}
-      >
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">
-            {[
-              {
-                label: labels.hero.aside.proof,
-                value: String(sourceBackedProjects),
-              },
-              {
-                label: labels.hero.aside.coverage,
-                value: String(content.services.length),
-              },
-              {
-                label: labels.hero.aside.experience,
-                value: "10+",
-              },
-            ].map((item) => (
-              <article key={item.label} className="surface-panel px-6 py-6 sm:px-7">
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.label}</p>
-                <p className="mt-4 text-3xl font-semibold text-text-primary">{item.value}</p>
+                  <div className="mt-auto border-t border-outline-ghost/10 pt-6">
+                    <div className="flex flex-wrap gap-2">
+                      {service.references.map((reference) => (
+                        <span
+                          key={`${service.number}-${reference}`}
+                          className="rounded-pill border border-outline-ghost/12 bg-surface-dim/75 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
+                        >
+                          {reference}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
+        </SectionShell>
+      ) : (
+        <SectionShell
+          eyebrow={labels.services.eyebrow}
+          title={labels.services.title}
+          description={<p>{labels.services.description}</p>}
+        >
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {content.services.map((service) => (
+              <ServiceCard
+                key={service.slug}
+                eyebrow={service.slug}
+                title={service.title}
+                description={service.description}
+                proofLabel={labels.services.proofLabel}
+                proofPoints={service.proofPoints}
+                referencesLabel={labels.services.referencesLabel}
+                references={
+                  serviceReferences[
+                    service.slug as keyof typeof serviceReferences
+                  ]
+                }
+              />
+            ))}
+          </div>
+        </SectionShell>
+      )}
 
-          <article className="surface-panel no-line-stack px-6 py-7 sm:px-7">
-            <div>
-              <p className="technical-label">{labels.closing.notesTitle}</p>
-              <h3 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">{labels.closing.title}</h3>
+      <SectionShell
+        sectionClassName={sectionBackgrounds.approach}
+        containerClassName="py-10 sm:py-12 lg:py-14"
+        surface="plain"
+      >
+        <div className="space-y-8 sm:space-y-10">
+          <article className="surface-panel no-line-stack max-w-[48rem] border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-5 py-6 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+            <div className="space-y-3 sm:space-y-4">
+              <p className="text-lg font-semibold tracking-tight text-text-primary sm:text-[1.45rem]">
+                {labels.approach.ctaQuestion}
+              </p>
+              <p className="text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                {labels.approach.ctaTitle}
+              </p>
             </div>
 
-            <div className="space-y-4 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
-              {labels.closing.notes.map((note) => (
-                <p key={note}>{note}</p>
+            <div className="mt-6">
+              <CTACluster
+                items={[
+                  {
+                    label: labels.approach.ctaLabel,
+                    href: `/${currentLocale}/contact`,
+                  },
+                ]}
+              />
+            </div>
+          </article>
+
+          <div className="max-w-3xl no-line-stack">
+            <p className="technical-label">{labels.approach.eyebrow}</p>
+            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">
+              {labels.approach.titleLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </h2>
+            <div className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
+              <p>{labels.approach.description}</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {labels.approach.steps.map((step) => (
+              <article
+                key={`${step.label}-${step.titleLines.join("-")}`}
+                className="surface-panel no-line-stack h-full border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-5 py-6 sm:px-6"
+              >
+                <div className="border-b border-outline-ghost/10 pb-4">
+                  <span className="font-display text-[2.4rem] leading-none tracking-[-0.04em] text-brand-primary">
+                    {step.label}
+                  </span>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <h3 className="text-xl font-semibold tracking-tight text-text-primary sm:text-[1.35rem]">
+                    {step.titleLines.map((line) => (
+                      <span key={line} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </h3>
+                  <p className="text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                    {step.detail}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </SectionShell>
+
+      <SectionShell
+        eyebrow={labels.philosophy.eyebrow}
+        title={labels.philosophy.title}
+        sectionClassName={sectionBackgrounds.philosophy}
+        containerClassName="py-10 sm:py-12 lg:py-14"
+        surface="plain"
+      >
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)]">
+          <article className="surface-panel no-line-stack border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.88),rgb(var(--surface)/0.72))] px-6 py-7 sm:px-7 sm:py-8">
+            <div className="space-y-4 text-sm leading-7 text-text-secondary sm:text-base sm:leading-8">
+              {labels.philosophy.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
-
-            <CTACluster
-              items={[
-                { label: labels.closing.primaryCta, href: `/${currentLocale}/contact` },
-                { label: labels.closing.secondaryCta, href: `/${currentLocale}/about`, variant: "secondary" },
-              ]}
-            />
           </article>
+
+          <aside className="space-y-4">
+            <article className="surface-panel no-line-stack border border-outline-ghost/10 bg-[rgb(var(--background)/0.12)] px-6 py-6 sm:px-7">
+              <p className="technical-label">{labels.philosophy.statsTitle}</p>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                {philosophyStats.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface)/0.5)] px-4 py-4"
+                  >
+                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                      {item.label}
+                    </p>
+                    <p className="mt-3 text-3xl font-semibold text-text-primary">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-5 text-sm leading-6 text-text-secondary">
+                {labels.philosophy.statsFootnote}
+              </p>
+            </article>
+          </aside>
         </div>
       </SectionShell>
     </>

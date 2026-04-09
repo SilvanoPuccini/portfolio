@@ -259,6 +259,7 @@ export default async function ProjectsPage({
       <PageHero
         eyebrow={labels.hero.eyebrow}
         title={labels.hero.title}
+        bodyClassName="space-y-7 sm:space-y-8"
         subtitle={<p>{labels.hero.intro}</p>}
         actions={
           <>

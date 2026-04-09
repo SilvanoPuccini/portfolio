@@ -1,12 +1,15 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
+
+type CTAIcon = ComponentType<{ className?: string }>;
 
 type CTAItem = {
   label: string;
   href: string;
   external?: boolean;
   variant?: "primary" | "secondary";
-  icon?: LucideIcon;
+  icon?: CTAIcon;
+  trailingIcon?: CTAIcon;
 };
 
 export default function CTACluster({
@@ -32,10 +35,12 @@ export default function CTACluster({
       {items.map((item) => {
         const className = `${item.variant === "secondary" ? "button-secondary" : "button-primary"} ${sizeClass} w-full sm:w-auto`;
         const Icon = item.icon;
+        const TrailingIcon = item.trailingIcon;
         const content = (
           <>
             {Icon ? <Icon aria-hidden="true" className="h-4 w-4 shrink-0" /> : null}
             <span className={Icon ? "ml-0.5" : undefined}>{item.label}</span>
+            {TrailingIcon ? <TrailingIcon aria-hidden="true" className="h-4 w-4 shrink-0" /> : null}
           </>
         );
 
