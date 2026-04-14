@@ -18,7 +18,7 @@ const copy = {
   es: {
     hero: {
       eyebrow: "PROYECTOS",
-      title: "Casos reales con foco en producto, ejecución y sistemas en producción.",
+      title: "Casos reales con foco en producto, ejecución y sistemas en producción",
       intro: "Desarrollo soluciones donde la arquitectura, la experiencia y el negocio funcionan como un sistema.",
       primaryCta: "Ver proyectos",
       secondaryCta: "Hablemos",

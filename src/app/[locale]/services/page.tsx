@@ -18,7 +18,7 @@ const copy = {
     hero: {
       eyebrow: "Servicios",
       titleStart: "Soluciones con",
-      titleAccent: "Precisión Técnica.",
+      titleAccent: "Precisión Técnica",
       intro:
         "Diseño, construyo y ordeno productos digitales con una lógica clara: resolver negocio real con software bien pensado, mantenible y listo para crecer.",
       support:
@@ -75,16 +75,11 @@ const copy = {
     },
     philosophy: {
       eyebrow: "Filosofía",
-      title:
-        "La mejor solución no siempre es la más grande: es la que ordena complejidad sin perder precisión.",
+      title: "Código que resuelve problemas, no que los crea",
       paragraphs: [
-        "Mi forma de trabajar evita el ruido de vender 'de todo'. Prefiero definir con claridad qué problema conviene resolver, con qué nivel de sofisticación y bajo qué restricciones reales.",
-        "La experiencia comercial previa agrega algo que suele faltar en perfiles puramente técnicos: sensibilidad para priorizar, explicar impacto y sostener conversaciones útiles con negocio.",
-        "Cuando frontend, backend, automatización y producto se piensan como partes del mismo sistema, la ejecución gana foco y el resultado se vuelve más estable.",
+        "Cada línea de código es escrita con mantenibilidad y escalabilidad en mente. No solo resuelvo problemas, creo activos digitales que generan valor a largo plazo.",
       ],
       statsTitle: "Señales concretas",
-      statsFootnote:
-        "Las métricas no reemplazan evidencia, pero ayudan a leer rápido el tipo de colaboración que esta página propone.",
       statLabels: {
         projects: "Proyectos publicados",
         services: "Servicios principales",
@@ -172,8 +167,6 @@ const copy = {
         "When frontend, backend, automation, and product are treated as parts of the same system, execution gains focus and the outcome becomes more stable.",
       ],
       statsTitle: "Concrete signals",
-      statsFootnote:
-        "Metrics do not replace evidence, but they help frame the kind of collaboration this page is proposing.",
       statLabels: {
         projects: "Published projects",
         services: "Primary services",
@@ -218,7 +211,7 @@ const spanishDigitalCapabilities = [
       },
       {
         label: "Backend",
-        value: "Node.js / Python / APIs",
+        value: "Node.js / Django / Python / APIs",
       },
       {
         label: "Data",
@@ -356,12 +349,23 @@ export default async function ServicesPage({
     {
       label: labels.philosophy.statLabels.projects,
       value: String(publishedProjects),
+      detail: "Proyectos publicados en el portfolio",
     },
     {
       label: labels.philosophy.statLabels.services,
       value: String(content.services.length),
+      detail: "Líneas de servicio activas",
     },
-    { label: labels.philosophy.statLabels.background, value: "10+" },
+    {
+      label: labels.philosophy.statLabels.background,
+      value: "10+",
+      detail: "Años en gestión comercial y tech",
+    },
+    {
+      label: "Enfoque",
+      value: "Full stack",
+      detail: "Del frontend al backend y datos",
+    },
   ];
 
   return (
@@ -370,8 +374,7 @@ export default async function ServicesPage({
         eyebrow={labels.hero.eyebrow}
         title={
           <>
-            {labels.hero.titleStart}{" "}
-            <span className="text-brand-primary">{labels.hero.titleAccent}</span>
+            {labels.hero.titleStart} {labels.hero.titleAccent}
           </>
         }
         contentClassName="max-w-[72rem]"
@@ -441,7 +444,7 @@ export default async function ServicesPage({
           title="Desarrollo, automatización e ingeniería para productos reales."
           description={
             <p>
-              La referencia de contenido se traduce al lenguaje del sitio: foco editorial, estructura clara y pruebas concretas conectadas con proyectos, stack y experiencia previa.
+              Cada servicio tiene casos concretos, stack real y proyectos que lo respaldan.
             </p>
           }
           sectionClassName={sectionBackgrounds.services}
@@ -483,7 +486,16 @@ export default async function ServicesPage({
                         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                           {detail.label}
                         </p>
-                        <p className="mt-3 text-base font-medium leading-7 text-text-primary">
+                        <p
+                          className="mt-3 text-base font-medium leading-7 whitespace-nowrap"
+                          style={{
+                            fontFamily: "var(--font-jetbrains-mono), monospace",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            color: "rgb(var(--brand-primary))",
+                            fontSize: "0.75rem",
+                          }}
+                        >
                           {detail.value}
                         </p>
                       </div>
@@ -608,45 +620,45 @@ export default async function ServicesPage({
 
       <SectionShell
         eyebrow={labels.philosophy.eyebrow}
-        title={labels.philosophy.title}
+        title={<span className="whitespace-nowrap">{labels.philosophy.title}</span>}
+        description={
+          <p>
+            Cada línea de código es escrita con mantenibilidad y escalabilidad en mente. No solo resuelvo problemas, creo activos digitales que generan valor a largo plazo.
+          </p>
+        }
         sectionClassName={sectionBackgrounds.philosophy}
         containerClassName="py-10 sm:py-12 lg:py-14"
         surface="plain"
       >
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)]">
-          <article className="surface-panel no-line-stack border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.88),rgb(var(--surface)/0.72))] px-6 py-7 sm:px-7 sm:py-8">
-            <div className="space-y-4 text-sm leading-7 text-text-secondary sm:text-base sm:leading-8">
-              {labels.philosophy.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
-          </article>
-
-          <aside className="space-y-4">
-            <article className="surface-panel no-line-stack border border-outline-ghost/10 bg-[rgb(var(--background)/0.12)] px-6 py-6 sm:px-7">
-              <p className="technical-label">{labels.philosophy.statsTitle}</p>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                {philosophyStats.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface)/0.5)] px-4 py-4"
-                  >
-                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-                      {item.label}
-                    </p>
-                    <p className="mt-3 text-3xl font-semibold text-text-primary">
-                      {item.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-5 text-sm leading-6 text-text-secondary">
-                {labels.philosophy.statsFootnote}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {philosophyStats.map((item, index) => (
+            <article
+              key={item.label}
+              className={`surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 px-5 py-5 sm:px-5 ${
+                index === 1
+                  ? "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]"
+                  : "bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
+              }`}
+            >
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+                {item.label}
+              </p>
+              <p
+                className="mt-3 text-2xl font-semibold leading-none"
+                style={{
+                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  color: "rgb(var(--brand-primary))",
+                }}
+              >
+                {item.value}
+              </p>
+              <p className="mt-3 text-sm leading-5 text-text-secondary">
+                {item.detail}
               </p>
             </article>
-          </aside>
+          ))}
         </div>
       </SectionShell>
     </>

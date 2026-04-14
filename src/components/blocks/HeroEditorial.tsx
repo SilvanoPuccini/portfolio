@@ -16,7 +16,7 @@ export default function HeroEditorial({
 
   return (
     <PageHero
-      title={<span className="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">{content.home.title}</span>}
+      title={<span>{content.home.title}</span>}
       bodyClassName="space-y-7 sm:space-y-8"
       subtitle={<p>{content.home.subtitle}</p>}
       description={<p>{content.home.intro}</p>}
