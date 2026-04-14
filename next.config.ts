@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withMdx from '@next/mdx';
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
@@ -20,6 +21,7 @@ const nextConfig: NextConfig = {
     ],
   },
   reactStrictMode: true,
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
 };
 
-export default nextConfig;
+export default withMdx()(nextConfig);

@@ -3,6 +3,7 @@ import type { Config } from "tailwindcss";
 const withOpacity = (variable: string) => `rgb(var(${variable}) / <alpha-value>)`;
 
 const config: Config = {
+  darkMode: ["selector", "[data-theme='dark']"],
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {

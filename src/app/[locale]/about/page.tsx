@@ -71,7 +71,7 @@ const stackItemIcons: Record<string, StackItemIcon> = {
     icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg", alt: "Python" }],
   },
   Django: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg", alt: "Django" }],
+    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg", alt: "Django", className: "dark:invert" }],
   },
   "APIs REST": {
     fallback: Globe,
@@ -362,7 +362,7 @@ export default async function AboutPage({
     currentLocale === "es"
       ? {
           eyebrow: "SOBRE MÍ",
-          title: "Perfil técnico con lectura de negocio y ejecución real.",
+          title: "Perfil técnico con lectura de negocio y ejecución real",
           body: [
             "Full Stack Developer enfocado en construir productos digitales funcionales, donde la tecnología impacta directamente en el negocio.",
             "Trabajo en plataformas, automatización y sistemas que operan en producción.",

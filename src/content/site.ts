@@ -281,20 +281,24 @@ const services: ServiceItem[] = [
 
 const blog: BlogContent = {
   eyebrow: {
-    es: "Editorial & thoughts",
-    en: "Editorial & thoughts",
+    es: "BLOG · NOTAS",
+    en: "BLOG · NOTES",
   },
   title: {
-    es: "Pensamiento & Arquitectura",
-    en: "Thought & Architecture",
+    es: "Arquitectura, criterio y código",
+    en: "Architecture, criteria and code",
   },
   titleAccent: {
-    es: "Digital",
-    en: "Digital",
+    es: "",
+    en: "",
   },
   intro: {
-    es: "Explorando la intersección entre diseño sistémico, frontend de alto rendimiento, producto y automatización aplicada con un lenguaje visual editorial y premium.",
-    en: "Exploring the intersection of systemic design, high-performance frontend, product thinking, and applied automation through a premium editorial visual language.",
+    es: "Te cuento lo que aprendí construyendo productos reales.",
+    en: "I tell you what I learned building real products.",
+  },
+  editorialNote: {
+    es: "Primera versión del blog: layout finalizado y contenido inicial marcado explícitamente como placeholder temporal donde todavía no existe artículo real suficiente.",
+    en: "First version of the blog: layout finalized and initial content explicitly marked as temporary placeholder where real articles don't exist yet.",
   },
   emptyState: {
     es: "Contenido editorial temporal. Reemplazar por artículos reales validados en próximas iteraciones.",
@@ -309,8 +313,8 @@ const blog: BlogContent = {
     en: "Latest notes",
   },
   editorialNote: {
-    es: "Primera versión del blog: layout finalizado y contenido inicial marcado explícitamente como placeholder temporal donde todavía no existe artículo real suficiente.",
-    en: "First release of the blog: layout finalized and initial content explicitly marked as temporary placeholder wherever enough real article content does not yet exist.",
+    es: "Performance, arquitectura y automatización. Sin teoría vacía, con contexto y decisiones reales.",
+    en: "Performance, architecture and automation. No empty theory, with context and real decisions.",
   },
   newsletter: {
     title: {
