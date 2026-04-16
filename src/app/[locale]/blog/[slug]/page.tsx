@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
-import { getBlogPostBySlug, serializeMarkdown } from '@/lib/mdx';
-import { MDXRemote } from 'next-mdx-remote';
+import { getBlogPostBySlug } from '@/lib/mdx';
+import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { Locale } from '@/lib/i18n';
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
@@ -36,8 +36,6 @@ export default async function BlogPostPage({
   if (!post) {
     notFound();
   }
-
-  const mdxSource = await serializeMarkdown(post.content);
 
   // Colores por categoría
   const categoryColors: Record<string, string> = {
@@ -75,7 +73,7 @@ export default async function BlogPostPage({
 
         {/* Contenido del post */}
         <div className="prose prose-invert max-w-none">
-          <MDXRemote {...mdxSource} />
+          <MDXRemote source={post.content} />
         </div>
       </div>
     </article>
