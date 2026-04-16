@@ -8,62 +8,31 @@ export async function sendWelcomeEmail(email: string) {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: 'Bienvenido al radar de silvano.dev',
-    html: `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bienvenido al radar</title>
-</head>
-<body style="margin:0;padding:0;background-color:#0f0f14;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f0f14;padding:48px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-
-          <!-- Header -->
-          <tr>
-            <td style="padding-bottom:32px;">
-              <p style="margin:0;font-family:monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#6b7280;">
-                silvano.dev
-              </p>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="background-color:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px 36px;">
-              <h1 style="margin:0 0 16px;font-size:28px;font-weight:600;color:#f1f5f9;line-height:1.2;">
-                Ya estás en el radar.
-              </h1>
-              <p style="margin:0 0 24px;font-size:16px;line-height:1.7;color:#94a3b8;">
-                Vas a recibir 1–2 posts por semana sobre performance, producto y automatización — con contexto real, sin relleno.
-              </p>
-              <p style="margin:0 0 32px;font-size:16px;line-height:1.7;color:#94a3b8;">
-                Mientras tanto, podés leer lo que ya está publicado:
-              </p>
-              <a href="${SITE_URL}/blog"
-                 style="display:inline-block;background-color:#00d4d4;color:#0f0f14;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;text-decoration:none;padding:14px 28px;border-radius:8px;">
-                Ver el blog →
-              </a>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding-top:28px;">
-              <p style="margin:0;font-family:monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#374151;text-align:center;">
-                Recibiste este email porque te suscribiste en silvano.dev
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+    subject: 'Bienvenido al radar — Silvano Puccini',
+    html: `
+<div style="max-width:560px;margin:0 auto;font-family:sans-serif;background:#0f0f14;border-radius:12px;overflow:hidden;border:1px solid #1e1e2e;">
+  <div style="padding:28px 32px 20px;border-bottom:1px solid #1a1a2a;">
+    <span style="font-family:monospace;font-size:12px;color:#00d4d4;letter-spacing:0.1em;">SILVANO PUCCINI · FULL STACK DEV</span>
+  </div>
+  <div style="padding:32px 32px 24px;">
+    <p style="font-size:13px;color:#666;font-family:monospace;margin:0 0 12px;">Hola 👋</p>
+    <p style="font-size:22px;font-weight:700;color:#f0f0f0;margin:0 0 8px;">Me alegra que estés acá.</p>
+    <div style="width:36px;height:2px;background:#00d4d4;margin:16px 0 20px;"></div>
+    <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 12px;">Te suscribiste al blog de <strong style="color:#f0f0f0;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.</p>
+    <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 28px;">Vas a recibir <strong style="color:#f0f0f0;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.</p>
+    <div style="background:#111120;border:1px solid #1e1e2e;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
+      <p style="font-size:11px;font-family:monospace;color:#00d4d4;margin:0 0 10px;letter-spacing:0.08em;">LO QUE VAS A ENCONTRAR</p>
+      <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Performance real — Web Vitals, optimización y arquitectura</p>
+      <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Producto — qué funciona, qué no, y por qué</p>
+      <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Automatización con IA — herramientas en proyectos reales</p>
+    </div>
+    <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
+    <p style="font-size:13px;color:#555;margin:24px 0 0;line-height:1.6;">Si tenés alguna pregunta o querés proponer un tema, respondé este mail directamente — leo todo.</p>
+  </div>
+  <div style="padding:16px 32px;border-top:1px solid #1a1a2a;">
+    <span style="font-size:11px;font-family:monospace;color:#444;">Silvano Puccini · Full Stack Dev</span>
+  </div>
+</div>
+`,
   });
 }
