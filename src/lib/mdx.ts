@@ -1,4 +1,3 @@
-import { serialize } from 'next-mdx-remote/serialize';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
@@ -16,10 +15,6 @@ export interface BlogPost {
   linkedinCarousel?: boolean;
   content: string;
   readingTime?: string;
-}
-
-export async function serializeMarkdown(markdown: string) {
-  return serialize(markdown);
 }
 
 export function getAllBlogPosts(): BlogPost[] {
