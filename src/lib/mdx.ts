@@ -1,21 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import type { BlogPost } from '@/types/blog';
+
+export type { BlogPost };
 
 const blogDirectory = path.join(process.cwd(), 'src/content/blog');
-
-export interface BlogPost {
-  slug: string;
-  title: string;
-  date: string;
-  category: string;
-  excerpt: string;
-  coverImage?: string;
-  featured?: boolean;
-  linkedinCarousel?: boolean;
-  content: string;
-  readingTime?: string;
-}
 
 export function getAllBlogPosts(): BlogPost[] {
   if (!fs.existsSync(blogDirectory)) {
