@@ -1,0 +1,105 @@
+---
+title: 'Arquitectura que el equipo puede mantener'
+date: '2026-04-03'
+category: 'Producto'
+excerpt: 'Un sistema bien diseñado para un desarrollador solo puede ser un sistema mal diseñado para un equipo. La diferencia entre arquitectura elegante y arquitectura útil.'
+featured: false
+linkedinCarousel: true
+readingTime: '6 min'
+---
+
+# Arquitectura que el equipo puede mantener
+
+Hay una versión de este post que habla de patrones de diseño, de SOLID, de Clean Architecture. No es esa versión.
+
+Esta es la versión que habla de lo que pasa cuando el desarrollador que diseñó el sistema ya no está, y el equipo tiene que modificar algo urgente un martes a las dos de la tarde.
+
+## El problema con la arquitectura "elegante"
+
+Trabajé en un proyecto donde el arquitecto anterior había implementado un sistema de plugins con inversión de dependencias, factories dinámicos y un bus de eventos interno. Era técnicamente impecable. Había posts de Medium que describían exactamente ese patrón.
+
+El problema: nadie más en el equipo podía agregar una feature sin pasar media jornada entendiendo dónde conectar cada pieza. Cada PR tardaba el doble porque la revisión requería entender tres capas de abstracción.
+
+La arquitectura era correcta. Era inútil.
+
+## Qué significa "mantenible" en la práctica
+
+Mantenible no es sinónimo de simple. Es sinónimo de **predecible**.
+
+Un sistema es mantenible cuando:
+
+- Un desarrollador nuevo puede encontrar dónde vive una feature en menos de 5 minutos
+- Agregar una feature nueva no requiere modificar 8 archivos en 4 capas
+- Un bug en producción se puede localizar y corregir sin necesitar al autor original
+
+Eso no siempre requiere arquitectura hexagonal. A veces requiere nombrar bien los archivos y tener convenciones claras.
+
+## El caso concreto: FerrelonStock
+
+Cuando empecé FerrelonStock, el backend era Django con una estructura estándar: `models.py`, `views.py`, `serializers.py` por app. Simple, conocido, aburrido.
+
+Seis meses después el `views.py` del módulo de inventario tenía 800 líneas. Nadie quería tocarlo.
+
+La solución no fue reescribirlo con arquitectura hexagonal. Fue:
+
+**1. Separar por caso de uso, no por tipo de archivo**
+
+```
+inventory/
+  views/
+    product_list.py
+    product_detail.py
+    stock_update.py
+  services/
+    stock_calculator.py
+    price_updater.py
+```
+
+Cada archivo tiene una responsabilidad clara y un nombre que dice qué hace. Cuando algo falla en la actualización de stock, sabés exactamente adónde ir.
+
+**2. Escribir los servicios como funciones, no como clases**
+
+```python
+# Antes — clase con estado interno difícil de testear
+class StockUpdater:
+    def __init__(self, product, warehouse):
+        self.product = product
+        self.warehouse = warehouse
+
+    def update(self, quantity):
+        # lógica enterrada acá
+        ...
+
+# Después — función pura, fácil de entender y testear
+def update_stock(product_id: int, warehouse_id: int, quantity: int) -> StockResult:
+    product = Product.objects.get(id=product_id)
+    warehouse = Warehouse.objects.get(id=warehouse_id)
+    # lógica visible desde la firma
+    ...
+```
+
+La función pura es más fácil de leer, testear y modificar. No tiene estado oculto.
+
+**3. Documentar las decisiones, no el código**
+
+El código describe el qué. Los comentarios deberían describir el por qué.
+
+```python
+# MAL: describe lo que el código ya dice
+# Obtiene el precio del producto
+price = product.get_price()
+
+# BIEN: explica por qué existe esta lógica
+# Los precios de mayoristas tienen un descuento aplicado antes del IVA
+# porque el sistema de facturación de FerrelonStock procesa IVA por separado.
+# Si cambiás este orden, el cálculo de impuestos queda incorrecto.
+price = product.get_wholesale_price_before_tax()
+```
+
+## La pregunta correcta antes de diseñar
+
+Antes de elegir una arquitectura, vale la pena hacerse esta pregunta: **¿quién va a mantener esto en 6 meses?**
+
+Si sos vos solo, podés permitirte más complejidad. Si es un equipo rotativo, la simplicidad y la predictibilidad valen más que la elegancia técnica.
+
+La arquitectura correcta no es la más sofisticada. Es la que el equipo puede usar sin fricción.

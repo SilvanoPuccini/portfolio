@@ -1,4 +1,13 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import rehypePrettyCode from 'rehype-pretty-code';
+
+const mdxOptions = {
+  mdxOptions: {
+    rehypePlugins: [
+      [rehypePrettyCode, { theme: 'one-dark-pro', keepBackground: true }],
+    ],
+  },
+} as Parameters<typeof MDXRemote>[0]['options'];
 
 interface Props {
   source: string;
@@ -22,7 +31,7 @@ export function MDXContent({ source }: Props) {
       prose-li:leading-8 prose-li:text-[1.05rem]
       prose-hr:border-outline-ghost/20 prose-hr:my-10
     ">
-      <MDXRemote source={source} />
+      <MDXRemote source={source} options={mdxOptions} />
     </div>
   );
 }

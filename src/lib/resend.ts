@@ -26,7 +26,10 @@ export async function sendWelcomeEmail(email: string) {
       <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Producto — qué funciona, qué no, y por qué</p>
       <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Automatización con IA — herramientas en proyectos reales</p>
     </div>
-    <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
+      <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:#aaa;font-size:13px;font-weight:500;padding:12px 24px;border-radius:6px;text-decoration:none;border:1px solid #2a2a3a;">Seguime en LinkedIn →</a>
+    </div>
     <p style="font-size:13px;color:#555;margin:24px 0 0;line-height:1.6;">Si tenés alguna pregunta o querés proponer un tema, respondé este mail directamente — leo todo.</p>
   </div>
   <div style="padding:16px 32px;border-top:1px solid #1a1a2a;">

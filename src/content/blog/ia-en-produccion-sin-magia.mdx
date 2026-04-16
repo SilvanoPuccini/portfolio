@@ -1,0 +1,84 @@
+---
+title: 'IA en producción: cómo la usamos en Aktivar sin que sea magia'
+date: '2026-04-10'
+category: 'Automatización'
+excerpt: 'Integrar IA en un producto real no es poner un chatbot. Es decidir qué automatizar, qué no, y cómo auditarlo cuando falla. Lo que aprendimos construyendo Aktivar.'
+featured: false
+linkedinCarousel: true
+readingTime: '7 min'
+---
+
+# IA en producción: cómo la usamos en Aktivar sin que sea magia
+
+Cuando empezamos a integrar IA en Aktivar — una plataforma de gestión para organizaciones deportivas — la primera pregunta no fue "¿qué modelo usamos?". Fue "¿qué problema específico resuelve esto?".
+
+Esa distinción importa más de lo que parece.
+
+## El error que veo todo el tiempo
+
+La mayoría de los equipos integran IA de una de estas dos formas:
+
+**Modo hype**: agregan un chat de GPT-4 en algún rincón del producto porque "hay que tener IA". Nadie lo usa, nadie lo mantiene, nadie sabe qué hace exactamente.
+
+**Modo sobreingeniería**: construyen un pipeline de ML personalizado para un problema que se podía resolver con tres líneas de regex y una tabla de base de datos.
+
+En Aktivar intentamos evitar los dos. No siempre lo logramos, pero el proceso de toma de decisión cambió bastante.
+
+## Qué automatizamos y qué no
+
+### Lo que sí automatizamos
+
+**Clasificación de reportes de incidentes** — Los coordinadores cargaban incidentes en texto libre. Antes, alguien tenía que leerlos y categorizarlos manualmente. Ahora un clasificador simple los categoriza automáticamente con confianza > 0.85. Si la confianza es menor, va a revisión humana.
+
+```python
+def classify_incident(text: str) -> dict:
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": CLASSIFICATION_PROMPT},
+            {"role": "user", "content": text}
+        ],
+        response_format={"type": "json_object"}
+    )
+    result = json.loads(response.choices[0].message.content)
+    return {
+        "category": result["category"],
+        "confidence": result["confidence"],
+        "needs_review": result["confidence"] < 0.85
+    }
+```
+
+El truco está en el umbral de confianza y en el fallback a revisión humana. No confiamos ciegamente en el modelo.
+
+**Generación de resúmenes de temporada** — Al cierre de cada temporada, el sistema genera un resumen ejecutivo para los directivos. No reemplaza el análisis humano, lo acelera. El directivo lee el resumen en 2 minutos en vez de revisar 40 planillas.
+
+### Lo que NO automatizamos
+
+**Decisiones que afectan personas** — Selección de atletas, cambios en contratos, evaluaciones de rendimiento. Esas decisiones tienen consecuencias reales y necesitan un humano responsable.
+
+**Cualquier cosa que no podamos auditar** — Si no puedo explicar por qué el sistema tomó una decisión, no debería tomarla sola. La IA que usamos siempre deja un rastro: qué input recibió, qué output produjo, con qué confianza.
+
+## El problema real: el mantenimiento
+
+Lo que nadie te dice sobre integrar IA en producción es que el trabajo no termina cuando funciona por primera vez. Termina mucho después, si es que termina.
+
+Los modelos cambian. Los prompts que funcionaban dejan de funcionar. Los datos de entrada evolucionan y el modelo empieza a producir resultados extraños en casos edge que no habías considerado.
+
+En Aktivar tenemos un proceso simple:
+- Cada semana revisamos una muestra de 20 clasificaciones automáticas
+- Si el error supera el 5%, investigamos
+- Si el error es sistemático en una categoría, reescribimos el prompt y volvemos a validar
+
+No es glamoroso. Es lo que hace que el sistema siga siendo útil seis meses después.
+
+## La conclusión práctica
+
+La IA es una herramienta, no una solución. Antes de integrarla en cualquier producto, vale la pena hacerse tres preguntas:
+
+1. **¿Qué pasa cuando falla?** — Si la respuesta es "no lo sé" o "nada grave", quizás sí podés automatizar. Si la respuesta es "alguien queda mal o pierde algo", necesitás revisión humana en el loop.
+
+2. **¿Podés medir si está funcionando?** — Sin métricas de precisión no sabés si estás mejorando o empeorando.
+
+3. **¿El problema justifica la complejidad?** — A veces un formulario con opciones predefinidas es mejor que un clasificador de lenguaje natural. La solución más simple que funciona siempre gana.
+
+La magia es para los demos. En producción, todo tiene que ser auditable.
