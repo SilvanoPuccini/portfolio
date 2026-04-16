@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getBlogPostBySlug } from '@/lib/mdx';
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { MDXContent } from '@/components/blog/MDXContent';
 import type { Locale } from '@/lib/i18n';
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
@@ -72,9 +72,7 @@ export default async function BlogPostPage({
         </header>
 
         {/* Contenido del post */}
-        <div className="prose prose-invert max-w-none">
-          <MDXRemote source={post.content} />
-        </div>
+        <MDXContent source={post.content} />
       </div>
     </article>
   );

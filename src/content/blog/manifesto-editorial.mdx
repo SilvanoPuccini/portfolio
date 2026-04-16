@@ -1,25 +1,51 @@
 ---
-title: 'Manifiesto editorial del blog'
+title: 'Por qué armé este espacio'
 date: '2026-04-13'
 category: 'Producto'
-excerpt: 'Este blog nace con una premisa clara: construir productos digitales requiere combinar ingeniería, criterio editorial y comprensión del negocio.'
+excerpt: 'Este blog no existe para "compartir conocimiento". Existe porque construir software requiere documentar decisiones reales, y un CV con lista de tecnologías no alcanza para mostrar eso.'
 featured: true
 linkedinCarousel: false
-readingTime: '8 min'
+readingTime: '5 min'
 ---
 
-# Manifiesto editorial del blog
+# Por qué armé este espacio
 
-Este blog nace con una premisa clara: **construir productos digitales requiere combinar ingeniería, criterio editorial y comprensión del negocio**.
+No hay manera honesta de presentarme como desarrollador con solo un listado de tecnologías y screenshots de proyectos. Podés poner React, Next.js y Django en el CV y no decirle nada a nadie sobre cómo tomás decisiones cuando el producto está en producción y algo falla.
 
-Cada artículo que publiques acá tiene que responder a estas tres dimensiones. No se trata solo de código, sino de decisiones que impactan en el producto real.
+Este blog existe por eso.
 
-## El enfoque
+## El problema que intento resolver
 
-1. **Performance**: Cómo las decisiones técnicas impactan en Core Web Vitals y métricas reales
-2. **Producto**: Relación entre arquitectura y experiencia del usuario 
-3. **Automatización**: Uso responsable de herramientas IA para crear valor
+Estuve casi una década en gestión comercial antes de pasarme al desarrollo. No vine de un bootcamp de tres meses ni de una universidad — vine de años entendiendo cómo las empresas convierten inversión en resultado. Eso cambió radicalmente la forma en que programo.
 
-## ¿Qué vas a encontrar acá?
+Cuando trabajo en un sistema, no pienso solo en que el código funcione. Pienso en qué decisión técnica tiene consecuencias para el producto, para el equipo que lo mantiene, para el negocio que depende de él. Y esas decisiones rara vez aparecen en el código final — están en los commits que no se hicieron, en las abstracciones que se descartaron, en los tradeoffs que elegiste un jueves a las once de la noche.
 
-Artículos prácticos centrados en casos reales, con métricas concretas y aprendizajes verificables.
+Acá voy a documentar esas decisiones.
+
+## Qué tipo de contenido vas a encontrar
+
+Tres categorías, sin relleno:
+
+**Performance** — No tutoriales de "cómo mejorar tu LCP en 5 pasos". Sino: qué decisión arquitectónica tomé en un producto real, qué métricas cambió, y qué sacrifiqué para llegar ahí. En FerrelonStock, un sistema de inventario que construí con Django y React, redujimos el tiempo de carga inicial de 4.2s a 1.8s. El cambio no fue heroico — fue una combinación de code splitting por rutas, ajustes en el caching del servidor y eliminar una dependencia que nadie había cuestionado en dos años. Lo interesante no es el número final. Es el proceso de encontrar el cuello de botella correcto.
+
+**Producto** — La intersección entre ingeniería y criterio de negocio. Cómo se diseña una arquitectura que el equipo pueda mantener cuando el desarrollador original ya no está. Cuándo tiene sentido agregar complejidad y cuándo no. Por qué algunos sistemas bien escritos fracasan igual.
+
+**Automatización** — Herramientas de IA aplicadas con criterio, no por tendencia. Cuándo automatizar acelera de verdad y cuándo agrega una capa de magia que nadie entiende seis meses después.
+
+## Para quién es esto
+
+Para devs en transición que saben que aprender un framework no es suficiente para construir productos sólidos. Para founders técnicos que toman decisiones de arquitectura bajo presión. Para equipos evaluando contratar — acá podés ver cómo razono antes de escribir una sola línea de código.
+
+No está dirigido a principiantes buscando tutoriales de introducción. Eso no quiere decir que sea exclusivo o difícil — quiere decir que asumo que ya sabés programar y que lo que buscás es criterio, no sintaxis.
+
+## El formato
+
+Cada post en la web viene acompañado de una versión en carrusel para LinkedIn. No es el mismo contenido recortado — es el mismo argumento reformateado para un contexto diferente. El carrusel sacrifica profundidad por claridad; el post sacrifica brevedad por contexto completo.
+
+Frecuencia: uno o dos posts por semana, sin calendario fijo. Publico cuando tengo algo concreto que decir, no para llenar un schedule.
+
+## La razón real
+
+Construir presencia como desarrollador independiente requiere más que mostrar que sabés escribir código. Requiere mostrar que sabés cuándo no escribirlo, cómo evaluar tradeoffs y qué preguntas hacerse antes de abrir el editor.
+
+Este blog es el registro de ese proceso. No editado para quedar bien — documentado para ser útil.
