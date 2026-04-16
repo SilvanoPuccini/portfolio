@@ -296,10 +296,6 @@ const blog: BlogContent = {
     es: "Te cuento lo que aprendí construyendo productos reales.",
     en: "I tell you what I learned building real products.",
   },
-  editorialNote: {
-    es: "Primera versión del blog: layout finalizado y contenido inicial marcado explícitamente como placeholder temporal donde todavía no existe artículo real suficiente.",
-    en: "First version of the blog: layout finalized and initial content explicitly marked as temporary placeholder where real articles don't exist yet.",
-  },
   emptyState: {
     es: "Contenido editorial temporal. Reemplazar por artículos reales validados en próximas iteraciones.",
     en: "Temporary editorial content. Replace with validated real articles in upcoming iterations.",
