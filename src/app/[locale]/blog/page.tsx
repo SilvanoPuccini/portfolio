@@ -4,6 +4,7 @@ import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { getAllBlogPosts } from "@/lib/mdx";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
+import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import Link from "next/link";
 
 type LocaleParams = Promise<{ locale: string }>;
@@ -150,18 +151,7 @@ export default async function BlogPage({
                 1–2 posts por semana. Sin ruido — solo lo que construí y aprendí.
               </p>
 
-              <div className="mt-8 space-y-4">
-                <div className="flex gap-3">
-                  <input 
-                    type="email" 
-                    placeholder="tu@email.com"
-                    className="flex-1 rounded-xl bg-surface-elevated/90 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
-                  />
-                  <button className="button-primary rounded-xl px-6 py-3 text-xs uppercase tracking-[0.2em]">
-                    Suscribirme
-                  </button>
-                </div>
-              </div>
+              <SubscribeForm />
             </div>
           </div>
 
