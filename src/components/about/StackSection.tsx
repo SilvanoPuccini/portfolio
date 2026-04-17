@@ -17,6 +17,7 @@ const CERTIFICATES: Record<string, string> = {
   Python: "Python-Avanzado.pdf",
   "Git/GitHub": "Git-Github.pdf",
   "Linux/WSL": "linux-terminal.pdf",
+  PostgreSQL: "SQL.pdf",
 };
 
 /* ── Icons ───────────────────────────────────────────────────── */
