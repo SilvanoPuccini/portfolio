@@ -1,20 +1,10 @@
-interface Props {
-  size?: "sm" | "lg";
-}
-
-export function RadarBadge({ size = "sm" }: Props) {
-  const isLg = size === "lg";
-
+export function RadarBadge() {
   return (
-    <div className="inline-flex flex-col items-start">
+    <div className="inline-flex flex-col items-center">
       {/* Línea superior decorativa */}
       <div className="mb-1 flex w-full items-center gap-1.5">
         <span className="h-px flex-1 bg-text-tertiary/50" />
-        <span
-          className={`font-mono uppercase tracking-[0.22em] text-text-secondary ${
-            isLg ? "text-[11px]" : "text-[8px]"
-          }`}
-        >
+        <span className="font-mono text-[8px] uppercase tracking-[0.22em] text-text-secondary">
           est. 2026
         </span>
         <span className="h-px flex-1 bg-text-tertiary/50" />
@@ -23,17 +13,13 @@ export function RadarBadge({ size = "sm" }: Props) {
       {/* Nombre principal */}
       <div className="flex items-baseline gap-1.5">
         <span
-          className={`font-semibold uppercase tracking-[0.32em] text-text-secondary ${
-            isLg ? "text-[15px]" : "text-[11px]"
-          }`}
+          className="text-[11px] font-semibold uppercase tracking-[0.32em] text-text-secondary"
           style={{ fontFamily: "var(--font-space-grotesk), sans-serif" }}
         >
           El
         </span>
         <span
-          className={`font-bold uppercase text-text-tertiary ${
-            isLg ? "text-[28px]" : "text-[18px]"
-          }`}
+          className="text-[18px] font-bold uppercase text-text-tertiary"
           style={{
             fontFamily: "var(--font-space-grotesk), sans-serif",
             letterSpacing: "0.14em",
@@ -46,11 +32,7 @@ export function RadarBadge({ size = "sm" }: Props) {
       {/* Línea inferior + tagline */}
       <div className="mt-1 flex w-full items-center gap-1.5">
         <span className="h-px flex-1 bg-text-tertiary/50" />
-        <span
-          className={`font-mono uppercase tracking-[0.2em] text-text-secondary ${
-            isLg ? "text-[10px]" : "text-[7px]"
-          }`}
-        >
+        <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-text-secondary">
           arquitectura · código · producto
         </span>
         <span className="h-px flex-1 bg-text-tertiary/50" />
