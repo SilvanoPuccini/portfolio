@@ -46,7 +46,7 @@ export default function PageHero({
 
       <div
         className={cn(
-          "relative mx-auto w-full max-w-[92rem] px-6 pb-18 pt-12 sm:px-8 sm:pb-22 sm:pt-16 lg:px-12 lg:pb-28 lg:pt-16 xl:pt-[4.5rem]",
+          "relative mx-auto w-full max-w-[92rem] px-6 pb-14 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:px-12 lg:pb-20 lg:pt-16 xl:pt-[4.5rem]",
           containerClassName,
         )}
       >
