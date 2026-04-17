@@ -7,6 +7,7 @@ import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { PostCover } from "@/components/blog/PostCover";
 import Link from "next/link";
+import { Linkedin, Instagram } from "lucide-react";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -133,21 +134,21 @@ export default async function BlogPage({
         eyebrow={content.blog.latestLabel}
       />
 
-      {/* Newsletter y LinkedIn */}
+      {/* Newsletter, LinkedIn e Instagram */}
       <section className="site-container pb-12 sm:pb-14 lg:pb-16">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
           {/* Newsletter */}
-          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-8 sm:py-9">
             <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-secondary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
 
             <div className="relative">
               <p className="technical-label">Newsletter</p>
-              <h2 className="mt-4 text-3xl font-semibold text-text-primary sm:text-4xl">
-                Suscribite al radar
+              <h2 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
+                Lo que construí, en tu bandeja.
               </h2>
-              <p className="mt-4 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-                1–2 posts por semana. Sin ruido — solo lo que construí y aprendí.
+              <p className="mt-4 text-sm leading-7 text-text-secondary">
+                Sin ruido. Cada post llega directo — arquitectura, criterio y código real.
               </p>
 
               <SubscribeForm />
@@ -155,26 +156,53 @@ export default async function BlogPage({
           </div>
 
           {/* LinkedIn */}
-          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-8 sm:py-9">
             <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-secondary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
 
             <div className="relative">
               <p className="technical-label">LinkedIn</p>
-              <h2 className="mt-4 text-3xl font-semibold text-text-primary sm:text-4xl">
-                Contenido en carruseles
+              <h2 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
+                El blog, en carrusel.
               </h2>
-              <p className="mt-4 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-                Cada artículo se publica también como carrusel en LinkedIn — misma idea, formato deslizable.
+              <p className="mt-4 text-sm leading-7 text-text-secondary">
+                Cada artículo llega a LinkedIn como carrusel visual. Misma idea, formato deslizable.
               </p>
 
-              <a 
+              <a
                 href="https://www.linkedin.com/in/silvano-puccini/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
               >
+                <Linkedin size={13} />
                 Ver perfil →
+              </a>
+            </div>
+          </div>
+
+          {/* Instagram */}
+          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-8 sm:py-9">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-secondary/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
+
+            <div className="relative">
+              <p className="technical-label">Instagram</p>
+              <h2 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
+                Próximamente.
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-text-secondary">
+                El blog llega también a Instagram. Seguinos para ser el primero en verlo cuando publiquemos.
+              </p>
+
+              <a
+                href="https://www.instagram.com/silvanopuccini/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary hover:text-brand-primary transition-colors"
+              >
+                <Instagram size={13} />
+                Seguinos →
               </a>
             </div>
           </div>
