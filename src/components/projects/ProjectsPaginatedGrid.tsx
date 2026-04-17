@@ -103,9 +103,12 @@ export function ProjectsPaginatedGrid({ projects, labels, eyebrow, description }
         {totalPages > 1 && (
           <div className="mt-10 flex items-center justify-center gap-2">
             <button
-              onClick={() => changePage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="rounded-pill border border-outline-ghost/15 bg-surface-dim/50 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary transition-all duration-200 hover:border-outline-ghost/30 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+              onClick={() => page > 1 && changePage(page - 1)}
+              className={`rounded-pill border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-all duration-200 ${
+                page === 1
+                  ? "cursor-not-allowed border-outline-ghost/10 bg-surface-dim/30 text-text-tertiary opacity-30"
+                  : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
+              }`}
             >
               ← Anterior
             </button>
@@ -131,9 +134,12 @@ export function ProjectsPaginatedGrid({ projects, labels, eyebrow, description }
             )}
 
             <button
-              onClick={() => changePage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="rounded-pill border border-outline-ghost/15 bg-surface-dim/50 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary transition-all duration-200 hover:border-outline-ghost/30 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+              onClick={() => page < totalPages && changePage(page + 1)}
+              className={`rounded-pill border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-all duration-200 ${
+                page === totalPages
+                  ? "cursor-not-allowed border-outline-ghost/10 bg-surface-dim/30 text-text-tertiary opacity-30"
+                  : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
+              }`}
             >
               Siguiente →
             </button>
