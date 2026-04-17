@@ -54,14 +54,13 @@ export default async function BlogPostPage({
   const categoryColor =
     categoryColors[post.category] || "bg-blue-500/10 text-blue-400 border-blue-500/20";
 
-  // Split: primer párrafo intro + resto. Si arranca con heading (#), no hay intro.
-  const paragraphs = post.content.trim().split(/\n\n+/);
-  const firstBlock = paragraphs[0].trim();
-  const hasIntro = !firstBlock.startsWith("#");
-  const firstParagraph = hasIntro ? firstBlock : null;
-  const restContent = hasIntro
-    ? paragraphs.slice(1).join("\n\n")
-    : paragraphs.join("\n\n");
+  // Split en el primer ## heading: todo lo anterior es intro, todo lo posterior es contenido.
+  const rawContent = post.content.trim();
+  const h2Match = rawContent.match(/\n## /);
+  const splitIndex = h2Match?.index;
+  const hasIntro = splitIndex !== undefined && splitIndex > 0;
+  const firstParagraph = hasIntro ? rawContent.slice(0, splitIndex).trim() : null;
+  const restContent = hasIntro ? rawContent.slice(splitIndex + 1) : rawContent;
 
   return (
     <div className="site-container py-10 sm:py-12 lg:py-16">
