@@ -1,8 +1,10 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import rehypePrettyCode from 'rehype-pretty-code';
+import remarkGfm from 'remark-gfm';
 
 const mdxOptions = {
   mdxOptions: {
+    remarkPlugins: [remarkGfm],
     rehypePlugins: [
       [rehypePrettyCode, { theme: 'one-dark-pro', keepBackground: true }],
     ],
@@ -30,6 +32,11 @@ export function MDXContent({ source }: Props) {
       prose-ul:text-text-secondary prose-ol:text-text-secondary
       prose-li:leading-8 prose-li:text-[1.05rem]
       prose-hr:border-outline-ghost/20 prose-hr:my-10
+      prose-table:w-full prose-table:text-sm
+      prose-thead:border-b prose-thead:border-outline-ghost/20
+      prose-th:text-text-primary prose-th:font-semibold prose-th:py-3 prose-th:px-4 prose-th:text-left
+      prose-td:text-text-secondary prose-td:py-3 prose-td:px-4 prose-td:border-b prose-td:border-outline-ghost/10
+      prose-tr:transition-colors
     ">
       <MDXRemote source={source} options={mdxOptions} />
     </div>
