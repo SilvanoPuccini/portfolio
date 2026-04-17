@@ -73,7 +73,7 @@ export default async function BlogPage({
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-text-tertiary">
                 Mi Newsletter:
               </span>
-              <RadarBadge />
+              <RadarBadge size="lg" />
             </div>
           </div>
         }
