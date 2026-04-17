@@ -5,7 +5,7 @@ export function RadarBadge() {
       <div className="mb-1 flex w-full items-center gap-1.5">
         <span className="h-px flex-1 bg-text-tertiary/40" />
         <span className="font-mono text-[8px] uppercase tracking-[0.22em] text-text-tertiary/50">
-          est. 2025
+          est. 2026
         </span>
         <span className="h-px flex-1 bg-text-tertiary/40" />
       </div>
