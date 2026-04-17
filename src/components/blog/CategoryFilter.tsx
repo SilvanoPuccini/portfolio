@@ -143,14 +143,19 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
                   </div>
 
                   <div className="flex flex-1 flex-col p-5 sm:p-6">
-                    <span
-                      className={`inline-flex w-fit rounded-pill border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${
-                        categoryColors[post.category] ||
-                        "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                      }`}
-                    >
-                      {post.category}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`inline-flex w-fit rounded-pill border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${
+                          categoryColors[post.category] ||
+                          "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        }`}
+                      >
+                        {post.category}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-text-tertiary/60">
+                        Nº {String(post.issue).padStart(2, "0")}
+                      </span>
+                    </div>
 
                     <h3 className="mt-4 text-xl font-semibold leading-tight text-text-primary sm:text-2xl">
                       <Link

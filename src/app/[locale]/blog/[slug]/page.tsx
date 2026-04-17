@@ -98,8 +98,11 @@ export default async function BlogPostPage({
                 </span>
               )}
             </div>
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-1">
               <RadarBadge />
+              <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-text-tertiary/60">
+                Nº {String(post.issue).padStart(2, "0")}
+              </span>
             </div>
             <div className="flex justify-end">
               <time className="font-mono text-[11px] text-text-tertiary">
@@ -188,7 +191,7 @@ export default async function BlogPostPage({
                 href={`/${currentLocale}/blog/${nextPost.slug}`}
                 className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
               >
-                Siguiente nota
+                El Radar Nº {String(nextPost.issue).padStart(2, "0")}
                 <span aria-hidden>→</span>
               </Link>
             ) : (
