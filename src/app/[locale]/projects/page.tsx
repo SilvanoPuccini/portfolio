@@ -21,6 +21,7 @@ const copy = {
       eyebrow: "PROYECTOS",
       title: "Casos reales con foco en producto, ejecución y sistemas en producción",
       intro: "Desarrollo soluciones donde la arquitectura, la experiencia y el negocio funcionan como un sistema.",
+      support: "Cada proyecto refleja decisiones técnicas reales — del diseño a la puesta en producción.",
       primaryCta: "Ver proyectos",
       secondaryCta: "Hablemos",
       visualEyebrow: "Sistema en producción",
@@ -116,6 +117,7 @@ const copy = {
       eyebrow: "PROJECTS",
       title: "Real case studies focused on product, execution, and systems running in production.",
       intro: "I build solutions where architecture, experience, and business work as one system.",
+      support: "Every project reflects real technical decisions — from design to production.",
       primaryCta: "View projects",
       secondaryCta: "Let’s talk",
       visualEyebrow: "Production system",
@@ -259,6 +261,7 @@ export default async function ProjectsPage({
         title={labels.hero.title}
         bodyClassName="space-y-7 sm:space-y-8"
         subtitle={<p>{labels.hero.intro}</p>}
+        description={<p>{labels.hero.support}</p>}
         actions={
           <>
             <Link href="#projects-list" className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
