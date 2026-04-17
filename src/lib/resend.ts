@@ -20,8 +20,15 @@ export async function sendWelcomeEmail(email: string) {
     <div style="width:36px;height:2px;background:#00d4d4;margin:16px 0 20px;"></div>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 16px;">Te suscribiste a</p>
     <div style="text-align:center;margin-bottom:20px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+        <tr>
+          <td style="border-bottom:1px solid #444;width:40%;"></td>
+          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#999;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+          <td style="border-bottom:1px solid #444;width:40%;"></td>
+        </tr>
+      </table>
       <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#bbb;letter-spacing:0.3em;text-transform:uppercase;margin:0 0 2px;">El</p>
-      <p style="font-family:sans-serif;font-size:22px;font-weight:700;color:#888;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 4px;">Radar</p>
+      <p style="font-family:sans-serif;font-size:22px;font-weight:700;color:#888;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 6px;">Radar</p>
       <p style="font-family:monospace;font-size:8px;color:#777;letter-spacing:0.18em;text-transform:uppercase;margin:0;">arquitectura · código · producto</p>
     </div>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 12px;">el blog de <strong style="color:#f0f0f0;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.</p>
