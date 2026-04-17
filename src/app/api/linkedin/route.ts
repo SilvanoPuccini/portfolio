@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getBlogPostBySlug } from '@/lib/mdx';
 
 export async function GET(req: NextRequest) {
+  // Ruta interna: solo accesible con el token configurado en env
+  const token = req.headers.get('authorization')?.replace('Bearer ', '');
+  const expected = process.env.LINKEDIN_API_SECRET;
+
+  if (!expected || token !== expected) {
+    return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
+  }
+
   const slug = req.nextUrl.searchParams.get('slug');
 
   if (!slug) {
