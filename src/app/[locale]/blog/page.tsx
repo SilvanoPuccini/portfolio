@@ -88,7 +88,7 @@ export default async function BlogPage({
           <div className="grid gap-8 xl:grid-cols-2 xl:gap-12">
             {/* Cover */}
             <div className="relative aspect-[4/3] overflow-hidden rounded-sm xl:aspect-auto xl:min-h-[320px]">
-              <PostCover title={featuredPost.title} category={featuredPost.category} variant="featured" />
+              <PostCover title={featuredPost.title} category={featuredPost.category} variant="featured" showRadar={featuredPost.slug === "manifesto-editorial"} />
             </div>
 
             {/* Contenido del post */}
