@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 import withMdx from '@next/mdx';
 
 const nextConfig: NextConfig = {
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    return config;
+  },
   allowedDevOrigins: ["127.0.0.1"],
   images: {
     dangerouslyAllowSVG: true,
