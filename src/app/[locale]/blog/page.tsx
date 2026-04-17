@@ -173,11 +173,11 @@ export default async function BlogPage({
 
               <div className="relative">
                 <p className="technical-label">LinkedIn</p>
-                <h3 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
-                  El blog, en carrusel.
+                <h3 className="mt-4 text-xl font-semibold text-text-primary">
+                  Perspectiva Profesional.
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-text-secondary">
-                  Cada artículo llega a LinkedIn como carrusel visual. Misma idea, formato deslizable.
+                  Formatos visuales y reflexiones sobre el desarrollo de software y gestión de proyectos.
                 </p>
               </div>
 
@@ -185,10 +185,10 @@ export default async function BlogPage({
                 href="https://www.linkedin.com/in/silvano-puccini/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
+                className="relative mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
               >
                 <Linkedin size={13} />
-                Ver perfil →
+                Ver perfil
               </a>
             </div>
 
@@ -196,19 +196,19 @@ export default async function BlogPage({
             <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
 
-              <div className="relative flex items-start justify-between">
-                <div>
+              <div className="relative">
+                <div className="flex items-start justify-between">
                   <p className="technical-label">Instagram</p>
-                  <h3 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
-                    Próximamente.
-                  </h3>
-                  <p className="mt-3 text-sm leading-7 text-text-secondary">
-                    El blog llega también a Instagram. Seguinos para ser el primero en verlo cuando publiquemos.
-                  </p>
+                  <span className="rounded-full border border-outline-ghost/20 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-text-tertiary">
+                    Próximamente
+                  </span>
                 </div>
-                <span className="ml-4 mt-0.5 shrink-0 rounded-sm border border-outline-ghost/20 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-text-tertiary">
-                  Próximamente
-                </span>
+                <h3 className="mt-4 text-xl font-semibold text-text-primary">
+                  Proceso y Detrás de Escena.
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-text-secondary">
+                  Una mirada a la ejecución técnica y el día a día del desarrollo.
+                </p>
               </div>
 
               <span className="relative mt-8 inline-flex cursor-not-allowed items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
