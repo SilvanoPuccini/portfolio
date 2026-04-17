@@ -17,6 +17,8 @@ const copy = {
       eyebrow: "Servicios",
       title: "Convertí tu idea en un producto que funciona en producción.",
       subtitle:
+        "Arquitectura de software de alto rendimiento diseñada para escalar. Resolvemos cuellos de botella técnicos para que puedas enfocarte en el crecimiento de tu negocio.",
+      description:
         "Full stack + automatización + criterio comercial — para que no tengas que elegir entre velocidad y calidad.",
       primaryCta: "Agendá una llamada",
       secondaryCta: "Ver servicios",
@@ -119,6 +121,8 @@ const copy = {
       eyebrow: "Services",
       title: "Turn your idea into a product that works in production.",
       subtitle:
+        "High-performance software architecture designed to scale. We resolve technical bottlenecks so you can focus on growing your business.",
+      description:
         "Full stack + automation + commercial judgment — so you don't have to choose between speed and quality.",
       primaryCta: "Schedule a call",
       secondaryCta: "See services",
@@ -257,7 +261,8 @@ export default async function ServicesPage({
       <PageHero
         eyebrow={labels.hero.eyebrow}
         title={labels.hero.title}
-        description={<p>{labels.hero.subtitle}</p>}
+        subtitle={<p>{labels.hero.subtitle}</p>}
+        description={<p>{labels.hero.description}</p>}
         actions={
           <>
             <a
