@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
 import { X } from "lucide-react";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface Props {
   stackName: string;
@@ -10,6 +15,22 @@ interface Props {
 }
 
 export function CertificateModal({ stackName, fileName, onClose }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number>(0);
+
+  const updateWidth = useCallback(() => {
+    if (containerRef.current) {
+      setWidth(containerRef.current.clientWidth);
+    }
+  }, []);
+
+  useEffect(() => {
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [updateWidth]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -56,13 +77,25 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
         </div>
 
         {/* PDF Viewer */}
-        <div className="flex-1 overflow-hidden" style={{ minHeight: "60vh" }}>
-          <iframe
-            src={`/api/certificate/${encodeURIComponent(fileName)}`}
-            className="h-full w-full"
-            style={{ minHeight: "60vh" }}
-            title={`Certificado ${stackName}`}
-          />
+        <div
+          ref={containerRef}
+          className="flex flex-1 items-center justify-center overflow-auto"
+        >
+          <Document
+            file={`/api/certificate/${encodeURIComponent(fileName)}`}
+            loading={
+              <div className="flex h-64 items-center justify-center text-sm text-text-tertiary">
+                Cargando certificado…
+              </div>
+            }
+            error={
+              <div className="flex h-64 items-center justify-center text-sm text-text-tertiary">
+                No se pudo cargar el certificado.
+              </div>
+            }
+          >
+            {width > 0 && <Page pageNumber={1} width={width} />}
+          </Document>
         </div>
       </div>
     </div>
