@@ -12,6 +12,7 @@ const ALLOWED: Record<string, string> = {
   "Python-Avanzado.pdf": "Python-Avanzado.pdf",
   "Git-Github.pdf": "Git-Github.pdf",
   "linux-terminal.pdf": "linux-terminal.pdf",
+  "SQL.pdf": "SQL.pdf",
 };
 
 export async function GET(
