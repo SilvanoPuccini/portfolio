@@ -33,7 +33,7 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
       {/* Panel */}
       <div
         className="relative z-10 flex w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-surface)] border border-outline-ghost/15 bg-[rgb(var(--surface))] shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
-        style={{ maxHeight: "96vh" }}
+        style={{ maxHeight: "90vh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -56,10 +56,11 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
         </div>
 
         {/* PDF Viewer */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden" style={{ minHeight: "60vh" }}>
           <iframe
-            src={`/api/certificate/${encodeURIComponent(fileName)}#view=Fit`}
+            src={`/api/certificate/${encodeURIComponent(fileName)}`}
             className="h-full w-full"
+            style={{ minHeight: "60vh" }}
             title={`Certificado ${stackName}`}
           />
         </div>
