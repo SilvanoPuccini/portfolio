@@ -1,175 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import { Globe, Server } from "lucide-react";
 import profileImage from "@/assets/images/profile.png";
 import fotoColorImage from "@/assets/images/foto_color.png";
 import fotoGrisImage from "@/assets/images/foto_gris.png";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { StackSection } from "@/components/about/StackSection";
 
 type LocaleParams = Promise<{ locale: string }>;
-
-type StackRemoteIcon = {
-  src: string;
-  alt: string;
-  className?: string;
-  width?: number;
-  height?: number;
-};
-
-type StackItemIcon = {
-  icons?: StackRemoteIcon[];
-  fallback?: LucideIcon;
-};
-
-const stackItemIcons: Record<string, StackItemIcon> = {
-  React: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg", alt: "React" }],
-  },
-  "Next.js": {
-    icons: [
-      {
-        src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
-        alt: "Next.js",
-        className: "dark:invert",
-      },
-    ],
-  },
-  TypeScript: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg", alt: "TypeScript" }],
-  },
-  JavaScript: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg", alt: "JavaScript" }],
-  },
-  Javascript: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg", alt: "JavaScript" }],
-  },
-  HTML5: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg", alt: "HTML5" }],
-  },
-  HTML: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg", alt: "HTML5" }],
-  },
-  "Tailwind CSS": {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg", alt: "Tailwind CSS" }],
-  },
-  "Node.js": {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg", alt: "Node.js" }],
-  },
-  "Express.js": {
-    icons: [
-      {
-        src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg",
-        alt: "Express.js",
-        className: "dark:invert",
-        width: 28,
-      },
-    ],
-  },
-  Python: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg", alt: "Python" }],
-  },
-  Django: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg", alt: "Django", className: "dark:invert" }],
-  },
-  "APIs REST": {
-    fallback: Globe,
-  },
-  PostgreSQL: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg", alt: "PostgreSQL" }],
-  },
-  MySQL: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg", alt: "MySQL" }],
-  },
-  MongoDB: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg", alt: "MongoDB" }],
-  },
-  Supabase: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/supabase/supabase-original.svg", alt: "Supabase" }],
-  },
-  "Git/GitHub": {
-    icons: [
-      { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg", alt: "Git" },
-      {
-        src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
-        alt: "GitHub",
-        className: "dark:invert",
-      },
-    ],
-  },
-  VSCode: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg", alt: "VSCode" }],
-  },
-  Figma: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg", alt: "Figma" }],
-  },
-  "Linux/WSL": {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg", alt: "Linux" }],
-  },
-  VPS: {
-    fallback: Server,
-  },
-  Vercel: {
-    icons: [
-      {
-        src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg",
-        alt: "Vercel",
-        className: "dark:invert",
-      },
-    ],
-  },
-  AWS: {
-    icons: [
-      {
-        src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",
-        alt: "AWS",
-        className: "dark:invert",
-        width: 30,
-      },
-    ],
-  },
-  Render: {
-    icons: [{ src: "https://cdn.simpleicons.org/render", alt: "Render" }],
-  },
-  DigitalOcean: {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/digitalocean/digitalocean-original.svg", alt: "Digital Ocean" }],
-  },
-  "Digital Ocean": {
-    icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/digitalocean/digitalocean-original.svg", alt: "Digital Ocean" }],
-  },
-  Cloudinary: {
-    icons: [{ src: "https://cdn.simpleicons.org/cloudinary", alt: "Cloudinary" }],
-  },
-};
-
-function StackIcon({ item }: { item: string }) {
-  const iconConfig = stackItemIcons[item];
-
-  if (iconConfig?.icons?.length) {
-    return (
-      <span className="inline-flex min-w-0 shrink-0 items-center gap-1 transition-transform duration-200 ease-out group-hover:scale-[1.06]">
-        {iconConfig.icons.map((icon) => (
-          <Image
-            key={`${item}-${icon.src}`}
-            src={icon.src}
-            alt={icon.alt}
-            width={icon.width ?? 14}
-            height={icon.height ?? 14}
-            unoptimized
-            className={`transition-transform duration-200 ease-out ${icon.className ?? ""}`.trim()}
-          />
-        ))}
-      </span>
-    );
-  }
-
-  const FallbackIcon = iconConfig?.fallback ?? Globe;
-
-  return <FallbackIcon className="h-3.5 w-3.5 shrink-0 text-text-primary transition-transform duration-200 ease-out group-hover:scale-[1.06]" aria-hidden="true" />;
-}
 
 const copy = {
   es: {
@@ -531,43 +371,12 @@ export default async function AboutPage({
         </div>
       </section>
 
-      <section className="bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.12),rgb(var(--surface)/0.08))] py-12 sm:py-14 lg:py-16">
-        <div className="site-container">
-          <div className="max-w-3xl space-y-5">
-            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.stack.eyebrow}</h2>
-            <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{labels.stack.description}</p>
-          </div>
-
-          <div className="mt-8 space-y-3">
-            {content.about.skillGroups.map((group, index) => (
-              <article
-                key={group.title}
-                className={`rounded-[var(--radius-soft)] px-5 py-5 shadow-[0_18px_40px_rgba(2,8,23,0.08)] sm:px-6 sm:py-6 ${index % 2 === 0 ? "bg-[rgb(var(--background)/0.14)]" : "bg-[rgb(var(--background)/0.1)]"}`}
-              >
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:gap-6">
-                  <div className="xl:w-[11rem] xl:min-w-[11rem]">
-                    <p className="technical-label">{group.title}</p>
-                  </div>
-
-                  <div className="flex min-w-0 flex-wrap gap-2 xl:flex-1 xl:flex-nowrap xl:gap-1.5">
-                    {group.items.map((item) => (
-                      <span
-                        key={`${group.title}-${item}`}
-                        className="group inline-flex items-center gap-2 rounded-[var(--radius-soft)] border border-transparent bg-[rgb(var(--surface-elevated)/0.82)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-secondary shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-[background-color,color,transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-[rgb(var(--accent)/0.18)] hover:bg-[rgb(var(--surface-elevated)/0.98)] hover:text-text-primary hover:shadow-[0_14px_28px_rgba(15,23,42,0.12)] sm:text-[11px] xl:min-w-0 xl:flex-1 xl:justify-center xl:px-2.5"
-                      >
-                        <StackIcon item={item} />
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <p className="mt-8 max-w-3xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{labels.stack.closing}</p>
-        </div>
-      </section>
+      <StackSection
+        groups={content.about.skillGroups}
+        eyebrow={labels.stack.eyebrow}
+        description={labels.stack.description}
+        closing={labels.stack.closing}
+      />
 
       <section className="bg-[linear-gradient(180deg,rgb(var(--surface)/0.1),rgb(var(--surface-dim)/0.24))] py-12 sm:py-14 lg:py-16">
         <div className="site-container grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-start">
