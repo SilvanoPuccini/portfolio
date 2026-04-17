@@ -8,8 +8,6 @@ linkedinCarousel: false
 readingTime: '8 min'
 ---
 
-# Web Vitals en producción: lo que las métricas no te dicen
-
 El LCP de FerrelonStock llegó a 4.2 segundos en móvil. Lo supe porque un cliente lo mencionó de pasada en una reunión, no porque tuviéramos un dashboard mirándolo. Ese fue el primer problema.
 
 ## El contexto
@@ -20,60 +18,88 @@ Cuando empezamos a medir en serio, los números eran malos:
 
 - **LCP: 4.2s** en conexión 4G simulada
 - **FID: 380ms** en interacción inicial
-- **CLS: 0.18** (inaceptable — la tabla se movía al cargar)
+- **CLS: 0.18** — la tabla se desplazaba al cargar
 
 El score de Lighthouse era 34. En producción real, probablemente peor.
 
 ## El error que cometimos primero
 
-La respuesta instintiva fue: *"son las imágenes"*. Revisamos el bundle, encontramos que cargábamos thumbnails de productos sin lazy loading, los agregamos, volvimos a medir.
+La respuesta instintiva fue: *son las imágenes*. Revisamos el bundle, encontramos que cargábamos thumbnails sin lazy loading, los agregamos, volvimos a medir.
 
-LCP: 3.9s. Mejora marginal. El problema real estaba en otro lado.
+LCP: 3.9s. Mejora marginal. El problema estaba en otro lado.
 
 ## Dónde estaba el cuello de botella real
 
-Usamos el panel de Network del navegador con throttling de 4G y encontramos algo que no esperábamos: el tiempo de bloqueo del hilo principal era de 1.8 segundos **antes** de que el primer byte de HTML llegara al navegador.
+Usamos el panel de Network del navegador con throttling 4G y encontramos algo que no esperábamos: el tiempo de bloqueo del hilo principal era de 1.8 segundos **antes** de que el primer byte de HTML llegara al navegador.
 
 El problema era el bundle de JavaScript.
 
-React estaba cargando el módulo completo de inventario — incluyendo el editor de productos, el módulo de reportes, los formularios de alta — todo en la pantalla de listado. Nadie lo había cuestionado porque en desarrollo con fibra óptica no se nota.
+React estaba cargando el módulo completo de inventario — editor de productos, módulo de reportes, formularios de alta — todo en la pantalla de listado. Nadie lo había cuestionado porque en desarrollo con fibra óptica no se nota.
+
+> "El cuello de botella siempre está donde menos esperás. Si vas directo a las imágenes sin medir el hilo principal, podés pasar semanas optimizando lo que no importa."
 
 ## Lo que realmente funcionó
 
-**1. Code splitting por rutas**
+### 1. Code splitting por rutas
 
 Separamos cada módulo en chunks independientes. El listado de productos ya no arrastraba el código del editor ni de los reportes.
 
-```javascript
-// Antes
+```javascript title="ProductList.jsx"
+// Antes — todo cargaba junto
 import ProductEditor from './ProductEditor';
 import ReportsModule from './ReportsModule';
 
-// Después
+// Después — cada módulo carga cuando se necesita
 const ProductEditor = lazy(() => import('./ProductEditor'));
 const ReportsModule = lazy(() => import('./ReportsModule'));
 ```
 
-El bundle del listado pasó de 847KB a 312KB. Solo con eso, LCP bajó a 2.6s.
+El bundle del listado pasó de 847KB a 312KB. Solo con eso, el LCP bajó a 2.6s.
 
-**2. Caching en el servidor**
+### 2. Caching en el servidor
 
-Las llamadas a la API de productos no tenían caché. Cada carga de página hacía una query fresca a la base de datos con joins a tres tablas. Agregamos caché de 60 segundos con invalidación por evento (cuando se modifica un producto, se limpia el caché de ese proveedor).
+Las llamadas a la API de productos no tenían caché. Cada carga hacía una query fresca a la base de datos con joins a tres tablas. Agregamos caché de 60 segundos con invalidación por evento.
+
+```python title="views/products.py"
+from django.views.decorators.cache import cache_page
+from django.utils.cache import get_cache_key
+
+@cache_page(60)
+def product_list(request):
+    queryset = (
+        Product.objects
+        .select_related('supplier', 'category')
+        .prefetch_related('stock_entries')
+        .filter(active=True)
+    )
+    return JsonResponse(serialize(queryset))
+```
 
 Con esto, las requests subsiguientes pasaron de 420ms a 45ms.
 
-**3. Eliminar una dependencia fantasma**
+### 3. Eliminar una dependencia fantasma
 
-Al auditar el bundle encontramos `moment.js` — 67KB minificado — incluido por una librería de filtros de fecha que usábamos en exactamente un lugar. Lo reemplazamos con dos líneas de `Intl.DateTimeFormat`. Nadie lo había notado porque fue incluido hace dos años como dependencia transitiva.
+Al auditar el bundle encontramos `moment.js` — 67KB minificado — incluido por una librería de filtros que usábamos en exactamente un lugar. Lo reemplazamos con dos líneas nativas.
+
+```javascript title="utils/date.js"
+// Antes — 67KB por esto
+import moment from 'moment';
+const formatted = moment(date).format('DD/MM/YYYY');
+
+// Después — cero dependencias
+const formatted = new Intl.DateTimeFormat('es-AR', {
+  day: '2-digit', month: '2-digit', year: 'numeric'
+}).format(new Date(date));
+```
 
 ## Los números finales
 
 | Métrica | Antes | Después |
 |---------|-------|---------|
-| LCP | 4.2s | 1.8s |
-| FID | 380ms | 90ms |
-| CLS | 0.18 | 0.03 |
-| Lighthouse | 34 | 81 |
+| LCP | 4.2s | **1.8s** |
+| FID | 380ms | **90ms** |
+| CLS | 0.18 | **0.03** |
+| Lighthouse | 34 | **81** |
 
 ## Lo que aprendí
 
@@ -81,4 +107,4 @@ Las métricas de Lighthouse en desarrollo local son inútiles. El problema real 
 
 Antes de optimizar, medí. Antes de medir, instrumenté. Y lo que encontré no fue lo que esperaba encontrar.
 
-Eso es lo interesante de performance: el cuello de botella siempre está donde menos esperás. Si vas directo a las imágenes sin medir el hilo principal, podés pasar semanas optimizando lo que no importa.
+Eso es lo interesante de performance: el cuello de botella siempre está donde menos esperás.
