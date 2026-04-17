@@ -18,6 +18,7 @@ const CERTIFICATES: Record<string, string> = {
   "Git/GitHub": "Git-Github.pdf",
   "Linux/WSL": "linux-terminal.pdf",
   PostgreSQL: "SQL.pdf",
+  "Tailwind CSS": "css-experto.pdf",
 };
 
 /* ── Icons ───────────────────────────────────────────────────── */
