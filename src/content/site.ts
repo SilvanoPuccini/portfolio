@@ -187,7 +187,7 @@ const about: AboutContent = {
   skillGroups: [
     {
       title: { es: "Frontend", en: "Frontend" },
-      items: ["React", "Next.js", "TypeScript", "Javascript", "HTML", "Tailwind CSS"],
+      items: ["React", "Angular", "Vue.js", "Next.js", "TypeScript", "Javascript", "HTML", "Tailwind CSS"],
     },
     {
       title: { es: "Backend", en: "Backend" },
