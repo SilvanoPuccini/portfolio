@@ -1,0 +1,76 @@
+---
+title: 'TypeScript en serio: tipos que documentan, no que decoran'
+date: '2026-04-15'
+category: 'Performance'
+excerpt: 'La mayoría usa TypeScript como JavaScript con sintaxis extra. Hay una diferencia enorme entre poner "any" para que compile y modelar el dominio de tu aplicación con tipos que hacen imposibles los estados inválidos.'
+featured: false
+linkedinCarousel: false
+readingTime: '6 min'
+---
+
+# TypeScript en serio: tipos que documentan, no que decoran
+
+Hay dos formas de usar TypeScript. La primera es poner tipos en variables hasta que el compilador deje de quejarse. La segunda es modelar el dominio de tu aplicación de forma que los estados inválidos sean literalmente irrepresentables en el sistema de tipos.
+
+La diferencia no es estética. Es la diferencia entre un bug que el compilador encuentra en dos segundos y uno que te explota en producción a las 3am.
+
+## El error más común
+
+```typescript
+// Esto no es TypeScript. Es JavaScript con miedo.
+function getUser(id: any): any {
+  return fetch(`/api/users/${id}`).then(r => r.json());
+}
+```
+
+Pasás el `any` y el compilador te deja tranquilo. Pero no te protege de nada. Si el servidor devuelve un campo renombrado, si `id` es `undefined`, si la respuesta es un error 404 con body de HTML — TypeScript no dice nada.
+
+## Tipos que modelan el dominio
+
+```typescript
+type UserId = string & { readonly _brand: 'UserId' };
+type Email = string & { readonly _brand: 'Email' };
+
+interface User {
+  id: UserId;
+  email: Email;
+  role: 'admin' | 'editor' | 'viewer';
+}
+
+// Esto no compila. Y está bien que no compile.
+const user: User = {
+  id: 'abc123', // Error: no es UserId
+  email: 'test', // Error: no es Email
+  role: 'superuser', // Error: no existe ese rol
+};
+```
+
+El branded type parece exceso de ingeniería hasta que alguien pasa un `userId` donde esperabas un `postId` y el bug tarda tres días en aparecer.
+
+## Result types en lugar de excepciones
+
+```typescript
+type Result<T, E = Error> =
+  | { ok: true; value: T }
+  | { ok: false; error: E };
+
+async function fetchUser(id: UserId): Promise<Result<User, 'NOT_FOUND' | 'UNAUTHORIZED'>> {
+  const response = await fetch(`/api/users/${id}`);
+  if (response.status === 404) return { ok: false, error: 'NOT_FOUND' };
+  if (response.status === 401) return { ok: false, error: 'UNAUTHORIZED' };
+  return { ok: true, value: await response.json() };
+}
+
+// Ahora el caller está obligado a manejar los casos de error
+const result = await fetchUser(userId);
+if (!result.ok) {
+  // TypeScript sabe que result.error es 'NOT_FOUND' | 'UNAUTHORIZED'
+  // No hay surprises
+}
+```
+
+Esto es documentación ejecutable. Cualquiera que lea la firma de `fetchUser` sabe exactamente qué puede salir mal.
+
+## La regla que sigo
+
+Si un tipo acepta más valores de los que tu dominio permite, es un tipo incompleto. Cada `string` genérico es potencialmente un bug esperando materializarse.

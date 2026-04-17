@@ -1,0 +1,85 @@
+---
+title: 'Estado global sin Redux: cuándo alcanza con Context y cuándo no'
+date: '2026-04-12'
+category: 'Producto'
+excerpt: 'Redux resuelve problemas reales, pero muchos proyectos lo adoptan antes de tener esos problemas. El resultado es boilerplate que duplica la complejidad sin agregar valor.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+---
+
+# Estado global sin Redux: cuándo alcanza con Context y cuándo no
+
+La pregunta no es "Context o Redux". La pregunta es "qué problema tengo realmente con mi estado". Redux resuelve problemas específicos. Si no tenés esos problemas, Redux es overhead.
+
+## Lo que Context resuelve bien
+
+Context es perfecto para estado que cambia poco y que muchos componentes necesitan leer:
+
+```typescript
+// Tema, locale, usuario autenticado — Context está bien acá
+interface AppContext {
+  user: User | null;
+  locale: 'es' | 'en';
+  theme: 'light' | 'dark';
+}
+
+const AppContext = createContext<AppContext | null>(null);
+
+export function useApp() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  return ctx;
+}
+```
+
+Esto es suficiente para el 80% de las apps.
+
+## Cuándo Context empieza a doler
+
+El problema con Context + useReducer aparece cuando:
+
+1. **Muchas actualizaciones frecuentes** — Cada cambio de estado re-renderiza todos los consumidores del contexto, aunque el componente no use el valor que cambió.
+
+2. **Estado derivado complejo** — Calcular valores a partir de múltiples partes del estado se vuelve difícil de mantener y de memoizar correctamente.
+
+3. **Debug en producción** — No tenés time-travel debugging ni herramientas para inspeccionar el historial de cambios.
+
+## Zustand como punto medio
+
+```typescript
+import { create } from 'zustand';
+
+interface CartStore {
+  items: CartItem[];
+  total: number;
+  addItem: (item: CartItem) => void;
+  removeItem: (id: string) => void;
+}
+
+const useCart = create<CartStore>((set, get) => ({
+  items: [],
+  total: 0,
+  addItem: (item) => set((state) => {
+    const items = [...state.items, item];
+    return { items, total: items.reduce((acc, i) => acc + i.price, 0) };
+  }),
+  removeItem: (id) => set((state) => {
+    const items = state.items.filter((i) => i.id !== id);
+    return { items, total: items.reduce((acc, i) => acc + i.price, 0) };
+  }),
+}));
+```
+
+Sin boilerplate, sin providers, sin actions/reducers separados. Solo el store y los hooks. Y solo los componentes que consumen `items` se re-renderizan cuando `items` cambia.
+
+## La decisión real
+
+| Escenario | Solución |
+|-----------|----------|
+| Tema, user, locale | Context |
+| Carrito, filtros, formularios complejos | Zustand / Jotai |
+| App enterprise con equipo grande | Redux Toolkit |
+| Estado del servidor | React Query / SWR |
+
+El último punto es el más ignorado: si tu "estado global" es mayormente datos del servidor, React Query te elimina la mitad del problema antes de empezar.
