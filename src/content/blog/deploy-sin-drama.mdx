@@ -1,0 +1,70 @@
+---
+title: 'Deploy sin drama: lo que cambió cuando empecé a tratar los deploys como rutina'
+date: '2026-04-14'
+category: 'Automatización'
+excerpt: 'El deploy dejó de ser un evento estresante cuando dejé de tratarlo como tal. CI/CD, feature flags y rollback en un click no son lujo — son la diferencia entre entregar y rezar.'
+featured: false
+linkedinCarousel: false
+readingTime: '5 min'
+---
+
+# Deploy sin drama: lo que cambió cuando empecé a tratar los deploys como rutina
+
+Hay equipos donde el deploy es un ritual de dos horas con coordinación en Slack, avisos al equipo y un período de silencio de media hora después "por si explota algo". Lo viví. Es agotador y completamente evitable.
+
+El deploy debería ser aburrido. Tan aburrido que nadie lo note.
+
+## Qué hace que un deploy sea dramático
+
+Tres causas principales:
+
+**1. Tests que no cubren lo que importa** — Tests unitarios que pasan pero la integración entre servicios falla en producción. El problema no es la cantidad de tests, es la cobertura de los caminos críticos.
+
+**2. Deploys grandes y poco frecuentes** — Cuanto más código entra en un solo deploy, más superficie de falla. Y más difícil aislar qué rompió qué.
+
+**3. Sin capacidad de rollback rápido** — Si el rollback tarda 20 minutos y requiere intervención manual, cada deploy es una apuesta.
+
+## Lo que cambió en mi flujo
+
+```yaml
+# GitHub Actions — el mínimo que salva deploys
+name: CI/CD
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: npm ci
+      - name: Type check
+        run: npm run type-check
+      - name: Test
+        run: npm test -- --coverage
+      - name: Deploy
+        if: success()
+        run: vercel deploy --prod
+```
+
+Simple. Si los tipos no compilan o los tests fallan, el deploy no ocurre. Punto.
+
+## Feature flags para desacoplar deploy de release
+
+```typescript
+const features = {
+  newCheckoutFlow: process.env.NEXT_PUBLIC_FF_NEW_CHECKOUT === 'true',
+  aiSuggestions: process.env.NEXT_PUBLIC_FF_AI_SUGGESTIONS === 'true',
+};
+
+// Deploy el código. Activar la feature es un cambio de env var.
+// Rollback es otro cambio de env var. Sin redeploy.
+```
+
+Esto es la diferencia entre "deployar código" y "lanzar una feature". Son dos operaciones separadas. Una es técnica, la otra es de negocio.
+
+## La métrica que importa
+
+Frecuencia de deploy + tiempo de recuperación ante falla (MTTR). Si deployás seguido y podés recuperarte rápido, el drama desaparece. Todo lo demás es consecuencia de eso.
