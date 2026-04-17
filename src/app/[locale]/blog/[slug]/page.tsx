@@ -144,8 +144,13 @@ export default async function BlogPostPage({
         {/* Resto del contenido MDX */}
         <MDXContent source={restContent} />
 
+        {/* Cierre — logo El Radar centrado */}
+        <div className="mt-20 flex justify-center">
+          <RadarBadge />
+        </div>
+
         {/* CTA Newsletter */}
-        <section className="group relative mt-24 overflow-hidden rounded-sm border border-outline-ghost/10 bg-[rgb(var(--surface-elevated))] px-8 py-10 sm:px-12 sm:py-12">
+        <section className="group relative mt-12 overflow-hidden rounded-sm border border-outline-ghost/10 bg-[rgb(var(--surface-elevated))] px-8 py-10 sm:px-12 sm:py-12">
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-primary/8 blur-[80px] transition-colors duration-700 group-hover:bg-brand-primary/12" />
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-brand-secondary/8 blur-[60px]" />
 
