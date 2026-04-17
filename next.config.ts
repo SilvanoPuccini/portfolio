@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import withMdx from '@next/mdx';
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pdfjs-dist"],
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;
