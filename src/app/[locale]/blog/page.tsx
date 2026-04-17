@@ -5,6 +5,7 @@ import { resolveLocale, type Locale } from "@/lib/i18n";
 import { getAllBlogPosts } from "@/lib/mdx";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
+import { PostCover } from "@/components/blog/PostCover";
 import Link from "next/link";
 
 type LocaleParams = Promise<{ locale: string }>;
@@ -81,16 +82,9 @@ export default async function BlogPage({
           </div>
 
           <div className="grid gap-8 xl:grid-cols-2 xl:gap-12">
-            {/* Cover image placeholder */}
-            <div className="surface-section bg-editorial-texture relative aspect-[4/3] overflow-hidden xl:aspect-auto xl:h-full">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_34%_50%,rgba(138,235,255,0.28),transparent_24%),radial-gradient(circle_at_65%_58%,rgba(5,102,217,0.16),transparent_30%),linear-gradient(135deg,rgba(6,10,18,0.65),rgba(6,10,18,0.1))]" />
-              <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:22px_22px]" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="mb-4 text-6xl opacity-20">📄</div>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">Cover</p>
-                </div>
-              </div>
+            {/* Cover */}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-sm xl:aspect-auto xl:min-h-[320px]">
+              <PostCover title={featuredPost.title} category={featuredPost.category} variant="featured" />
             </div>
 
             {/* Contenido del post */}

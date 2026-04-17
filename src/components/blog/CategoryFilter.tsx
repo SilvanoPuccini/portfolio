@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { BlogPost } from "@/types/blog";
+import { PostCover } from "@/components/blog/PostCover";
 
 const CATEGORIES = ["Performance", "Producto", "Automatización"] as const;
 
@@ -82,16 +83,8 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
                 key={post.slug}
                 className="surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
               >
-                <div className="surface-section bg-editorial-texture relative aspect-[16/10] overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_34%_50%,rgba(138,235,255,0.28),transparent_24%),radial-gradient(circle_at_65%_58%,rgba(5,102,217,0.16),transparent_30%),linear-gradient(135deg,rgba(6,10,18,0.65),rgba(6,10,18,0.1))]" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="mb-2 text-4xl opacity-20">📄</div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">
-                        Cover
-                      </p>
-                    </div>
-                  </div>
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <PostCover title={post.title} category={post.category} />
                 </div>
 
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
