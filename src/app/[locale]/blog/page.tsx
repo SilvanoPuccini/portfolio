@@ -145,7 +145,7 @@ export default async function BlogPage({
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-72 w-72 rounded-full bg-brand-primary/10 blur-3xl" />
 
             <div className="relative">
-              <p className="technical-label">Newsletter</p>
+              <p className="technical-label">El Radar</p>
               <h3 className="mt-5 text-3xl font-semibold text-text-primary sm:text-4xl">
                 Suscríbete al Radar.
               </h3>
