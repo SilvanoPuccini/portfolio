@@ -18,7 +18,7 @@ export function SubscribeForm() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, website: "" }),
       });
 
       const data = await res.json();
@@ -50,6 +50,17 @@ export function SubscribeForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-3">
+      {/* Honeypot — oculto para humanos, los bots lo llenan */}
+      <input
+        type="text"
+        name="website"
+        aria-hidden="true"
+        tabIndex={-1}
+        autoComplete="off"
+        style={{ display: "none" }}
+        readOnly
+        value=""
+      />
       <div className="flex gap-3">
         <input
           type="email"
