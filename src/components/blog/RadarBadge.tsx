@@ -19,7 +19,7 @@ export function RadarBadge() {
           El
         </span>
         <span
-          className="text-[18px] font-bold uppercase text-text-tertiary"
+          className="text-[18px] font-bold uppercase text-text-primary"
           style={{
             fontFamily: "var(--font-space-grotesk), sans-serif",
             letterSpacing: "0.14em",
