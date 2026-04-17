@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getBlogPostBySlug } from "@/lib/mdx";
+import { getBlogPostBySlug, getAllBlogPosts } from "@/lib/mdx";
 import { MDXContent } from "@/components/blog/MDXContent";
 import { PostCover } from "@/components/blog/PostCover";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
@@ -52,6 +52,10 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
+  const allPosts = getAllBlogPosts();
+  const currentIndex = allPosts.findIndex((p) => p.slug === slug);
+  const nextPost = allPosts[currentIndex + 1] ?? null;
+
   const categoryColor =
     categoryColors[post.category] || "bg-blue-500/10 text-blue-400 border-blue-500/20";
 
@@ -67,37 +71,41 @@ export default async function BlogPostPage({
     <div className="site-container py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-3xl">
 
-        {/* Membrete El Radar + navegación */}
-        <div className="mb-12 flex items-start justify-between">
-          <RadarBadge />
-          <nav>
-            <Link
-              href={`/${currentLocale}/blog`}
-              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
-            >
-              <span aria-hidden>←</span>
-              Blog
-            </Link>
-          </nav>
-        </div>
+        {/* Navegación superior */}
+        <nav className="mb-10">
+          <Link
+            href={`/${currentLocale}/blog`}
+            className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+          >
+            <span aria-hidden>←</span>
+            Blog
+          </Link>
+        </nav>
 
         {/* Header editorial */}
         <header className="mb-12 sm:mb-16">
-          {/* Fila: categoría + reading time + fecha */}
-          <div className="mb-6 flex flex-wrap items-center gap-3">
-            <span
-              className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
-            >
-              {post.category}
-            </span>
-            {post.readingTime && (
-              <span className="font-mono text-[11px] text-text-tertiary">
-                {post.readingTime}
+          {/* Fila: categoría + reading time | RadarBadge | fecha */}
+          <div className="mb-6 grid grid-cols-3 items-center gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
+              >
+                {post.category}
               </span>
-            )}
-            <time className="ml-auto font-mono text-[11px] text-text-tertiary">
-              {formatDate(post.date)}
-            </time>
+              {post.readingTime && (
+                <span className="font-mono text-[11px] text-text-tertiary">
+                  {post.readingTime}
+                </span>
+              )}
+            </div>
+            <div className="flex justify-center">
+              <RadarBadge />
+            </div>
+            <div className="flex justify-end">
+              <time className="font-mono text-[11px] text-text-tertiary">
+                {formatDate(post.date)}
+              </time>
+            </div>
           </div>
 
           {/* Título grande */}
@@ -154,7 +162,7 @@ export default async function BlogPostPage({
         </section>
 
         {/* Footer del post */}
-        <footer className="mt-10 flex items-center justify-between border-t border-outline-ghost/15 pt-8">
+        <footer className="mt-10 grid grid-cols-3 items-center border-t border-outline-ghost/15 pt-8">
           <Link
             href={`/${currentLocale}/blog`}
             className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
@@ -162,11 +170,32 @@ export default async function BlogPostPage({
             <span aria-hidden>←</span>
             Volver al blog
           </Link>
-          <span
-            className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
-          >
-            {post.category}
-          </span>
+          <div className="flex justify-center">
+            <span
+              className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
+            >
+              {post.category}
+            </span>
+          </div>
+          <div className="flex justify-end">
+            {nextPost ? (
+              <Link
+                href={`/${currentLocale}/blog/${nextPost.slug}`}
+                className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+              >
+                Siguiente nota
+                <span aria-hidden>→</span>
+              </Link>
+            ) : (
+              <Link
+                href={`/${currentLocale}/blog`}
+                className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+              >
+                Ver más notas
+                <span aria-hidden>→</span>
+              </Link>
+            )}
+          </div>
         </footer>
 
       </div>
