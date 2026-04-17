@@ -58,12 +58,12 @@ export function SubscribeForm() {
           placeholder="tu@email.com"
           required
           disabled={status === "loading"}
-          className="flex-1 rounded-xl bg-surface-elevated/90 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-50"
+          className="flex-1 rounded-sm bg-surface-elevated/90 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={status === "loading"}
-          className="button-primary rounded-xl px-6 py-3 text-xs uppercase tracking-[0.2em] disabled:opacity-50"
+          className="button-primary rounded-sm px-6 py-3 text-xs uppercase tracking-[0.2em] disabled:opacity-50"
         >
           {status === "loading" ? "..." : "Suscribirme"}
         </button>
