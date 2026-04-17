@@ -147,7 +147,7 @@ export default async function BlogPage({
             <div className="relative">
               <p className="technical-label">El Radar</p>
               <h3 className="mt-5 text-3xl font-semibold text-text-primary sm:text-4xl">
-                Suscríbete al Radar.
+                Suscríbete a El Radar.
               </h3>
               <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
                 Recibe semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
