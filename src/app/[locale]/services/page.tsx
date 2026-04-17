@@ -381,9 +381,7 @@ export default async function ServicesPage({
         bodyClassName="space-y-7 sm:space-y-8"
         titleClassName="leading-[0.97]"
         subtitle={<p>{labels.hero.intro}</p>}
-        subtitleClassName="max-w-[54rem] text-[2rem] leading-[1.08] sm:text-[2.5rem] lg:text-[3.05rem]"
         description={<p>{labels.hero.support}</p>}
-        descriptionClassName="max-w-[50rem] text-[1.08rem] leading-8 text-text-secondary sm:text-[1.22rem] sm:leading-9 lg:text-[1.28rem]"
         actions={
           <>
             <a
