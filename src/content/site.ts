@@ -630,9 +630,9 @@ export const siteContent: SiteContent = {
     email: "silvano.jm.puccini@gmail.com",
     phone: "+54 9 249 4309584",
     cv: {
-      fileName: "CV_Silvano_Puccini_FullStack.pdf",
+      fileName: "CV_Silvano_Puccini-FullStack.pdf",
       downloadHref: "/cv",
-      sourcePath: "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+      sourcePath: "src/assets/cv/CV_Silvano_Puccini-FullStack.pdf",
     },
     socialLinks: [
       { platform: "github", label: "GitHub", href: "https://github.com/SilvanoPuccini" },
