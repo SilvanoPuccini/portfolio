@@ -54,10 +54,14 @@ export default async function BlogPostPage({
   const categoryColor =
     categoryColors[post.category] || "bg-blue-500/10 text-blue-400 border-blue-500/20";
 
-  // Split: primer párrafo + resto del contenido
+  // Split: primer párrafo intro + resto. Si arranca con heading (#), no hay intro.
   const paragraphs = post.content.trim().split(/\n\n+/);
-  const firstParagraph = paragraphs[0].trim();
-  const restContent = paragraphs.slice(1).join("\n\n");
+  const firstBlock = paragraphs[0].trim();
+  const hasIntro = !firstBlock.startsWith("#");
+  const firstParagraph = hasIntro ? firstBlock : null;
+  const restContent = hasIntro
+    ? paragraphs.slice(1).join("\n\n")
+    : paragraphs.join("\n\n");
 
   return (
     <div className="site-container py-10 sm:py-12 lg:py-16">
@@ -118,10 +122,10 @@ export default async function BlogPostPage({
           </div>
         </header>
 
-        {/* Primer párrafo introductorio */}
-        <MDXContent source={firstParagraph} />
+        {/* Párrafo intro — solo si existe y no es un heading */}
+        {firstParagraph && <MDXContent source={firstParagraph} />}
 
-        {/* Cover — después del primer párrafo, antes del contenido */}
+        {/* Cover */}
         <div className="my-12 h-[260px] overflow-hidden rounded-sm sm:h-[320px] lg:h-[380px]">
           <PostCover title={post.title} category={post.category} variant="featured" />
         </div>
