@@ -54,6 +54,11 @@ export default async function BlogPostPage({
   const categoryColor =
     categoryColors[post.category] || "bg-blue-500/10 text-blue-400 border-blue-500/20";
 
+  // Split: primer párrafo + resto del contenido
+  const paragraphs = post.content.trim().split(/\n\n+/);
+  const firstParagraph = paragraphs[0].trim();
+  const restContent = paragraphs.slice(1).join("\n\n");
+
   return (
     <div className="site-container py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-3xl">
@@ -113,13 +118,16 @@ export default async function BlogPostPage({
           </div>
         </header>
 
-        {/* Cover — después del header, antes del contenido */}
-        <div className="mb-12 h-[260px] overflow-hidden rounded-sm sm:h-[320px] lg:h-[380px]">
+        {/* Primer párrafo introductorio */}
+        <MDXContent source={firstParagraph} />
+
+        {/* Cover — después del primer párrafo, antes del contenido */}
+        <div className="my-12 h-[260px] overflow-hidden rounded-sm sm:h-[320px] lg:h-[380px]">
           <PostCover title={post.title} category={post.category} variant="featured" />
         </div>
 
-        {/* Contenido MDX */}
-        <MDXContent source={post.content} />
+        {/* Resto del contenido MDX */}
+        <MDXContent source={restContent} />
 
         {/* CTA Newsletter */}
         <section className="group relative mt-24 overflow-hidden rounded-sm border border-outline-ghost/10 bg-[rgb(var(--surface-elevated))] px-8 py-10 sm:px-12 sm:py-12">
