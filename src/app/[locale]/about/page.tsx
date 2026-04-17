@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { Globe, Server } from "lucide-react";
 import profileImage from "@/assets/images/profile.png";
 import fotoColorImage from "@/assets/images/foto_color.png";
+import fotoGrisImage from "@/assets/images/foto_gris.png";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -471,7 +472,7 @@ export default async function AboutPage({
             <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-surface)] bg-[linear-gradient(180deg,rgb(var(--surface)/0.9),rgb(var(--surface-dim)/0.92))] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
               {/* Dark mode */}
               <Image
-                src={profileImage}
+                src={fotoGrisImage}
                 alt={heroContent.imageAlt}
                 fill
                 priority
