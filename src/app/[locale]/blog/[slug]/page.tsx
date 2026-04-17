@@ -58,11 +58,6 @@ export default async function BlogPostPage({
     <div className="site-container py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-3xl">
 
-        {/* Cover hero */}
-        <div className="mb-12 h-[280px] overflow-hidden rounded-sm sm:h-[340px]">
-          <PostCover title={post.title} category={post.category} variant="featured" />
-        </div>
-
         {/* Navegación superior */}
         <nav className="mb-12">
           <Link
@@ -117,6 +112,11 @@ export default async function BlogPostPage({
             </div>
           </div>
         </header>
+
+        {/* Cover — después del header, antes del contenido */}
+        <div className="mb-12 h-[260px] overflow-hidden rounded-sm sm:h-[320px] lg:h-[380px]">
+          <PostCover title={post.title} category={post.category} variant="featured" />
+        </div>
 
         {/* Contenido MDX */}
         <MDXContent source={post.content} />
