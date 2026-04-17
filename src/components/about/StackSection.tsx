@@ -4,7 +4,12 @@ import { useState } from "react";
 import Image from "next/image";
 import type { LucideIcon } from "lucide-react";
 import { Globe, Server } from "lucide-react";
-import { CertificateModal } from "./CertificateModal";
+import dynamic from "next/dynamic";
+
+const CertificateModal = dynamic(
+  () => import("./CertificateModal").then((m) => ({ default: m.CertificateModal })),
+  { ssr: false }
+);
 
 /* ── Certificate mapping ─────────────────────────────────────── */
 const CERTIFICATES: Record<string, string> = {
