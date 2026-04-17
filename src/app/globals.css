@@ -336,6 +336,12 @@ figure[data-rehype-pretty-code-figure] pre {
   border: none !important;
   padding: 1.5rem !important;
   background: transparent !important;
+  overflow-x: auto !important;
+}
+
+figure[data-rehype-pretty-code-figure] pre code {
+  white-space: pre !important;
+  min-width: max-content;
 }
 
 @layer utilities {
