@@ -6,7 +6,7 @@ import { siteContent } from "@/content/site";
 export async function GET() {
   const filePath = path.join(
     /* turbopackIgnore: true */ process.cwd(),
-    "docs",
+    "src",
     "assets",
     "cv",
     siteContent.metadata.cv.fileName,
