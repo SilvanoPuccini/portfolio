@@ -94,7 +94,12 @@ export default async function BlogPage({
               </span>
 
               <h2 className="mt-5 text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-[2.2rem]">
-                {featuredPost.title}
+                <Link
+                  href={`/${currentLocale}/blog/${featuredPost.slug}`}
+                  className="hover:underline hover:text-brand-primary transition-colors duration-150"
+                >
+                  {featuredPost.title}
+                </Link>
               </h2>
 
               <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">

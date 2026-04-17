@@ -134,7 +134,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
                   <h3 className="mt-4 text-xl font-semibold leading-tight text-text-primary sm:text-2xl">
                     <Link
                       href={`/${currentLocale}/blog/${post.slug}`}
-                      className="hover:underline"
+                      className="hover:underline hover:text-brand-primary transition-colors duration-150"
                     >
                       {post.title}
                     </Link>
