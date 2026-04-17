@@ -5,6 +5,7 @@ import { Github, Globe } from "lucide-react";
 import ProjectCard from "@/components/blocks/ProjectCard";
 import ProjectGrid from "@/components/blocks/ProjectGrid";
 import CTACluster from "@/components/site/CTACluster";
+import { ProjectsPaginatedGrid } from "@/components/projects/ProjectsPaginatedGrid";
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
@@ -234,13 +235,10 @@ export default async function ProjectsPage({
   const primaryProjects = primarySlugs
     .map((slug) => content.projects.find((project) => project.slug === slug))
     .filter((project): project is NonNullable<typeof project> => Boolean(project));
-  const ferreStockProject = content.projects.find((project) => project.slug === "ferrestock");
-  const facturiaProject = content.projects.find((project) => project.slug === "facturia-2-0");
   const leadProject = primaryProjects[0];
-  const supportingProjects = [...primaryProjects.slice(1), ferreStockProject].filter(
-    (project): project is NonNullable<typeof project> => Boolean(project),
+  const gridProjects = primaryProjects.slice(1).concat(
+    content.projects.filter((p) => !primarySlugs.includes(p.slug as typeof primarySlugs[number]) && p.slug !== leadProject?.slug)
   );
-  const additionalProjects = [facturiaProject].filter((project): project is NonNullable<typeof project> => Boolean(project));
   const githubProfile = content.metadata.socialLinks.find((link) => link.platform === "github")?.href;
   if (!leadProject) {
     return null;
@@ -366,37 +364,17 @@ export default async function ProjectsPage({
       </div>
 
       <SectionShell
-        eyebrow={labels.grid.eyebrow}
-        description={<p className="max-w-[52rem] text-[0.95rem] leading-7 sm:text-base sm:leading-7">{labels.grid.title}</p>}
         sectionClassName={sectionBackgrounds.grid}
         containerClassName="py-10 sm:py-12 lg:py-14"
         surface="plain"
-        >
-          <ProjectGrid columns="two">
-            {supportingProjects.map((project) => (
-              <ProjectCard key={project.slug} project={project} labels={labels.labels} />
-            ))}
-          </ProjectGrid>
-        </SectionShell>
-
-      {additionalProjects.length ? (
-        <SectionShell
-          eyebrow={labels.automation.eyebrow}
-          sectionClassName={sectionBackgrounds.automation}
-          containerClassName="py-10 sm:py-12 lg:py-14"
-          surface="plain"
-        >
-          {additionalProjects.length === 1 ? (
-            <ProjectCard project={additionalProjects[0]} labels={labels.labels} variant="feature" />
-          ) : (
-            <ProjectGrid columns="two">
-              {additionalProjects.map((project) => (
-                <ProjectCard key={project.slug} project={project} labels={labels.labels} />
-              ))}
-            </ProjectGrid>
-          )}
-        </SectionShell>
-      ) : null}
+      >
+        <ProjectsPaginatedGrid
+          projects={gridProjects}
+          labels={labels.labels}
+          eyebrow={labels.grid.eyebrow}
+          description={labels.grid.title}
+        />
+      </SectionShell>
 
       <SectionShell
         sectionClassName={sectionBackgrounds.editorial}
