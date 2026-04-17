@@ -2,6 +2,7 @@ interface Props {
   title: string;
   category: string;
   variant?: "card" | "featured";
+  showRadar?: boolean;
 }
 
 const categoryConfig: Record<string, { gradient: string; dot: string; label: string }> = {
@@ -32,7 +33,7 @@ const fallback = {
   label: "text-brand-primary",
 };
 
-export function PostCover({ title, category, variant = "card" }: Props) {
+export function PostCover({ title, category, variant = "card", showRadar = false }: Props) {
   const config = categoryConfig[category] ?? fallback;
   const isFeatured = variant === "featured";
 
@@ -70,6 +71,30 @@ export function PostCover({ title, category, variant = "card" }: Props) {
         className="absolute right-11 top-5 h-1.5 w-1.5 rounded-full opacity-20"
         style={{ backgroundColor: config.dot }}
       />
+
+      {/* El Radar centered label */}
+      {showRadar && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 pointer-events-none">
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/30"
+          >
+            El
+          </span>
+          <span
+            className="font-bold uppercase tracking-[0.18em] text-white/60"
+            style={{
+              fontFamily: "var(--font-space-grotesk), sans-serif",
+              fontSize: isFeatured ? "2.2rem" : "1.2rem",
+              lineHeight: 1,
+            }}
+          >
+            Radar
+          </span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 mt-1">
+            arquitectura · código · producto
+          </span>
+        </div>
+      )}
 
       {/* Bottom band — category + title */}
       <div className="absolute bottom-0 left-0 right-0 px-4 py-3">
