@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Globe, Server } from "lucide-react";
 import profileImage from "@/assets/images/profile.png";
+import fotoColorImage from "@/assets/images/foto_color.png";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -468,13 +469,23 @@ export default async function AboutPage({
         aside={
           <>
             <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-surface)] bg-[linear-gradient(180deg,rgb(var(--surface)/0.9),rgb(var(--surface-dim)/0.92))] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
+              {/* Dark mode */}
               <Image
                 src={profileImage}
                 alt={heroContent.imageAlt}
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%]"
+                className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%] hidden dark:block"
+              />
+              {/* Light mode */}
+              <Image
+                src={fotoColorImage}
+                alt={heroContent.imageAlt}
+                fill
+                priority
+                sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
+                className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%] block dark:hidden"
               />
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
             </div>
