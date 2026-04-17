@@ -9,4 +9,5 @@ export interface BlogPost {
   linkedinCarousel?: boolean;
   content: string;
   readingTime?: string;
+  issue: number;
 }
