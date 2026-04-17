@@ -6,6 +6,7 @@ import { MDXContent } from "@/components/blog/MDXContent";
 import { PostCover } from "@/components/blog/PostCover";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { RadarBadge } from "@/components/blog/RadarBadge";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
 
@@ -66,16 +67,19 @@ export default async function BlogPostPage({
     <div className="site-container py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-3xl">
 
-        {/* Navegación superior */}
-        <nav className="mb-12">
-          <Link
-            href={`/${currentLocale}/blog`}
-            className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
-          >
-            <span aria-hidden>←</span>
-            Blog
-          </Link>
-        </nav>
+        {/* Membrete El Radar + navegación */}
+        <div className="mb-12 flex items-start justify-between">
+          <RadarBadge />
+          <nav>
+            <Link
+              href={`/${currentLocale}/blog`}
+              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+            >
+              <span aria-hidden>←</span>
+              Blog
+            </Link>
+          </nav>
+        </div>
 
         {/* Header editorial */}
         <header className="mb-12 sm:mb-16">
@@ -138,8 +142,9 @@ export default async function BlogPostPage({
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-brand-secondary/8 blur-[60px]" />
 
           <div className="relative">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-primary mb-3">El Radar</p>
             <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
-              Suscríbete al Radar.
+              Suscribite al newsletter.
             </h3>
             <p className="mt-3 max-w-md text-sm leading-7 text-text-secondary">
               Recibe semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
