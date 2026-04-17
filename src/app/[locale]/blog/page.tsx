@@ -78,24 +78,6 @@ export default async function BlogPage({
       />
 
 
-      {/* Por qué armé este espacio */}
-      <section className="site-container pb-10 sm:pb-12 lg:pb-16">
-        <div className="mx-auto max-w-2xl border-l-2 border-brand-primary/30 pl-8">
-          <p className="technical-label mb-5">Por qué armé este espacio</p>
-          <div className="space-y-5 text-base leading-8 text-text-secondary sm:text-lg sm:leading-9">
-            <p>
-              No hay manera honesta de presentarme como desarrollador con solo un listado de tecnologías y screenshots de proyectos. Podés poner React, Next.js y Django en el CV y no decirle nada a nadie sobre cómo tomás decisiones cuando el producto está en producción y algo falla.
-            </p>
-            <p>
-              Este espacio existe por eso. Para mostrar el razonamiento detrás del código — por qué una arquitectura y no otra, qué falló primero, qué aprendí en el camino. No tutoriales, no listas de tips: notas de alguien que construye cosas reales y elige ser transparente sobre el proceso.
-            </p>
-            <p className="text-text-tertiary text-sm leading-7">
-              Si algo de lo que escribo te resulta útil, bienvenido. Si disentís, mejor todavía.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Artículo destacado */}
       {featuredPost && (
         <section className="site-container py-10 sm:py-12 lg:py-14">
