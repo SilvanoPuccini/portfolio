@@ -150,12 +150,12 @@ export default async function BlogPostPage({
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-brand-secondary/8 blur-[60px]" />
 
           <div className="relative">
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-primary mb-3">El Radar</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-primary mb-3">Newsletter</p>
             <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
-              Suscribite a El Radar.
+              ¡No te pierdas! Mantenete cerca del radar.
             </h3>
             <p className="mt-3 max-w-md text-sm leading-7 text-text-secondary">
-              Recibe semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
+              Recibí semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
             </p>
             <SubscribeForm />
           </div>
