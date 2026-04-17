@@ -19,21 +19,10 @@ export async function sendWelcomeEmail(email: string) {
     <p style="font-size:22px;font-weight:700;color:#f0f0f0;margin:0 0 8px;">Me alegra que estés acá.</p>
     <div style="width:36px;height:2px;background:#00d4d4;margin:16px 0 20px;"></div>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 16px;">Te suscribiste a</p>
-    <div style="display:inline-block;text-align:center;margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-        <div style="height:1px;width:28px;background:#555;"></div>
-        <span style="font-family:monospace;font-size:8px;color:#aaa;letter-spacing:0.2em;text-transform:uppercase;">est. 2026</span>
-        <div style="height:1px;width:28px;background:#555;"></div>
-      </div>
-      <div style="display:flex;align-items:baseline;gap:5px;justify-content:center;">
-        <span style="font-family:sans-serif;font-size:11px;font-weight:600;color:#bbb;letter-spacing:0.3em;text-transform:uppercase;">El</span>
-        <span style="font-family:sans-serif;font-size:20px;font-weight:700;color:#888;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-        <div style="height:1px;width:28px;background:#555;"></div>
-        <span style="font-family:monospace;font-size:7px;color:#aaa;letter-spacing:0.18em;text-transform:uppercase;">arquitectura · código · producto</span>
-        <div style="height:1px;width:28px;background:#555;"></div>
-      </div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <p style="font-family:sans-serif;font-size:11px;font-weight:600;color:#bbb;letter-spacing:0.3em;text-transform:uppercase;margin:0 0 2px;">El</p>
+      <p style="font-family:sans-serif;font-size:22px;font-weight:700;color:#888;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 4px;">Radar</p>
+      <p style="font-family:monospace;font-size:8px;color:#777;letter-spacing:0.18em;text-transform:uppercase;margin:0;">arquitectura · código · producto</p>
     </div>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 12px;">el blog de <strong style="color:#f0f0f0;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.</p>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 28px;">Vas a recibir <strong style="color:#f0f0f0;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.</p>
