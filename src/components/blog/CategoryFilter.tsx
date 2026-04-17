@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import type { BlogPost } from "@/types/blog";
 import { PostCover } from "@/components/blog/PostCover";
@@ -29,14 +29,35 @@ interface Props {
 export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
   const [active, setActive] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [animating, setAnimating] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const filtered = active ? posts.filter((p) => p.category === active) : posts;
   const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
 
+  const scrollToGrid = useCallback(() => {
+    if (!gridRef.current) return;
+    const top = gridRef.current.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, []);
+
+  function changePage(next: number) {
+    setAnimating(true);
+    setTimeout(() => {
+      setPage(next);
+      setAnimating(false);
+      scrollToGrid();
+    }, 200);
+  }
+
   function handleFilter(cat: string | null) {
-    setActive(cat);
-    setPage(1);
+    setAnimating(true);
+    setTimeout(() => {
+      setActive(cat);
+      setPage(1);
+      setAnimating(false);
+    }, 200);
   }
 
   return (
@@ -71,7 +92,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
       </section>
 
       {/* Grilla */}
-      <section className="site-container pb-10 sm:pb-12 lg:pb-14">
+      <section ref={gridRef} className="site-container pb-10 sm:pb-12 lg:pb-14">
         <div className="mb-8 flex items-center gap-3">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
             {eyebrow}
@@ -87,7 +108,10 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
             No hay posts en esta categoría todavía.
           </p>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div
+            className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 transition-all duration-200"
+            style={{ opacity: animating ? 0 : 1, transform: animating ? "translateY(10px)" : "translateY(0)" }}
+          >
             {paginated.map((post) => (
               <article
                 key={post.slug}
@@ -146,7 +170,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
         {totalPages > 1 && (
           <div className="mt-10 flex items-center justify-center gap-2">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => changePage(Math.max(1, page - 1))}
               disabled={page === 1}
               className="rounded-pill border border-outline-ghost/15 bg-surface-dim/50 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary transition-colors hover:border-outline-ghost/30 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -156,7 +180,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
-                onClick={() => setPage(n)}
+                onClick={() => changePage(n)}
                 className={`h-8 w-8 rounded-pill border font-mono text-[11px] transition-colors ${
                   n === page
                     ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
@@ -168,7 +192,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
             ))}
 
             <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => changePage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
               className="rounded-pill border border-outline-ghost/15 bg-surface-dim/50 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary transition-colors hover:border-outline-ghost/30 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
             >
