@@ -13,6 +13,7 @@ const ALLOWED: Record<string, string> = {
   "Git-Github.pdf": "Git-Github.pdf",
   "linux-terminal.pdf": "linux-terminal.pdf",
   "SQL.pdf": "SQL.pdf",
+  "css-experto.pdf": "css-experto.pdf",
 };
 
 export async function GET(
