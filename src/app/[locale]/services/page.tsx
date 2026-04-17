@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
@@ -319,7 +319,9 @@ export default async function ServicesPage({
         surface="plain"
       >
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {labels.services.cards.map((service, index) => (
+          {labels.services.cards.map((service, index) => {
+            const Icon = [Code2, Cpu, ShieldCheck][index];
+            return (
             <article
               key={service.number}
               className={`surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 px-5 py-6 sm:px-6 sm:py-7 ${
@@ -328,11 +330,12 @@ export default async function ServicesPage({
                   : "bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
               }`}
             >
-              {/* Número */}
-              <div className="border-b border-outline-ghost/10 pb-4">
+              {/* Número + icono */}
+              <div className="flex items-center justify-between border-b border-outline-ghost/10 pb-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-text-tertiary">
                   {service.number}
                 </p>
+                <Icon className="h-5 w-5 text-brand-primary/60" aria-hidden="true" />
               </div>
 
               {/* Contenido */}
@@ -392,7 +395,8 @@ export default async function ServicesPage({
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </SectionShell>
 
