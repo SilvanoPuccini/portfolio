@@ -37,7 +37,9 @@ export default async function BlogPage({
   const content = getSiteContent(currentLocale);
   const blogPosts = getAllBlogPosts();
   const featuredPost = blogPosts.find(post => post.featured) || blogPosts[0];
-  const latestPosts = blogPosts.filter(post => post.slug !== featuredPost?.slug);
+  const latestPosts = blogPosts
+    .filter(post => post.slug !== featuredPost?.slug)
+    .sort((a, b) => a.issue - b.issue);
 
   // Colores por categoría
   const categoryColors: Record<string, string> = {
