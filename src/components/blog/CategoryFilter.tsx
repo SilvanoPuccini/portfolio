@@ -6,6 +6,7 @@ import type { BlogPost } from "@/types/blog";
 import { PostCover } from "@/components/blog/PostCover";
 
 const CATEGORIES = ["Performance", "Producto", "Automatización"] as const;
+const POSTS_PER_PAGE = 6;
 
 const categoryColors: Record<string, string> = {
   Performance: "bg-green-500/10 text-green-400 border-green-500/20",
@@ -27,7 +28,16 @@ interface Props {
 
 export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
   const [active, setActive] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
   const filtered = active ? posts.filter((p) => p.category === active) : posts;
+  const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE);
+  const paginated = filtered.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
+
+  function handleFilter(cat: string | null) {
+    setActive(cat);
+    setPage(1);
+  }
 
   return (
     <>
@@ -35,7 +45,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
       <section className="site-container py-6 sm:py-8">
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setActive(null)}
+            onClick={() => handleFilter(null)}
             className={`rounded-pill border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${
               active === null
                 ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
@@ -47,7 +57,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActive(cat)}
+              onClick={() => handleFilter(cat)}
               className={`rounded-pill border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${
                 active === cat
                   ? categoryColors[cat]
@@ -78,7 +88,7 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
           </p>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((post) => (
+            {paginated.map((post) => (
               <article
                 key={post.slug}
                 className="surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
@@ -130,6 +140,40 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
                 </div>
               </article>
             ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded-pill border border-outline-ghost/15 bg-surface-dim/50 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary transition-colors hover:border-outline-ghost/30 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              ← Anterior
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                onClick={() => setPage(n)}
+                className={`h-8 w-8 rounded-pill border font-mono text-[11px] transition-colors ${
+                  n === page
+                    ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
+                    : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="rounded-pill border border-outline-ghost/15 bg-surface-dim/50 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary transition-colors hover:border-outline-ghost/30 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              Siguiente →
+            </button>
           </div>
         )}
       </section>
