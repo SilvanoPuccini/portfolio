@@ -134,79 +134,91 @@ export default async function BlogPage({
         eyebrow={content.blog.latestLabel}
       />
 
-      {/* Newsletter, LinkedIn e Instagram */}
+      {/* Continuar la conversación */}
       <section className="site-container pb-12 sm:pb-14 lg:pb-16">
-        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
-          {/* Newsletter */}
-          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-8 sm:py-9">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-secondary/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
+        {/* Encabezado de sección */}
+        <div className="mb-10 sm:mb-12">
+          <p className="technical-label mb-4">Continuar la conversación</p>
+          <h2 className="text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
+            Criterio editorial para mentes técnicas.
+          </h2>
+        </div>
+
+        {/* Grid 12 columnas: newsletter grande + dos cards apiladas */}
+        <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+
+          {/* Newsletter — col-span-6 */}
+          <div className="surface-section relative flex flex-col justify-between overflow-hidden px-8 py-10 sm:px-10 sm:py-12 lg:col-span-6">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-brand-secondary/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-12 h-72 w-72 rounded-full bg-brand-primary/10 blur-3xl" />
 
             <div className="relative">
               <p className="technical-label">Newsletter</p>
-              <h2 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
-                Lo que construí, en tu bandeja.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-text-secondary">
-                Sin ruido. Cada post llega directo — arquitectura, criterio y código real.
+              <h3 className="mt-5 text-3xl font-semibold text-text-primary sm:text-4xl">
+                Suscríbete al Radar.
+              </h3>
+              <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
+                Recibe semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
               </p>
-
               <SubscribeForm />
             </div>
           </div>
 
-          {/* LinkedIn */}
-          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-8 sm:py-9">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-secondary/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
+          {/* Columna derecha: LinkedIn + Instagram apilados */}
+          <div className="flex flex-col gap-6 lg:col-span-6">
 
-            <div className="relative">
-              <p className="technical-label">LinkedIn</p>
-              <h2 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
-                El blog, en carrusel.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-text-secondary">
-                Cada artículo llega a LinkedIn como carrusel visual. Misma idea, formato deslizable.
-              </p>
+            {/* LinkedIn */}
+            <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
+              <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-secondary/10 blur-3xl" />
+
+              <div className="relative">
+                <p className="technical-label">LinkedIn</p>
+                <h3 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
+                  El blog, en carrusel.
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-text-secondary">
+                  Cada artículo llega a LinkedIn como carrusel visual. Misma idea, formato deslizable.
+                </p>
+              </div>
 
               <a
                 href="https://www.linkedin.com/in/silvano-puccini/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
+                className="relative mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
               >
                 <Linkedin size={13} />
                 Ver perfil →
               </a>
             </div>
-          </div>
 
-          {/* Instagram */}
-          <div className="surface-section relative overflow-hidden px-7 py-8 sm:px-8 sm:py-9">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-secondary/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
+            {/* Instagram */}
+            <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
+              <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
 
-            <div className="relative">
-              <p className="technical-label">Instagram</p>
-              <h2 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
-                Próximamente.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-text-secondary">
-                El blog llega también a Instagram. Seguinos para ser el primero en verlo cuando publiquemos.
-              </p>
+              <div className="relative flex items-start justify-between">
+                <div>
+                  <p className="technical-label">Instagram</p>
+                  <h3 className="mt-4 text-2xl font-semibold text-text-primary sm:text-3xl">
+                    Próximamente.
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-text-secondary">
+                    El blog llega también a Instagram. Seguinos para ser el primero en verlo cuando publiquemos.
+                  </p>
+                </div>
+                <span className="ml-4 mt-0.5 shrink-0 rounded-sm border border-outline-ghost/20 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-text-tertiary">
+                  Próximamente
+                </span>
+              </div>
 
-              <a
-                href="https://www.instagram.com/silvanopuccini/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary hover:text-brand-primary transition-colors"
-              >
+              <span className="relative mt-8 inline-flex cursor-not-allowed items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                 <Instagram size={13} />
                 Seguinos →
-              </a>
+              </span>
             </div>
-          </div>
-        </div>
+
+          </div>{/* fin columna derecha */}
+        </div>{/* fin grid */}
       </section>
     </>
   );
