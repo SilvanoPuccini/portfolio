@@ -6,6 +6,7 @@ import { getAllBlogPosts } from "@/lib/mdx";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { PostCover } from "@/components/blog/PostCover";
+import { RadarBadge } from "@/components/blog/RadarBadge";
 import Link from "next/link";
 import { Linkedin, Instagram } from "lucide-react";
 
@@ -64,7 +65,15 @@ export default async function BlogPage({
         bodyClassName="space-y-7 sm:space-y-8"
         subtitle={<p>{content.blog.intro}</p>}
         description={
-          <p>{content.blog.editorialNote}</p>
+          <div className="space-y-6">
+            <p>{content.blog.editorialNote}</p>
+            <div className="flex flex-col gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary">
+                De la mano de
+              </span>
+              <RadarBadge />
+            </div>
+          </div>
         }
       />
 
