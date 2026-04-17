@@ -26,7 +26,7 @@ const copy = {
     metrics: [
       { value: "10+", label: "años en negocio" },
       { value: "65", label: "tests automatizados" },
-      { value: "3", label: "proyectos en producción" },
+      { value: "7", label: "proyectos en producción" },
       { value: "30 días", label: "de soporte incluido" },
     ],
     services: {
@@ -130,7 +130,7 @@ const copy = {
     metrics: [
       { value: "10+", label: "years in business" },
       { value: "65", label: "automated tests" },
-      { value: "3", label: "projects in production" },
+      { value: "7", label: "projects in production" },
       { value: "30 days", label: "of support included" },
     ],
     services: {
