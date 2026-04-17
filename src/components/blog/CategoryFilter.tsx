@@ -26,6 +26,23 @@ interface Props {
   eyebrow: string;
 }
 
+function buildPageRange(current: number, total: number): (number | "...")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const delta = 1; // páginas a cada lado de la actual
+  const range: (number | "...")[] = [];
+  const left = current - delta;
+  const right = current + delta;
+
+  range.push(1);
+  if (left > 2) range.push("...");
+  for (let i = Math.max(2, left); i <= Math.min(total - 1, right); i++) range.push(i);
+  if (right < total - 1) range.push("...");
+  range.push(total);
+
+  return range;
+}
+
 export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
   const [active, setActive] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -181,19 +198,28 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
                 ← Anterior
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => changePage(n)}
-                  className={`h-8 w-8 rounded-pill border font-mono text-[11px] transition-all duration-200 ${
-                    n === page
-                      ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
-                      : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
+              {buildPageRange(page, totalPages).map((n, i) =>
+                n === "..." ? (
+                  <span
+                    key={`ellipsis-${i}`}
+                    className="font-mono text-[11px] text-text-tertiary px-1"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={n}
+                    onClick={() => changePage(n)}
+                    className={`h-8 w-8 rounded-pill border font-mono text-[11px] transition-all duration-200 ${
+                      n === page
+                        ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
+                        : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                )
+              )}
 
               <button
                 onClick={() => changePage(Math.min(totalPages, page + 1))}
