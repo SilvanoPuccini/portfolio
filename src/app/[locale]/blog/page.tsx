@@ -69,11 +69,11 @@ export default async function BlogPage({
         description={
           <div className="space-y-6">
             <p>{content.blog.editorialNote}</p>
-            <div className="flex flex-col gap-2">
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-text-tertiary">
-                Mi Newsletter:
+            <div className="inline-flex flex-col gap-3 rounded-sm border border-outline-ghost/10 px-6 py-4">
+              <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-text-secondary">
+                Mi Newsletter
               </span>
-              <RadarBadge size="lg" />
+              <RadarBadge />
             </div>
           </div>
         }
