@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getBlogPostBySlug } from "@/lib/mdx";
 import { MDXContent } from "@/components/blog/MDXContent";
+import { PostCover } from "@/components/blog/PostCover";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 
@@ -56,6 +57,11 @@ export default async function BlogPostPage({
   return (
     <div className="site-container py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-3xl">
+
+        {/* Cover hero */}
+        <div className="mb-12 h-[280px] overflow-hidden rounded-sm sm:h-[340px]">
+          <PostCover title={post.title} category={post.category} variant="featured" />
+        </div>
 
         {/* Navegación superior */}
         <nav className="mb-12">
