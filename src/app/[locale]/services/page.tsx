@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 
+import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -252,24 +253,18 @@ export default async function ServicesPage({
 
   return (
     <>
-      {/* ── HERO — orientado al resultado del cliente ── */}
-      <section className="site-container py-16 sm:py-20 lg:py-28">
-        <div className="mx-auto max-w-4xl">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-primary">
-            {labels.hero.eyebrow}
-          </p>
-          <h1 className="mt-5 text-5xl font-semibold leading-[1.07] tracking-tight text-text-primary sm:text-6xl lg:text-7xl">
-            {labels.hero.title}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-text-secondary sm:text-xl sm:leading-9">
-            {labels.hero.subtitle}
-          </p>
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+      {/* ── HERO ── */}
+      <PageHero
+        eyebrow={labels.hero.eyebrow}
+        title={labels.hero.title}
+        description={<p>{labels.hero.subtitle}</p>}
+        actions={
+          <>
             <a
               href={phoneHref}
               target="_blank"
               rel="noreferrer"
-              className="button-primary inline-flex w-full items-center justify-center gap-2.5 sm:w-auto sm:min-w-[14rem]"
+              className="button-primary w-full gap-2.5 sm:min-w-[13.5rem] sm:w-auto"
             >
               <WhatsAppIcon className="h-[1.1rem] w-[1.1rem] shrink-0" />
               <span>{labels.hero.primaryCta}</span>
@@ -277,13 +272,13 @@ export default async function ServicesPage({
             </a>
             <a
               href="#servicios"
-              className="button-secondary inline-flex w-full items-center justify-center sm:w-auto sm:min-w-[14rem]"
+              className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto"
             >
               {labels.hero.secondaryCta}
             </a>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* ── MÉTRICAS ── */}
       <div className="border-y border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.5),rgb(var(--surface-dim)/0.7))]">
