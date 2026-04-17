@@ -62,7 +62,7 @@ export default function PageHero({
               {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
               <h1
                 className={cn(
-                  "font-display text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-text-primary text-balance sm:text-6xl lg:text-[5rem] xl:text-[5.75rem]",
+                  "font-display text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-text-primary text-balance sm:text-6xl lg:text-[4.5rem] xl:text-[5rem]",
                   titleClassName,
                 )}
               >
@@ -72,7 +72,7 @@ export default function PageHero({
               {subtitle ? (
                 <div
                   className={cn(
-                    "max-w-4xl text-2xl font-medium leading-tight text-text-primary text-balance sm:text-3xl lg:text-[2.7rem]",
+                    "max-w-4xl text-2xl font-medium leading-[1.22] text-text-primary text-balance sm:text-3xl lg:text-[2.4rem]",
                     subtitleClassName,
                   )}
                 >
