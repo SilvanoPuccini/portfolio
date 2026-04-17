@@ -52,9 +52,11 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
-  const allPosts = getAllBlogPosts();
+  const allPosts = getAllBlogPosts().sort((a, b) => a.issue - b.issue);
+  const totalPosts = allPosts.length;
   const currentIndex = allPosts.findIndex((p) => p.slug === slug);
-  const nextPost = allPosts[currentIndex + 1] ?? null;
+  const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
+  const nextPost = currentIndex < totalPosts - 1 ? allPosts[currentIndex + 1] : null;
 
   const categoryColor =
     categoryColors[post.category] || "bg-blue-500/10 text-blue-400 border-blue-500/20";
@@ -169,40 +171,63 @@ export default async function BlogPostPage({
           </div>
         </section>
 
-        {/* Footer del post */}
-        <footer className="mt-10 grid grid-cols-3 items-center border-t border-outline-ghost/15 pt-8">
-          <Link
-            href={`/${currentLocale}/blog`}
-            className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
-          >
-            <span aria-hidden>←</span>
-            Volver al blog
-          </Link>
-          <div className="flex justify-center">
-            <span
-              className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
-            >
-              {post.category}
-            </span>
-          </div>
-          <div className="flex justify-end">
-            {nextPost ? (
-              <Link
-                href={`/${currentLocale}/blog/${nextPost.slug}`}
-                className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
-              >
-                El Radar Nº {String(nextPost.issue).padStart(2, "0")}
-                <span aria-hidden>→</span>
-              </Link>
-            ) : (
-              <Link
-                href={`/${currentLocale}/blog`}
-                className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
-              >
-                Ver más notas
-                <span aria-hidden>→</span>
-              </Link>
-            )}
+        {/* Footer del post — navegación editorial */}
+        <footer className="mt-10 border-t border-outline-ghost/15 pt-8">
+          <div className="grid grid-cols-3 items-center gap-4">
+            {/* Izquierda: anterior o volver al blog */}
+            <div>
+              {prevPost ? (
+                <Link
+                  href={`/${currentLocale}/blog/${prevPost.slug}`}
+                  className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+                >
+                  <span aria-hidden>←</span>
+                  El Radar Nº {String(prevPost.issue).padStart(2, "0")}
+                </Link>
+              ) : (
+                <Link
+                  href={`/${currentLocale}/blog`}
+                  className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+                >
+                  <span aria-hidden>←</span>
+                  Volver al blog
+                </Link>
+              )}
+            </div>
+
+            {/* Centro: contador */}
+            <div className="flex flex-col items-center gap-1">
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-text-tertiary/50">
+                El Radar
+              </span>
+              <span className="font-mono text-[13px] font-semibold tracking-[0.1em] text-text-primary">
+                Nº {String(post.issue).padStart(2, "0")}
+              </span>
+              <span className="font-mono text-[10px] text-text-tertiary/50">
+                de {String(totalPosts).padStart(2, "0")}
+              </span>
+            </div>
+
+            {/* Derecha: siguiente */}
+            <div className="flex justify-end">
+              {nextPost ? (
+                <Link
+                  href={`/${currentLocale}/blog/${nextPost.slug}`}
+                  className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+                >
+                  El Radar Nº {String(nextPost.issue).padStart(2, "0")}
+                  <span aria-hidden>→</span>
+                </Link>
+              ) : (
+                <Link
+                  href={`/${currentLocale}/blog`}
+                  className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-brand-primary"
+                >
+                  Ver todas las notas
+                  <span aria-hidden>→</span>
+                </Link>
+              )}
+            </div>
           </div>
         </footer>
 
