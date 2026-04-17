@@ -58,7 +58,7 @@ export function SubscribeForm() {
           placeholder="tu@email.com"
           required
           disabled={status === "loading"}
-          className="flex-1 rounded-sm bg-surface-elevated/90 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-50"
+          className="flex-1 rounded-sm border border-outline-ghost/30 bg-surface-elevated/90 px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary hover:border-outline-ghost/50 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-50"
         />
         <button
           type="submit"
