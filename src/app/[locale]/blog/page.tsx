@@ -71,16 +71,8 @@ export default async function BlogPage({
 
       {/* Artículo destacado */}
       {featuredPost && (
-        <section className="site-container pb-10 sm:pb-12 lg:pb-14">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-              Destacado
-            </span>
-            <span className="h-px w-8 bg-outline-ghost/30" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-              1 post featured · rotación semanal
-            </span>
-          </div>
+        <section className="site-container py-10 sm:py-12 lg:py-14">
+          <p className="technical-label mb-8">Notas</p>
 
           <div className="grid gap-8 xl:grid-cols-2 xl:gap-12">
             {/* Cover */}

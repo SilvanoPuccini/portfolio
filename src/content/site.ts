@@ -281,8 +281,8 @@ const services: ServiceItem[] = [
 
 const blog: BlogContent = {
   eyebrow: {
-    es: "BLOG · NOTAS",
-    en: "BLOG · NOTES",
+    es: "Blog",
+    en: "Blog",
   },
   title: {
     es: "Arquitectura, criterio y código",
