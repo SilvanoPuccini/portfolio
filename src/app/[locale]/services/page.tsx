@@ -351,13 +351,13 @@ export default async function ServicesPage({
                   {service.details.map((detail) => (
                     <div
                       key={detail.label}
-                      className="flex items-baseline justify-between gap-3 rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-4 py-3"
+                      className="rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-4 py-3"
                     >
-                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary shrink-0">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary">
                         {detail.label}
                       </p>
                       <p
-                        className="text-right font-mono text-[11px] uppercase tracking-[0.06em]"
+                        className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.04em] whitespace-nowrap"
                         style={{ color: "rgb(var(--brand-primary))" }}
                       >
                         {detail.value}
