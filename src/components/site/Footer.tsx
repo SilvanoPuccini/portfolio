@@ -57,7 +57,7 @@ export default function Footer({ locale }: { locale: Locale }) {
           </div>
 
           <nav
-            className="flex flex-wrap items-center gap-x-5 gap-y-3 lg:max-w-[34rem] lg:justify-end"
+            className="flex flex-wrap items-center gap-x-4 gap-y-3 lg:max-w-[34rem] lg:justify-end"
             aria-label={locale === "es" ? "Enlaces sociales" : "Social links"}
           >
             {footerLinks.map((link) => {
@@ -69,7 +69,7 @@ export default function Footer({ locale }: { locale: Locale }) {
                   href={link.href}
                   target={link.href.startsWith("http") ? "_blank" : undefined}
                   rel={link.href.startsWith("http") ? "noreferrer" : undefined}
-                  className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none"
+                  className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none"
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span>{link.platform === "github" ? "GitHub" : link.label}</span>
