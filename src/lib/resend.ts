@@ -51,7 +51,7 @@ export async function sendWelcomeEmail(email: string) {
         </td>
       </tr>
     </table>
-    <p style="font-size:13px;color:#555;margin:24px 0 0;line-height:1.6;">Si tenés alguna pregunta o querés proponer un tema, respondé este mail directamente — leo todo.<br><br>Un abrazo,<br><span style="color:#aaa;">Silvano</span></p>
+    <p style="font-size:13px;color:#555;margin:24px 0 0;line-height:1.6;">Si tenés alguna pregunta o querés proponer un tema, mantenete cerca del radar — no te pierdas. Respondé este mail directamente — leo todo.<br><br>Un abrazo,<br><span style="color:#aaa;">Silvano</span></p>
   </div>
   <div style="padding:16px 32px;border-top:1px solid #1a1a2a;">
     <span style="font-size:11px;font-family:monospace;color:#444;">Silvano Puccini · Full Stack Dev</span>
