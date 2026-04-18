@@ -70,7 +70,7 @@ export default async function BlogPostPage({
   const restContent = hasIntro ? rawContent.slice(splitIndex + 1) : rawContent;
 
   return (
-    <div className="site-container py-10 sm:py-12 lg:py-16">
+    <div className="site-container pt-5 pb-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-3xl">
 
         {/* Navegación superior */}
