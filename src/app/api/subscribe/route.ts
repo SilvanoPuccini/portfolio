@@ -49,7 +49,9 @@ export async function POST(req: NextRequest) {
       // Verificar si el contacto ya existe antes de crear
       // Resend trata contacts.create como upsert (no devuelve error para duplicados)
       const { data: existing } = await resend.contacts.list({ audienceId });
-      const alreadySubscribed = existing?.data?.some(
+      // El SDK devuelve { data: { object: "list", data: Contact[] } }
+      const contacts = (existing as unknown as { data: { email: string; unsubscribed: boolean }[] })?.data ?? [];
+      const alreadySubscribed = contacts.some(
         (c) => c.email === email && !c.unsubscribed
       );
 
