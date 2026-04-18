@@ -2,7 +2,9 @@ import { Resend } from 'resend';
 
 export async function sendWelcomeEmail(email: string) {
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const FROM = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev';
+  const FROM = process.env.RESEND_FROM_EMAIL
+    ? `Silvano Puccini <${process.env.RESEND_FROM_EMAIL}>`
+    : 'Silvano Puccini <onboarding@resend.dev>';
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvano.dev';
 
   return resend.emails.send({
