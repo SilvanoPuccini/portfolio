@@ -26,12 +26,16 @@ export const metadata: Metadata = {
   title: "Silvano Puccini | Full Stack Developer",
   description:
     "Portfolio editorial de Silvano Puccini enfocado en producto, sistemas web y experiencias premium.",
-  metadataBase: new URL("https://silvanopuccini.github.io/portfolio/"),
+  metadataBase: new URL("https://silvanopuccini-portfolio.vercel.app"),
   alternates: {
     languages: {
       es: "/es",
       en: "/en",
     },
+  },
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
   },
 };
 
