@@ -86,27 +86,38 @@ export default async function BlogPostPage({
 
         {/* Header editorial */}
         <header className="mb-12 sm:mb-16">
-          {/* Fila: categoría + reading time | RadarBadge | fecha */}
-          <div className="mb-6 grid grid-cols-3 items-center gap-3">
-            <div className="flex items-center gap-3">
-              <span
-                className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
-              >
-                {post.category}
-              </span>
-              {post.readingTime && (
-                <span className="font-mono text-[11px] text-text-tertiary">
-                  {post.readingTime}
+          {/* Mobile: categoría+fecha arriba / badge abajo. Desktop: 3 columnas */}
+          <div className="mb-6 flex flex-col gap-3 sm:grid sm:grid-cols-3 sm:items-center">
+            {/* Categoría + reading time + fecha (mobile) */}
+            <div className="flex items-center justify-between sm:justify-start sm:gap-3">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
+                >
+                  {post.category}
                 </span>
-              )}
+                {post.readingTime && (
+                  <span className="font-mono text-[11px] text-text-tertiary">
+                    {post.readingTime}
+                  </span>
+                )}
+              </div>
+              {/* Fecha visible solo en mobile */}
+              <time className="font-mono text-[11px] text-text-tertiary sm:hidden">
+                {formatDate(post.date)}
+              </time>
             </div>
+
+            {/* RadarBadge — fila propia en mobile, columna central en desktop */}
             <div className="flex flex-col items-center gap-1">
               <RadarBadge />
               <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-text-tertiary/60">
                 Nº {String(post.issue).padStart(2, "0")}
               </span>
             </div>
-            <div className="flex justify-end">
+
+            {/* Fecha — oculta en mobile, visible en desktop */}
+            <div className="hidden sm:flex sm:justify-end">
               <time className="font-mono text-[11px] text-text-tertiary">
                 {formatDate(post.date)}
               </time>
