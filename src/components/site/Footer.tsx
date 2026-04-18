@@ -78,6 +78,20 @@ export default function Footer({ locale }: { locale: Locale }) {
             })}
           </nav>
         </div>
+
+        {/* Legal bar */}
+        <div className="mt-6 flex flex-col items-start gap-2 border-t border-outline-ghost/8 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-mono text-[10px] tracking-[0.12em] text-text-tertiary/50">
+            ® 2026 Silvano Puccini.{" "}
+            {locale === "es" ? "Todos los derechos reservados." : "All rights reserved."}
+          </p>
+          <a
+            href={`/${locale}/privacy`}
+            className="font-mono text-[10px] tracking-[0.12em] text-text-tertiary/50 transition-colors hover:text-text-tertiary"
+          >
+            {locale === "es" ? "Política de privacidad" : "Privacy policy"}
+          </a>
+        </div>
       </div>
     </footer>
   );
