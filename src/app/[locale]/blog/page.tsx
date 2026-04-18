@@ -71,7 +71,7 @@ export default async function BlogPage({
             <p>{content.blog.editorialNote}</p>
             <div className="flex flex-col items-center gap-3 text-center sm:inline-flex sm:flex-row sm:items-center sm:gap-6 sm:text-left">
               <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-text-secondary">
-                Mi Newsletter
+                Les presento · Mi Newsletter
               </span>
               <RadarBadge />
             </div>
