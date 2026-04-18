@@ -8,7 +8,7 @@ export async function sendWelcomeEmail(email: string) {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: 'Bienvenido al radar — Silvano Puccini',
+    subject: 'Bienvenido a El Radar — Silvano Puccini',
     html: `
 <div style="max-width:560px;margin:0 auto;font-family:sans-serif;background:#0f0f14;border-radius:12px;overflow:hidden;border:1px solid #1e1e2e;">
   <div style="padding:28px 32px 20px;border-bottom:1px solid #1a1a2a;">
