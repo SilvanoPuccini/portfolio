@@ -45,26 +45,29 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const audienceId = process.env.RESEND_AUDIENCE_ID;
 
-    // Guardar en Resend Audiences
     if (audienceId) {
+      // Verificar si el contacto ya existe antes de crear
+      // Resend trata contacts.create como upsert (no devuelve error para duplicados)
+      const { data: existing } = await resend.contacts.list({ audienceId });
+      const alreadySubscribed = existing?.data?.some(
+        (c) => c.email === email && !c.unsubscribed
+      );
+
+      if (alreadySubscribed) {
+        return NextResponse.json(
+          { error: 'Este email ya está suscrito a El Radar.' },
+          { status: 409 }
+        );
+      }
+
+      // Contacto nuevo — guardarlo en Audiences
       const { error: contactError } = await resend.contacts.create({
         email,
         audienceId,
         unsubscribed: false,
       });
 
-      // Si el contacto ya existe, avisamos sin mandar el welcome de nuevo
       if (contactError) {
-        const isDuplicate = contactError.name === 'validation_error' ||
-          contactError.message?.toLowerCase().includes('already exists');
-
-        if (isDuplicate) {
-          return NextResponse.json(
-            { error: 'Este email ya está suscrito.' },
-            { status: 409 }
-          );
-        }
-
         console.error('[subscribe] Resend contacts error:', contactError);
       }
     }

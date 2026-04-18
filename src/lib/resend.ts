@@ -15,7 +15,7 @@ export async function sendWelcomeEmail(email: string) {
     <span style="font-family:monospace;font-size:12px;color:#00d4d4;letter-spacing:0.1em;">SILVANO PUCCINI · FULL STACK DEV</span>
   </div>
   <div style="padding:32px 32px 24px;">
-    <p style="font-size:13px;color:#666;font-family:monospace;margin:0 0 12px;">Hola 👋</p>
+    <p style="font-size:13px;color:#666;font-family:monospace;margin:0 0 12px;">¡Hola! 👋</p>
     <p style="font-size:22px;font-weight:700;color:#f0f0f0;margin:0 0 8px;">Me alegra que estés acá.</p>
     <div style="width:36px;height:2px;background:#00d4d4;margin:16px 0 20px;"></div>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 16px;">Te suscribiste a</p>
@@ -39,11 +39,19 @@ export async function sendWelcomeEmail(email: string) {
       <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Producto — qué funciona, qué no, y por qué</p>
       <p style="font-size:13px;color:#bbb;margin:6px 0;">→ Automatización con IA — herramientas en proyectos reales</p>
     </div>
-    <div>
-      <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;margin-right:20px;">Ver el blog →</a>
-      <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:#aaa;font-size:13px;font-weight:500;padding:12px 24px;border-radius:6px;text-decoration:none;border:1px solid #2a2a3a;">Seguime en LinkedIn →</a>
-    </div>
-    <p style="font-size:13px;color:#555;margin:24px 0 0;line-height:1.6;">Si tenés alguna pregunta o querés proponer un tema, respondé este mail directamente — leo todo.</p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="padding-bottom:12px;">
+          <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:#aaa;font-size:13px;font-weight:500;padding:12px 24px;border-radius:6px;text-decoration:none;border:1px solid #2a2a3a;">Seguime en LinkedIn →</a>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:13px;color:#555;margin:24px 0 0;line-height:1.6;">Si tenés alguna pregunta o querés proponer un tema, respondé este mail directamente — leo todo.<br><br>Un abrazo,<br><span style="color:#aaa;">Silvano</span></p>
   </div>
   <div style="padding:16px 32px;border-top:1px solid #1a1a2a;">
     <span style="font-size:11px;font-family:monospace;color:#444;">Silvano Puccini · Full Stack Dev</span>
