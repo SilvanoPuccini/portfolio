@@ -111,7 +111,7 @@ const copy = {
       subtitle:
         "Sin compromiso. Analizamos qué necesitás y si tiene sentido trabajar juntos.",
       primaryCta: "AGENDÁ LA LLAMADA",
-      secondaryCta: "silvano@silvano.dev",
+      secondaryCta: "hola@silvanopuccini.dev",
     },
   },
   en: {
@@ -215,7 +215,7 @@ const copy = {
       subtitle:
         "No commitment. We analyze what you need and whether it makes sense to work together.",
       primaryCta: "SCHEDULE A CALL",
-      secondaryCta: "silvano@silvano.dev",
+      secondaryCta: "hola@silvanopuccini.dev",
     },
   },
 } as const;
