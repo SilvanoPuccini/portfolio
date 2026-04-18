@@ -61,7 +61,7 @@ export function SubscribeForm() {
         readOnly
         value=""
       />
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <input
           type="email"
           value={email}
@@ -74,7 +74,7 @@ export function SubscribeForm() {
         <button
           type="submit"
           disabled={status === "loading"}
-          className="button-primary rounded-sm px-6 py-3 text-xs uppercase tracking-[0.2em] disabled:opacity-50"
+          className="button-primary w-full rounded-sm px-6 py-3 text-xs uppercase tracking-[0.2em] disabled:opacity-50 sm:w-auto"
         >
           {status === "loading" ? "..." : "Suscribirme"}
         </button>
