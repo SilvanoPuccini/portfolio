@@ -271,7 +271,7 @@ export default async function ContactPage({
                   target="_blank"
                   rel="noreferrer"
                   aria-label={`${labels.direct.phone}: ${labels.direct.phoneCta}`}
-                  className="surface-panel interactive-surface group flex min-h-[7.75rem] flex-col justify-between gap-3 rounded-[var(--radius-soft)] border border-outline-ghost/10 px-4.5 py-3.5 sm:px-5 sm:py-4"
+                  className="surface-panel interactive-surface group flex min-h-[7.75rem] flex-col justify-between gap-3 rounded-[var(--radius-soft)] border border-outline-ghost/10 px-6 py-4 sm:px-5 sm:py-4"
                 >
                   <div className="space-y-1.5">
                     <div className="inline-flex items-center gap-2.5 text-text-tertiary sm:gap-3">
@@ -291,7 +291,7 @@ export default async function ContactPage({
                   </div>
                 </a>
 
-                <div className="surface-panel no-line-stack flex min-h-[10rem] flex-1 flex-col justify-between gap-3.5 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.78),rgb(var(--surface)/0.62))] px-4.5 py-4 sm:px-5 sm:py-4.5">
+                <div className="surface-panel no-line-stack flex min-h-[10rem] flex-1 flex-col justify-between gap-3.5 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.78),rgb(var(--surface)/0.62))] px-6 py-5 sm:px-5 sm:py-4.5">
                   <div className="space-y-1.5">
                     <p className="technical-label">{labels.main.socialTitle}</p>
                     <p className="max-w-[29ch] text-sm leading-5.5 text-text-secondary">{content.contact.intro}</p>
