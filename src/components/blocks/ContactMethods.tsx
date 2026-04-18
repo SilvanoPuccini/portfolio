@@ -25,7 +25,7 @@ export default function ContactMethods({
             href={item.href}
             target={item.href.startsWith("http") ? "_blank" : undefined}
             rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-            className="surface-panel interactive-surface group flex aspect-square min-h-[7.5rem] flex-col justify-between border border-outline-ghost/10 px-4 py-4 sm:min-h-[8rem] sm:px-4.5 sm:py-4.5"
+            className="surface-panel interactive-surface group flex aspect-square min-h-[6.5rem] flex-col justify-between border border-outline-ghost/10 px-5 py-4 sm:min-h-[8rem] sm:px-4.5 sm:py-4.5"
           >
             <div
               className={cn(
