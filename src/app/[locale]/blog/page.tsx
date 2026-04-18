@@ -69,7 +69,7 @@ export default async function BlogPage({
         description={
           <div className="space-y-6">
             <p>{content.blog.editorialNote}</p>
-            <div className="inline-flex flex-col items-center gap-3 px-6 py-4">
+            <div className="flex flex-col items-center gap-3 px-6 py-4 text-center">
               <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-text-secondary">
                 Mi Newsletter
               </span>
