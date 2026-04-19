@@ -17,7 +17,7 @@ export async function sendWelcomeEmail(email: string) {
     <span style="font-family:monospace;font-size:12px;color:#00d4d4;letter-spacing:0.1em;">SILVANO PUCCINI · FULL STACK DEV</span>
   </div>
   <div style="padding:32px 32px 24px;">
-    <p style="font-size:13px;color:#666;font-family:monospace;margin:0 0 12px;">¡Hola! 👋</p>
+    <p style="font-size:13px;color:#666;font-family:monospace;margin:0 0 12px;">Hola,</p>
     <p style="font-size:22px;font-weight:700;color:#f0f0f0;margin:0 0 8px;">Me alegra que estés acá.</p>
     <div style="width:36px;height:2px;background:#00d4d4;margin:16px 0 20px;"></div>
     <p style="font-size:14px;color:#aaa;line-height:1.7;margin:0 0 16px;">Te suscribiste a:</p>
