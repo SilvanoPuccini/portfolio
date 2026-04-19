@@ -1,0 +1,106 @@
+---
+title: 'Cómo construí este portfolio — decisiones reales, no tutoriales'
+date: '2026-04-19'
+category: 'Producto'
+excerpt: 'Hay mil tutoriales de cómo hacer un portfolio con Next.js. Ninguno explica por qué descartaste las otras cuatro opciones antes de llegar ahí. Eso es lo que este post documenta.'
+featured: false
+linkedinCarousel: false
+readingTime: '6 min'
+---
+
+Si alguna vez abriste un portfolio técnico y pensaste "sé que esta persona sabe programar, pero no sé cómo piensa" — eso es exactamente el problema que quería resolver con este sitio.
+
+No el problema visual. No el de las tecnologías en el stack. El problema de fondo: un portfolio puede mostrar que sabés usar herramientas sin decirte nada sobre cómo elegiste usarlas, qué descartaste, y qué consecuencias tuvo cada decisión. Eso es lo que diferencia a alguien que ejecuta de alguien que razona.
+
+Este post documenta las decisiones reales que tomé construyendo este sitio. Con la restricción concreta de cada caso, lo que decidí, y lo que esa decisión implicó después.
+
+## De dónde viene el criterio
+
+No tengo experiencia laboral formal como desarrollador todavía. Lo que tengo es casi una década en gestión comercial — y eso cambió completamente cómo aprendí a programar.
+
+Cuando trabajás años entendiendo por qué los proyectos fracasan a pesar de tener buenas intenciones, aprendés a hacerte una pregunta antes de cualquier decisión técnica: ¿qué consecuencias tiene esto para lo que viene después? No para el sprint. Para el sistema que alguien va a tener que mantener, extender o explicarle a un cliente en seis meses.
+
+Con ese framing se entienden mejor las decisiones que tomé acá. Cada elección técnica tenía que cumplir dos condiciones: funcionar bien y ser legible. No servía elegir la solución más sofisticada si quedaba oculta en el código. El portfolio tenía que mostrar cómo pienso — no solo qué stack conozco.
+
+## El stack: por qué no WordPress, no Notion, no template
+
+La restricción era simple: control total sobre el diseño, la infraestructura y el contenido, sin depender de plataformas que mañana cambian sus condiciones.
+
+WordPress estaba descartado. No por snobismo — sino porque si alguien que quiere contratar a un dev full stack ve un portfolio en WordPress, la señal que manda no es la que busco mandar. Notion como portfolio público tiene el mismo problema: delegás demasiado y la personalización tiene un techo bajo.
+
+Los templates comprados tampoco. Si el portfolio es la única evidencia de que podés construir cosas, comprar uno deja esa evidencia vacía.
+
+La decisión fue Next.js App Router + Supabase + Resend + Vercel. Stack con documentación sólida, primitivas claras, sin sorpresas en el deployment. La consecuencia: tardé más en arrancar pero el resultado es completamente mío — y eso era exactamente lo que quería mostrar.
+
+## Blog en MDX: la versión importa más de lo que parece
+
+La restricción fue compatibilidad más seguridad.
+
+Quería MDX para poder escribir posts con componentes React embebidos cuando lo necesitara. La librería natural es `next-mdx-remote`. Pero la versión importa: la v4 no soporta React 19. La v6 — la que terminé usando — resuelve eso y funciona sin problemas en Vercel.
+
+El sistema de orden es deliberadamente simple: `blog.ts` lee los archivos MDX, extrae el frontmatter con `gray-matter` y ordena por fecha descendente. Sin base de datos para el contenido, sin panel de posts. La fecha en el frontmatter es la fuente de verdad.
+
+Agregar un post nuevo es solo crear el archivo y escribir la fecha. Eso también es una decisión.
+
+## Newsletter propio: control de datos o no hay trato
+
+La restricción era de principios, no de presupuesto.
+
+Mailchimp y Beehiiv son buenas herramientas. El problema: cuando usás una de esas plataformas, los suscriptores son de ellos, no tuyos. Si la plataforma cambia sus condiciones, migrar es un dolor. Si la cerrás, perdiste la lista.
+
+La decisión fue Resend para el envío + Supabase para almacenar los datos. Los suscriptores viven en mi base de datos. El template del email lo controlo yo. La lógica de envío vive en una API Route del mismo Next.js.
+
+La consecuencia: más trabajo inicial, pero cero dependencia de terceros para la parte que más importa.
+
+## El panel admin: por qué construirlo cuando Supabase Studio ya existe
+
+Esta es la decisión que más gente cuestionaría — y la que más me costó justificar mientras la construía.
+
+Consideré tres opciones antes de decidir. Supabase Studio para gestionar datos directamente. Sanity como CMS headless con panel incluido. Y construirlo desde cero.
+
+Supabase Studio alcanza operativamente — tiene tablas, filtros y edición inline. El problema es que no muestra nada sobre cómo diseño un sistema. Es una herramienta de terceros que usás, no algo que construiste.
+
+Sanity lo descarté por la misma razón en otra dirección: agrega demasiada abstracción para algo que no la necesita. Un portfolio personal con una sola persona operándolo no justifica un CMS con schemas, workflows y CDN propio.
+
+La decisión fue construir el admin desde cero. Vive en `/admin`, tiene autenticación básica, lista de suscriptores, historial de newsletters y un generador de contenido con IA. Cualquiera que revise el repositorio ve rutas protegidas, components de layout reutilizables y lógica de negocio separada de la UI.
+
+¿Está sobreingenieriado para un portfolio personal? Sí. ¿Valió la pena? También. La consecuencia negativa fue tiempo — días que podrían haber ido a otra cosa. Eso también es un tradeoff real, y lo asumo.
+
+## react-pdf: lo que parece simple y no lo es
+
+La restricción era mostrar certificados embebidos en la página. El primer intento fue un `<iframe>` apuntando al PDF. Funciona en desktop, pero el scroll interno en mobile es incontrolable — el usuario hace scroll dentro del PDF y no puede salir.
+
+Migré a `react-pdf` v10. Funcionó, pero me llevó dos builds fallidos y más tiempo leyendo la documentación de `pdfjs-dist` de lo que esperaba. El problema no era la librería — era que en Vercel necesitás resolver tres cosas específicas o se rompe en build o en runtime:
+
+```ts
+// next.config.ts
+serverExternalPackages: ["pdfjs-dist"]
+// webpack config
+config.resolve.alias.canvas = false
+```
+
+Y el componente tiene que ser `"use client"` por el acceso al DOM para escalar el PDF al ancho del contenedor.
+
+Ninguna de esas tres cosas está junta en la documentación oficial. Las fui encontrando de a una, con el error de Vercel como única pista en cada caso. El resultado final funciona exactamente como quería — el certificado se abre en un modal, ocupa el ancho disponible y no te atrapa en un scroll. Pero el camino no fue lineal.
+
+## Lo que sacrifiqué
+
+La **internacionalización** está a medias. Las rutas tienen el prefijo `[locale]` y la estructura está, pero en la práctica solo el español está activo. Terminar el i18n antes de tener contenido sólido en el idioma principal era optimizar en el orden equivocado.
+
+**Comentarios nativos** no existen. Si alguien quiere responder, la única opción es el newsletter o LinkedIn. No tengo claro si voy a agregarlos — hay un argumento válido para no tenerlos en un portfolio que todavía está construyendo audiencia.
+
+El **admin no tiene roles ni multi-usuario**. Autenticación básica, nada más. Para un portfolio personal con un solo operador es suficiente. Si eso escala, habrá que repensarlo — pero ese momento no llegó.
+
+Cada una de estas cosas está sin terminar a propósito. La alternativa era tenerlas a medias — y eso es peor que no tenerlas.
+
+## Una tensión sin resolver
+
+El portfolio está en producción y funciona. Pero hay una pregunta que todavía no tengo resuelta: ¿cuándo un portfolio deja de ser un portfolio y se convierte en un producto?
+
+En algún punto El Radar va a tener suficientes suscriptores para que la infraestructura actual sea insuficiente. El admin va a necesitar más. El sistema de posts va a necesitar algo más que archivos MDX ordenados por fecha.
+
+Todavía no llegué ahí. Cuando llegue, lo documento.
+
+---
+
+Si esto te sirve, El Radar es donde desarrollo este tipo de análisis con más frecuencia. Una vez por semana, directo en tu casilla.
