@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { sendWelcomeEmail } from '@/lib/resend';
 import { rateLimit } from '@/lib/rate-limit';
-import { supabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Guardar en Supabase
-    const { error: dbError } = await supabaseAdmin
+    const { error: dbError } = await getSupabaseAdmin()
       .from('subscribers')
       .insert({ email });
 
