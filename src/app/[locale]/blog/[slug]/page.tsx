@@ -156,7 +156,7 @@ export default async function BlogPostPage({
 
         {/* Cover */}
         <div className="my-12 h-[260px] overflow-hidden rounded-sm sm:h-[320px] lg:h-[380px]">
-          <PostCover title={post.title} category={post.category} variant="featured" showRadar={slug === "manifesto-editorial"} />
+          <PostCover title={post.title} category={post.category} variant="featured" keyword={post.keyword} />
         </div>
 
         {/* Resto del contenido MDX */}
