@@ -73,7 +73,7 @@ export default function MessagesPage() {
                   style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     padding: '10px 0', borderBottom: '1px solid #1e293b',
-                    background: 'none', border: 'none', borderBottom: '1px solid #1e293b',
+                    background: 'none', border: 'none',
                     cursor: 'pointer',
                   }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
