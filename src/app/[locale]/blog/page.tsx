@@ -137,7 +137,8 @@ export default async function BlogPage({
       )}
 
       <CategoryFilter
-        posts={latestPosts}
+        posts={blogPosts}
+        featuredSlug={featuredPost?.slug}
         currentLocale={currentLocale}
         eyebrow={content.blog.latestLabel}
       />

@@ -24,6 +24,7 @@ function formatDate(dateStr: string) {
 
 interface Props {
   posts: BlogPost[];
+  featuredSlug?: string;
   currentLocale: string;
   eyebrow: string;
 }
@@ -45,13 +46,15 @@ function buildPageRange(current: number, total: number): (number | "...")[] {
   return range;
 }
 
-export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
+export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: Props) {
   const [active, setActive] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [animating, setAnimating] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const filtered = active ? posts.filter((p) => p.category === active) : posts;
+  const filtered = active
+    ? posts.filter((p) => p.category === active)
+    : posts.filter((p) => p.slug !== featuredSlug);
   const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
 
