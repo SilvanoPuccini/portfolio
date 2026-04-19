@@ -38,10 +38,10 @@ function buildEmail(opts: {
 
     <!-- Header -->
     <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.02em;color:#00d4d4;margin:0 0 6px;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:-0.02em;color:#00d4d4;margin:0 0 6px;">
         El Radar
       </div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#8c909f;letter-spacing:0.18em;text-transform:uppercase;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;opacity:0.7;">
         Silvano Puccini · Full Stack Dev
       </div>
     </div>
@@ -49,65 +49,70 @@ function buildEmail(opts: {
     <!-- Content -->
     <div style="padding:40px 32px;">
 
-      <!-- Eyebrow -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
-        <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
-          NUEVA NOTA · Nº ${opts.issue}
-        </span>
-        <span style="width:4px;height:4px;background:rgba(255,255,255,0.15);border-radius:50%;display:inline-block;"></span>
-        <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:${cat.text};letter-spacing:0.18em;text-transform:uppercase;">
-          ${opts.keyword.toUpperCase()}
-        </span>
-      </div>
-
-      <!-- Title -->
-      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.02em;color:#ffffff;line-height:1.25;margin:0 0 24px;">
-        ${opts.title}
-      </h1>
-
-      <!-- Excerpt with left border -->
-      <p style="font-size:16px;color:rgba(221,226,248,0.85);line-height:1.7;margin:0 0 24px;border-left:2px solid ${cat.text};padding-left:16px;">
-        ${opts.excerpt}
+      <!-- Eyebrow línea 1: NUEVA NOTA · Nº -->
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 6px;text-align:center;">
+        NUEVA NOTA · Nº ${opts.issue}
+      </p>
+      <!-- Eyebrow línea 2: keyword con color de categoría -->
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:${cat.text};letter-spacing:0.2em;text-transform:uppercase;margin:0 0 32px;text-align:center;">
+        ${opts.keyword.toUpperCase()}
       </p>
 
-      <!-- Meta -->
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8c909f;margin-bottom:32px;">
-        <span>${opts.readingTime}</span>
-        <span>·</span>
-        <span>${opts.date}</span>
-        <span>·</span>
-        <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:2px 10px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;">
-          ${opts.category}
-        </span>
-      </div>
+      <!-- Card del post -->
+      <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
 
-      <!-- CTA -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td>
-            <a href="${opts.postUrl}"
-               style="display:inline-block;background:#00d4d4;color:#050810;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.02em;">
-              Leer más →
-            </a>
-          </td>
-        </tr>
-      </table>
+        <!-- Card header: categoría + número -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
+          <tr>
+            <td>
+              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:3px 10px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">
+                ${opts.category}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#8c909f;letter-spacing:0.14em;text-transform:uppercase;">
+                Nº ${opts.issue}
+              </span>
+            </td>
+          </tr>
+        </table>
 
-      <!-- Sign off -->
-      <div style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.05);">
-        <p style="font-family:'Space Grotesk',sans-serif;font-size:16px;color:#dde2f8;margin:0;">
-          Un abrazo, Silvano.
-        </p>
+        <!-- Card body -->
+        <div style="padding:20px;">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 12px;letter-spacing:-0.01em;">
+            ${opts.title}
+          </h2>
+          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 16px;border-left:2px solid ${cat.text};padding-left:14px;">
+            ${opts.excerpt}
+          </p>
+
+          <!-- Meta + CTA en misma fila -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;margin-top:4px;">
+            <tr>
+              <td style="vertical-align:middle;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#8c909f;letter-spacing:0.1em;">
+                  ${opts.readingTime} · ${opts.date}
+                </span>
+              </td>
+              <td style="text-align:right;vertical-align:middle;">
+                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;text-decoration:none;letter-spacing:0.1em;">
+                  Leer más →
+                </a>
+              </td>
+            </tr>
+          </table>
+        </div>
+
       </div>
 
     </div>
 
     <!-- Footer -->
-    <div style="background:rgba(0,0,0,0.2);padding:24px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.04);">
-      <p style="font-size:11px;color:rgba(140,144,159,0.6);margin:0;line-height:1.8;">
+    <div style="background:rgba(0,0,0,0.2);padding:20px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.04);">
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0;line-height:1.8;">
         Recibís este email porque te suscribiste a El Radar.
         <br/>
-        <a href="${opts.unsubUrl}" style="color:rgba(140,144,159,0.6);text-decoration:underline;">Desuscribirse</a>
+        <a href="${opts.unsubUrl}" style="color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
       </p>
     </div>
 
