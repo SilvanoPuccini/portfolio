@@ -5,7 +5,7 @@ import { s } from '@/components/admin/AdminShell';
 
 const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
 
-type Post = { slug: string; title: string; excerpt: string; date: string };
+type Post = { slug: string; title: string; excerpt: string; date: string; issue: number };
 type Generated = { linkedinCarousel: string; instagramCaption: string; twitterThread: string; title: string };
 type Tab = 'linkedin' | 'instagram' | 'twitter';
 
@@ -72,7 +72,7 @@ export default function ContentPage() {
             <select value={slug} onChange={(e) => setSlug(e.target.value)} style={{ ...s.input, cursor: 'pointer' }}>
               <option value=''>— Seleccioná un post —</option>
               {posts.map((p) => (
-                <option key={p.slug} value={p.slug}>{p.title} ({p.date})</option>
+                <option key={p.slug} value={p.slug}>Nueva nota · Nº {String(p.issue).padStart(2, '0')} · {p.title} ({p.date})</option>
               ))}
             </select>
           </div>
