@@ -127,7 +127,7 @@ function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: b
           className="font-bold uppercase tracking-[0.18em] text-white/60"
           style={{
             fontFamily: "var(--font-space-grotesk), sans-serif",
-            fontSize: isFeatured ? "2.2rem" : "1.2rem",
+            fontSize: isFeatured ? "2.4rem" : "1.5rem",
             lineHeight: 1,
           }}
         >
@@ -156,7 +156,7 @@ function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: b
           className="font-semibold tracking-[0.12em]"
           style={{
             fontFamily: "var(--font-space-grotesk), sans-serif",
-            fontSize: isFeatured ? "1.1rem" : "0.65rem",
+            fontSize: isFeatured ? "1.3rem" : "0.85rem",
             color: tech.color,
             opacity: 0.65,
             lineHeight: 1,
@@ -173,7 +173,7 @@ function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: b
     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
       <span
         className="font-mono tracking-[0.14em] text-white/40"
-        style={{ fontSize: isFeatured ? "1.25rem" : "0.7rem" }}
+        style={{ fontSize: isFeatured ? "1.45rem" : "0.9rem" }}
       >
         {keyword}
       </span>

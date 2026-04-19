@@ -87,9 +87,14 @@ export default async function BlogPage({
 
           <div className="grid gap-8 xl:grid-cols-2 xl:gap-12">
             {/* Cover */}
-            <div className="relative aspect-[4/3] overflow-hidden rounded-sm xl:aspect-auto xl:min-h-[320px]">
-              <PostCover title={featuredPost.title} category={featuredPost.category} variant="featured" keyword={featuredPost.keyword} />
-            </div>
+            <Link
+              href={`/${currentLocale}/blog/${featuredPost.slug}`}
+              className="group relative block aspect-[4/3] overflow-hidden rounded-sm xl:aspect-auto xl:min-h-[320px]"
+            >
+              <div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-105">
+                <PostCover title={featuredPost.title} category={featuredPost.category} variant="featured" keyword={featuredPost.keyword} />
+              </div>
+            </Link>
 
             {/* Contenido del post */}
             <div className="flex flex-col justify-center">
