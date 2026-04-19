@@ -86,6 +86,17 @@ export default function NewsletterPage() {
                 ))}
               </select>
             </div>
+            {/* Preview del email */}
+            {selected && (
+              <div style={{ margin: '4px 0 8px', padding: '16px', background: '#0a0a14', borderRadius: 6, border: '1px solid #1e293b' }}>
+                <p style={{ fontSize: 10, color: '#00d4d4', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 8px' }}>
+                  El Radar · Nueva nota · Nº {String(selected.issue).padStart(2, '0')}
+                </p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f0', margin: '0 0 8px', lineHeight: 1.4 }}>{selected.title}</p>
+                <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 12px', lineHeight: 1.6 }}>{selected.excerpt}</p>
+                <span style={{ fontSize: 11, color: '#00d4d4' }}>Leer la nota →</span>
+              </div>
+            )}
             <div style={s.divider} />
             <div>
               <label style={s.label}>Título</label>
