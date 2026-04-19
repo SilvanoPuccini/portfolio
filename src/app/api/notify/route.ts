@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const allPosts = getAllBlogPosts();
   const post = allPosts.find((p) => p.slug === slug);
   const issueNum = post ? String(post.issue).padStart(2, '0') : null;
-  const issueLabel = issueNum ? `Nº ${issueNum}` : 'Nueva nota';
+  const issueLabel = issueNum ? `Nueva nota · Nº ${issueNum}` : 'Nueva nota';
 
   // Traer todos los suscriptores activos
   const { data: subscribers, error: dbError } = await getSupabaseAdmin()
