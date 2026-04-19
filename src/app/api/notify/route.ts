@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { getAllBlogPosts } from '@/lib/mdx';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Resolver número de edición automáticamente desde el slug
+  const allPosts = getAllBlogPosts();
+  const post = allPosts.find((p) => p.slug === slug);
+  const issueNum = post ? String(post.issue).padStart(2, '0') : null;
+  const issueLabel = issueNum ? `Nº ${issueNum}` : 'Nueva nota';
+
   // Traer todos los suscriptores activos
   const { data: subscribers, error: dbError } = await getSupabaseAdmin()
     .from('subscribers')
@@ -48,10 +55,10 @@ export async function POST(req: NextRequest) {
   const emails = subscribers.map((s) => ({
     from: 'Silvano Puccini <hola@silvanopuccini.dev>',
     to: s.email,
-    subject: `El Radar · ${title}`,
+    subject: `El Radar · ${issueLabel} — ${title}`,
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#0a0a14;color:#e2e8f0;">
-        <p style="color:#00d4d4;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">El Radar · Nueva nota</p>
+        <p style="color:#00d4d4;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">El Radar · ${issueLabel}</p>
         <h1 style="font-size:24px;font-weight:700;margin-bottom:16px;color:#ffffff;">${title}</h1>
         <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:32px;">${excerpt}</p>
         <a href="${postUrl}" style="background:#00d4d4;color:#0a0a14;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
