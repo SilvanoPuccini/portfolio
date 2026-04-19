@@ -36,12 +36,31 @@ function buildEmail(opts: {
 
   <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-    <!-- Header -->
+    <!-- Header — logo El Radar -->
     <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:-0.02em;color:#00d4d4;margin:0 0 6px;">
-        El Radar
+      <!-- est. 2026 -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+        <tr>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+        </tr>
+      </table>
+      <!-- El Radar -->
+      <div style="display:inline-flex;align-items:baseline;gap:6px;margin:4px 0;">
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
       </div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;opacity:0.7;">
+      <!-- arquitectura · código · producto -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px;">
+        <tr>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;">arquitectura · código · producto</td>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+        </tr>
+      </table>
+      <!-- Silvano Puccini -->
+      <div style="margin-top:14px;font-family:'Space Grotesk',sans-serif;font-size:10px;color:#475569;letter-spacing:0.18em;text-transform:uppercase;">
         Silvano Puccini · Full Stack Dev
       </div>
     </div>
