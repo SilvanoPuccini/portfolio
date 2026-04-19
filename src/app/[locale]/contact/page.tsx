@@ -261,7 +261,7 @@ export default async function ContactPage({
         <div className="mx-auto max-w-6xl space-y-5 lg:space-y-6">
           <div className="grid gap-5 lg:grid-cols-12 lg:items-stretch xl:gap-6">
             <div className="lg:col-span-7 xl:col-span-8">
-              <ContactForm action={content.contact.formspreeAction} locale={currentLocale} labels={labels.form} />
+              <ContactForm locale={currentLocale} labels={labels.form} />
             </div>
 
             <div className="lg:col-span-5 lg:h-full xl:col-span-4">
