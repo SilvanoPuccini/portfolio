@@ -61,8 +61,8 @@ export default function ContactForm({
   const statusMeta = {
     success: {
       icon: CheckCircle2,
-      accentClass: "text-[rgb(var(--accent))]",
-      borderClass: "border-[rgb(var(--accent)/0.4)]",
+      accentClass: "text-emerald-400",
+      borderClass: "border-emerald-400/50",
       labelKey: locale === "es" ? "Enviado" : "Sent",
     },
     error: {
