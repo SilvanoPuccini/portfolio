@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     if (dbError) {
       console.error('[contact] Supabase error:', dbError);
-      return NextResponse.json({ error: `Supabase: ${dbError.message} (${dbError.code})` }, { status: 500 });
+      return NextResponse.json({ error: 'No se pudo guardar el mensaje. Intentá de nuevo o escribime directo por email.' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
