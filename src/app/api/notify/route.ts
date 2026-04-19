@@ -73,6 +73,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Error al enviar emails.' }, { status: 500 });
   }
 
+  // Log en Supabase
+  await getSupabaseAdmin()
+    .from('newsletters_sent')
+    .insert({ title, slug, recipients_count: subscribers.length });
+
   return NextResponse.json({
     success: true,
     sent: subscribers.length,
