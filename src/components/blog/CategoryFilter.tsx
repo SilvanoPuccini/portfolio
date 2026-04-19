@@ -138,9 +138,16 @@ export function CategoryFilter({ posts, currentLocale, eyebrow }: Props) {
                   key={post.slug}
                   className="surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <PostCover title={post.title} category={post.category} />
-                  </div>
+                  <Link
+                    href={`/${currentLocale}/blog/${post.slug}`}
+                    className="group relative block aspect-[16/10] overflow-hidden"
+                    tabIndex={-1}
+                    aria-hidden
+                  >
+                    <div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-105">
+                      <PostCover title={post.title} category={post.category} keyword={post.keyword} />
+                    </div>
+                  </Link>
 
                   <div className="flex flex-1 flex-col p-5 sm:p-6">
                     <div className="flex items-center justify-between">
