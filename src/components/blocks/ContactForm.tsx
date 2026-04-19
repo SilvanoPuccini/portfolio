@@ -48,11 +48,9 @@ const initialState: FormState = {
 };
 
 export default function ContactForm({
-  action,
   locale,
   labels,
 }: {
-  action: string;
   locale: string;
   labels: ContactFormLabels;
 }) {
@@ -63,38 +61,23 @@ export default function ContactForm({
   const statusMeta = {
     success: {
       icon: CheckCircle2,
-      badgeTone: "bg-emerald-500 text-emerald-950",
-      panelTone: "border-emerald-500/30 bg-[rgb(var(--surface-elevated))]",
-      iconTone: "bg-emerald-500 text-emerald-950",
-      copyTone: "text-text-primary",
+      accentClass: "text-[rgb(var(--accent))]",
+      borderClass: "border-[rgb(var(--accent)/0.2)]",
+      labelKey: locale === "es" ? "Enviado" : "Sent",
     },
     error: {
       icon: AlertCircle,
-      badgeTone: "bg-red-500 text-red-950",
-      panelTone: "border-red-500/30 bg-[rgb(var(--surface-elevated))]",
-      iconTone: "bg-red-500 text-red-950",
-      copyTone: "text-text-primary",
+      accentClass: "text-red-400",
+      borderClass: "border-red-400/20",
+      labelKey: locale === "es" ? "Error" : "Error",
     },
     warning: {
       icon: AlertCircle,
-      badgeTone: "bg-amber-400 text-amber-950",
-      panelTone: "border-amber-400/30 bg-[rgb(var(--surface-elevated))]",
-      iconTone: "bg-amber-400 text-amber-950",
-      copyTone: "text-text-primary",
+      accentClass: "text-text-tertiary",
+      borderClass: "border-outline-ghost/15",
+      labelKey: locale === "es" ? "Atención" : "Warning",
     },
   } as const;
-  const statusCopy =
-    locale === "es"
-      ? {
-          success: "Mensaje entregado",
-          warning: "Revisión pendiente",
-          error: "Revisión requerida",
-        }
-      : {
-          success: "Message delivered",
-          warning: "Needs review",
-          error: "Delivery failed",
-        };
   const currentStatusMeta = toast ? statusMeta[toast.type] : null;
 
   useEffect(() => {
@@ -171,33 +154,17 @@ export default function ContactForm({
     setStatus("submitting");
     setToast({ type: "warning", message: labels.sending });
 
-    const formData = new FormData(event.currentTarget);
-    formData.append("locale", locale);
-
     try {
-      const response = await fetch(action, {
+      const response = await fetch("/api/contact", {
         method: "POST",
-        headers: {
-          Accept: "application/json",
-        },
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
       });
 
+      const payload = await response.json() as { error?: string };
+
       if (!response.ok) {
-        let errorMessage = labels.error;
-
-        try {
-          const payload = (await response.json()) as { errors?: Array<{ message?: string }> };
-          const formspreeMessage = payload.errors?.find((error) => error.message?.trim())?.message;
-
-          if (formspreeMessage) {
-            errorMessage = formspreeMessage;
-          }
-        } catch {
-          // Keep the localized fallback if Formspree does not return JSON.
-        }
-
-        throw new Error(errorMessage);
+        throw new Error(payload.error ?? labels.error);
       }
 
       setValues(initialState);
@@ -316,33 +283,20 @@ export default function ContactForm({
                 <div
                   id="contact-form-status"
                   className={cn(
-                    "relative min-h-[3.75rem] w-full rounded-[var(--radius-soft)] border px-3.5 py-3 text-left shadow-[0_18px_40px_rgba(2,6,23,0.18)] sm:min-h-12 sm:px-4 sm:py-3",
-                    currentStatusMeta.panelTone,
+                    "w-full rounded-[var(--radius-soft)] border bg-[rgb(var(--surface-elevated)/0.85)] px-4 py-3.5",
+                    currentStatusMeta.borderClass,
                   )}
                   role={toast.type === "error" ? "alert" : "status"}
                   aria-live="polite"
                   aria-atomic="true"
                 >
-                  <div className="flex items-start gap-3 sm:items-center">
-                    <div
-                      className={cn(
-                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[calc(var(--radius-soft)-2px)] shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] sm:mt-0",
-                        currentStatusMeta.iconTone,
-                      )}
-                    >
-                      <StatusIcon className={cn("h-4 w-4", status === "submitting" ? "animate-spin" : undefined)} />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={cn(
-                          "inline-flex rounded-pill px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] leading-none sm:text-[11px]",
-                          currentStatusMeta.badgeTone,
-                        )}
-                      >
-                        {status === "submitting" ? labels.sending : statusCopy[toast.type]}
+                  <div className="flex items-start gap-3">
+                    <StatusIcon className={cn("mt-0.5 h-4 w-4 shrink-0", currentStatusMeta.accentClass)} />
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className={cn("font-mono text-[11px] uppercase tracking-[0.18em] leading-none", currentStatusMeta.accentClass)}>
+                        {currentStatusMeta.labelKey}
                       </p>
-                      <p className={cn("mt-2 text-sm leading-6", currentStatusMeta.copyTone)}>
+                      <p className="text-sm leading-5.5 text-text-secondary">
                         {toast.message}
                       </p>
                     </div>
