@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { supabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   // Protección con bearer token
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Traer todos los suscriptores activos
-  const { data: subscribers, error: dbError } = await supabaseAdmin
+  const { data: subscribers, error: dbError } = await getSupabaseAdmin()
     .from('subscribers')
     .select('email')
     .eq('status', 'active');
