@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const postUrl = `https://silvanopuccini.dev/blog/${slug}`;
+  const postUrl = `https://silvanopuccini.dev/es/blog/${slug}`;
 
   // Enviar en batch (Resend soporta hasta 100 por llamada)
   const emails = subscribers.map((s) => ({
