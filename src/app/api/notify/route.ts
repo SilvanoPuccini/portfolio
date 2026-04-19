@@ -2,94 +2,131 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
+import { postCardHtml, CATEGORY_COLOR } from '@/lib/resend';
 
 export const dynamic = 'force-dynamic';
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return `${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 export async function POST(req: NextRequest) {
   try {
-  // Protección con bearer token
-  const auth = req.headers.get('authorization');
-  if (auth !== `Bearer ${process.env.NOTIFY_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+    const auth = req.headers.get('authorization');
+    if (auth !== `Bearer ${process.env.NOTIFY_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-  const body = await req.json();
-  const { title, slug, excerpt } = body as {
-    title: string;
-    slug: string;
-    excerpt: string;
-  };
+    const body = await req.json();
+    const { slug } = body as { title?: string; slug: string; excerpt?: string };
 
-  if (!title || !slug || !excerpt) {
-    return NextResponse.json(
-      { error: 'title, slug y excerpt son requeridos.' },
-      { status: 400 }
-    );
-  }
+    if (!slug) {
+      return NextResponse.json({ error: 'slug es requerido.' }, { status: 400 });
+    }
 
-  // Resolver número de edición automáticamente desde el slug
-  const allPosts = getAllBlogPosts();
-  const post = allPosts.find((p) => p.slug === slug);
-  const issueNum = post ? String(post.issue).padStart(2, '0') : null;
-  const issueLabel = issueNum ? `Nueva nota · Nº ${issueNum}` : 'Nueva nota';
+    // Resolver todos los datos del post desde el slug
+    const allPosts = getAllBlogPosts();
+    const post = allPosts.find((p) => p.slug === slug);
 
-  // Traer todos los suscriptores activos
-  const { data: subscribers, error: dbError } = await getSupabaseAdmin()
-    .from('subscribers')
-    .select('email')
-    .eq('status', 'active');
+    if (!post) {
+      return NextResponse.json({ error: `Post "${slug}" no encontrado.` }, { status: 404 });
+    }
 
-  if (dbError) {
-    console.error('[notify] Supabase error:', dbError);
-    return NextResponse.json({ error: 'Error al obtener suscriptores.' }, { status: 500 });
-  }
+    const issueNum  = String(post.issue).padStart(2, '0');
+    const issueLabel = `Nueva nota · Nº ${issueNum}`;
+    const postUrl   = `https://silvanopuccini.dev/es/blog/${slug}`;
+    const cat       = CATEGORY_COLOR[post.category] ?? CATEGORY_COLOR['Producto'];
 
-  if (!subscribers || subscribers.length === 0) {
-    return NextResponse.json({ message: 'No hay suscriptores activos.', sent: 0 });
-  }
+    // Suscriptores activos
+    const { data: subscribers, error: dbError } = await getSupabaseAdmin()
+      .from('subscribers')
+      .select('email')
+      .eq('status', 'active');
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const postUrl = `https://silvanopuccini.dev/es/blog/${slug}`;
+    if (dbError) {
+      console.error('[notify] Supabase error:', dbError);
+      return NextResponse.json({ error: 'Error al obtener suscriptores.' }, { status: 500 });
+    }
 
-  // Enviar en batch (Resend soporta hasta 100 por llamada)
-  const emails = subscribers.map((s) => ({
-    from: 'Silvano Puccini <hola@silvanopuccini.dev>',
-    to: s.email,
-    subject: `El Radar · ${issueLabel} — ${title}`,
-    html: `
-      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#0a0a14;color:#e2e8f0;">
-        <p style="color:#00d4d4;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">El Radar · ${issueLabel}</p>
-        <h1 style="font-size:24px;font-weight:700;margin-bottom:16px;color:#ffffff;">${title}</h1>
-        <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:32px;">${excerpt}</p>
-        <a href="${postUrl}" style="background:#00d4d4;color:#0a0a14;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
-          Leer la nota →
-        </a>
-        <hr style="border:none;border-top:1px solid #1e293b;margin:40px 0;" />
-        <p style="color:#475569;font-size:12px;">
-          Recibís este email porque te suscribiste a El Radar.<br/>
-          <a href="https://silvanopuccini.dev/unsubscribe?email=${encodeURIComponent(s.email)}" style="color:#475569;">Desuscribirse</a>
-        </p>
-      </div>
-    `,
-  }));
+    if (!subscribers || subscribers.length === 0) {
+      return NextResponse.json({ message: 'No hay suscriptores activos.', sent: 0 });
+    }
 
-  const { data, error: sendError } = await resend.batch.send(emails);
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-  if (sendError) {
-    console.error('[notify] Resend batch error:', sendError);
-    return NextResponse.json({ error: 'Error al enviar emails.' }, { status: 500 });
-  }
+    const emails = subscribers.map((s) => {
+      const unsubUrl = `https://silvanopuccini.dev/unsubscribe?email=${encodeURIComponent(s.email)}`;
 
-  // Log en Supabase
-  await getSupabaseAdmin()
-    .from('newsletters_sent')
-    .insert({ title, slug, recipients_count: subscribers.length });
+      const card = postCardHtml({
+        title:       post.title,
+        excerpt:     post.excerpt ?? '',
+        category:    post.category,
+        issue:       issueNum,
+        readingTime: post.readingTime ?? '5 min',
+        date:        formatDate(post.date),
+        postUrl,
+        keyword:     post.keyword,
+      });
 
-  return NextResponse.json({
-    success: true,
-    sent: subscribers.length,
-    data,
-  });
+      const html = `
+<div style="max-width:580px;margin:0 auto;font-family:sans-serif;background:#0a0a14;border-radius:12px;overflow:hidden;border:1px solid #1e293b;">
+  <!-- Header -->
+  <div style="padding:20px 32px;border-bottom:1px solid #1a1a2a;">
+    <span style="font-family:monospace;font-size:11px;color:#00d4d4;letter-spacing:0.14em;text-transform:uppercase;">Silvano Puccini · Full Stack Dev</span>
+  </div>
+  <!-- Body -->
+  <div style="padding:32px;">
+    <p style="font-family:monospace;font-size:10px;color:${cat.text};letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">El Radar · ${issueLabel}</p>
+    <h1 style="font-size:22px;font-weight:700;color:#f0f0f0;margin:0 0 6px;line-height:1.3;">${post.title}</h1>
+    <div style="width:32px;height:2px;background:#00d4d4;margin:16px 0 20px;"></div>
+    <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">${post.excerpt ?? ''}</p>
+
+    ${card}
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
+      <tr>
+        <td>
+          <a href="${postUrl}" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;">Leer la nota →</a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="font-size:13px;color:#475569;margin:28px 0 0;line-height:1.65;">
+      Un abrazo,<br><span style="color:#94a3b8;">Silvano</span>
+    </p>
+  </div>
+  <!-- Footer -->
+  <div style="padding:16px 32px;border-top:1px solid #1a1a2a;">
+    <p style="font-size:11px;font-family:monospace;color:#475569;margin:0;">
+      Recibís este email porque te suscribiste a El Radar.&nbsp;·&nbsp;
+      <a href="${unsubUrl}" style="color:#475569;text-decoration:underline;">Desuscribirse</a>
+    </p>
+  </div>
+</div>`;
+
+      return {
+        from: 'Silvano Puccini <hola@silvanopuccini.dev>',
+        to:   s.email,
+        subject: `El Radar · ${issueLabel} — ${post.title}`,
+        html,
+      };
+    });
+
+    const { data, error: sendError } = await resend.batch.send(emails);
+
+    if (sendError) {
+      console.error('[notify] Resend batch error:', sendError);
+      return NextResponse.json({ error: 'Error al enviar emails.' }, { status: 500 });
+    }
+
+    await getSupabaseAdmin()
+      .from('newsletters_sent')
+      .insert({ title: post.title, slug, recipients_count: subscribers.length });
+
+    return NextResponse.json({ success: true, sent: subscribers.length, data });
+
   } catch (err) {
     console.error('[notify] Unexpected error:', err);
     return NextResponse.json(
