@@ -5,6 +5,7 @@ export interface BlogPost {
   category: string;
   excerpt: string;
   coverImage?: string;
+  keyword?: string;
   featured?: boolean;
   linkedinCarousel?: boolean;
   content: string;
