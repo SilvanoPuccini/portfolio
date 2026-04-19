@@ -62,19 +62,19 @@ export default function ContactForm({
     success: {
       icon: CheckCircle2,
       accentClass: "text-[rgb(var(--accent))]",
-      borderClass: "border-[rgb(var(--accent)/0.2)]",
+      borderClass: "border-[rgb(var(--accent)/0.4)]",
       labelKey: locale === "es" ? "Enviado" : "Sent",
     },
     error: {
       icon: AlertCircle,
       accentClass: "text-red-400",
-      borderClass: "border-red-400/20",
+      borderClass: "border-red-400/50",
       labelKey: locale === "es" ? "Error" : "Error",
     },
     warning: {
       icon: AlertCircle,
-      accentClass: "text-text-tertiary",
-      borderClass: "border-outline-ghost/15",
+      accentClass: "text-amber-400",
+      borderClass: "border-amber-400/40",
       labelKey: locale === "es" ? "Atención" : "Warning",
     },
   } as const;
