@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         <hr style="border:none;border-top:1px solid #1e293b;margin:40px 0;" />
         <p style="color:#475569;font-size:12px;">
           Recibís este email porque te suscribiste a El Radar.<br/>
-          <a href="https://silvanopuccini.dev/unsubscribe?email=${encodeURIComponent('{{email}}')" style="color:#475569;">Desuscribirse</a>
+          <a href="https://silvanopuccini.dev/unsubscribe?email=${encodeURIComponent(s.email)}" style="color:#475569;">Desuscribirse</a>
         </p>
       </div>
     `,
