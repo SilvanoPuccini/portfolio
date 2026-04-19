@@ -40,11 +40,18 @@ export default function AdminPage() {
         body: JSON.stringify({ title, slug, excerpt }),
       });
 
-      const data = await res.json();
+      let data: { error?: string; sent?: number; message?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        setStatus('error');
+        setMessage(`Error HTTP ${res.status} — respuesta inválida del servidor.`);
+        return;
+      }
 
       if (!res.ok) {
         setStatus('error');
-        setMessage(data.error ?? 'Error al enviar.');
+        setMessage(data.error ?? `Error ${res.status}`);
         return;
       }
 
@@ -53,9 +60,9 @@ export default function AdminPage() {
       setTitle('');
       setSlug('');
       setExcerpt('');
-    } catch {
+    } catch (err) {
       setStatus('error');
-      setMessage('Error inesperado. Revisá la consola.');
+      setMessage(err instanceof Error ? err.message : 'Error inesperado.');
     }
   }
 
