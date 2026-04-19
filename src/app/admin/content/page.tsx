@@ -72,7 +72,7 @@ export default function ContentPage() {
             <select value={slug} onChange={(e) => setSlug(e.target.value)} style={{ ...s.input, cursor: 'pointer' }}>
               <option value=''>— Seleccioná un post —</option>
               {posts.map((p) => (
-                <option key={p.slug} value={p.slug}>Nueva nota · Nº {String(p.issue).padStart(2, '0')} · {p.title} ({p.date})</option>
+                <option key={p.slug} value={p.slug}>Nº {String(p.issue).padStart(2, '0')} · {p.title} ({p.date})</option>
               ))}
             </select>
           </div>
