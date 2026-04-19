@@ -13,9 +13,11 @@ interface PostCardProps {
 export function PostCard({ slug, title, date, category, excerpt, readingTime, locale = 'es' }: PostCardProps) {
   // Colores por categoría
   const categoryColors: Record<string, string> = {
-    'Performance': 'bg-green-500/10 text-green-400',
-    'Producto': 'bg-purple-500/10 text-purple-400',
+    'Performance':    'bg-green-500/10 text-green-400',
+    'Producto':       'bg-purple-500/10 text-purple-400',
     'Automatización': 'bg-amber-500/10 text-amber-400',
+    'Criterio':       'bg-indigo-500/10 text-indigo-400',
+    'Editorial':      'bg-cyan-500/10 text-cyan-400',
   };
 
   const categoryColor = categoryColors[category] || 'bg-blue-500/10 text-blue-400';
