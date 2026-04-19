@@ -5,7 +5,7 @@ import { s } from '@/components/admin/AdminShell';
 
 const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
 
-type Post = { slug: string; title: string; excerpt: string; date: string; category: string };
+type Post = { slug: string; title: string; excerpt: string; date: string; category: string; issue: number };
 type Newsletter = { id: string; title: string; slug: string; recipients_count: number; sent_at: string };
 
 function fmt(iso: string) {
@@ -82,7 +82,7 @@ export default function NewsletterPage() {
                 style={{ ...s.input, cursor: 'pointer' }}>
                 <option value=''>— Elegí un post —</option>
                 {posts.map((p) => (
-                  <option key={p.slug} value={p.slug}>{p.title}</option>
+                  <option key={p.slug} value={p.slug}>Nº {String(p.issue).padStart(2, '0')} — {p.title}</option>
                 ))}
               </select>
             </div>
