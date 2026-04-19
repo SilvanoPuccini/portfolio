@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { sendWelcomeEmail } from '@/lib/resend';
 import { rateLimit } from '@/lib/rate-limit';
+import { supabaseAdmin } from '@/lib/supabase';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -72,6 +73,16 @@ export async function POST(req: NextRequest) {
       if (contactError) {
         console.error('[subscribe] Resend contacts error:', contactError);
       }
+    }
+
+    // Guardar en Supabase
+    const { error: dbError } = await supabaseAdmin
+      .from('subscribers')
+      .insert({ email });
+
+    if (dbError && dbError.code !== '23505') {
+      // 23505 = unique violation (ya existe) — no es un error real
+      console.error('[subscribe] Supabase error:', dbError);
     }
 
     // Mandar email de bienvenida
