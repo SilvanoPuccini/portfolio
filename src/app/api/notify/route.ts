@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  try {
   // Protección con bearer token
   const auth = req.headers.get('authorization');
   if (auth !== `Bearer ${process.env.NOTIFY_SECRET}`) {
@@ -77,4 +78,11 @@ export async function POST(req: NextRequest) {
     sent: subscribers.length,
     data,
   });
+  } catch (err) {
+    console.error('[notify] Unexpected error:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Error inesperado.' },
+      { status: 500 }
+    );
+  }
 }
