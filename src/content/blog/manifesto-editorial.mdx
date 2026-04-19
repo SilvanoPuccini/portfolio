@@ -2,48 +2,58 @@
 title: 'Por qué armé este espacio'
 date: '2026-03-20'
 category: 'Producto'
-excerpt: 'Este blog no existe para "compartir conocimiento". Existe porque construir software requiere documentar decisiones reales, y un CV con lista de tecnologías no alcanza para mostrar eso.'
+excerpt: 'No vine de un bootcamp. Vine de casi una década gestionando comercialmente empresas antes de pasarme al desarrollo. Eso cambió para siempre la forma en que escribo código — y este espacio existe para documentar exactamente eso.'
 featured: true
 linkedinCarousel: false
 readingTime: '5 min'
 ---
 
-Este espacio —y **El Radar**, el newsletter que lo acompaña— nacieron de una necesidad concreta: no hay manera honesta de presentarme como desarrollador con solo un listado de tecnologías y screenshots de proyectos. Podés poner React, Next.js y Django en el CV y no decirle nada a nadie sobre cómo tomás decisiones cuando el producto está en producción y algo falla.
+Hay algo que ningún CV técnico puede mostrar bien: cómo pensás cuando las cosas se complican.
 
-Este blog existe por eso. El Radar también.
+Podés poner Next.js, TypeScript y Docker en todas las líneas que quieras. No le dice a nadie qué hacés cuando el sistema que construiste hace seis meses falla un domingo a las 2am, cuando el cliente pide algo que técnicamente es posible pero arquitectónicamente es un desastre, o cuando tenés que elegir entre la solución elegante y la solución que el equipo puede mantener sin vos.
 
-## El problema que intento resolver
+Esas decisiones son las que importan. Y rara vez aparecen en el código final.
 
-Estuve casi una década en gestión comercial antes de pasarme al desarrollo. No vine de un bootcamp de tres meses ni de una universidad — vine de años entendiendo cómo las empresas convierten inversión en resultado. Eso cambió radicalmente la forma en que programo.
+Este blog existe para documentarlas. **El Radar** —el newsletter que lo acompaña— también.
 
-Cuando trabajo en un sistema, no pienso solo en que el código funcione. Pienso en qué decisión técnica tiene consecuencias para el producto, para el equipo que lo mantiene, para el negocio que depende de él. Y esas decisiones rara vez aparecen en el código final — están en los commits que no se hicieron, en las abstracciones que se descartaron, en los tradeoffs que elegiste un jueves a las once de la noche.
+## De dónde vengo
 
-Acá voy a documentar esas decisiones.
+Estuve casi una década en gestión comercial antes de pasarme al desarrollo. No vine de un bootcamp de tres meses ni de una carrera universitaria clásica — vine de años entendiendo cómo las empresas convierten inversión en resultado, cómo los equipos toman decisiones bajo presión, y por qué los proyectos bien intencionados fracasan igual.
 
-## Qué tipo de contenido vas a encontrar
+Cuando empecé a programar de verdad, esa historia cambió cómo veía el código. Nunca fue solo sintaxis. Siempre fue: ¿qué consecuencias tiene esta decisión para el producto, para el equipo, para el negocio?
 
-Tres categorías, sin relleno:
+Eso es lo que trato de transmitir acá.
 
-**Performance** — No tutoriales de "cómo mejorar tu LCP en 5 pasos". Sino: qué decisión arquitectónica tomé en un producto real, qué métricas cambió, y qué sacrifiqué para llegar ahí. En FerrelonStock, un sistema de inventario que construí con Django y React, redujimos el tiempo de carga inicial de 4.2s a 1.8s. El cambio no fue heroico — fue una combinación de code splitting por rutas, ajustes en el caching del servidor y eliminar una dependencia que nadie había cuestionado en dos años. Lo interesante no es el número final. Es el proceso de encontrar el cuello de botella correcto.
+## Qué vas a encontrar
 
-**Producto** — La intersección entre ingeniería y criterio de negocio. Cómo se diseña una arquitectura que el equipo pueda mantener cuando el desarrollador original ya no está. Cuándo tiene sentido agregar complejidad y cuándo no. Por qué algunos sistemas bien escritos fracasan igual.
+Tres ejes, sin relleno:
 
-**Automatización** — Herramientas de IA aplicadas con criterio, no por tendencia. Cuándo automatizar acelera de verdad y cuándo agrega una capa de magia que nadie entiende seis meses después.
+**Performance** — No "cinco tips para mejorar tu LCP". Sino qué decisión arquitectónica tomé en un producto real, qué métricas cambió, y qué sacrifiqué en el proceso. En FerrelonStock, un sistema de inventario que construí con Django y React, pasamos de 4.2s a 1.8s de carga inicial. El cambio no fue heroico — fue code splitting, caching y eliminar una dependencia que nadie había cuestionado en dos años. Lo interesante no es el número. Es el proceso de encontrar el cuello de botella correcto.
+
+**Producto** — La intersección entre ingeniería y criterio de negocio. Cuándo agregar complejidad tiene sentido y cuándo no. Por qué algunos sistemas bien escritos fracasan igual. Cómo diseñar algo que el equipo pueda mantener cuando el desarrollador original ya no está.
+
+**Automatización** — IA aplicada con criterio, no por tendencia. Cuándo automatizar acelera de verdad y cuándo agrega una capa de magia que nadie entiende seis meses después.
+
+## El Radar — el newsletter
+
+Una vez por semana llega **El Radar**: un análisis breve de una decisión técnica real, un tradeoff que encontré en el camino, o algo del mundo del desarrollo que vale la pena pensar dos veces.
+
+No es un resumen de noticias. No es un tutorial. Es una conversación — el tipo de cosa que compartirías con un colega tomando un café, si ese colega tuviera diez años más de experiencia y ganas de ser honesto.
+
+Cada edición termina con una pregunta abierta. Porque el objetivo no es que leas y cierres la pestaña — es que algo de lo que escribí te quede dando vueltas.
+
+👉 **Suscribite abajo si querés recibirlo directo en tu casilla.**
 
 ## Para quién es esto
 
-Para devs en transición que saben que aprender un framework no es suficiente para construir productos sólidos. Para founders técnicos que toman decisiones de arquitectura bajo presión. Para equipos evaluando contratar — acá podés ver cómo razono antes de escribir una sola línea de código.
+Para devs en transición que saben que aprender un framework no alcanza para construir productos sólidos. Para founders técnicos que toman decisiones de arquitectura bajo presión. Para equipos que están evaluando sumar alguien — acá podés ver cómo razono antes de escribir una sola línea de código.
 
-No está dirigido a principiantes buscando tutoriales de introducción. Eso no quiere decir que sea exclusivo o difícil — quiere decir que asumo que ya sabés programar y que lo que buscás es criterio, no sintaxis.
+No está dirigido a principiantes buscando su primer tutorial. Eso no significa que sea exclusivo o pretencioso — significa que asumo que ya sabés programar y que lo que buscás es criterio, no sintaxis.
 
-## El formato
+## Una pregunta antes de cerrar
 
-Cada post en la web viene acompañado de una versión en carrusel para LinkedIn. No es el mismo contenido recortado — es el mismo argumento reformateado para un contexto diferente. El carrusel sacrifica profundidad por claridad; el post sacrifica brevedad por contexto completo.
+¿Cuándo fue la última vez que tomaste una decisión técnica que sabías que iba a ser difícil de explicar — y la tomaste igual porque era la correcta?
 
-Frecuencia: uno o dos posts por semana, sin calendario fijo. Publico cuando tengo algo concreto que decir, no para llenar un schedule.
+Eso es exactamente lo que quiero documentar acá. Y me interesa mucho saber qué responderías vos.
 
-## La razón real
-
-Construir presencia como desarrollador independiente requiere más que mostrar que sabés escribir código. Requiere mostrar que sabés cuándo no escribirlo, cómo evaluar tradeoffs y qué preguntas hacerse antes de abrir el editor.
-
-Este blog es el registro de ese proceso. No editado para quedar bien — documentado para ser útil.
+**Dejá tu respuesta en los comentarios o respondé el primer número de El Radar cuando llegue.**
