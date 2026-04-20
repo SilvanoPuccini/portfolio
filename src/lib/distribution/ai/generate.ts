@@ -3,7 +3,7 @@ import { MASTER_PROMPT } from './prompt-master';
 import { validateGeneratedContent } from './schema-validator';
 import type { GeneratedContent, AIMetadata } from '../types';
 
-const MODEL = 'gemini-2.5-pro';
+const MODEL = 'gemini-2.5-flash';
 const MAX_ATTEMPTS = 3;
 const BACKOFF_MS = [0, 1500, 4000];
 
