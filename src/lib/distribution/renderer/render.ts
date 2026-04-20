@@ -24,7 +24,7 @@ export async function renderCarouselImages(
           : renderInstagramSlide(slides[i], i + 1, slides.length);
 
       // networkidle0 espera a que las Google Fonts carguen
-      await page.setContent(html, { waitUntil: 'networkidle0', timeout: 15000 });
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
       const screenshot = await page.screenshot({ type: 'png' });
       images.push(Buffer.from(screenshot));
