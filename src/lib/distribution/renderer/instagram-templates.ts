@@ -1,6 +1,5 @@
 import type { Slide } from '../types';
 
-const FONTS = `https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap`;
 
 // Instagram: misma identidad visual pero headlines más cortos y body más compacto
 const BASE_STYLES = `
@@ -9,7 +8,7 @@ const BASE_STYLES = `
     width: 1080px;
     height: 1080px;
     background: #111118;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -21,7 +20,7 @@ const BASE_STYLES = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, monospace;
     font-size: 13px;
     color: rgba(255,255,255,0.35);
     flex-shrink: 0;
@@ -36,7 +35,7 @@ const BASE_STYLES = `
     padding: 36px 0;
   }
   .label {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, monospace;
     font-size: 12px;
     color: #8B5CF6;
     letter-spacing: 0.2em;
@@ -58,7 +57,7 @@ const BASE_STYLES = `
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, monospace;
     font-size: 12px;
     color: rgba(255,255,255,0.25);
     flex-shrink: 0;
@@ -116,9 +115,6 @@ export function renderInstagramSlide(
 <html class="${slideClass}">
   <head>
     <meta charset="UTF-8">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="${FONTS}" rel="stylesheet">
     <style>${BASE_STYLES}</style>
   </head>
   <body>

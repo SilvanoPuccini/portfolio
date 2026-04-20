@@ -1,15 +1,13 @@
 import type { Slide } from '../types';
 
-// Fuentes cargadas desde Google Fonts — se espera networkidle0 antes del screenshot
-const FONTS = `https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap`;
-
+// Fuentes del sistema — sin requests externos para compatibilidad con Vercel Lambda
 const BASE_STYLES = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     width: 1080px;
     height: 1080px;
     background: #111118;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -21,7 +19,7 @@ const BASE_STYLES = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, monospace;
     font-size: 14px;
     color: rgba(255,255,255,0.35);
     flex-shrink: 0;
@@ -36,7 +34,7 @@ const BASE_STYLES = `
     padding: 40px 0;
   }
   .label {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, monospace;
     font-size: 13px;
     color: #8B5CF6;
     letter-spacing: 0.18em;
@@ -60,7 +58,7 @@ const BASE_STYLES = `
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, monospace;
     font-size: 13px;
     color: rgba(255,255,255,0.28);
     flex-shrink: 0;
@@ -109,9 +107,6 @@ export function renderLinkedInSlide(
 <html class="${slideClass}">
   <head>
     <meta charset="UTF-8">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="${FONTS}" rel="stylesheet">
     <style>${BASE_STYLES}</style>
   </head>
   <body>
