@@ -70,12 +70,13 @@ function buildEmail(opts: {
     <!-- Content -->
     <div style="padding:40px 32px;">
 
-      <!-- Eyebrow: todo en una línea -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 44px;text-align:center;line-height:1.6;">
+      <!-- Eyebrow: línea 1 en una línea, keyword en línea 2 -->
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 8px;text-align:center;line-height:1.6;">
         <span style="color:#94a3b8;">El Radar</span>
         <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
         <span style="color:#00d4d4;">Nueva nota · Nº ${opts.issue}</span>
-        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
+      </p>
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 40px;text-align:center;">
         <span style="color:${cat.text};">${opts.keyword.toUpperCase()}</span>
       </p>
 
@@ -129,12 +130,9 @@ function buildEmail(opts: {
     </div>
 
     <!-- Footer -->
-    <div style="padding:20px 32px;text-align:center;">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0;line-height:1.8;">
-        Recibís este email porque te suscribiste a El Radar.
-        <br/>
-        <a href="${opts.unsubUrl}" style="color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
-      </p>
+    <div style="padding:24px 32px;text-align:center;">
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar.</p>
+      <a href="${opts.unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
     </div>
 
   </div>
