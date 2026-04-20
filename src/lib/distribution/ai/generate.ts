@@ -1,13 +1,15 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MASTER_PROMPT } from './prompt-master';
 import { validateGeneratedContent } from './schema-validator';
 import type { GeneratedContent, AIMetadata } from '../types';
 
-// Con @google/genai v1.50 solo funcionan modelos gemini-2.5
-const MODEL = 'gemini-2.5-flash';
-const MAX_ATTEMPTS = 5;
-// Backoffs progresivos — total máx ~75s, dentro del límite de Vercel Pro (300s)
-const BACKOFF_MS = [0, 5000, 10000, 20000, 30000];
+// SDK estable — soporta gemini-2.0-flash y gemini-1.5-flash correctamente
+const MODEL_CONFIGS = [
+  { model: 'gemini-2.0-flash' },
+  { model: 'gemini-1.5-flash' },
+];
+const MAX_ATTEMPTS_PER_MODEL = 3;
+const BACKOFF_MS = [0, 5000, 15000];
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -16,7 +18,7 @@ function sleep(ms: number) {
 function getClient() {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) throw new Error('[ai/generate] Missing GOOGLE_AI_API_KEY');
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenerativeAI(apiKey);
 }
 
 function isRetryable(err: Error): boolean {
@@ -26,8 +28,7 @@ function isRetryable(err: Error): boolean {
     msg.includes('unavailable') ||
     msg.includes('overloaded') ||
     msg.includes('high demand') ||
-    msg.includes('429') ||
-    msg.includes('quota')
+    msg.includes('429')
   );
 }
 
@@ -47,52 +48,55 @@ export async function generateDistribution(
 
   let totalTokens = 0;
   let lastError: Error | null = null;
+  let globalAttempt = 0;
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    if (BACKOFF_MS[attempt - 1] > 0) {
-      console.log(`[ai/generate] attempt ${attempt} — waiting ${BACKOFF_MS[attempt - 1]}ms`);
-      await sleep(BACKOFF_MS[attempt - 1]);
-    }
+  for (const { model } of MODEL_CONFIGS) {
+    const genModel = client.getGenerativeModel({
+      model,
+      generationConfig: { responseMimeType: 'application/json' },
+    });
 
-    try {
-      console.log(`[ai/generate] model=${MODEL} attempt=${attempt}/${MAX_ATTEMPTS}`);
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_MODEL; attempt++) {
+      const backoff = BACKOFF_MS[attempt - 1] ?? 0;
+      if (backoff > 0) {
+        console.log(`[ai/generate] model=${model} waiting ${backoff}ms before attempt ${attempt}`);
+        await sleep(backoff);
+      }
+      globalAttempt++;
 
-      const response = await client.models.generateContent({
-        model: MODEL,
-        contents: prompt,
-        config: { responseMimeType: 'application/json' },
-      });
+      try {
+        console.log(`[ai/generate] model=${model} attempt=${attempt}/${MAX_ATTEMPTS_PER_MODEL}`);
 
-      totalTokens += response.usageMetadata?.totalTokenCount ?? 0;
+        const result = await genModel.generateContent(prompt);
+        const raw = result.response.text();
+        if (!raw) throw new Error('Gemini devolvió respuesta vacía');
 
-      const raw = response.text;
-      if (!raw) throw new Error('Gemini devolvió respuesta vacía');
+        totalTokens += result.response.usageMetadata?.totalTokenCount ?? 0;
 
-      const cleaned = raw.trim()
-        .replace(/^```(?:json)?\s*/i, '')
-        .replace(/\s*```$/i, '');
+        const cleaned = raw.trim()
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/i, '');
 
-      const parsed = JSON.parse(cleaned);
-      const content = validateGeneratedContent(parsed);
+        const parsed = JSON.parse(cleaned);
+        const content = validateGeneratedContent(parsed);
 
-      return {
-        content,
-        metadata: {
-          model: MODEL,
-          tokens_used: totalTokens,
-          generated_at: new Date().toISOString(),
-          attempts: attempt,
-        },
-      };
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      console.error(`[ai/generate] attempt ${attempt} failed:`, lastError.message);
+        return {
+          content,
+          metadata: {
+            model,
+            tokens_used: totalTokens,
+            generated_at: new Date().toISOString(),
+            attempts: globalAttempt,
+          },
+        };
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        console.error(`[ai/generate] model=${model} attempt=${attempt} failed:`, lastError.message);
 
-      if (!isRetryable(lastError)) {
-        throw lastError;
+        if (!isRetryable(lastError)) break;
       }
     }
   }
 
-  throw lastError ?? new Error('[ai/generate] Máximo de intentos alcanzado');
+  throw lastError ?? new Error('[ai/generate] Todos los modelos fallaron');
 }

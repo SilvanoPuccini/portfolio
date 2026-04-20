@@ -16,7 +16,7 @@
     "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
-    "@google/genai": "^1.50.1",
+    "@google/generative-ai": "^0.24.1",
     "@next/mdx": "^16.2.3",
     "@sparticuz/chromium": "^147.0.2",
     "@supabase/supabase-js": "^2.103.3",
