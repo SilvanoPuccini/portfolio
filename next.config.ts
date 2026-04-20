@@ -13,7 +13,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pdfjs-dist"],
+  serverExternalPackages: ["pdfjs-dist", "puppeteer-core", "@sparticuz/chromium"],
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;
