@@ -170,36 +170,40 @@ export async function sendWelcomeEmail(email: string) {
     <!-- Body -->
     <div style="padding:40px 32px;">
 
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.08em;margin:0 0 8px;">Hola,</p>
-      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#ffffff;line-height:1.25;margin:0 0 16px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#8c909f;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 10px;">Hola,</p>
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
 
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 20px;">Te suscribiste a:</p>
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;">Te suscribiste a:</p>
 
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 12px;">
-        El blog de <strong style="color:#f0f0f0;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 12px;">
+        El blog de <strong style="color:#ffffff;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.
       </p>
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
-        Vas a recibir <strong style="color:#f0f0f0;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 28px;">
+        Vas a recibir <strong style="color:#ffffff;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.
       </p>
 
       <!-- Lo que vas a encontrar -->
-      <div style="background:#111120;border:1px solid #1e293b;border-radius:8px;padding:18px 22px;margin-bottom:28px;">
-        <p style="font-size:10px;font-family:monospace;color:#00d4d4;margin:0 0 12px;letter-spacing:0.12em;text-transform:uppercase;">Lo que vas a encontrar</p>
-        <p style="font-size:13px;color:#94a3b8;margin:6px 0;">→ Performance real — Web Vitals, optimización y arquitectura</p>
-        <p style="font-size:13px;color:#94a3b8;margin:6px 0;">→ Producto — qué funciona, qué no, y por qué</p>
-        <p style="font-size:13px;color:#94a3b8;margin:6px 0;">→ Automatización con IA — herramientas en proyectos reales</p>
+      <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;margin-bottom:32px;">
+        <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
+          <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;color:#00d4d4;letter-spacing:0.14em;text-transform:uppercase;">Lo que vas a encontrar</span>
+        </div>
+        <div style="padding:16px 20px;">
+          <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);margin:0 0 8px;">→ Performance real — Web Vitals, optimización y arquitectura</p>
+          <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);margin:0 0 8px;">→ Producto — qué funciona, qué no, y por qué</p>
+          <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);margin:0;">→ Automatización con IA — herramientas en proyectos reales</p>
+        </div>
       </div>
 
       <!-- CTAs -->
       <table cellpadding="0" cellspacing="0">
         <tr>
           <td style="padding-bottom:12px;">
-            <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
+            <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#050810;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;padding:13px 26px;border-radius:8px;text-decoration:none;letter-spacing:0.04em;">Ver el blog →</a>
           </td>
         </tr>
         <tr>
           <td>
-            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:#94a3b8;font-size:13px;font-weight:500;padding:12px 24px;border-radius:6px;text-decoration:none;border:1px solid #1e293b;">Seguime en LinkedIn →</a>
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:rgba(221,226,248,0.8);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;padding:13px 26px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,0.07);">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
