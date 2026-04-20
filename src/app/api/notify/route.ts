@@ -46,11 +46,17 @@ function buildEmail(opts: {
           <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
         </tr>
       </table>
-      <!-- El Radar en una sola línea -->
-      <div style="margin:0 0 4px;">
-        <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;vertical-align:middle;">El</span>
-        <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;vertical-align:middle;margin-left:5px;">Radar</span>
-      </div>
+      <!-- El Radar en una sola línea — tabla para compatibilidad mobile -->
+      <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
+        <tr>
+          <td style="vertical-align:bottom;padding-bottom:2px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+          </td>
+          <td style="vertical-align:bottom;padding-left:5px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+          </td>
+        </tr>
+      </table>
       <!-- tagline sin líneas -->
       <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
         arquitectura · código · producto
