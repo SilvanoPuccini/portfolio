@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createDistribution } from '@/lib/distribution/orchestrator';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutos — necesario para IA + render con Puppeteer
 
 function isAuthorized(req: NextRequest) {
   return req.headers.get('authorization') === `Bearer ${process.env.NOTIFY_SECRET}`;
