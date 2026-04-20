@@ -99,16 +99,16 @@ function buildEmail(opts: {
         </table>
 
         <!-- Card body -->
-        <div style="padding:28px 24px 24px;">
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px;letter-spacing:-0.01em;">
+        <div style="padding:32px 24px 28px;">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">
             ${opts.title}
           </h2>
-          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;border-left:2px solid ${cat.text};padding-left:14px;">
+          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 28px;border-left:2px solid ${cat.text};padding-left:14px;">
             ${opts.excerpt}
           </p>
 
           <!-- Meta + CTA en misma fila -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">
             <tr>
               <td style="vertical-align:middle;">
                 <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8c909f;letter-spacing:0.06em;">
