@@ -71,11 +71,11 @@ function buildEmail(opts: {
     <div style="padding:40px 32px;">
 
       <!-- Eyebrow línea 1: NUEVA NOTA · Nº -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 6px;text-align:center;">
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 10px;text-align:center;">
         NUEVA NOTA · Nº ${opts.issue}
       </p>
       <!-- Eyebrow línea 2: keyword con color de categoría -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:${cat.text};letter-spacing:0.2em;text-transform:uppercase;margin:0 0 32px;text-align:center;">
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:${cat.text};letter-spacing:0.2em;text-transform:uppercase;margin:0 0 44px;text-align:center;">
         ${opts.keyword.toUpperCase()}
       </p>
 
@@ -83,10 +83,10 @@ function buildEmail(opts: {
       <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
 
         <!-- Card header: categoría + número -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
           <tr>
             <td>
-              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:3px 10px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">
+              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:4px 12px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">
                 ${opts.category}
               </span>
             </td>
@@ -99,24 +99,24 @@ function buildEmail(opts: {
         </table>
 
         <!-- Card body -->
-        <div style="padding:20px;">
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 12px;letter-spacing:-0.01em;">
+        <div style="padding:28px 24px 24px;">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px;letter-spacing:-0.01em;">
             ${opts.title}
           </h2>
-          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 16px;border-left:2px solid ${cat.text};padding-left:14px;">
+          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;border-left:2px solid ${cat.text};padding-left:14px;">
             ${opts.excerpt}
           </p>
 
           <!-- Meta + CTA en misma fila -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;margin-top:4px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
             <tr>
               <td style="vertical-align:middle;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#8c909f;letter-spacing:0.1em;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:12px;color:#8c909f;letter-spacing:0.1em;">
                   ${opts.readingTime} · ${opts.date}
                 </span>
               </td>
               <td style="text-align:right;vertical-align:middle;">
-                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;text-decoration:none;letter-spacing:0.1em;">
+                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#00d4d4;text-decoration:none;letter-spacing:0.08em;">
                   Leer más →
                 </a>
               </td>
