@@ -162,7 +162,7 @@ export async function sendWelcomeEmail(email: string) {
       <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
         arquitectura · código · producto
       </div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:9px;color:#00d4d4;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;">
         Silvano Puccini · Full Stack Dev
       </div>
     </div>
@@ -214,7 +214,7 @@ export async function sendWelcomeEmail(email: string) {
         </tr>
         <tr>
           <td>
-            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:rgba(221,226,248,0.8);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;padding:13px 26px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,0.07);">Seguime en LinkedIn →</a>
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:rgba(221,226,248,0.8);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;padding:13px 26px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,0.25);">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
@@ -222,8 +222,8 @@ export async function sendWelcomeEmail(email: string) {
     </div>
 
     <!-- Footer -->
-    <div style="padding:20px 32px 24px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar.</p>
+    <div style="padding:16px 20px 20px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.6;white-space:nowrap;">Recibís este email porque te suscribiste a El Radar.</p>
       <a href="${unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
     </div>
 
