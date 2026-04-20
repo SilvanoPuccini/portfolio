@@ -111,12 +111,12 @@ function buildEmail(opts: {
           <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
             <tr>
               <td style="vertical-align:middle;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-size:12px;color:#8c909f;letter-spacing:0.1em;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8c909f;letter-spacing:0.06em;">
                   ${opts.readingTime} · ${opts.date}
                 </span>
               </td>
               <td style="text-align:right;vertical-align:middle;">
-                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#00d4d4;text-decoration:none;letter-spacing:0.08em;">
+                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#00d4d4;text-decoration:none;letter-spacing:0.04em;">
                   Leer más →
                 </a>
               </td>
