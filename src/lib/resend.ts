@@ -126,50 +126,91 @@ export async function sendWelcomeEmail(email: string) {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
   const unsubUrl = `${SITE_URL}/unsubscribe?email=${encodeURIComponent(email)}`;
 
-  const body = `
-<p style="font-family:monospace;font-size:12px;color:${T.textTertiary};margin:0 0 10px;">Hola,</p>
-<h1 style="font-size:22px;font-weight:700;color:${T.textPrimary};margin:0 0 6px;">Me alegra que estés acá.</h1>
-<div style="width:32px;height:2px;background:${T.brand};margin:16px 0 20px;"></div>
-<p style="font-size:14px;color:${T.textSecondary};line-height:1.7;margin:0 0 20px;">Te suscribiste a:</p>
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>El Radar</title>
+</head>
+<body style="margin:0;padding:40px 16px;background:#050810;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
 
-${radarLogo()}
+  <div style="max-width:580px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-<p style="font-size:14px;color:${T.textSecondary};line-height:1.7;margin:0 0 12px;">
-  El blog de <strong style="color:${T.textPrimary};">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.
-</p>
-<p style="font-size:14px;color:${T.textSecondary};line-height:1.7;margin:0 0 24px;">
-  Vas a recibir <strong style="color:${T.textPrimary};">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.
-</p>
+    <!-- Top accent line -->
+    <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
 
-<div style="background:${T.surfaceDim};border:1px solid ${T.border};border-radius:8px;padding:18px 22px;margin-bottom:28px;">
-  <p style="font-size:10px;font-family:monospace;color:${T.brand};margin:0 0 12px;letter-spacing:0.12em;text-transform:uppercase;">Lo que vas a encontrar</p>
-  <p style="font-size:13px;color:${T.textSecondary};margin:6px 0;">→ Performance real — Web Vitals, optimización y arquitectura</p>
-  <p style="font-size:13px;color:${T.textSecondary};margin:6px 0;">→ Producto — qué funciona, qué no, y por qué</p>
-  <p style="font-size:13px;color:${T.textSecondary};margin:6px 0;">→ Automatización con IA — herramientas en proyectos reales</p>
-</div>
+    <!-- Header — logo El Radar -->
+    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+        <tr>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+        </tr>
+      </table>
+      <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
+        <tr>
+          <td style="vertical-align:bottom;padding-bottom:2px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+          </td>
+          <td style="vertical-align:bottom;padding-left:5px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+          </td>
+        </tr>
+      </table>
+      <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
+        arquitectura · código · producto
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+        Silvano Puccini · Full Stack Dev
+      </div>
+    </div>
 
-<table width="100%" cellpadding="0" cellspacing="0">
-  <tr>
-    <td style="padding-bottom:12px;">
-      <a href="${SITE_URL}/es/blog" style="display:inline-block;background:${T.brand};color:${T.brandDark};font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:${T.textSecondary};font-size:13px;font-weight:500;padding:12px 24px;border-radius:6px;text-decoration:none;border:1px solid ${T.border};">Seguime en LinkedIn →</a>
-    </td>
-  </tr>
-</table>
+    <!-- Body -->
+    <div style="padding:40px 32px;">
 
-<p style="font-size:13px;color:${T.textTertiary};margin:28px 0 0;line-height:1.65;">
-  Si tenés alguna pregunta o querés proponer un tema, respondé este mail directamente — leo todo.<br><br>
-  Un abrazo,<br><span style="color:${T.textSecondary};">Silvano</span>
-</p>`;
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.08em;margin:0 0 8px;">Hola,</p>
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#ffffff;line-height:1.25;margin:0 0 24px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
+
+      <!-- Quote / description block -->
+      <div style="border-left:2px solid #00d4d4;padding:16px 20px;margin:0 0 28px;background:rgba(0,212,212,0.04);border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0;font-style:italic;">
+          Decisiones reales de desarrollo — sin relleno, sin tutoriales de introducción. Cada nota es una restricción concreta, una decisión tomada, y su consecuencia.
+        </p>
+      </div>
+
+      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 32px;">
+        Vas a recibir <span style="color:#ffffff;font-weight:600;">1–2 notas por semana</span> sobre performance, producto y automatización. Sin spam — solo cuando hay algo que valga la pena documentar.
+      </p>
+
+      <!-- CTA button -->
+      <table cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
+        <tr>
+          <td style="border-radius:8px;background:linear-gradient(135deg,#00d4d4 0%,#0099aa 100%);">
+            <a href="${SITE_URL}/es/blog" style="display:inline-block;padding:14px 28px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;">
+              Ver el blog →
+            </a>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:20px 32px 24px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar.</p>
+      <a href="${unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
+    </div>
+
+  </div>
+</body>
+</html>`;
 
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: 'Bienvenido a El Radar — Silvano Puccini',
-    html: emailShell(body, unsubUrl),
+    subject: 'Bienvenido a El Radar',
+    html,
   });
 }
