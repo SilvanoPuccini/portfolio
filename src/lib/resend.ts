@@ -141,30 +141,17 @@ export async function sendWelcomeEmail(email: string) {
     <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
 
     <!-- Header — logo El Radar -->
-    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+    <div style="padding:28px 32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
+      <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
         <tr>
-          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
-          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-        </tr>
-      </table>
-      <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
-        <tr>
-          <td style="vertical-align:bottom;padding-bottom:2px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+          <td style="vertical-align:bottom;padding-bottom:3px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
           </td>
-          <td style="vertical-align:bottom;padding-left:5px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+          <td style="vertical-align:bottom;padding-left:6px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
           </td>
         </tr>
       </table>
-      <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
-        arquitectura · código · producto
-      </div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
-        Silvano Puccini · Full Stack Dev
-      </div>
     </div>
 
     <!-- Body -->
