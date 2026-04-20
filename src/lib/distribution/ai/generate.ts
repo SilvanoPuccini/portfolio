@@ -4,7 +4,9 @@ import { validateGeneratedContent } from './schema-validator';
 import type { GeneratedContent, AIMetadata } from '../types';
 
 // Fallback en orden: si el primero falla por 503/429, intenta el siguiente
-const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+// 1.5-flash: 1500 req/día free tier, estable
+// 1.5-pro: 50 req/día free tier, diferente pool de capacidad
+const MODELS = ['gemini-1.5-flash', 'gemini-1.5-pro'];
 const MAX_ATTEMPTS_PER_MODEL = 2;
 const BACKOFF_MS = [0, 3000, 8000, 15000];
 
