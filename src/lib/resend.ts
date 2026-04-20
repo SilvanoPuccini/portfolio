@@ -171,26 +171,35 @@ export async function sendWelcomeEmail(email: string) {
     <div style="padding:40px 32px;">
 
       <p style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.08em;margin:0 0 8px;">Hola,</p>
-      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#ffffff;line-height:1.25;margin:0 0 24px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#ffffff;line-height:1.25;margin:0 0 16px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
 
-      <!-- Quote / description block -->
-      <div style="border-left:2px solid #00d4d4;padding:16px 20px;margin:0 0 28px;background:rgba(0,212,212,0.04);border-radius:0 8px 8px 0;">
-        <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0;font-style:italic;">
-          Decisiones reales de desarrollo — sin relleno, sin tutoriales de introducción. Cada nota es una restricción concreta, una decisión tomada, y su consecuencia.
-        </p>
-      </div>
+      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 20px;">Te suscribiste a:</p>
 
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 32px;">
-        Vas a recibir <span style="color:#ffffff;font-weight:600;">1–2 notas por semana</span> sobre performance, producto y automatización. Sin spam — solo cuando hay algo que valga la pena documentar.
+      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 12px;">
+        El blog de <strong style="color:#f0f0f0;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.
+      </p>
+      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
+        Vas a recibir <strong style="color:#f0f0f0;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.
       </p>
 
-      <!-- CTA button -->
-      <table cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
+      <!-- Lo que vas a encontrar -->
+      <div style="background:#111120;border:1px solid #1e293b;border-radius:8px;padding:18px 22px;margin-bottom:28px;">
+        <p style="font-size:10px;font-family:monospace;color:#00d4d4;margin:0 0 12px;letter-spacing:0.12em;text-transform:uppercase;">Lo que vas a encontrar</p>
+        <p style="font-size:13px;color:#94a3b8;margin:6px 0;">→ Performance real — Web Vitals, optimización y arquitectura</p>
+        <p style="font-size:13px;color:#94a3b8;margin:6px 0;">→ Producto — qué funciona, qué no, y por qué</p>
+        <p style="font-size:13px;color:#94a3b8;margin:6px 0;">→ Automatización con IA — herramientas en proyectos reales</p>
+      </div>
+
+      <!-- CTAs -->
+      <table cellpadding="0" cellspacing="0">
         <tr>
-          <td style="border-radius:8px;background:linear-gradient(135deg,#00d4d4 0%,#0099aa 100%);">
-            <a href="${SITE_URL}/es/blog" style="display:inline-block;padding:14px 28px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;">
-              Ver el blog →
-            </a>
+          <td style="padding-bottom:12px;">
+            <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#0a0a12;font-size:13px;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;">Ver el blog →</a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:#94a3b8;font-size:13px;font-weight:500;padding:12px 24px;border-radius:6px;text-decoration:none;border:1px solid #1e293b;">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
