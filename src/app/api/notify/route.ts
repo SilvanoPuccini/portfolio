@@ -70,13 +70,13 @@ function buildEmail(opts: {
     <!-- Content -->
     <div style="padding:40px 32px;">
 
-      <!-- Eyebrow línea 1: NUEVA NOTA · Nº -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#00d4d4;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 10px;text-align:center;">
-        NUEVA NOTA · Nº ${opts.issue}
-      </p>
-      <!-- Eyebrow línea 2: keyword con color de categoría -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:${cat.text};letter-spacing:0.2em;text-transform:uppercase;margin:0 0 44px;text-align:center;">
-        ${opts.keyword.toUpperCase()}
+      <!-- Eyebrow: todo en una línea -->
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 44px;text-align:center;line-height:1.6;">
+        <span style="color:#94a3b8;">El Radar</span>
+        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
+        <span style="color:#00d4d4;">Nueva nota · Nº ${opts.issue}</span>
+        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
+        <span style="color:${cat.text};">${opts.keyword.toUpperCase()}</span>
       </p>
 
       <!-- Card del post -->
