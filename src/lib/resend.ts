@@ -141,17 +141,30 @@ export async function sendWelcomeEmail(email: string) {
     <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
 
     <!-- Header — logo El Radar -->
-    <div style="padding:28px 32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
-      <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
         <tr>
-          <td style="vertical-align:bottom;padding-bottom:3px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+          <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+        </tr>
+      </table>
+      <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
+        <tr>
+          <td style="vertical-align:bottom;padding-bottom:2px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
           </td>
-          <td style="vertical-align:bottom;padding-left:6px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+          <td style="vertical-align:bottom;padding-left:5px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
           </td>
         </tr>
       </table>
+      <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
+        arquitectura · código · producto
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+        Silvano Puccini · Full Stack Dev
+      </div>
     </div>
 
     <!-- Body -->
@@ -160,16 +173,15 @@ export async function sendWelcomeEmail(email: string) {
       <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#8c909f;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 10px;">Hola,</p>
       <h1 style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
 
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 16px;">Te suscribiste a:</p>
-
-      <!-- El Radar inline -->
+      <!-- Te suscribiste a: El Radar — misma línea -->
       <table cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
         <tr>
-          <td style="vertical-align:bottom;padding-bottom:2px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+          <td style="vertical-align:middle;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;">Te suscribiste a:</span>
           </td>
-          <td style="vertical-align:bottom;padding-left:5px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+          <td style="vertical-align:middle;padding-left:8px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.28em;text-transform:uppercase;">El</span>
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;margin-left:3px;">Radar</span>
           </td>
         </tr>
       </table>
@@ -211,7 +223,7 @@ export async function sendWelcomeEmail(email: string) {
 
     <!-- Footer -->
     <div style="padding:20px 32px 24px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar</p>
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar.</p>
       <a href="${unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
     </div>
 
