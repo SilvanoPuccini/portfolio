@@ -29,12 +29,15 @@ function fmtDate(dateStr: string) {
   return `${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+const PAGE_SIZE = 10;
+
 export default function NewsletterPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [history, setHistory] = useState<Newsletter[]>([]);
   const [selected, setSelected] = useState<Post | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [histPage, setHistPage] = useState(0);
 
   const load = useCallback(async () => {
     const [postsRes, historyRes] = await Promise.all([
@@ -192,21 +195,60 @@ export default function NewsletterPage() {
         </form>
 
         {/* History */}
-        <div style={s.card}>
-          <p style={s.sectionTitle}>Historial enviados</p>
+        <div style={{ ...s.card, padding: '14px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <p style={{ ...s.sectionTitle, margin: 0 }}>Historial enviados</p>
+            {history.length > 0 && (
+              <span style={{ fontSize: 11, color: '#475569' }}>
+                {history.length} envío{history.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
           {history.length === 0
-            ? <p style={{ color: '#475569', fontSize: 13 }}>Todavía no enviaste ningún newsletter.</p>
-            : history.map((n) => (
-              <div key={n.id} style={{ padding: '12px 0', borderBottom: '1px solid #1e293b' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', margin: '0 0 4px' }}>{n.title}</p>
-                  <span style={{ fontSize: 11, color: '#00d4d4', background: 'rgba(0,212,212,0.08)', padding: '2px 8px', borderRadius: 20, whiteSpace: 'nowrap', marginLeft: 8 }}>
-                    {n.recipients_count} dest.
-                  </span>
-                </div>
-                <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{fmt(n.sent_at)}</p>
-              </div>
-            ))}
+            ? <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Todavía no enviaste ningún newsletter.</p>
+            : (() => {
+                const totalPages = Math.ceil(history.length / PAGE_SIZE);
+                const page = history.slice(histPage * PAGE_SIZE, (histPage + 1) * PAGE_SIZE);
+                return (
+                  <>
+                    {page.map((n) => (
+                      <div key={n.id} style={{ padding: '9px 0', borderBottom: '1px solid #1a2236' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                          <p style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', margin: '0 0 2px', lineHeight: 1.35 }}>{n.title}</p>
+                          <span style={{ fontSize: 10, color: '#00d4d4', background: 'rgba(0,212,212,0.08)', padding: '2px 7px', borderRadius: 20, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            {n.recipients_count} dest.
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 10, color: '#475569', margin: 0 }}>{fmt(n.sent_at)}</p>
+                      </div>
+                    ))}
+
+                    {totalPages > 1 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, marginTop: 2 }}>
+                        <button
+                          onClick={() => setHistPage((p) => Math.max(0, p - 1))}
+                          disabled={histPage === 0}
+                          style={{ background: 'none', border: 'none', color: histPage === 0 ? '#2a3a50' : '#475569', cursor: histPage === 0 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
+                        >
+                          ← Ant.
+                        </button>
+                        <span style={{ fontSize: 11, color: '#475569' }}>
+                          {histPage + 1} / {totalPages}
+                        </span>
+                        <button
+                          onClick={() => setHistPage((p) => Math.min(totalPages - 1, p + 1))}
+                          disabled={histPage === totalPages - 1}
+                          style={{ background: 'none', border: 'none', color: histPage === totalPages - 1 ? '#2a3a50' : '#475569', cursor: histPage === totalPages - 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
+                        >
+                          Sig. →
+                        </button>
+                      </div>
+                    )}
+                  </>
+                );
+              })()
+          }
         </div>
 
       </div>
