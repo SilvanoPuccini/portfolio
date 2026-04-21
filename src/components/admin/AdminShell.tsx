@@ -40,6 +40,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   }
 
   function handleLogout() {
+    if (!confirm('¿Cerrár sesión?')) return;
     sessionStorage.removeItem(SESSION_KEY);
     setAuthed(false);
     setPassword('');
