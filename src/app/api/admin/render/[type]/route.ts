@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { renderCarouselImages } from '@/lib/distribution/renderer/render';
-import type { Slide } from '@/lib/distribution/types';
+import type { Slide, LinkedInSlide } from '@/lib/distribution/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,13 +26,13 @@ export async function POST(
     return NextResponse.json({ error: 'type debe ser linkedin o instagram' }, { status: 400 });
   }
 
-  let slides: Slide[];
+  let slides: LinkedInSlide[] | Slide[];
   try {
-    const body = await req.json() as { slides?: Slide[] };
+    const body = await req.json() as { slides?: (LinkedInSlide | Slide)[] };
     if (!body.slides?.length) {
       return NextResponse.json({ error: 'slides requerido' }, { status: 400 });
     }
-    slides = body.slides;
+    slides = body.slides as LinkedInSlide[] | Slide[];
   } catch {
     return NextResponse.json({ error: 'Body inválido' }, { status: 400 });
   }

@@ -2,7 +2,7 @@
 // Distribution system — core types
 // ============================================================
 
-// ── Slide ────────────────────────────────────────────────────
+// ── Slide (Instagram / generic) ──────────────────────────────
 
 export type SlideType = 'hook' | 'content' | 'cta';
 
@@ -12,10 +12,36 @@ export interface Slide {
   body: string;
 }
 
+// ── LinkedIn slide (richer 9-slide structure) ─────────────────
+
+export type LinkedInSlideType =
+  | 'portada'
+  | 'problema'
+  | 'idea'
+  | 'resumen'
+  | 'engagement'
+  | 'cta';
+
+export interface LinkedInSlide {
+  type: LinkedInSlideType;
+  headline: string;
+  body: string;
+  // portada
+  tag?: string;
+  subtitle?: string;
+  // problema
+  pills?: string[];
+  // idea (1-4)
+  icon_num?: number;
+  code_snippet?: string;
+  // resumen
+  points?: string[];
+}
+
 // ── Platform content ─────────────────────────────────────────
 
 export interface LinkedInContent {
-  slides: Slide[];
+  slides: LinkedInSlide[];
   caption: string;
   hashtags: string[];
 }
