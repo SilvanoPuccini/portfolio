@@ -2,12 +2,12 @@ import { launchBrowser } from './puppeteer-setup';
 import { renderLinkedInSlide } from './linkedin-templates';
 import { renderInstagramSlide } from './instagram-templates';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import type { Slide } from '../types';
+import type { Slide, LinkedInSlide } from '../types';
 
 // ── Render a PNG buffer per slide ─────────────────────────────
 
 export async function renderCarouselImages(
-  slides: Slide[],
+  slides: LinkedInSlide[] | Slide[],
   platform: 'linkedin' | 'instagram'
 ): Promise<Buffer[]> {
   const browser = await launchBrowser();
@@ -20,8 +20,8 @@ export async function renderCarouselImages(
 
       const html =
         platform === 'linkedin'
-          ? renderLinkedInSlide(slides[i], i + 1, slides.length)
-          : renderInstagramSlide(slides[i], i + 1, slides.length);
+          ? renderLinkedInSlide(slides[i] as LinkedInSlide, i + 1, slides.length)
+          : renderInstagramSlide(slides[i] as Slide, i + 1, slides.length);
 
       // networkidle0 espera a que las Google Fonts carguen
       await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
@@ -70,7 +70,7 @@ export async function uploadCarouselImages(
 
 export async function renderAndUpload(
   distributionId: string,
-  slides: Slide[],
+  slides: LinkedInSlide[] | Slide[],
   platform: 'linkedin' | 'instagram'
 ): Promise<string[]> {
   const buffers = await renderCarouselImages(slides, platform);

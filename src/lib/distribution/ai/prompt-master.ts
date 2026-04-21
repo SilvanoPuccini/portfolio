@@ -21,34 +21,61 @@ FORMATO DE RESPUESTA (JSON estricto):
   "linkedin": {
     "slides": [
       {
-        "type": "hook",
-        "headline": "string — máx 8 palabras, debe generar curiosidad",
-        "body": "string — 2-3 líneas cortas, establece la tensión"
+        "type": "portada",
+        "tag": "string — categoría en mayúsculas, ej: ARQUITECTURA / TYPESCRIPT / PERFORMANCE",
+        "headline": "string — título principal, máx 8 palabras, la palabra más importante va sola",
+        "subtitle": "string — una línea que resume qué van a aprender, máx 12 palabras",
+        "body": "string — igual al subtitle, se puede repetir o variar levemente"
       },
       {
-        "type": "content",
-        "headline": "string — título de la idea, máx 6 palabras",
-        "body": "string — 4-6 líneas cortas, una sola idea por slide, 800-1200 chars total"
+        "type": "problema",
+        "headline": "string — el problema en una frase directa, máx 8 palabras",
+        "body": "string — 3-4 líneas que describen el dolor concreto del developer",
+        "pills": ["string — 3 a 5 pills cortas de 1-3 palabras que etiquetan el problema"]
       },
       {
-        "type": "content",
+        "type": "idea",
+        "icon_num": 1,
+        "headline": "string — nombre de la solución/idea, máx 6 palabras",
+        "body": "string — 4-6 líneas explicando la idea. Puede incluir código inline.",
+        "code_snippet": "string opcional — una línea de código si aplica, vacío si no"
+      },
+      {
+        "type": "idea",
+        "icon_num": 2,
         "headline": "string",
-        "body": "string"
+        "body": "string — 4-6 líneas",
+        "code_snippet": "string opcional"
       },
       {
-        "type": "content",
+        "type": "idea",
+        "icon_num": 3,
         "headline": "string",
-        "body": "string"
+        "body": "string — 4-6 líneas",
+        "code_snippet": "string opcional"
       },
       {
-        "type": "content",
+        "type": "idea",
+        "icon_num": 4,
         "headline": "string",
-        "body": "string"
+        "body": "string — 4-6 líneas",
+        "code_snippet": "string opcional"
+      },
+      {
+        "type": "resumen",
+        "headline": "string — título del resumen, ej: 'Los 4 aprendizajes clave'",
+        "body": "string — una línea introductoria al resumen",
+        "points": ["string — 4 puntos concisos de 8-12 palabras, sin el símbolo →"]
+      },
+      {
+        "type": "engagement",
+        "headline": "string — pregunta de engagement al lector, directa y específica",
+        "body": "string — 1-2 líneas invitando a comentar o reflexionar"
       },
       {
         "type": "cta",
-        "headline": "string — resumen o pregunta final",
-        "body": "string — cierre + invitación a suscribirse al newsletter El Radar"
+        "headline": "string — llamada a la acción principal, ej: 'Suscribite a El Radar'",
+        "body": "string — 2-3 líneas describiendo qué van a recibir en el newsletter"
       }
     ],
     "caption": "string — 2-3 líneas de gancho para el feed, antes del carousel. No repetir el headline del slide 1.",

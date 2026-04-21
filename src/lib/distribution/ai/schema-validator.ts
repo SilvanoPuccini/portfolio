@@ -1,7 +1,21 @@
 import { z } from 'zod';
 import type { GeneratedContent } from '../types';
 
-// ── Slide schema ─────────────────────────────────────────────
+// ── LinkedIn slide schema (9-slide fixed structure) ───────────
+
+const LinkedInSlideSchema = z.object({
+  type: z.enum(['portada', 'problema', 'idea', 'resumen', 'engagement', 'cta']),
+  headline: z.string().min(1),
+  body: z.string().min(1),
+  tag: z.string().optional(),
+  subtitle: z.string().optional(),
+  pills: z.array(z.string()).optional(),
+  icon_num: z.number().int().min(1).max(4).optional(),
+  code_snippet: z.string().optional(),
+  points: z.array(z.string()).optional(),
+});
+
+// ── Instagram slide schema (simpler) ─────────────────────────
 
 const SlideSchema = z.object({
   type: z.enum(['hook', 'content', 'cta']),
@@ -13,14 +27,17 @@ const SlideSchema = z.object({
 
 const LinkedInSchema = z.object({
   slides: z
-    .array(SlideSchema)
-    .min(4, 'LinkedIn debe tener al menos 4 slides')
-    .max(8, 'LinkedIn no puede tener más de 8 slides')
-    .refine((slides) => slides[0]?.type === 'hook', 'El primer slide debe ser hook')
-    .refine(
-      (slides) => slides[slides.length - 1]?.type === 'cta',
-      'El último slide debe ser cta'
-    ),
+    .array(LinkedInSlideSchema)
+    .length(9, 'LinkedIn debe tener exactamente 9 slides')
+    .refine((s) => s[0]?.type === 'portada', 'Slide 1 debe ser portada')
+    .refine((s) => s[1]?.type === 'problema', 'Slide 2 debe ser problema')
+    .refine((s) => s[2]?.type === 'idea', 'Slide 3 debe ser idea')
+    .refine((s) => s[3]?.type === 'idea', 'Slide 4 debe ser idea')
+    .refine((s) => s[4]?.type === 'idea', 'Slide 5 debe ser idea')
+    .refine((s) => s[5]?.type === 'idea', 'Slide 6 debe ser idea')
+    .refine((s) => s[6]?.type === 'resumen', 'Slide 7 debe ser resumen')
+    .refine((s) => s[7]?.type === 'engagement', 'Slide 8 debe ser engagement')
+    .refine((s) => s[8]?.type === 'cta', 'Slide 9 debe ser cta'),
   caption: z.string().min(10),
   hashtags: z
     .array(z.string().regex(/^[^#\s]/, 'Los hashtags no deben incluir el símbolo #'))
