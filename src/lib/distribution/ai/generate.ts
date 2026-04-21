@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { jsonrepair } from 'jsonrepair';
 import { MASTER_PROMPT } from './prompt-master';
 import { validateGeneratedContent } from './schema-validator';
 import type { GeneratedContent, AIMetadata } from '../types';
@@ -78,7 +79,7 @@ export async function generateDistribution(
           .replace(/^```(?:json)?\s*/i, '')
           .replace(/\s*```$/i, '');
 
-        const parsed = JSON.parse(cleaned);
+        const parsed = JSON.parse(jsonrepair(cleaned));
         const content = validateGeneratedContent(parsed);
 
         return {
