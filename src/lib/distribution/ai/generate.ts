@@ -3,13 +3,16 @@ import { MASTER_PROMPT } from './prompt-master';
 import { validateGeneratedContent } from './schema-validator';
 import type { GeneratedContent, AIMetadata } from '../types';
 
-// SDK estable — soporta gemini-2.0-flash y gemini-1.5-flash correctamente
+// Modelos disponibles confirmados por debug (2025-04)
+// 2.5-flash: funciona, puede tener 503 en picos de demanda
+// 2.0-flash y 2.0-flash-lite: existen, quota diaria free tier
 const MODEL_CONFIGS = [
+  { model: 'gemini-2.5-flash' },
   { model: 'gemini-2.0-flash' },
-  { model: 'gemini-1.5-flash' },
+  { model: 'gemini-2.0-flash-lite' },
 ];
-const MAX_ATTEMPTS_PER_MODEL = 3;
-const BACKOFF_MS = [0, 5000, 15000];
+const MAX_ATTEMPTS_PER_MODEL = 2;
+const BACKOFF_MS = [0, 8000, 20000];
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
