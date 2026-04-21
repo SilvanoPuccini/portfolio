@@ -4,12 +4,10 @@ import { validateGeneratedContent } from './schema-validator';
 import type { GeneratedContent, AIMetadata } from '../types';
 
 // Modelos disponibles confirmados por debug (2025-04)
-// 2.5-flash: funciona, puede tener 503 en picos de demanda
-// 2.0-flash y 2.0-flash-lite: existen, quota diaria free tier
+// 2.5-flash: único con free tier activo (limit > 0)
+// 2.0-flash y 2.0-flash-lite: limit=0 en free tier — inutilizables
 const MODEL_CONFIGS = [
   { model: 'gemini-2.5-flash' },
-  { model: 'gemini-2.0-flash' },
-  { model: 'gemini-2.0-flash-lite' },
 ];
 const MAX_ATTEMPTS_PER_MODEL = 2;
 const BACKOFF_MS = [0, 8000, 20000];
