@@ -8,7 +8,7 @@ import { DistributionRowSkeleton } from '@/components/admin/distribution/Skeleto
 
 const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
 
-type Post = { slug: string; title: string; excerpt: string };
+type Post = { slug: string; title: string; excerpt: string; issue: number };
 type StatusFilter = 'all' | DistributionStatus;
 
 const STATUS_LABELS: Record<DistributionStatus, string> = {
@@ -137,7 +137,9 @@ function NewDistributionModal({
             >
               <option value="">— Elegí un post —</option>
               {posts.map((p) => (
-                <option key={p.slug} value={p.slug}>{p.title}</option>
+                <option key={p.slug} value={p.slug}>
+                  Nº {String(p.issue).padStart(2, '0')} · {p.title}
+                </option>
               ))}
             </select>
 
