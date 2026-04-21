@@ -98,25 +98,28 @@ export async function createDistribution(slug: string): Promise<string> {
 
     await log(id, 'db_save', 'info', 'Contenido AI guardado en base de datos');
 
-    // Render imágenes LinkedIn
-    await log(id, 'render_linkedin', 'info', 'Renderizando slides LinkedIn');
-    const linkedinImages = await renderAndUpload(id, content.linkedin.slides, 'linkedin');
-    await log(id, 'render_linkedin', 'info', `${linkedinImages.length} slides LinkedIn renderizados`);
+    // Render imágenes — opcional, no bloquea si falla
+    let linkedinImages: string[] = [];
+    let instagramImages: string[] = [];
 
-    // Render imágenes Instagram
-    await log(id, 'render_instagram', 'info', 'Renderizando slides Instagram');
-    const instagramImages = await renderAndUpload(id, content.instagram.slides, 'instagram');
-    await log(id, 'render_instagram', 'info', `${instagramImages.length} slides Instagram renderizados`);
+    try {
+      await log(id, 'render_linkedin', 'info', 'Renderizando slides LinkedIn');
+      linkedinImages = await renderAndUpload(id, content.linkedin.slides, 'linkedin');
+      await log(id, 'render_linkedin', 'info', `${linkedinImages.length} slides LinkedIn renderizados`);
 
-    // Actualizar URLs de imágenes
-    const { error: imgError } = await db
-      .from('distributions')
-      .update({ linkedin_images: linkedinImages, instagram_images: instagramImages })
-      .eq('id', id);
+      await log(id, 'render_instagram', 'info', 'Renderizando slides Instagram');
+      instagramImages = await renderAndUpload(id, content.instagram.slides, 'instagram');
+      await log(id, 'render_instagram', 'info', `${instagramImages.length} slides Instagram renderizados`);
 
-    if (imgError) throw new Error(`Error al guardar URLs de imágenes: ${imgError.message}`);
+      await db.from('distributions')
+        .update({ linkedin_images: linkedinImages, instagram_images: instagramImages })
+        .eq('id', id);
 
-    await log(id, 'upload_storage', 'info', 'Imágenes subidas a Supabase Storage');
+      await log(id, 'upload_storage', 'info', 'Imágenes subidas a Supabase Storage');
+    } catch (renderErr) {
+      const msg = renderErr instanceof Error ? renderErr.message : String(renderErr);
+      await log(id, 'render_linkedin', 'warn', `Render omitido — se puede regenerar después: ${msg}`);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 
