@@ -27,8 +27,8 @@ const accentText = {
 
 const defaultCopy = {
   placeholder: "Placeholder",
-  readMore: "Leer más",
-  explore: "Explorar estudio técnico",
+  readMore: "Read more",
+  explore: "Explore technical case",
 } as const;
 
 export default function BlogCard({

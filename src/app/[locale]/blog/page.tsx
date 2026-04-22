@@ -41,6 +41,44 @@ export default async function BlogPage({
     .filter(post => post.slug !== featuredPost?.slug)
     .sort((a, b) => a.issue - b.issue);
 
+  const pageCopy = {
+    es: {
+      newsletterLabel: "Mi Newsletter",
+      featuredEyebrow: "Notas",
+      readArticle: "Leer artículo →",
+      continueTitle: "Continuar la conversación",
+      continueHeading: "Criterio editorial para mentes técnicas.",
+      subscribeHeading: "Suscríbete a El Radar.",
+      subscribeBody: "Recibe semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.",
+      linkedinHeading: "Perspectiva Profesional.",
+      linkedinBody: "Formatos visuales y reflexiones sobre el desarrollo de software y gestión de proyectos.",
+      linkedinCta: "Ver perfil",
+      instagramHeading: "Proceso y Detrás de Escena.",
+      instagramBody: "Una mirada a la ejecución técnica y el día a día del desarrollo.",
+      instagramCta: "Seguinos →",
+      comingSoon: "Próximamente",
+      months: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+    },
+    en: {
+      newsletterLabel: "My Newsletter",
+      featuredEyebrow: "Notes",
+      readArticle: "Read article →",
+      continueTitle: "Continue the conversation",
+      continueHeading: "Editorial thinking for technical minds.",
+      subscribeHeading: "Subscribe to El Radar.",
+      subscribeBody: "Receive weekly what I'm building — articles, technical resources, and reflections on the future of digital design. No spam, just architecture.",
+      linkedinHeading: "Professional Perspective.",
+      linkedinBody: "Visual formats and reflections on software development and project management.",
+      linkedinCta: "View profile",
+      instagramHeading: "Process and Behind the Scenes.",
+      instagramBody: "A look at technical execution and the day-to-day of development.",
+      instagramCta: "Follow →",
+      comingSoon: "Coming soon",
+      months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    },
+  } as const;
+  const pc = pageCopy[currentLocale];
+
   // Colores por categoría
   const categoryColors: Record<string, string> = {
     'Performance':    'bg-green-500/10 text-green-400 border-green-500/20',
@@ -53,8 +91,7 @@ export default async function BlogPage({
   // Formatear fecha
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    return `${pc.months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
   return (
@@ -73,7 +110,7 @@ export default async function BlogPage({
             <p>{content.blog.editorialNote}</p>
             <div className="flex flex-col items-center gap-3 text-center sm:inline-flex sm:flex-row sm:items-center sm:gap-10 sm:text-left">
               <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-text-secondary">
-                Mi Newsletter
+                {pc.newsletterLabel}
               </span>
               <RadarBadge />
             </div>
@@ -85,7 +122,7 @@ export default async function BlogPage({
       {/* Artículo destacado */}
       {featuredPost && (
         <section className="site-container py-10 sm:py-12 lg:py-14">
-          <p className="technical-label mb-8">Notas</p>
+          <p className="technical-label mb-8">{pc.featuredEyebrow}</p>
 
           <div className="grid gap-8 xl:grid-cols-2 xl:gap-12">
             {/* Cover */}
@@ -131,7 +168,7 @@ export default async function BlogPage({
                 href={`/${currentLocale}/blog/${featuredPost.slug}`}
                 className="mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
               >
-                Leer artículo →
+                {pc.readArticle}
               </Link>
             </div>
           </div>
@@ -149,9 +186,9 @@ export default async function BlogPage({
       <section className="site-container pb-12 sm:pb-14 lg:pb-16">
         {/* Encabezado de sección */}
         <div className="mb-10 sm:mb-12">
-          <p className="technical-label mb-4">Continuar la conversación</p>
+          <p className="technical-label mb-4">{pc.continueTitle}</p>
           <h2 className="text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
-            Criterio editorial para mentes técnicas.
+            {pc.continueHeading}
           </h2>
         </div>
 
@@ -166,10 +203,10 @@ export default async function BlogPage({
             <div className="relative">
               <p className="technical-label">El Radar</p>
               <h3 className="mt-5 text-3xl font-semibold text-text-primary sm:text-4xl">
-                Suscríbete a El Radar.
+                {pc.subscribeHeading}
               </h3>
               <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-                Recibe semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
+                {pc.subscribeBody}
               </p>
               <SubscribeForm />
             </div>
@@ -185,10 +222,10 @@ export default async function BlogPage({
               <div className="relative">
                 <p className="technical-label">LinkedIn</p>
                 <h3 className="mt-4 text-xl font-semibold text-text-primary">
-                  Perspectiva Profesional.
+                  {pc.linkedinHeading}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-text-secondary">
-                  Formatos visuales y reflexiones sobre el desarrollo de software y gestión de proyectos.
+                  {pc.linkedinBody}
                 </p>
               </div>
 
@@ -199,7 +236,7 @@ export default async function BlogPage({
                 className="relative mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
               >
                 <Linkedin size={13} />
-                Ver perfil
+                {pc.linkedinCta}
               </a>
             </div>
 
@@ -211,20 +248,20 @@ export default async function BlogPage({
                 <div className="flex items-start justify-between">
                   <p className="technical-label">Instagram</p>
                   <span className="rounded-full border border-outline-ghost/20 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-text-tertiary">
-                    Próximamente
+                    {pc.comingSoon}
                   </span>
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-text-primary">
-                  Proceso y Detrás de Escena.
+                  {pc.instagramHeading}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-text-secondary">
-                  Una mirada a la ejecución técnica y el día a día del desarrollo.
+                  {pc.instagramBody}
                 </p>
               </div>
 
               <span className="relative mt-8 inline-flex cursor-not-allowed items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                 <Instagram size={13} />
-                Seguinos →
+                {pc.instagramCta}
               </span>
             </div>
 

@@ -16,6 +16,8 @@ const copy = {
     allProjects: "Explorar proyectos",
     liveDemo: "Ver demo",
     repository: "Código",
+    challenge: "Desafío",
+    impact: "Impacto",
   },
   en: {
     eyebrow: "Projects",
@@ -25,6 +27,8 @@ const copy = {
     allProjects: "Explore projects",
     liveDemo: "View demo",
     repository: "Code",
+    challenge: "Challenge",
+    impact: "Impact",
   },
 } as const;
 
@@ -125,14 +129,14 @@ export default function FeaturedProjects({
 
                   <div className="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
                     <div className="surface-subpanel bg-[rgb(var(--background)/0.14)] px-4 py-4 sm:px-5 sm:py-5">
-                      <p className="technical-label">{locale === "es" ? "Desafío" : "Challenge"}</p>
+                      <p className="technical-label">{labels.challenge}</p>
                       <p className="mt-3 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
                         {mainProject.challenge}
                       </p>
                     </div>
 
                     <div className="surface-subpanel bg-[rgb(var(--background)/0.1)] px-4 py-4 sm:px-5 sm:py-5">
-                      <p className="technical-label">{locale === "es" ? "Impacto" : "Impact"}</p>
+                      <p className="technical-label">{labels.impact}</p>
                       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
                         {mainProject.impact.map((item) => (
                           <li key={item}>{item}</li>
@@ -192,14 +196,14 @@ export default function FeaturedProjects({
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="surface-subpanel bg-[rgb(var(--background)/0.14)] px-4 py-4 sm:px-5">
-                      <p className="technical-label">{locale === "es" ? "Desafío" : "Challenge"}</p>
+                      <p className="technical-label">{labels.challenge}</p>
                       <p className="mt-3 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
                         {mainProject.challenge}
                       </p>
                     </div>
 
                     <div className="surface-subpanel bg-[rgb(var(--background)/0.1)] px-4 py-4 sm:px-5">
-                      <p className="technical-label">{locale === "es" ? "Impacto" : "Impact"}</p>
+                      <p className="technical-label">{labels.impact}</p>
                       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-6 text-text-primary sm:text-[0.95rem] sm:leading-7">
                         {mainProject.impact.map((item) => (
                           <li key={item}>{item}</li>

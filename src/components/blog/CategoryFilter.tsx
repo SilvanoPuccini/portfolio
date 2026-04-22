@@ -16,9 +16,28 @@ const categoryColors: Record<string, string> = {
   Editorial: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
 };
 
-function formatDate(dateStr: string) {
+const copy = {
+  es: {
+    all: "Todos",
+    empty: "No hay posts en esta categoría todavía.",
+    readMore: "Leer más →",
+    prev: "← Anterior",
+    next: "Siguiente →",
+    months: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+  },
+  en: {
+    all: "All",
+    empty: "No posts in this category yet.",
+    readMore: "Read more →",
+    prev: "← Previous",
+    next: "Next →",
+    months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  },
+} as const;
+
+function formatDate(dateStr: string, locale: string) {
   const date = new Date(dateStr);
-  const months = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  const months = locale === "en" ? copy.en.months : copy.es.months;
   return `${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -47,6 +66,7 @@ function buildPageRange(current: number, total: number): (number | "...")[] {
 }
 
 export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: Props) {
+  const labels = copy[currentLocale as keyof typeof copy] ?? copy.es;
   const [active, setActive] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [animating, setAnimating] = useState(false);
@@ -95,7 +115,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                 : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-brand-primary/20 hover:text-brand-primary"
             }`}
           >
-            Todos
+            {labels.all}
           </button>
           {CATEGORIES.map((cat) => (
             <button
@@ -134,7 +154,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
         >
           {filtered.length === 0 ? (
             <p className="py-16 text-center font-mono text-sm text-text-tertiary">
-              No hay posts en esta categoría todavía.
+              {labels.empty}
             </p>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -189,14 +209,14 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                         </span>
                         <span className="h-1 w-1 rounded-full bg-outline-ghost/30" />
                         <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-                          {formatDate(post.date)}
+                          {formatDate(post.date, currentLocale)}
                         </span>
                       </div>
                       <Link
                         href={`/${currentLocale}/blog/${post.slug}`}
                         className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
                       >
-                        Leer más →
+                        {labels.readMore}
                       </Link>
                     </div>
                   </div>
@@ -215,7 +235,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                     : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
                 }`}
               >
-                ← Anterior
+                {labels.prev}
               </button>
 
               {buildPageRange(page, totalPages).map((n, i) =>
@@ -249,7 +269,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                     : "border-outline-ghost/15 bg-surface-dim/50 text-text-secondary hover:border-outline-ghost/30 hover:text-text-primary"
                 }`}
               >
-                Siguiente →
+                {labels.next}
               </button>
             </div>
           )}
