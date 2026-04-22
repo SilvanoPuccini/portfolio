@@ -53,11 +53,11 @@ export function PostCard({ slug, title, date, category, excerpt, readingTime, lo
           <time className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
             {date}
           </time>
-          <Link 
+          <Link
             href={`/${locale}/blog/${slug}`}
             className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
           >
-            Leer más →
+            {locale === 'en' ? 'Read more →' : 'Leer más →'}
           </Link>
         </div>
       </div>
