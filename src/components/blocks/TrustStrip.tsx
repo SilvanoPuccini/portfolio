@@ -23,6 +23,16 @@ const copy = {
         body: "Casos publicados con decisiones técnicas visibles, foco en performance y lectura clara del resultado.",
       },
       {
+        eyebrow: "Servicios",
+        title: "Servicios concretos",
+        body: "Desarrollo de producto, automatización y arquitectura de sistemas. Sin paquetes genéricos, cada compromiso es específico al problema.",
+      },
+      {
+        eyebrow: "Blog",
+        title: "Criterio técnico documentado",
+        body: "Artículos sobre decisiones de arquitectura, patrones y aprendizajes de proyectos reales. El razonamiento detrás del código.",
+      },
+      {
         eyebrow: "Contacto",
         title: "Contacto directo",
         body: "Canal directo para conversar sobre plataformas, producto o automatización sin vueltas innecesarias.",
@@ -49,6 +59,16 @@ const copy = {
         eyebrow: "Projects",
         title: "Production projects",
         body: "Systems designed, built, and taken into real environments, with a focus on performance and usability.",
+      },
+      {
+        eyebrow: "Services",
+        title: "Concrete services",
+        body: "Product development, automation, and system architecture. No generic packages — each engagement is scoped to the actual problem.",
+      },
+      {
+        eyebrow: "Blog",
+        title: "Documented technical thinking",
+        body: "Articles on architecture decisions, patterns, and lessons from real projects. The reasoning behind the code.",
       },
       {
         eyebrow: "Contact",
