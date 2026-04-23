@@ -21,6 +21,7 @@
     "@sparticuz/chromium": "^147.0.2",
     "@supabase/supabase-js": "^2.103.3",
     "@tailwindcss/typography": "^0.5.19",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.6.5",
     "gray-matter": "^4.0.3",
