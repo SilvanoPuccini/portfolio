@@ -3,8 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Stats = { subscribers: number; totalMessages: number; unreadMessages: number; totalPosts: number };
 type Subscriber = { id: string; email: string; created_at: string };
 type Message = { id: string; name: string; subject: string; created_at: string; read: boolean };
@@ -20,9 +18,9 @@ export default function DashboardPage() {
 
   const load = useCallback(async () => {
     const [statsRes, subsRes, msgsRes] = await Promise.all([
-      fetch('/api/admin/stats', { headers: AUTH() }),
-      fetch('/api/admin/subscribers', { headers: AUTH() }),
-      fetch('/api/admin/messages', { headers: AUTH() }),
+      fetch('/api/admin/stats'),
+      fetch('/api/admin/subscribers'),
+      fetch('/api/admin/messages'),
     ]);
     const statsData = await statsRes.json() as Stats;
     const subsData = await subsRes.json() as { subscribers: Subscriber[] };

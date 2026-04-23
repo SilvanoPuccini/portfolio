@@ -143,7 +143,9 @@ function buildEmail(opts: {
 export async function POST(req: NextRequest) {
   try {
     const auth = req.headers.get('authorization');
-    if (auth !== `Bearer ${process.env.NOTIFY_SECRET}`) {
+    const cookie = req.cookies.get('admin_session')?.value;
+    const secret = process.env.NOTIFY_SECRET;
+    if (auth !== `Bearer ${secret}` && cookie !== secret) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

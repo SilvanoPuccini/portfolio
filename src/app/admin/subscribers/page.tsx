@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Subscriber = { id: string; email: string; name: string | null; status: string; created_at: string };
 type Filter = 'all' | 'active' | 'unsubscribed';
 
@@ -19,7 +17,7 @@ export default function SubscribersPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/subscribers', { headers: AUTH() });
+    const res = await fetch('/api/admin/subscribers');
     const data = await res.json() as { subscribers: Subscriber[] };
     setAll(data.subscribers ?? []);
     setLoading(false);
@@ -31,7 +29,7 @@ export default function SubscribersPage() {
     const next = sub.status === 'active' ? 'unsubscribed' : 'active';
     await fetch('/api/admin/subscribers', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...AUTH() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: sub.id, status: next }),
     });
     setAll((prev) => prev.map((s) => s.id === sub.id ? { ...s, status: next } : s));

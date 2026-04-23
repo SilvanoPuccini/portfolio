@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Post = {
   slug: string; title: string; excerpt: string; date: string;
   category: string; issue: number; readingTime: string; keyword: string;
@@ -41,8 +39,8 @@ export default function NewsletterPage() {
 
   const load = useCallback(async () => {
     const [postsRes, historyRes] = await Promise.all([
-      fetch('/api/admin/posts', { headers: AUTH() }),
-      fetch('/api/admin/newsletters', { headers: AUTH() }),
+      fetch('/api/admin/posts'),
+      fetch('/api/admin/newsletters'),
     ]);
     const postsData = await postsRes.json() as { posts: Post[] };
     const historyData = await historyRes.json() as { newsletters: Newsletter[] };
@@ -65,7 +63,7 @@ export default function NewsletterPage() {
     try {
       const res = await fetch('/api/notify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...AUTH() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: selected.slug }),
       });
       let data: { error?: string; sent?: number } = {};

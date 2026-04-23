@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Results = Record<string, string>;
 
 export default function DebugPage() {
@@ -14,7 +12,7 @@ export default function DebugPage() {
   async function runTest() {
     setLoading(true);
     setResults(null);
-    const res = await fetch('/api/admin/debug', { headers: AUTH() });
+    const res = await fetch('/api/admin/debug');
     const data = await res.json() as { results?: Results; error?: string };
     setResults(data.results ?? { error: data.error ?? 'Error desconocido' });
     setLoading(false);

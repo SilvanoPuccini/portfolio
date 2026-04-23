@@ -7,8 +7,6 @@ import SlideEditor from '@/components/admin/distribution/SlideEditor';
 import type { Distribution, DistributionStatus } from '@/lib/distribution/types';
 import { DistributionDetailSkeleton } from '@/components/admin/distribution/Skeleton';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Platform = 'linkedin' | 'instagram' | 'twitter';
 
 const STATUS_COLORS: Record<DistributionStatus, { bg: string; color: string }> = {
@@ -124,7 +122,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
   const load = useCallback(async () => {
     setLoadError('');
     try {
-      const res = await fetch(`/api/admin/distributions/${id}`, { headers: AUTH() });
+      const res = await fetch(`/api/admin/distributions/${id}`, {});
       if (!res.ok) throw new Error(`Error ${res.status} al cargar la distribución`);
       const data = await res.json() as { distribution: Distribution; error?: string };
       if (data.error) throw new Error(data.error);
@@ -147,7 +145,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
     const newStatus: DistributionStatus = dist.status === 'approved' ? 'draft' : 'approved';
     await fetch(`/api/admin/distributions/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...AUTH() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     });
     setDist((d) => d ? { ...d, status: newStatus } : d);
@@ -159,7 +157,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
     setRegeneratingAll(true);
     await fetch(`/api/admin/distributions/${id}/regenerate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...AUTH() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scope: 'all' }),
     });
     await load();
