@@ -1,10 +1,125 @@
-# 🚀 Silvano Puccini | Portfolio
+# Silvano Puccini | Portfolio v2
 
-## 📚 CSS Tarea Entregable 4 | ConquerBlocks Academy
+> Actualización completa del portfolio original (v1 académico → v2 producción). Stack, arquitectura y propósito reescritos desde cero.
+
+🔗 **[silvanopuccini.dev](https://silvanopuccini.dev)**
 
 ---
 
-### 👤 Información del Estudiante
+## Por qué existe esta versión
+
+El portfolio v1 (ConquerBlocks, 2026) cumplió su propósito académico. Este reemplaza ese sitio estático con una plataforma de producto real: blog técnico con suscriptores, panel de admin autenticado, generación de contenido con IA y soporte completo ES/EN.
+
+No es un rediseño cosmético. Es una reescritura completa con stack de producción.
+
+---
+
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Framework | Next.js 15 (App Router) |
+| Lenguaje | TypeScript |
+| Estilos | Tailwind CSS v4 |
+| Base de datos | Supabase (PostgreSQL) |
+| Email | Resend |
+| Blog | MDX |
+| IA | Google Gemini |
+| Deploy | Vercel |
+
+---
+
+## Qué incluye
+
+**Portfolio público**
+- Proyectos en producción con decisiones técnicas visibles
+- Página de servicios y contacto
+- Soporte completo ES/EN con rutas localizadas
+
+**Blog — El Radar**
+- Posts en MDX con categorías, reading time y número de issue
+- Feed con filtros por categoría y paginación
+- Newsletter con welcome email automático y envío batch vía Resend
+- Unsubscribe con un click
+
+**Admin**
+- Autenticación server-side con cookie HTTP-only (sin secrets en el bundle)
+- Middleware de protección en todas las rutas `/api/admin/*`
+- Dashboard con stats, mensajes de contacto, suscriptores y historial de newsletters
+- Generación de contenido para LinkedIn, Instagram y Twitter con Gemini
+- Preview de carruseles LinkedIn antes de publicar
+
+**Seguridad**
+- Sin `NEXT_PUBLIC_` en variables sensibles
+- CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- Rate limiting en formularios de contacto y suscripción
+- Validación de longitud y sanitización de inputs
+
+---
+
+## Estructura
+
+```
+src/
+├── app/
+│   ├── [locale]/          # Rutas públicas ES/EN
+│   │   ├── page.tsx       # Home
+│   │   ├── blog/          # Blog + post individual
+│   │   ├── projects/      # Proyectos
+│   │   ├── services/      # Servicios
+│   │   └── contact/       # Contacto
+│   ├── admin/             # Panel admin (protegido)
+│   └── api/               # API routes
+│       ├── admin/         # Endpoints admin (middleware)
+│       ├── contact/       # Formulario de contacto
+│       ├── subscribe/     # Suscripción al newsletter
+│       └── notify/        # Envío de newsletter
+├── components/
+│   ├── blocks/            # Secciones reutilizables
+│   ├── blog/              # Componentes del blog
+│   ├── site/              # Header, footer, shell
+│   └── admin/             # UI del admin
+├── content/               # Datos del sitio y schema
+├── lib/                   # Supabase, Resend, rate-limit
+├── posts/                 # MDX posts del blog
+└── middleware.ts          # Auth guard para /api/admin/*
+```
+
+---
+
+## Local
+
+```bash
+git clone https://github.com/SilvanoPuccini/portfolio.git
+cd portfolio
+npm install
+cp .env.example .env.local   # completar variables
+npm run dev
+```
+
+Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_AUDIENCE_ID`, `NOTIFY_SECRET`, `ADMIN_PASSWORD`, `GOOGLE_AI_API_KEY`, `NEXT_PUBLIC_SITE_URL`.
+
+---
+
+## Contacto
+
+- silvano.jm.puccini@gmail.com
+- [LinkedIn](https://www.linkedin.com/in/silvano-puccini/)
+- [GitHub](https://github.com/SilvanoPuccini)
+
+---
+
+---
+
+# Portfolio v1 — Registro académico
+
+> Lo que sigue es el README original del portfolio académico (ConquerBlocks, Feb 2026). Se mantiene como registro de la primera versión del proyecto.
+
+---
+
+## CSS Tarea Entregable 4 | ConquerBlocks Academy
+
+### Información del Estudiante
 
 | Campo | Detalle |
 |-------|---------|
@@ -15,27 +130,27 @@
 
 ---
 
-### 🌐 Demo en Vivo
+### Demo en Vivo
 
-🔗 **[Ver Portfolio](https://silvanopuccini.github.io/portfolio/)**
+🔗 **[Ver Portfolio v1](https://silvanopuccini.github.io/portfolio/)**
 
 ---
 
-### 📋 Descripción del Proyecto
+### Descripción del Proyecto
 
 Portfolio personal profesional como Full Stack Developer en formación. Sitio web responsive con soporte para múltiples idiomas (EN/ES) y temas (Dark/Light).
 
 **Características principales:**
-- 🌙 Modo oscuro/claro
-- 🌍 Bilingüe (Inglés/Español)
-- 📱 Diseño Mobile First
-- 📧 Formulario de contacto funcional (Formspree)
-- ⚡ Build con Vite
-- 🎨 Estilos con SASS modular
+- Modo oscuro/claro
+- Bilingüe (Inglés/Español)
+- Diseño Mobile First
+- Formulario de contacto funcional (Formspree)
+- Build con Vite
+- Estilos con SASS modular
 
 ---
 
-### 🛠️ Stack Tecnológico
+### Stack Tecnológico
 
 | Tecnología | Uso |
 |------------|-----|
@@ -48,7 +163,7 @@ Portfolio personal profesional como Full Stack Developer en formación. Sitio we
 
 ---
 
-### 🎨 Design System
+### Design System
 
 #### Colores (Dark Theme)
 
@@ -60,147 +175,59 @@ Portfolio personal profesional como Full Stack Developer en formación. Sitio we
 | Gris claro | `#D9D9D9` | Textos secundarios |
 | Blanco | `#FFFFFF` | Textos principales |
 
-#### Colores (Light Theme)
-
-| Color | Hex | Uso |
-|-------|-----|-----|
-| Gris claro | `#F5F5F5` | Fondo principal |
-| Blanco | `#FFFFFF` | Fondos secundarios |
-| Negro | `#151515` | Textos principales |
-| Gris | `#444444` | Textos secundarios |
-
 #### Tipografía
 
 | Elemento | Font | Tamaño | Peso |
 |----------|------|--------|------|
 | Heading XL | Space Grotesk | 88px | 700 |
 | Heading L | Space Grotesk | 48px | 700 |
-| Heading M | Space Grotesk | 24px | 700 |
 | Body | Space Grotesk | 18px | 500 |
 
 ---
 
-### 📁 Estructura del Proyecto
+### Estructura del Proyecto
 
 ```
 portfolio/
-├── public/
-│   └── favicon.svg
 ├── src/
 │   ├── assets/
-│   │   ├── icons/
-│   │   │   ├── rings.svg
-│   │   │   ├── oval.svg
-│   │   │   └── pattern-*.svg
-│   │   └── images/
-│   │       └── profile.png
 │   ├── js/
 │   │   ├── main.js
 │   │   └── i18n.js
 │   └── scss/
 │       ├── _variables.scss
 │       ├── _mixins.scss
-│       ├── _base.scss
-│       ├── _buttons.scss
-│       ├── _header.scss
-│       ├── _hero.scss
-│       ├── _skills.scss
-│       ├── _projects.scss
-│       ├── _contact.scss
-│       ├── _footer.scss
 │       └── main.scss
 ├── index.html
 ├── package.json
-├── vite.config.js
-└── README.md
+└── vite.config.js
 ```
 
 ---
 
-### ⚙️ Funcionalidades JavaScript
-
-#### 🌙 Theme Toggle
-- Alterna entre modo oscuro y claro
-- Persiste preferencia en localStorage
-- Transiciones suaves
-
-#### 🌍 Language Toggle
-- Cambia entre inglés y español
-- Sistema i18n personalizado
-- Persiste preferencia en localStorage
-
-#### 📧 Contact Form
-- Validación en tiempo real
-- Integración con Formspree
-- Mensajes de error/éxito
-- Estados de campos (error, focus)
-
-#### 📊 Skills Animation
-- Barras de progreso animadas
-- Animación al entrar en viewport (Intersection Observer)
-
----
-
-### 🚀 Instalación y Desarrollo
+### Instalación
 
 ```bash
-# Clonar repositorio
 git clone https://github.com/silvanopuccini/portfolio.git
-
-# Entrar al directorio
 cd portfolio
-
-# Instalar dependencias
 npm install
-
-# Modo desarrollo
 npm run dev
-
-# Build para producción
-npm run build
-
-# Preview del build
-npm run preview
 ```
 
 ---
 
-### 📜 Scripts Disponibles
+### Secciones
 
-```json
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  }
-}
-```
+1. **Header** — Logo, redes sociales, toggles de tema e idioma
+2. **Hero** — Presentación, foto de perfil, CTA
+3. **Skills** — Frontend, Backend, Herramientas
+4. **Projects** — Grid de proyectos con hover effects
+5. **Contact** — Formulario funcional con Formspree
+6. **Footer** — Logo y redes sociales
 
 ---
 
-### 📱 Breakpoints
-
-| Breakpoint | Dispositivo |
-|------------|-------------|
-| Base | Mobile (< 768px) |
-| 768px | Tablet |
-| 1200px | Desktop |
-
----
-
-### 📂 Secciones
-
-1. **Header** - Logo, redes sociales, toggles de tema e idioma
-2. **Hero** - Presentación, foto de perfil, CTA
-3. **Skills** - Frontend, Backend, Herramientas (con barras de progreso)
-4. **Projects** - Grid de proyectos con hover effects
-5. **Contact** - Formulario funcional con Formspree
-6. **Footer** - Logo y redes sociales
-
----
-
-### 🔗 Proyectos Incluidos
+### Proyectos Incluidos
 
 | Proyecto | Tecnologías | Demo |
 |----------|-------------|------|
@@ -208,47 +235,18 @@ npm run preview
 | GathSession | HTML, CSS, SASS | [Ver](https://silvanopuccini.github.io/GathSession/) |
 | GlowQueen SPA | HTML, CSS, JS | [Ver](https://silvanopuccini.github.io/glowqueen-spa/) |
 | Payment Tracker | React, TS, Supabase | [Ver](https://payment-tracker-bot.vercel.app/) |
-| FacturIA 2.0 | Python, Streamlit, AI | Próximamente |
 | Cat Gallery | HTML, CSS, JS, API | [Ver](https://silvanopuccini.github.io/cat-gallery/) |
 
 ---
 
-### 📞 Contacto
+### Licencia
 
-- 📧 Email: silvano.jm.puccini@gmail.com
-- 💼 LinkedIn: [Silvano Puccini](https://www.linkedin.com/in/silvano-jose-maria-puccini-394992265)
-- 🐙 GitHub: [@silvanopuccini](https://github.com/silvanopuccini)
-- 💬 Discord: [silvanopuccini](https://discord.com/users/925401070388256778)
-
----
-
-### ✅ Checklist de Entrega
-
-- [x] Diseño fiel al Figma/PDF
-- [x] Mobile First responsive
-- [x] SASS modular con arquitectura limpia
-- [x] JavaScript ES6+ modular
-- [x] Build con Vite
-- [x] Tema oscuro/claro
-- [x] Multiidioma EN/ES
-- [x] Formulario funcional (Formspree)
-- [x] Animaciones y transiciones
-- [x] Estados hover en elementos interactivos
-- [x] Semántica HTML5
-- [x] Accesibilidad (aria-labels, alt texts)
-- [x] SEO básico (meta tags)
-- [x] Deploy en GitHub Pages
-
----
-
-### 📄 Licencia
-
-Este proyecto es parte del programa educativo de **ConquerBlocks Academy** y también sirve como portfolio personal profesional.
+Proyecto desarrollado en el marco del programa educativo de **ConquerBlocks Academy**.
 
 ---
 
 <div align="center">
 
-**Silvano Puccini** | Full Stack Developer in Training | 2026
+**Silvano Puccini** | Full Stack Developer | 2026
 
 </div>
