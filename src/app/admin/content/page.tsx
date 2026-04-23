@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Post = { slug: string; title: string; excerpt: string; date: string; issue: number };
 type Generated = { linkedinCarousel: string; instagramCaption: string; twitterThread: string; title: string };
 type Tab = 'linkedin' | 'instagram' | 'twitter';
@@ -18,7 +16,7 @@ export default function ContentPage() {
   const [copied, setCopied] = useState<Tab | null>(null);
 
   useEffect(() => {
-    fetch('/api/admin/posts', { headers: AUTH() })
+    fetch('/api/admin/posts')
       .then((r) => r.json())
       .then((d: { posts: Post[] }) => setPosts(d.posts ?? []));
   }, []);
@@ -29,7 +27,7 @@ export default function ContentPage() {
     try {
       const res = await fetch('/api/admin/content', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...AUTH() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug }),
       });
       const data = await res.json() as Generated;

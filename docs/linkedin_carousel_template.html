@@ -1,0 +1,291 @@
+
+<h2 class="sr-only">Plantilla interactiva de carrusel LinkedIn con temática oscura y acento cian. Navegá entre slides con los botones anterior y siguiente.</h2>
+
+<style>
+  .carousel-wrap { padding: 1rem 0; }
+  .slide-frame {
+    background: #0f0f14;
+    border-radius: 12px;
+    aspect-ratio: 1 / 1;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #1e1e2e;
+  }
+  .slide { display: none; width: 100%; height: 100%; padding: 40px; box-sizing: border-box; position: absolute; top: 0; left: 0; flex-direction: column; justify-content: space-between; }
+  .slide.active { display: flex; }
+  .tag { font-family: monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #00d4d4; border: 1px solid #00d4d4; border-radius: 4px; padding: 3px 10px; display: inline-block; width: fit-content; }
+  .slide-num { font-family: monospace; font-size: 11px; color: #444; letter-spacing: 0.08em; }
+  .slide-title { font-size: clamp(20px, 4vw, 30px); font-weight: 700; line-height: 1.15; color: #f0f0f0; margin: 0; }
+  .slide-title span { color: #00d4d4; }
+  .slide-sub { font-size: 13px; color: #888; line-height: 1.6; margin: 0; }
+  .slide-body { font-size: 14px; color: #ccc; line-height: 1.65; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .slide-body strong { color: #f0f0f0; font-weight: 600; }
+  .slide-body code { font-family: monospace; background: #1a1a2e; color: #00d4d4; padding: 2px 7px; border-radius: 4px; font-size: 12px; }
+  .divider { width: 40px; height: 2px; background: #00d4d4; margin: 14px 0; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .pill { background: #1a1a2e; border: 1px solid #2a2a40; color: #00d4d4; font-family: monospace; font-size: 11px; padding: 4px 12px; border-radius: 20px; }
+  .cta-box { background: #00d4d4; border-radius: 8px; padding: 18px 22px; }
+  .cta-box p { color: #0a0a12; font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+  .cta-box span { color: #0a3a3a; font-size: 12px; font-family: monospace; }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .nav-btn { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); padding: 8px 18px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; }
+  .nav-btn:hover { background: var(--color-background-primary); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .dots { display: flex; gap: 6px; align-items: center; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-border-tertiary); transition: background 0.2s; }
+  .dot.active { background: #00d4d4; width: 18px; border-radius: 3px; }
+  .slide-label { font-size: 12px; color: var(--color-text-secondary); text-align: center; margin-top: 8px; font-family: monospace; }
+  .icon-num { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #00d4d4; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #00d4d4; font-size: 16px; flex-shrink: 0; }
+  .idea-row { display: flex; gap: 16px; align-items: flex-start; margin: 10px 0; }
+  .idea-row p { margin: 0; font-size: 13px; color: #bbb; line-height: 1.5; }
+  .idea-row strong { color: #f0f0f0; display: block; font-size: 14px; margin-bottom: 3px; }
+  .author-row { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #1a1a2e; border: 2px solid #00d4d4; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #00d4d4; flex-shrink: 0; }
+  .avatar-text p { margin: 0; font-size: 13px; color: #ccc; }
+  .avatar-text span { font-size: 11px; color: #555; font-family: monospace; }
+</style>
+
+<div class="carousel-wrap">
+  <div class="slide-frame">
+
+    <div class="slide active" id="s1">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">01 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title">Web Vitals en producción:<br><span>lo que las métricas no te dicen</span></p>
+        <div class="divider"></div>
+        <p class="slide-sub">9 ideas que aprendí deployando en el mundo real</p>
+      </div>
+      <div class="author-row">
+        <div class="avatar">SP</div>
+        <div class="avatar-text">
+          <p>Silvano Puccini</p>
+          <span>silvano.dev</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" id="s2">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">02 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,22px);margin-bottom:10px;">El problema que nadie menciona</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <p>Podés tener un <strong>LCP perfecto en Lighthouse</strong> y aun así perder usuarios en mobile 3G.</p>
+        <p style="margin-top:14px;">Las métricas de lab no miden lo que pasa con <strong>conexiones reales, dispositivos reales</strong> y usuarios que abren tu app desde el colectivo.</p>
+        <div class="pill-row">
+          <span class="pill">LCP</span>
+          <span class="pill">CLS</span>
+          <span class="pill">INP</span>
+          <span class="pill">TTI</span>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">→ continuá en el slide siguiente</p>
+    </div>
+
+    <div class="slide" id="s3">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">03 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,22px);margin-bottom:8px;">Idea #1</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="idea-row">
+          <div class="icon-num">1</div>
+          <div>
+            <strong>Medí con Field Data, no con Lighthouse</strong>
+            <p>Usá <code>web-vitals</code> + tu propio endpoint de analytics para capturar datos de usuarios reales. Lighthouse es un punto de partida, no la fuente de verdad.</p>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">una idea por slide · artículo completo en silvano.dev</p>
+    </div>
+
+    <div class="slide" id="s4">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">04 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,22px);margin-bottom:8px;">Idea #2</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="idea-row">
+          <div class="icon-num">2</div>
+          <div>
+            <strong>El CLS más común viene de imágenes sin dimensiones</strong>
+            <p>Si no definís <code>width</code> y <code>height</code> en tu <code>&lt;img&gt;</code>, el layout salta cuando carga. Un atributo que se olvida en el 80% de los proyectos.</p>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">una idea por slide · artículo completo en silvano.dev</p>
+    </div>
+
+    <div class="slide" id="s5">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">05 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,22px);margin-bottom:8px;">Idea #3</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="idea-row">
+          <div class="icon-num">3</div>
+          <div>
+            <strong>INP reemplazó a FID — y es más difícil de optimizar</strong>
+            <p>FID medía solo el primer click. INP mide <em>cada</em> interacción durante toda la sesión. Handlers lentos en modales y dropdowns te van a hundir el score.</p>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">una idea por slide · artículo completo en silvano.dev</p>
+    </div>
+
+    <div class="slide" id="s6">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">06 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,22px);margin-bottom:8px;">Idea #4</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="idea-row">
+          <div class="icon-num">4</div>
+          <div>
+            <strong>Fonts son el culpable oculto del LCP</strong>
+            <p>Cargar Google Fonts sin <code>display=swap</code> bloquea el render. Descargá los fonts a tu propio servidor y usá <code>font-display: swap</code> + preload en el <code>&lt;head&gt;</code>.</p>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">una idea por slide · artículo completo en silvano.dev</p>
+    </div>
+
+    <div class="slide" id="s7">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">07 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,22px);margin-bottom:8px;">Lo que aprendí en producción</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body" style="font-size:13px;">
+        <div class="idea-row" style="margin:6px 0;">
+          <div style="color:#00d4d4;font-size:16px;flex-shrink:0;width:20px;">→</div>
+          <p><strong>Medí con field data real</strong>, no solo con Lighthouse</p>
+        </div>
+        <div class="idea-row" style="margin:6px 0;">
+          <div style="color:#00d4d4;font-size:16px;flex-shrink:0;width:20px;">→</div>
+          <p><strong>Dimensioná tus imágenes</strong> — evita el CLS</p>
+        </div>
+        <div class="idea-row" style="margin:6px 0;">
+          <div style="color:#00d4d4;font-size:16px;flex-shrink:0;width:20px;">→</div>
+          <p><strong>Optimizá INP</strong> — cada interacción importa</p>
+        </div>
+        <div class="idea-row" style="margin:6px 0;">
+          <div style="color:#00d4d4;font-size:16px;flex-shrink:0;width:20px;">→</div>
+          <p><strong>Self-hostea tus fonts</strong> con preload</p>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">resumen ejecutivo del artículo</p>
+    </div>
+
+    <div class="slide" id="s8">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">08 / 09</div>
+      </div>
+      <div>
+        <p class="slide-title" style="font-size:clamp(15px,3vw,20px);margin-bottom:8px;">¿Te resultó útil?</p>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body" style="justify-content:center;gap:14px;">
+        <p style="color:#888;font-size:14px;margin:0;">Si trabajás con Next.js, React o Django y querés hablar de performance real, estoy activo.</p>
+        <p style="color:#bbb;font-size:14px;margin:0;">Publico <strong>2 veces por semana</strong> sobre desarrollo web, automatización con IA y decisiones reales de producto.</p>
+        <p style="color:#00d4d4;font-size:13px;margin:0;font-family:monospace;">→ Seguime para no perderte el próximo</p>
+      </div>
+      <p style="font-size:11px;color:#444;margin:0;font-family:monospace;">engagement slide · pedí follow antes del CTA final</p>
+    </div>
+
+    <div class="slide" id="s9">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="tag">performance</div>
+        <div class="slide-num">09 / 09</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;">
+        <div class="cta-box">
+          <p>Artículo completo en silvano.dev →</p>
+          <span>silvano.dev/blog/web-vitals-produccion</span>
+        </div>
+        <div style="border:1px solid #1e1e2e;border-radius:8px;padding:16px 20px;">
+          <p style="margin:0 0 4px;font-size:13px;color:#888;">También podés suscribirte al radar:</p>
+          <p style="margin:0;font-size:13px;font-family:monospace;color:#00d4d4;">silvano.dev/blog → newsletter</p>
+        </div>
+      </div>
+      <div class="author-row">
+        <div class="avatar">SP</div>
+        <div class="avatar-text">
+          <p>Silvano Puccini · Full Stack Dev</p>
+          <span>Django · React · Next.js · IA</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prev" disabled onclick="move(-1)">← Anterior</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next" onclick="move(1)">Siguiente →</button>
+  </div>
+  <p class="slide-label" id="lbl">Slide 1 — Portada / Gancho</p>
+</div>
+
+<script>
+const labels = [
+  "Slide 1 — Portada / Gancho",
+  "Slide 2 — Contexto del problema",
+  "Slide 3 — Idea #1 (patrón: número + título + explicación)",
+  "Slide 4 — Idea #2",
+  "Slide 5 — Idea #3",
+  "Slide 6 — Idea #4",
+  "Slide 7 — Resumen / Ideas clave",
+  "Slide 8 — Engagement (pedí follow antes del link)",
+  "Slide 9 — CTA final → tu web"
+];
+let cur = 0;
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('dots');
+labels.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dotsEl.appendChild(d);
+});
+function goTo(n) {
+  slides[cur].classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur = n;
+  slides[cur].classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  document.getElementById('prev').disabled = cur === 0;
+  document.getElementById('next').disabled = cur === slides.length - 1;
+  document.getElementById('lbl').textContent = labels[cur];
+}
+function move(d) { goTo(cur + d); }
+</script>

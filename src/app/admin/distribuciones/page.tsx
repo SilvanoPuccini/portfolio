@@ -6,8 +6,6 @@ import { s } from '@/components/admin/AdminShell';
 import type { DistributionListItem, DistributionStatus } from '@/lib/distribution/types';
 import { DistributionRowSkeleton } from '@/components/admin/distribution/Skeleton';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Post = { slug: string; title: string; excerpt: string; issue: number };
 type StatusFilter = 'all' | DistributionStatus;
 
@@ -74,7 +72,7 @@ function NewDistributionModal({
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/admin/posts', { headers: AUTH() })
+    fetch('/api/admin/posts', {})
       .then((r) => r.json())
       .then((d) => setPosts(d.posts ?? []));
   }, []);
@@ -97,7 +95,7 @@ function NewDistributionModal({
     try {
       const res = await fetch('/api/admin/distribute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...AUTH() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug }),
       });
       const data = await res.json() as { id?: string; error?: string };
@@ -211,7 +209,7 @@ export default function DistribucionesPage() {
     setError('');
     try {
       const qs = status && status !== 'all' ? `?status=${status}` : '';
-      const res = await fetch(`/api/admin/distributions${qs}`, { headers: AUTH() });
+      const res = await fetch(`/api/admin/distributions${qs}`, {});
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const data = await res.json() as { items: DistributionListItem[] };
       setItems(data.items ?? []);

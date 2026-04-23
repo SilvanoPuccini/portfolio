@@ -4,9 +4,6 @@ import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-const SESSION_KEY = 'admin_authed';
-
 const NAV = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/newsletter', label: 'Newsletter' },
@@ -23,25 +20,44 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
+  // Verificar sesión server-side al montar
   useEffect(() => {
-    setAuthed(sessionStorage.getItem(SESSION_KEY) === 'true');
-    setReady(true);
+    fetch('/api/admin/session')
+      .then((res) => {
+        setAuthed(res.ok);
+        setReady(true);
+      })
+      .catch(() => setReady(true));
   }, []);
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-      setAuthed(true);
-    } else {
-      setError('Contraseña incorrecta.');
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json() as { error?: string };
+      if (res.ok) {
+        setAuthed(true);
+      } else {
+        setError(data.error ?? 'Error al ingresar.');
+      }
+    } catch {
+      setError('Error de conexión.');
+    } finally {
+      setLoading(false);
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     if (!confirm('¿Cerrár sesión?')) return;
-    sessionStorage.removeItem(SESSION_KEY);
+    await fetch('/api/admin/logout', { method: 'POST' });
     setAuthed(false);
     setPassword('');
   }
@@ -58,7 +74,9 @@ export default function AdminShell({ children }: { children: ReactNode }) {
             <input type="password" placeholder="Contraseña" value={password}
               onChange={(e) => setPassword(e.target.value)} style={s.input} autoFocus />
             {error && <p style={s.errorText}>{error}</p>}
-            <button type="submit" style={s.btn}>Ingresar</button>
+            <button type="submit" style={s.btn} disabled={loading}>
+              {loading ? 'Ingresando...' : 'Ingresar'}
+            </button>
           </form>
         </div>
       </div>

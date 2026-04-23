@@ -30,8 +30,6 @@ function charColor(count: number, limit: number): string {
   return '#f87171';
 }
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 export default function SlideEditor({
   slide,
   slideIndex,
@@ -60,7 +58,7 @@ export default function SlideEditor({
     const updated: Slide = { ...slide, headline, body };
 
     // Necesitamos recuperar el contenido completo, patchear el slide, y guardarlo
-    const res = await fetch(`/api/admin/distributions/${distributionId}`, { headers: AUTH() });
+    const res = await fetch(`/api/admin/distributions/${distributionId}`, {});
     const data = await res.json() as { distribution: Record<string, unknown> };
     const dist = data.distribution;
 
@@ -71,7 +69,7 @@ export default function SlideEditor({
 
     await fetch(`/api/admin/distributions/${distributionId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...AUTH() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ [field]: { ...content, slides: newSlides } }),
     });
 
@@ -85,12 +83,12 @@ export default function SlideEditor({
     setRegenerating(true);
     await fetch(`/api/admin/distributions/${distributionId}/regenerate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...AUTH() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scope: 'slide', platform, slide_index: slideIndex }),
     });
 
     // Recarga el slide desde la API
-    const res = await fetch(`/api/admin/distributions/${distributionId}`, { headers: AUTH() });
+    const res = await fetch(`/api/admin/distributions/${distributionId}`, {});
     const data = await res.json() as { distribution: Record<string, unknown> };
     const field = platform === 'linkedin' ? 'linkedin_content' : 'instagram_content';
     const content = data.distribution[field] as { slides: Slide[] };

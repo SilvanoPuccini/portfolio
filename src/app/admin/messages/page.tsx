@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
 
-const AUTH = () => ({ Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY_SECRET}` });
-
 type Message = { id: string; name: string; email: string; subject: string; message: string; read: boolean; created_at: string };
 
 function fmt(iso: string) {
@@ -19,7 +17,7 @@ export default function MessagesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/messages', { headers: AUTH() });
+    const res = await fetch('/api/admin/messages', {});
     const data = await res.json() as { messages: Message[] };
     setMessages(data.messages ?? []);
     setLoading(false);
@@ -30,7 +28,7 @@ export default function MessagesPage() {
   async function markAsRead(id: string) {
     await fetch('/api/admin/messages', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...AUTH() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
     setMessages((prev) => prev.map((m) => m.id === id ? { ...m, read: true } : m));
