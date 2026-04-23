@@ -8,7 +8,7 @@
 
 ## Por qué existe esta versión
 
-El portfolio v1 (ConquerBlocks, 2026) cumplió su propósito académico. Este reemplaza ese sitio estático con una plataforma de producto real: blog técnico con suscriptores, panel de admin autenticado, generación de contenido con IA y soporte completo ES/EN.
+El portfolio v1 (ConquerBlocks, 2026) cumplió su propósito académico. Este reemplaza ese sitio estático con una plataforma de producto real: sobre mi, proyectos. servicios, contacto, blog técnico con suscriptores, panel de admin autenticado y soporte completo ES/EN.
 
 No es un rediseño cosmético. Es una reescritura completa con stack de producción.
 
@@ -24,7 +24,7 @@ No es un rediseño cosmético. Es una reescritura completa con stack de producci
 | Base de datos | Supabase (PostgreSQL) |
 | Email | Resend |
 | Blog | MDX |
-| IA | Google Gemini |
+| IA | Claude Code - Google Gemini |
 | Deploy | Vercel |
 
 ---
@@ -46,8 +46,6 @@ No es un rediseño cosmético. Es una reescritura completa con stack de producci
 - Autenticación server-side con cookie HTTP-only (sin secrets en el bundle)
 - Middleware de protección en todas las rutas `/api/admin/*`
 - Dashboard con stats, mensajes de contacto, suscriptores y historial de newsletters
-- Generación de contenido para LinkedIn, Instagram y Twitter con Gemini
-- Preview de carruseles LinkedIn antes de publicar
 
 **Seguridad**
 - Sin `NEXT_PUBLIC_` en variables sensibles
