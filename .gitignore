@@ -15,3 +15,13 @@ coverage
 playwright-report
 test-results
 tsconfig.tsbuildinfo
+
+# Windows metadata files
+*:Zone.Identifier
+
+# Internal docs (no public value on GitHub)
+docs/assets/stitch/
+docs/SPEC_DISTRIBUCION_POSTS.md
+docs/linkedin_carousel_template.html
+docs/blog/
+docs/qa/
