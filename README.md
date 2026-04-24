@@ -2,10 +2,13 @@
 
 > Actualización completa del portfolio original (v1 académico → v2 producción). Stack, arquitectura y propósito reescritos desde cero.
 
-🔗 **[silvanopuccini.dev](https://silvanopuccini.dev)**
+## 🔗 **[silvanopuccini.dev](https://silvanopuccini.dev)**
 
 ---
 
+![Preview](https://raw.githubusercontent.com/SilvanoPuccini/portfolio/main/docs/assets/SilvanoPuccini_FullStack.png)
+
+---
 ## Por qué existe esta versión
 
 El portfolio v1 (ConquerBlocks, 2026) cumplió su propósito académico. Este reemplaza ese sitio estático con una plataforma de producto real: sobre mi, proyectos. servicios, contacto, blog técnico con suscriptores, panel de admin autenticado y soporte completo ES/EN.
@@ -130,7 +133,7 @@ Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 ### Demo en Vivo
 
-🔗 **[Ver Portfolio v1](https://silvanopuccini.github.io/portfolio/)**
+### 🔗 **[Ver Portfolio v1](https://silvanopuccini.github.io/portfolio/)**
 
 ---
 
