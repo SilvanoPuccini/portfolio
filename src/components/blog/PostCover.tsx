@@ -128,9 +128,27 @@ function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: b
   if (keyword === "El Radar") {
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 pointer-events-none">
-        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/30">El</span>
+        {/* Radar circles */}
+        <svg
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 400 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <g opacity="0.3">
+            <circle cx="200" cy="150" r="40" stroke="#00d4d4" strokeWidth="1" strokeDasharray="5 5" />
+            <circle cx="200" cy="150" r="80" stroke="#00d4d4" strokeWidth="0.75" />
+            <circle cx="200" cy="150" r="120" stroke="#00d4d4" strokeWidth="0.75" strokeDasharray="10 10" />
+            <circle cx="200" cy="150" r="165" stroke="#00d4d4" strokeWidth="0.5" />
+            <line x1="200" y1="150" x2="316" y2="68" stroke="#00d4d4" strokeWidth="1.5" opacity="0.5" />
+            <line x1="200" y1="150" x2="84" y2="232" stroke="#00d4d4" strokeWidth="0.75" opacity="0.2" />
+          </g>
+        </svg>
+        <span className="relative z-10 font-mono text-[10px] uppercase tracking-[0.28em] text-white/30">El</span>
         <span
-          className="font-bold uppercase tracking-[0.18em] text-white/60"
+          className="relative z-10 font-bold uppercase tracking-[0.18em] text-white/60"
           style={{
             fontFamily: "var(--font-space-grotesk), sans-serif",
             fontSize: isFeatured ? "2.4rem" : "1.5rem",
@@ -139,7 +157,7 @@ function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: b
         >
           Radar
         </span>
-        <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 mt-1">
+        <span className="relative z-10 font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 mt-1">
           arquitectura · código · producto
         </span>
       </div>
