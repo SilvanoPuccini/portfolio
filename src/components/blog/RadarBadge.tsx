@@ -12,6 +12,7 @@ export function RadarBadge({ scale = 1 }: { scale?: number }) {
           Container width=280px is the centering unit, so circles+text center together.
           Radii 30:60:90:120 = 1:2:3:4 matching reference 75:150:225:300 ratio.
           Scan line 45° upper-right toward "Radar". Secondary line offset, not from center. */}
+      {/* Circle center at cx=140 = container center → whole composition centered */}
       <svg
         aria-hidden="true"
         className="pointer-events-none absolute"
@@ -28,25 +29,23 @@ export function RadarBadge({ scale = 1 }: { scale?: number }) {
         xmlns="http://www.w3.org/2000/svg"
       >
         <g opacity="0.4">
-          <circle cx="84" cy="40" r="30" stroke="#00d4d4" strokeWidth="0.75" strokeDasharray="3 3" />
-          <circle cx="84" cy="40" r="60" stroke="#00d4d4" strokeWidth="0.5" />
-          <circle cx="84" cy="40" r="90" stroke="#00d4d4" strokeWidth="0.5" strokeDasharray="6 6" />
-          <circle cx="84" cy="40" r="120" stroke="#00d4d4" strokeWidth="0.3" />
-          <line x1="84" y1="40" x2="169" y2="-45" stroke="#00d4d4" strokeWidth="0.75" opacity="0.5" />
-          <line x1="64" y1="57" x2="-21" y2="142" stroke="#00d4d4" strokeWidth="0.4" opacity="0.2" />
+          <circle cx="140" cy="40" r="30" stroke="#00d4d4" strokeWidth="0.75" strokeDasharray="3 3" />
+          <circle cx="140" cy="40" r="60" stroke="#00d4d4" strokeWidth="0.5" />
+          <circle cx="140" cy="40" r="90" stroke="#00d4d4" strokeWidth="0.5" strokeDasharray="6 6" />
+          <circle cx="140" cy="40" r="120" stroke="#00d4d4" strokeWidth="0.3" />
+          <line x1="140" y1="40" x2="225" y2="-45" stroke="#00d4d4" strokeWidth="0.75" opacity="0.5" />
+          <line x1="120" y1="63" x2="50" y2="133" stroke="#00d4d4" strokeWidth="0.4" opacity="0.2" />
         </g>
       </svg>
 
-      {/* Línea superior decorativa */}
-      <div className="relative z-10 mb-1 flex w-full items-center gap-1.5">
-        <span className="h-px flex-1 bg-text-tertiary/50" />
+      {/* est. 2026 — sin líneas decorativas */}
+      <div className="relative z-10 mb-1">
         <span className="font-mono text-[8px] uppercase tracking-[0.22em] text-text-secondary">
           est. 2026
         </span>
-        <span className="h-px flex-1 bg-text-tertiary/50" />
       </div>
 
-      {/* Nombre principal */}
+      {/* El Radar */}
       <div className="relative z-10 flex items-baseline gap-1.5">
         <span
           className="text-[11px] font-semibold uppercase tracking-[0.32em] text-text-secondary"
@@ -65,13 +64,11 @@ export function RadarBadge({ scale = 1 }: { scale?: number }) {
         </span>
       </div>
 
-      {/* Línea inferior + tagline */}
-      <div className="relative z-10 mt-1 flex w-full items-center gap-1.5">
-        <span className="h-px flex-1 bg-text-tertiary/50" />
+      {/* tagline — sin líneas decorativas */}
+      <div className="relative z-10 mt-1">
         <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-text-secondary">
           arquitectura · código · producto
         </span>
-        <span className="h-px flex-1 bg-text-tertiary/50" />
       </div>
     </div>
   );
