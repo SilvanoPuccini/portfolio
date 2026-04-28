@@ -4,9 +4,7 @@ import { createDistribution } from '@/lib/distribution/orchestrator';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutos — necesario para IA + render con Puppeteer
 
-function isAuthorized(req: NextRequest) {
-  return req.headers.get('authorization') === `Bearer ${process.env.NOTIFY_SECRET}`;
-}
+import { isAuthorized } from '@/lib/admin-auth';
 
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {

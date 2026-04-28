@@ -4,9 +4,7 @@ import type { RegenerateRequest } from '@/lib/distribution/types';
 
 export const dynamic = 'force-dynamic';
 
-function isAuthorized(req: NextRequest) {
-  return req.headers.get('authorization') === `Bearer ${process.env.NOTIFY_SECRET}`;
-}
+import { isAuthorized } from '@/lib/admin-auth';
 
 export async function POST(
   req: NextRequest,

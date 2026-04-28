@@ -3,9 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-function isAuthorized(req: NextRequest) {
-  return req.headers.get('authorization') === `Bearer ${process.env.NOTIFY_SECRET}`;
-}
+import { isAuthorized } from '@/lib/admin-auth';
 
 const MODELS_TO_TEST = [
   'gemini-2.5-flash',
