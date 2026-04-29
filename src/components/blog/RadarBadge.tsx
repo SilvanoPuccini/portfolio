@@ -4,7 +4,7 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
   const uid = useId();
   return (
     <div
-      className={`relative inline-flex flex-col items-center${className ? ` ${className}` : ""}`}
+      className={`relative inline-flex flex-col items-center text-brand-primary${className ? ` ${className}` : ""}`}
       style={{
         width: "280px",
         transform: scale !== 1 ? `scale(${scale})` : undefined,
@@ -33,13 +33,13 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         <defs>
           {/* Gradiente radial — fade de distancia desde el centro */}
           <radialGradient id={`${uid}-sweep`} gradientUnits="userSpaceOnUse" cx="140" cy="40" r="95">
-            <stop offset="0%"   stopColor="#00d4d4" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#00d4d4" stopOpacity="0" />
+            <stop offset="0%"   style={{ stopColor: "currentColor", stopOpacity: 0.32 }} />
+            <stop offset="100%" style={{ stopColor: "currentColor", stopOpacity: 0 }} />
           </radialGradient>
           {/* Gradiente radial de fondo — profundidad sutil */}
           <radialGradient id={`${uid}-bg`} gradientUnits="userSpaceOnUse" cx="140" cy="40" r="120">
-            <stop offset="0%"   stopColor="#00d4d4" stopOpacity="0.06" />
-            <stop offset="100%" stopColor="#00d4d4" stopOpacity="0" />
+            <stop offset="0%"   style={{ stopColor: "currentColor", stopOpacity: 0.06 }} />
+            <stop offset="100%" style={{ stopColor: "currentColor", stopOpacity: 0 }} />
           </radialGradient>
           {/* Máscara angular — fade smooth del trail (de la aguja hacia atrás).
               Gradiente lineal de blanco→transparente desde el borde de la aguja (α=45°, derecha)
@@ -90,31 +90,31 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
 
         {/* Círculos concéntricos — ratio 1:2:3:4 fiel al SVG de referencia */}
         <g opacity="0.4">
-          <circle cx="140" cy="40" r="30"  stroke="#00d4d4" strokeWidth="0.75" strokeDasharray="3 3" />
-          <circle cx="140" cy="40" r="60"  stroke="#00d4d4" strokeWidth="0.5" />
-          <circle cx="140" cy="40" r="90"  stroke="#00d4d4" strokeWidth="0.5" strokeDasharray="6 6" />
-          <circle cx="140" cy="40" r="120" stroke="#00d4d4" strokeWidth="0.3" />
+          <circle cx="140" cy="40" r="30"  stroke="currentColor" strokeWidth="0.75" strokeDasharray="3 3" />
+          <circle cx="140" cy="40" r="60"  stroke="currentColor" strokeWidth="0.5" />
+          <circle cx="140" cy="40" r="90"  stroke="currentColor" strokeWidth="0.5" strokeDasharray="6 6" />
+          <circle cx="140" cy="40" r="120" stroke="currentColor" strokeWidth="0.3" />
         </g>
 
         {/* Línea de barrido — bloom multicapa para efecto glow */}
-        <line x1="140" y1="40" x2="225" y2="-45" stroke="#00d4d4" strokeWidth="5"    opacity="0.04" />
-        <line x1="140" y1="40" x2="225" y2="-45" stroke="#00d4d4" strokeWidth="2"    opacity="0.10" />
-        <line x1="140" y1="40" x2="225" y2="-45" stroke="#00d4d4" strokeWidth="0.75" opacity="0.55" />
+        <line x1="140" y1="40" x2="225" y2="-45" stroke="currentColor" strokeWidth="5"    opacity="0.04" />
+        <line x1="140" y1="40" x2="225" y2="-45" stroke="currentColor" strokeWidth="2"    opacity="0.10" />
+        <line x1="140" y1="40" x2="225" y2="-45" stroke="currentColor" strokeWidth="0.75" opacity="0.55" />
 
         {/* Línea secundaria — offset, baja opacidad */}
-        <line x1="120" y1="63" x2="50" y2="133" stroke="#00d4d4" strokeWidth="0.4" opacity="0.18" />
+        <line x1="120" y1="63" x2="50" y2="133" stroke="currentColor" strokeWidth="0.4" opacity="0.18" />
 
         {/* Punto central — origen del radar con halo */}
-        <circle cx="140" cy="40" r="4" fill="#00d4d4" opacity="0.15" filter={`url(#${uid}-glow)`} />
-        <circle cx="140" cy="40" r="1.8" fill="#00d4d4" opacity="0.9" />
+        <circle cx="140" cy="40" r="4" fill="currentColor" opacity="0.15" filter={`url(#${uid}-glow)`} />
+        <circle cx="140" cy="40" r="1.8" fill="currentColor" opacity="0.9" />
 
         {/* Blip pulsante — objetivo detectado en zona de barrido.
             r=60 circle, α=60°: (170,-12). Justo en el sector main glow, cerca de la aguja. */}
-        <circle cx="170" cy="-12" r="6" fill="none" stroke="#00d4d4" strokeWidth="0.7">
+        <circle cx="170" cy="-12" r="6" fill="none" stroke="currentColor" strokeWidth="0.7">
           <animate attributeName="r" values="2;9;2" dur="2.4s" repeatCount="indefinite" />
           <animate attributeName="opacity" values="0.65;0;0.65" dur="2.4s" repeatCount="indefinite" />
         </circle>
-        <circle cx="170" cy="-12" r="2" fill="#00d4d4" filter={`url(#${uid}-glow)`}>
+        <circle cx="170" cy="-12" r="2" fill="currentColor" filter={`url(#${uid}-glow)`}>
           <animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite" />
         </circle>
       </svg>
