@@ -31,9 +31,9 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          {/* Gradiente radial para el sector de barrido — emana desde el centro */}
+          {/* Gradiente radial — fade de distancia desde el centro */}
           <radialGradient id={`${uid}-sweep`} gradientUnits="userSpaceOnUse" cx="140" cy="40" r="95">
-            <stop offset="0%"   stopColor="#00d4d4" stopOpacity="0.28" />
+            <stop offset="0%"   stopColor="#00d4d4" stopOpacity="0.32" />
             <stop offset="100%" stopColor="#00d4d4" stopOpacity="0" />
           </radialGradient>
           {/* Gradiente radial de fondo — profundidad sutil */}
@@ -41,6 +41,17 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
             <stop offset="0%"   stopColor="#00d4d4" stopOpacity="0.06" />
             <stop offset="100%" stopColor="#00d4d4" stopOpacity="0" />
           </radialGradient>
+          {/* Máscara angular — fade smooth del trail (de la aguja hacia atrás).
+              Gradiente lineal de blanco→transparente desde el borde de la aguja (α=45°, derecha)
+              hacia el final del trail (α=135°, izquierda). Sin cortes entre sectores. */}
+          <linearGradient id={`${uid}-trail-fade`} gradientUnits="userSpaceOnUse"
+            x1="204" y1="-24" x2="76" y2="-24">
+            <stop offset="0%"   stopColor="white" stopOpacity="1" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          <mask id={`${uid}-trail-mask`}>
+            <rect x="-200" y="-200" width="700" height="500" fill={`url(#${uid}-trail-fade)`} />
+          </mask>
           {/* Blur suave para el glow del centro */}
           <filter id={`${uid}-glow`} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="3" result="blur" />
@@ -49,7 +60,7 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          {/* Blur para el sector de barrido */}
+          {/* Blur para el sector de barrido principal */}
           <filter id={`${uid}-sweep-blur`} x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="5" />
           </filter>
@@ -58,27 +69,19 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         {/* Fondo radial — profundidad */}
         <circle cx="140" cy="40" r="120" fill={`url(#${uid}-bg)`} />
 
-        {/* Trail espiral — 3 sectores de 30° encadenados detrás de la aguja.
-            Centro (140,40). Convención estándar (CCW desde eje X positivo, y hacia arriba).
-            Sweep line en α=45°. La aguja viene de α=135° → 105° → 75° → 45°.
-            En SVG sweep-flag=0 = counterclockwise = hacia α mayor.
-            Puntos en r=90: α45=(204,-24) α75=(163,-47) α105=(117,-47) α135=(76,-24)
-            Sin blur en B y C: el feGaussianBlur destruye shapes con gradiente casi-cero
-            en los bordes. El fill directo con gradiente + opacity funciona. */}
+        {/* Trail continuo — un solo sector de 90° con máscara de fade angular smooth.
+            Sin sectores separados → sin líneas de corte. La máscara (gradiente lineal
+            derecha→izquierda) hace el fade angular; el radialGradient hace el fade de distancia.
+            Sector: α=45° (sweep line, bright) → α=135° (far end, transparent), CCW (sweep-flag=0).
+            Puntos r=90: α45=(204,-24)  α135=(76,-24) */}
+        <path
+          d="M 140 40 L 204 -24 A 90 90 0 0 0 76 -24 Z"
+          fill={`url(#${uid}-sweep)`}
+          opacity="0.85"
+          mask={`url(#${uid}-trail-mask)`}
+        />
 
-        {/* Sector C (far trail): α=105°→135°, sweep-flag=0 (CCW) */}
-        <path
-          d="M 140 40 L 117 -47 A 90 90 0 0 0 76 -24 Z"
-          fill={`url(#${uid}-sweep)`}
-          opacity="0.25"
-        />
-        {/* Sector B (mid trail): α=75°→105°, sweep-flag=0 (CCW) */}
-        <path
-          d="M 140 40 L 163 -47 A 90 90 0 0 0 117 -47 Z"
-          fill={`url(#${uid}-sweep)`}
-          opacity="0.45"
-        />
-        {/* Sector A (main glow): α=45°→75°, sweep-flag=1 (CW) — bright, blurred */}
+        {/* Sector A (main glow): α=45°→75° — brillo principal + blur, sobre el trail */}
         <path
           d="M 140 40 L 163 -47 A 90 90 0 0 1 204 -24 Z"
           fill={`url(#${uid}-sweep)`}
