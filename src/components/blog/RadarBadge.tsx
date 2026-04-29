@@ -58,25 +58,27 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         {/* Fondo radial — profundidad */}
         <circle cx="140" cy="40" r="120" fill={`url(#${uid}-bg)`} />
 
-        {/* Trail espiral — sectores de 30° cada uno, opacidad decreciente hacia atrás.
-            Centro en (140,40). Ángulos en convención estándar (counterclockwise desde eje X).
-            Sweep line en α=45°. Trailing va hacia α=75°, 105°, 135° (detrás de la aguja).
-            Cada sector: desde αStart clockwise → αEnd (sweep-flag=1 en SVG).
-            Sector C (far): α=135°→105°  pts: (76,-24)→(117,-47) */}
+        {/* Trail espiral — 3 sectores de 30° encadenados detrás de la aguja.
+            Centro (140,40). Convención estándar (CCW desde eje X positivo, y hacia arriba).
+            Sweep line en α=45°. La aguja viene de α=135° → 105° → 75° → 45°.
+            En SVG sweep-flag=0 = counterclockwise = hacia α mayor.
+            Puntos en r=90: α45=(204,-24) α75=(163,-47) α105=(117,-47) α135=(76,-24)
+            Sin blur en B y C: el feGaussianBlur destruye shapes con gradiente casi-cero
+            en los bordes. El fill directo con gradiente + opacity funciona. */}
+
+        {/* Sector C (far trail): α=105°→135°, sweep-flag=0 (CCW) */}
         <path
-          d="M 140 40 L 76 -24 A 90 90 0 0 1 117 -47 Z"
+          d="M 140 40 L 117 -47 A 90 90 0 0 0 76 -24 Z"
           fill={`url(#${uid}-sweep)`}
-          opacity="0.18"
-          filter={`url(#${uid}-sweep-blur)`}
+          opacity="0.25"
         />
-        {/* Sector B (mid): α=105°→75°  pts: (117,-47)→(163,-47) */}
+        {/* Sector B (mid trail): α=75°→105°, sweep-flag=0 (CCW) */}
         <path
-          d="M 140 40 L 117 -47 A 90 90 0 0 1 163 -47 Z"
+          d="M 140 40 L 163 -47 A 90 90 0 0 0 117 -47 Z"
           fill={`url(#${uid}-sweep)`}
-          opacity="0.44"
-          filter={`url(#${uid}-sweep-blur)`}
+          opacity="0.45"
         />
-        {/* Sector A (main glow): α=75°→45°  pts: (163,-47)→(204,-24) */}
+        {/* Sector A (main glow): α=45°→75°, sweep-flag=1 (CW) — bright, blurred */}
         <path
           d="M 140 40 L 163 -47 A 90 90 0 0 1 204 -24 Z"
           fill={`url(#${uid}-sweep)`}
