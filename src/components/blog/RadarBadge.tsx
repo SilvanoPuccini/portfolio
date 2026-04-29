@@ -58,8 +58,25 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         {/* Fondo radial — profundidad */}
         <circle cx="140" cy="40" r="120" fill={`url(#${uid}-bg)`} />
 
-        {/* Sector de barrido del radar — arco iluminado donde pasó la línea
-            Desde -75° hasta -45° (30° de apertura, sentido horario en SVG) */}
+        {/* Trail espiral — sectores de 30° cada uno, opacidad decreciente hacia atrás.
+            Centro en (140,40). Ángulos en convención estándar (counterclockwise desde eje X).
+            Sweep line en α=45°. Trailing va hacia α=75°, 105°, 135° (detrás de la aguja).
+            Cada sector: desde αStart clockwise → αEnd (sweep-flag=1 en SVG).
+            Sector C (far): α=135°→105°  pts: (76,-24)→(117,-47) */}
+        <path
+          d="M 140 40 L 76 -24 A 90 90 0 0 1 117 -47 Z"
+          fill={`url(#${uid}-sweep)`}
+          opacity="0.18"
+          filter={`url(#${uid}-sweep-blur)`}
+        />
+        {/* Sector B (mid): α=105°→75°  pts: (117,-47)→(163,-47) */}
+        <path
+          d="M 140 40 L 117 -47 A 90 90 0 0 1 163 -47 Z"
+          fill={`url(#${uid}-sweep)`}
+          opacity="0.44"
+          filter={`url(#${uid}-sweep-blur)`}
+        />
+        {/* Sector A (main glow): α=75°→45°  pts: (163,-47)→(204,-24) */}
         <path
           d="M 140 40 L 163 -47 A 90 90 0 0 1 204 -24 Z"
           fill={`url(#${uid}-sweep)`}
@@ -86,13 +103,14 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         <circle cx="140" cy="40" r="4" fill="#00d4d4" opacity="0.15" filter={`url(#${uid}-glow)`} />
         <circle cx="140" cy="40" r="1.8" fill="#00d4d4" opacity="0.9" />
 
-        {/* Blip pulsante — objetivo detectado en el 2º círculo (r=60), ángulo 30° lower-right */}
-        <circle cx="192" cy="70" r="5" fill="none" stroke="#00d4d4" strokeWidth="0.6" opacity="0.7">
-          <animate attributeName="r" values="2;10;2" dur="2.6s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.7;0;0.7" dur="2.6s" repeatCount="indefinite" />
+        {/* Blip pulsante — objetivo detectado en zona de barrido.
+            r=60 circle, α=60°: (170,-12). Justo en el sector main glow, cerca de la aguja. */}
+        <circle cx="170" cy="-12" r="6" fill="none" stroke="#00d4d4" strokeWidth="0.7">
+          <animate attributeName="r" values="2;9;2" dur="2.4s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.65;0;0.65" dur="2.4s" repeatCount="indefinite" />
         </circle>
-        <circle cx="192" cy="70" r="1.8" fill="#00d4d4" opacity="0.95" filter={`url(#${uid}-glow)`}>
-          <animate attributeName="opacity" values="0.95;0.4;0.95" dur="2.6s" repeatCount="indefinite" />
+        <circle cx="170" cy="-12" r="2" fill="#00d4d4" filter={`url(#${uid}-glow)`}>
+          <animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite" />
         </circle>
       </svg>
 
