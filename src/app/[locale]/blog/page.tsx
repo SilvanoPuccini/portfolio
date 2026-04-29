@@ -104,6 +104,7 @@ export default async function BlogPage({
           </>
         }
         bodyClassName="space-y-7 sm:space-y-8"
+        containerClassName="pb-32 sm:pb-36 lg:pb-36"
         subtitle={<p>{content.blog.intro}</p>}
         description={
           <div className="space-y-6">

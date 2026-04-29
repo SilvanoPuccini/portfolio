@@ -91,7 +91,7 @@ export default async function BlogPostPage({
         {/* Header editorial */}
         <header className="mb-12 sm:mb-16">
           {/* Mobile: categoría+fecha arriba / badge abajo. Desktop: 3 columnas */}
-          <div className="mb-6 flex flex-col gap-3 sm:grid sm:grid-cols-3 sm:items-center">
+          <div className="mb-16 flex flex-col gap-3 sm:mb-10 sm:grid sm:grid-cols-3 sm:items-center">
             {/* Categoría + reading time + fecha (mobile) */}
             <div className="flex items-center justify-between sm:justify-start sm:gap-3">
               <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export default async function BlogPostPage({
 
             {/* RadarBadge — fila propia en mobile, columna central en desktop */}
             <div className="flex flex-col items-center gap-1">
-              <RadarBadge />
+              <RadarBadge scale={0.7} />
               <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-text-tertiary/60">
                 Nº {String(post.issue).padStart(2, "0")}
               </span>
