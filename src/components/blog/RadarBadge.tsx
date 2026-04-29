@@ -1,10 +1,10 @@
 import { useId } from "react";
 
-export function RadarBadge({ scale = 1 }: { scale?: number }) {
+export function RadarBadge({ scale = 1, className }: { scale?: number; className?: string }) {
   const uid = useId();
   return (
     <div
-      className="relative inline-flex flex-col items-center"
+      className={`relative inline-flex flex-col items-center${className ? ` ${className}` : ""}`}
       style={{
         width: "280px",
         transform: scale !== 1 ? `scale(${scale})` : undefined,
@@ -85,6 +85,15 @@ export function RadarBadge({ scale = 1 }: { scale?: number }) {
         {/* Punto central — origen del radar con halo */}
         <circle cx="140" cy="40" r="4" fill="#00d4d4" opacity="0.15" filter={`url(#${uid}-glow)`} />
         <circle cx="140" cy="40" r="1.8" fill="#00d4d4" opacity="0.9" />
+
+        {/* Blip pulsante — objetivo detectado en el 2º círculo (r=60), ángulo 30° lower-right */}
+        <circle cx="192" cy="70" r="5" fill="none" stroke="#00d4d4" strokeWidth="0.6" opacity="0.7">
+          <animate attributeName="r" values="2;10;2" dur="2.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.7;0;0.7" dur="2.6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="192" cy="70" r="1.8" fill="#00d4d4" opacity="0.95" filter={`url(#${uid}-glow)`}>
+          <animate attributeName="opacity" values="0.95;0.4;0.95" dur="2.6s" repeatCount="indefinite" />
+        </circle>
       </svg>
 
       {/* est. 2026 — sin líneas decorativas */}
