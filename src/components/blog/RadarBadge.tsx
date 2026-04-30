@@ -4,7 +4,7 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
   const uid = useId();
   return (
     <div
-      className={`relative inline-flex flex-col items-center text-brand-primary${className ? ` ${className}` : ""}`}
+      className={`relative inline-flex flex-col items-center text-brand-primary [[data-theme='light']_&]:text-brand-glow${className ? ` ${className}` : ""}`}
       style={{
         width: "280px",
         transform: scale !== 1 ? `scale(${scale})` : undefined,
@@ -33,12 +33,12 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         <defs>
           {/* Gradiente radial — fade de distancia desde el centro */}
           <radialGradient id={`${uid}-sweep`} gradientUnits="userSpaceOnUse" cx="140" cy="40" r="95">
-            <stop offset="0%"   style={{ stopColor: "currentColor", stopOpacity: 0.32 }} />
+            <stop offset="0%"   style={{ stopColor: "currentColor", stopOpacity: 0.55 }} />
             <stop offset="100%" style={{ stopColor: "currentColor", stopOpacity: 0 }} />
           </radialGradient>
           {/* Gradiente radial de fondo — profundidad sutil */}
           <radialGradient id={`${uid}-bg`} gradientUnits="userSpaceOnUse" cx="140" cy="40" r="120">
-            <stop offset="0%"   style={{ stopColor: "currentColor", stopOpacity: 0.06 }} />
+            <stop offset="0%"   style={{ stopColor: "currentColor", stopOpacity: 0.1 }} />
             <stop offset="100%" style={{ stopColor: "currentColor", stopOpacity: 0 }} />
           </radialGradient>
           {/* Máscara angular — fade smooth del trail (de la aguja hacia atrás).
@@ -77,7 +77,7 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         <path
           d="M 140 40 L 204 -24 A 90 90 0 0 0 76 -24 Z"
           fill={`url(#${uid}-sweep)`}
-          opacity="0.85"
+          opacity="1"
           mask={`url(#${uid}-trail-mask)`}
         />
 
@@ -89,7 +89,7 @@ export function RadarBadge({ scale = 1, className }: { scale?: number; className
         />
 
         {/* Círculos concéntricos — ratio 1:2:3:4 fiel al SVG de referencia */}
-        <g opacity="0.4">
+        <g opacity="0.6">
           <circle cx="140" cy="40" r="30"  stroke="currentColor" strokeWidth="0.75" strokeDasharray="3 3" />
           <circle cx="140" cy="40" r="60"  stroke="currentColor" strokeWidth="0.5" />
           <circle cx="140" cy="40" r="90"  stroke="currentColor" strokeWidth="0.5" strokeDasharray="6 6" />
