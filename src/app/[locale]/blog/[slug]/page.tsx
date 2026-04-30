@@ -115,7 +115,7 @@ export default async function BlogPostPage({
             {/* RadarBadge — fila propia en mobile, columna central en desktop */}
             <div className="flex flex-col items-center gap-1">
               <RadarBadge scale={0.7} />
-              <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-text-tertiary/60">
+              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-text-secondary">
                 Nº {String(post.issue).padStart(2, "0")}
               </span>
             </div>
