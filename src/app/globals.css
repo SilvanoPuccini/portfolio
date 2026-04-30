@@ -45,6 +45,13 @@
   color-scheme: light;
 }
 
+/* Override body gradients for light mode — the defaults are dark-mode specific */
+[data-theme="light"] body {
+  background-image:
+    radial-gradient(circle at top left, rgb(var(--brand-primary) / 0.05), transparent 28%),
+    radial-gradient(circle at 80% 10%, rgb(var(--brand-secondary) / 0.07), transparent 26%);
+}
+
 * {
   @apply border-outline-ghost/15;
 }
