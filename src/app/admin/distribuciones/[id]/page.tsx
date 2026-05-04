@@ -43,6 +43,153 @@ function fmt(iso: string) {
   });
 }
 
+// ── Export PDF (LinkedIn print) ───────────────────────────────
+
+function renderSlideHTML(slide: import('@/lib/distribution/types').LinkedInSlide, idx: number, total: number): string {
+  const counter = `<span class="counter">${idx + 1} / ${total}</span>`;
+
+  const topBar = (label: string) => `
+    <div class="top-bar">
+      <span class="tag">${label}</span>
+      ${counter}
+    </div>`;
+
+  const footer = `<div class="footer">silvanopuccini.dev · El Radar</div>`;
+
+  switch (slide.type) {
+    case 'portada':
+      return `
+        ${topBar(slide.tag ?? 'EL RADAR')}
+        <div class="content center">
+          <h1>${slide.headline}</h1>
+          <p class="subtitle">${slide.subtitle ?? slide.body}</p>
+        </div>
+        ${footer}`;
+
+    case 'problema':
+      return `
+        ${topBar('PROBLEMA')}
+        <div class="content">
+          <h2>${slide.headline}</h2>
+          <p class="body">${slide.body}</p>
+          ${slide.pills?.length ? `<div class="pills">${slide.pills.map(p => `<span class="pill">${p}</span>`).join('')}</div>` : ''}
+        </div>
+        ${footer}`;
+
+    case 'idea':
+      return `
+        ${topBar(`IDEA ${slide.icon_num ?? idx}`)}
+        <div class="content">
+          <h2>${slide.headline}</h2>
+          <p class="body">${slide.body}</p>
+          ${slide.code_snippet ? `<pre class="code">${slide.code_snippet}</pre>` : ''}
+        </div>
+        ${footer}`;
+
+    case 'resumen':
+      return `
+        ${topBar('RESUMEN')}
+        <div class="content">
+          <h2>${slide.headline}</h2>
+          <p class="body">${slide.body}</p>
+          <ul class="points">${(slide.points ?? []).map(p => `<li>${p}</li>`).join('')}</ul>
+        </div>
+        ${footer}`;
+
+    case 'engagement':
+      return `
+        ${topBar('PARA VOS')}
+        <div class="content center">
+          <h2>${slide.headline}</h2>
+          <p class="body">${slide.body}</p>
+        </div>
+        ${footer}`;
+
+    case 'cta':
+      return `
+        ${topBar('EL RADAR')}
+        <div class="content center">
+          <h2 class="accent">${slide.headline}</h2>
+          <p class="body">${slide.body}</p>
+        </div>
+        ${footer}`;
+
+    default:
+      return `
+        ${topBar('SLIDE')}
+        <div class="content"><p class="body">${slide.body}</p></div>
+        ${footer}`;
+  }
+}
+
+function downloadLinkedInPDF(dist: import('@/lib/distribution/types').Distribution) {
+  const li = dist.linkedin_content;
+  if (!li) return;
+
+  const slides = li.slides;
+  const total = slides.length;
+
+  const CSS = `
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    @page { size: 180mm 180mm; margin: 0; }
+    body { background: #0f0f14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: #f0f0f0; }
+    .slide { width: 180mm; height: 180mm; padding: 12mm 13mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; background: #0f0f14; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .tag { font-family: monospace; font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; color: #00d4d4; font-weight: 600; }
+    .counter { font-family: monospace; font-size: 9pt; color: rgba(255,255,255,0.28); }
+    .content { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 14pt; padding: 14pt 0 0; }
+    .content.center { justify-content: center; }
+    h1 { font-size: 34pt; font-weight: 800; line-height: 1.08; letter-spacing: -0.025em; color: #f0f0f0; }
+    h2 { font-size: 26pt; font-weight: 700; line-height: 1.10; letter-spacing: -0.020em; color: #f0f0f0; }
+    .accent { color: #00d4d4; }
+    .subtitle { font-size: 13pt; color: rgba(255,255,255,0.65); line-height: 1.4; }
+    .body { font-size: 11pt; color: rgba(255,255,255,0.70); line-height: 1.55; white-space: pre-wrap; }
+    .pills { display: flex; flex-wrap: wrap; gap: 6pt; margin-top: 4pt; }
+    .pill { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); border-radius: 20pt; padding: 3pt 10pt; font-size: 9pt; font-family: monospace; }
+    .code { background: rgba(0,212,212,0.07); border-left: 3pt solid #00d4d4; padding: 8pt 10pt; font-family: monospace; font-size: 9pt; color: #00d4d4; border-radius: 4pt; white-space: pre-wrap; }
+    .points { list-style: none; display: flex; flex-direction: column; gap: 8pt; }
+    .points li { font-size: 11pt; color: rgba(255,255,255,0.75); line-height: 1.4; padding-left: 14pt; position: relative; }
+    .points li::before { content: '→'; position: absolute; left: 0; color: #00d4d4; }
+    .footer { font-family: monospace; font-size: 7pt; color: rgba(255,255,255,0.18); letter-spacing: 0.08em; }
+    .caption-page { width: 180mm; min-height: 180mm; padding: 12mm 13mm; background: #0f0f14; }
+    .caption-label { font-family: monospace; font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; color: #00d4d4; margin-bottom: 10pt; }
+    .caption-text { font-size: 11pt; color: rgba(255,255,255,0.75); line-height: 1.6; white-space: pre-wrap; margin-bottom: 20pt; }
+    .hashtags { display: flex; flex-wrap: wrap; gap: 6pt; }
+    .hashtag { color: #8B5CF6; font-size: 10pt; font-family: monospace; }
+  `;
+
+  const slidesHTML = slides.map((sl, i) =>
+    `<div class="slide">${renderSlideHTML(sl, i, total)}</div>`
+  ).join('');
+
+  const captionHTML = `
+    <div class="caption-page">
+      <p class="caption-label">Caption del post</p>
+      <p class="caption-text">${li.caption}</p>
+      <p class="caption-label">Hashtags</p>
+      <div class="hashtags">${li.hashtags.map(h => `<span class="hashtag">#${h}</span>`).join('')}</div>
+    </div>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>${dist.post_title} — LinkedIn</title>
+  <style>${CSS}</style>
+</head>
+<body>
+  ${slidesHTML}
+  ${captionHTML}
+  <script>window.onload = () => { window.print(); }<\/script>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
+}
+
 // ── Export ZIP ────────────────────────────────────────────────
 
 async function downloadZip(dist: Distribution) {
@@ -420,6 +567,12 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
       <div style={{ ...s.card, marginTop: 28 }}>
         <p style={{ ...s.eyebrow, marginBottom: 12 }}>Descargar assets</p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            onClick={() => downloadLinkedInPDF(dist)}
+            style={{ ...s.btn, background: '#8B5CF6', color: '#fff', fontSize: 12 }}
+          >
+            ↓ PDF LinkedIn (Figma / Canva)
+          </button>
           <button
             onClick={handleDownloadZip}
             disabled={downloading}
