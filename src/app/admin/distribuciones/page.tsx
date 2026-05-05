@@ -273,7 +273,7 @@ export default function DistribucionesPage() {
         {!loading && error && (
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
             <p style={{ ...s.errorText, marginBottom: 12 }}>⚠ {error}</p>
-            <button onClick={() => load(filter)} style={s.btnGhost}>Reintentar</button>
+            <button onClick={() => load(filter, page)} style={s.btnGhost}>Reintentar</button>
           </div>
         )}
 
