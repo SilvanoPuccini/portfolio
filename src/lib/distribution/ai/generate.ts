@@ -55,7 +55,11 @@ export async function generateDistribution(
   for (const { model } of MODEL_CONFIGS) {
     const genModel = client.getGenerativeModel({
       model,
-      generationConfig: { responseMimeType: 'application/json' },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.4,
+        topP: 0.85,
+      },
     });
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_MODEL; attempt++) {
