@@ -197,22 +197,28 @@ function NewDistributionModal({
 
 // ── Página principal ──────────────────────────────────────────
 
+const PER_PAGE = 10;
+
 export default function DistribucionesPage() {
   const [items, setItems] = useState<DistributionListItem[]>([]);
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  const load = useCallback(async (status?: string) => {
+  const load = useCallback(async (status: string, p: number) => {
     setLoading(true);
     setError('');
     try {
-      const qs = status && status !== 'all' ? `?status=${status}` : '';
-      const res = await fetch(`/api/admin/distributions${qs}`, {});
+      const params = new URLSearchParams({ page: String(p), per_page: String(PER_PAGE) });
+      if (status !== 'all') params.set('status', status);
+      const res = await fetch(`/api/admin/distributions?${params}`, {});
       if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data = await res.json() as { items: DistributionListItem[] };
+      const data = await res.json() as { items: DistributionListItem[]; total: number };
       setItems(data.items ?? []);
+      setTotal(data.total ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar distribuciones');
     } finally {
@@ -220,7 +226,12 @@ export default function DistribucionesPage() {
     }
   }, []);
 
-  useEffect(() => { load(filter); }, [load, filter]);
+  useEffect(() => { load(filter, page); }, [load, filter, page]);
+
+  function handleFilterChange(f: StatusFilter) {
+    setFilter(f);
+    setPage(1);
+  }
 
   function handleCreated(id: string) {
     setShowModal(false);
@@ -245,7 +256,7 @@ export default function DistribucionesPage() {
       {/* Filtros */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {statuses.map((st) => (
-          <button key={st} onClick={() => setFilter(st)} style={{
+          <button key={st} onClick={() => handleFilterChange(st)} style={{
             ...s.btnGhost,
             color: filter === st ? '#00d4d4' : '#475569',
             borderColor: filter === st ? '#00d4d4' : '#1e293b',
@@ -274,6 +285,24 @@ export default function DistribucionesPage() {
             <button onClick={() => setShowModal(true)} style={s.btn}>
               Generar la primera →
             </button>
+          </div>
+        )}
+
+        {!loading && !error && total > PER_PAGE && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1e293b' }}>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
+            >← Ant.</button>
+            <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>
+              {page} / {Math.ceil(total / PER_PAGE)} · {total} total
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(total / PER_PAGE), p + 1))}
+              disabled={page >= Math.ceil(total / PER_PAGE)}
+              style={{ background: 'none', border: 'none', color: page >= Math.ceil(total / PER_PAGE) ? '#2a3a50' : '#475569', cursor: page >= Math.ceil(total / PER_PAGE) ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
+            >Sig. →</button>
           </div>
         )}
 

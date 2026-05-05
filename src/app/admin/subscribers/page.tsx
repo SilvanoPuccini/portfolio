@@ -10,9 +10,12 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+const PER_PAGE = 10;
+
 export default function SubscribersPage() {
   const [all, setAll] = useState<Subscriber[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -36,6 +39,8 @@ export default function SubscribersPage() {
   }
 
   const filtered = filter === 'all' ? all : all.filter((s) => s.status === filter);
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const activeCount = all.filter((s) => s.status === 'active').length;
   const unsubCount = all.filter((s) => s.status === 'unsubscribed').length;
 
@@ -73,7 +78,7 @@ export default function SubscribersPage() {
       {/* Filter */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {(['all', 'active', 'unsubscribed'] as Filter[]).map((f) => (
-          <button key={f} onClick={() => setFilter(f)}
+          <button key={f} onClick={() => { setFilter(f); setPage(1); }}
             style={{ ...s.btnGhost, color: filter === f ? '#00d4d4' : '#475569', borderColor: filter === f ? '#00d4d4' : '#1e293b' }}>
             {f === 'all' ? 'Todos' : f === 'active' ? 'Activos' : 'Desuscriptos'}
           </button>
@@ -84,7 +89,16 @@ export default function SubscribersPage() {
       <div style={s.card}>
         {loading && <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>}
         {!loading && filtered.length === 0 && <p style={{ color: '#475569', fontSize: 13 }}>Sin resultados.</p>}
-        {!loading && filtered.map((sub) => (
+        {!loading && totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1e293b' }}>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+              style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
+            <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              style={{ background: 'none', border: 'none', color: page === totalPages ? '#2a3a50' : '#475569', cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
+          </div>
+        )}
+        {!loading && paginated.map((sub) => (
           <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1e293b' }}>
             <div>
               <p style={{ fontSize: 13, color: '#e2e8f0', margin: '0 0 2px' }}>{sub.email}</p>

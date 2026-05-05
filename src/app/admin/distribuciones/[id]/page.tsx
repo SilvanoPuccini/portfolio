@@ -190,6 +190,57 @@ function downloadLinkedInPDF(dist: import('@/lib/distribution/types').Distributi
   w.document.close();
 }
 
+// ── Export texto estructurado ─────────────────────────────────
+
+function downloadTextContent(dist: import('@/lib/distribution/types').Distribution) {
+  const li = dist.linkedin_content;
+  if (!li) return;
+
+  const sep = '─'.repeat(52);
+  const lines: string[] = [
+    `EL RADAR — ${dist.post_title.toUpperCase()}`,
+    `Post: ${dist.post_slug}`,
+    sep,
+    '',
+  ];
+
+  li.slides.forEach((sl, i) => {
+    const label = sl.type === 'idea' ? `IDEA ${sl.icon_num}` : sl.type.toUpperCase();
+    lines.push(`SLIDE ${i + 1} — ${label}`);
+
+    if (sl.tag)          lines.push(`Tag: ${sl.tag}`);
+    if (sl.headline)     lines.push(`Headline: ${sl.headline}`);
+    if (sl.subtitle)     lines.push(`Subtitle: ${sl.subtitle}`);
+    if (sl.body)         lines.push(``, sl.body);
+    if (sl.pills?.length) lines.push(``, `Pills: ${sl.pills.join(' · ')}`);
+    if (sl.code_snippet) lines.push(``, `Código: ${sl.code_snippet}`);
+    if (sl.points?.length) {
+      lines.push('');
+      sl.points.forEach((p, pi) => lines.push(`${pi + 1}. ${p}`));
+    }
+
+    lines.push('', sep, '');
+  });
+
+  lines.push(
+    'CAPTION',
+    li.caption,
+    '',
+    sep,
+    '',
+    'HASHTAGS',
+    li.hashtags.map((h) => `#${h}`).join('  '),
+  );
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `linkedin-${dist.post_slug}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Export ZIP ────────────────────────────────────────────────
 
 async function downloadZip(dist: Distribution) {
@@ -568,10 +619,16 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
         <p style={{ ...s.eyebrow, marginBottom: 12 }}>Descargar assets</p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <button
+            onClick={() => downloadTextContent(dist)}
+            style={{ ...s.btn, background: '#00d4d4', color: '#0a0a14', fontSize: 12 }}
+          >
+            ↓ Texto por slide (.txt)
+          </button>
+          <button
             onClick={() => downloadLinkedInPDF(dist)}
             style={{ ...s.btn, background: '#8B5CF6', color: '#fff', fontSize: 12 }}
           >
-            ↓ PDF LinkedIn (Figma / Canva)
+            ↓ PDF referencia (Canva)
           </button>
           <button
             onClick={handleDownloadZip}
