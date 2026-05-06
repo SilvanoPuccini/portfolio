@@ -309,7 +309,6 @@ export default async function AboutPage({
         asideClassName="pt-2 lg:pt-4"
         aside={
           <>
-            <div className="absolute inset-0 -z-10 rounded-t-full bg-[#060e18]" />
             <div className="relative aspect-[4/5] overflow-hidden rounded-t-full bg-[#060e18] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
               {/* Dark mode — color */}
               <Image
@@ -330,9 +329,11 @@ export default async function AboutPage({
                 className="object-cover object-[center_8%] block dark:hidden"
               />
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
+              {/* Tapa el borde gris inferior en ambos lados */}
+              <div className="absolute bottom-0 inset-x-0 h-10 bg-[#060e18]" />
             </div>
 
-            <div className="absolute -left-7 bottom-9 w-fit max-w-[18rem] rounded-[var(--radius-soft)] bg-[#060e18] px-4 py-3 shadow-[0_18px_36px_rgba(6,14,24,0.4)] sm:-left-8 sm:bottom-8 sm:max-w-[20rem] sm:px-5 sm:py-3.5 lg:-left-10 lg:bottom-7 xl:-left-11 xl:bottom-6">
+            <div className="absolute -left-7 bottom-2 w-fit max-w-[16rem] rounded-[var(--radius-soft)] bg-[#060e18] px-4 py-4 shadow-[0_18px_36px_rgba(6,14,24,0.4)] sm:-left-8 sm:bottom-2 sm:max-w-[17rem] sm:px-5 sm:py-4 lg:-left-10 lg:bottom-2 xl:-left-11 xl:bottom-2">
               <p className="font-mono text-[14px] font-semibold leading-5 tracking-[0.16em] text-white sm:text-[15px]">{heroContent.badge[0]}</p>
               <p className="mt-1.5 max-w-full font-mono text-[12px] font-semibold leading-5 tracking-[0.04em] text-white sm:text-[13px] sm:leading-[1.4rem]">
                 {heroContent.badge[1]}
