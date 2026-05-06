@@ -309,7 +309,7 @@ export default async function AboutPage({
         asideClassName="pt-2 lg:pt-4"
         aside={
           <>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-t-[var(--radius-surface)] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-t-full shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
               {/* Dark mode — color */}
               <Image
                 src={fotoColorImage}
