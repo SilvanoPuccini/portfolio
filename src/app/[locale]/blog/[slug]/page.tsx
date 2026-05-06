@@ -7,7 +7,7 @@ import { PostCover } from "@/components/blog/PostCover";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { RadarBadge } from "@/components/blog/RadarBadge";
-import fotoColorImage from "@/assets/images/foto_perfil_ok.png";
+import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
@@ -136,13 +136,14 @@ export default async function BlogPostPage({
 
           {/* Separador + autor */}
           <div className="mt-8 flex items-center gap-4 border-t border-outline-ghost/15 pt-6">
-            <Image
-              src={fotoColorImage}
-              alt="Silvano Puccini"
-              width={44}
-              height={44}
-              className="rounded-full object-cover"
-            />
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[linear-gradient(160deg,#0d1a2e_0%,#060e18_100%)] ring-1 ring-white/10">
+              <Image
+                src={fotoColorImage}
+                alt="Silvano Puccini"
+                fill
+                className="object-cover object-top"
+              />
+            </div>
             <div>
               <p className="text-sm font-medium text-text-primary">
                 Silvano Puccini
