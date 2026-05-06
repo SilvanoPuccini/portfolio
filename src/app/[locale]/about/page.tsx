@@ -306,9 +306,10 @@ export default async function AboutPage({
             </Link>
           </>
         }
-        asideClassName="pt-2 lg:pt-4 overflow-hidden rounded-t-full bg-[#060e18]"
+        asideClassName="pt-2 lg:pt-4"
         aside={
           <>
+            <div className="absolute inset-0 -z-10 rounded-t-full bg-[#060e18]" />
             <div className="relative aspect-[4/5] overflow-hidden rounded-t-full bg-[#060e18] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
               {/* Dark mode — color */}
               <Image
