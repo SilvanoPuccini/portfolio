@@ -317,7 +317,7 @@ export default async function AboutPage({
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_48%] sm:object-[center_44%] lg:object-[center_38%] hidden dark:block"
+                className="object-cover object-[center_8%] hidden dark:block"
               />
               {/* Light mode — B&W */}
               <Image
@@ -326,7 +326,7 @@ export default async function AboutPage({
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_48%] sm:object-[center_44%] lg:object-[center_38%] block dark:hidden"
+                className="object-cover object-[center_8%] block dark:hidden"
               />
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
             </div>
