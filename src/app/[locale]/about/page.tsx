@@ -309,24 +309,24 @@ export default async function AboutPage({
         asideClassName="pt-2 lg:pt-4"
         aside={
           <>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-surface)] bg-[linear-gradient(180deg,rgb(var(--surface)/0.9),rgb(var(--surface-dim)/0.92))] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
-              {/* Dark mode */}
-              <Image
-                src={fotoGrisImage}
-                alt={heroContent.imageAlt}
-                fill
-                priority
-                sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%] hidden dark:block"
-              />
-              {/* Light mode */}
+            <div className="relative aspect-[4/5] overflow-hidden rounded-t-[var(--radius-surface)] shadow-[0_22px_48px_rgba(2,8,23,0.14)] sm:aspect-[5/6] lg:min-h-[34rem]">
+              {/* Dark mode — color */}
               <Image
                 src={fotoColorImage}
                 alt={heroContent.imageAlt}
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_38%] sm:object-[center_34%] lg:object-[center_28%] block dark:hidden"
+                className="object-cover object-[center_48%] sm:object-[center_44%] lg:object-[center_38%] hidden dark:block"
+              />
+              {/* Light mode — B&W */}
+              <Image
+                src={fotoGrisImage}
+                alt={heroContent.imageAlt}
+                fill
+                priority
+                sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
+                className="object-cover object-[center_48%] sm:object-[center_44%] lg:object-[center_38%] block dark:hidden"
               />
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
             </div>
