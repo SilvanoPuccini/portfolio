@@ -136,7 +136,7 @@ export default async function BlogPostPage({
 
           {/* Separador + autor */}
           <div className="mt-8 flex items-center gap-4 border-t border-outline-ghost/15 pt-6">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[linear-gradient(160deg,#0d1a2e_0%,#060e18_100%)] ring-1 ring-white/10">
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10">
               <Image
                 src={fotoColorImage}
                 alt="Silvano Puccini"
