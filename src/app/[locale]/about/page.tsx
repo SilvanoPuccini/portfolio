@@ -316,7 +316,7 @@ export default async function AboutPage({
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-top"
+                className="object-cover object-top scale-[1.02]"
               />
             </div>
 

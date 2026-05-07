@@ -141,7 +141,7 @@ export default async function BlogPostPage({
                 src={fotoColorImage}
                 alt="Silvano Puccini"
                 fill
-                className="object-cover object-top"
+                className="object-cover object-top scale-[1.02]"
               />
             </div>
             <div>
