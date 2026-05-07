@@ -309,31 +309,24 @@ export default async function AboutPage({
         asideClassName="pt-2 lg:pt-4"
         aside={
           <>
-            <div className="relative aspect-square overflow-hidden rounded-full bg-[#060e18] shadow-[0_22px_48px_rgba(2,8,23,0.22)] sm:aspect-square lg:min-h-0 lg:w-full">
-              {/* Dark mode — color */}
+            {/* Glow ring exterior — sin borde duro */}
+            <div className="absolute inset-0 rounded-full opacity-40 blur-xl bg-[radial-gradient(circle,rgba(47,211,199,0.35)_0%,rgba(30,79,154,0.2)_60%,transparent_100%)] pointer-events-none" />
+            <div className="relative aspect-square overflow-hidden rounded-full bg-[#060e18] sm:aspect-square lg:min-h-0 lg:w-full">
+              {/* Ambos modos — color */}
               <Image
                 src={fotoColorImage}
                 alt={heroContent.imageAlt}
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_20%] hidden dark:block"
+                className="object-cover object-[center_20%]"
               />
-              {/* Light mode — B&W */}
-              <Image
-                src={fotoGrisImage}
-                alt={heroContent.imageAlt}
-                fill
-                priority
-                sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_20%] block dark:hidden"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))] dark:bg-[linear-gradient(180deg,rgba(7,10,18,0.06),rgba(7,10,18,0.28))]" />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))]" />
             </div>
 
-            <div className="absolute -left-6 bottom-6 w-fit max-w-[16rem] rounded-[var(--radius-soft)] bg-[#060e18] px-4 py-3.5 shadow-[0_18px_36px_rgba(6,14,24,0.4)] sm:-left-8 sm:bottom-8 sm:max-w-[17rem] sm:px-5 sm:py-4 lg:-left-10 lg:bottom-10 xl:-left-11 xl:bottom-12">
-              <p className="font-mono text-[14px] font-semibold leading-5 tracking-[0.16em] text-white sm:text-[15px]">{heroContent.badge[0]}</p>
-              <p className="mt-1.5 max-w-full font-mono text-[12px] font-semibold leading-5 tracking-[0.04em] text-white sm:text-[13px] sm:leading-[1.4rem]">
+            <div className="absolute -left-10 -bottom-2 w-fit max-w-[13rem] rounded-[var(--radius-soft)] bg-[#060e18] px-3 py-2.5 shadow-[0_18px_36px_rgba(6,14,24,0.4)] sm:-left-12 sm:-bottom-3 sm:max-w-[14rem] sm:px-3.5 sm:py-3 lg:-left-14 lg:-bottom-4 xl:-left-16 xl:-bottom-5">
+              <p className="font-mono text-[12px] font-semibold leading-4 tracking-[0.16em] text-white sm:text-[13px]">{heroContent.badge[0]}</p>
+              <p className="mt-1 max-w-full font-mono text-[10px] font-semibold leading-4 tracking-[0.04em] text-white sm:text-[11px] sm:leading-[1.3rem]">
                 {heroContent.badge[1]}
               </p>
             </div>
