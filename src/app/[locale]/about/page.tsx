@@ -309,19 +309,18 @@ export default async function AboutPage({
         asideClassName="pt-2 lg:pt-4"
         aside={
           <>
-            <div className="relative w-full aspect-square overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-2 ring-[#0A2A5E]">
+            <div className="relative w-full aspect-square overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10">
               <Image
                 src={fotoColorImage}
                 alt={heroContent.imageAlt}
                 fill
                 priority
                 sizes="(min-width: 1280px) 28rem, (min-width: 1024px) 32vw, (min-width: 640px) 60vw, 100vw"
-                className="object-cover object-[center_20%]"
+                className="object-cover object-top"
               />
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.02),rgba(7,10,18,0.18))]" />
             </div>
 
-            <div className="absolute left-2 bottom-2 w-fit max-w-[12rem] rounded-[var(--radius-soft)] bg-[#060e18] px-3 py-2.5 shadow-[0_18px_36px_rgba(6,14,24,0.4)] sm:left-0 sm:-bottom-3 sm:max-w-[14rem] sm:px-3.5 sm:py-3 lg:-left-10 lg:-bottom-4 xl:-left-12 xl:-bottom-5">
+            <div className="absolute -left-2 -bottom-6 w-fit max-w-[12rem] rounded-[var(--radius-soft)] bg-[#060e18] px-3 py-2.5 shadow-[0_18px_36px_rgba(6,14,24,0.4)] sm:-left-4 sm:-bottom-8 sm:max-w-[14rem] sm:px-3.5 sm:py-3 lg:-left-10 lg:-bottom-4 xl:-left-12 xl:-bottom-5">
               <p className="font-mono text-[11px] font-semibold leading-4 tracking-[0.16em] text-white sm:text-[12px]">{heroContent.badge[0]}</p>
               <p className="mt-1 max-w-full font-mono text-[9px] font-semibold leading-4 tracking-[0.04em] text-white sm:text-[10px] sm:leading-[1.3rem]">
                 {heroContent.badge[1]}
