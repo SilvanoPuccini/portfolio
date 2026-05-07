@@ -309,9 +309,7 @@ export default async function AboutPage({
         asideClassName="pt-2 lg:pt-4"
         aside={
           <>
-            {/* Glow ring exterior — sin borde duro */}
-            <div className="absolute inset-0 rounded-full opacity-40 blur-xl bg-[radial-gradient(circle,rgba(47,211,199,0.35)_0%,rgba(30,79,154,0.2)_60%,transparent_100%)] pointer-events-none" />
-            <div className="relative aspect-square overflow-hidden rounded-full bg-[#060e18] sm:aspect-square lg:min-h-0 lg:w-full">
+<div className="relative aspect-square overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10 sm:aspect-square lg:min-h-0 lg:w-full">
               {/* Ambos modos — color */}
               <Image
                 src={fotoColorImage}
