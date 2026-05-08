@@ -39,13 +39,13 @@ describe("ContactForm", () => {
   });
 
   it("does not render a permanent helper message before submission", () => {
-    render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
+    render(<ContactForm locale="en" labels={labels} />);
 
     expect(screen.queryByText("Ready to receive your message")).not.toBeInTheDocument();
   });
 
   it("shows inline validation and an error toast when submission is invalid", async () => {
-    render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
+    render(<ContactForm locale="en" labels={labels} />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: labels.submit }));
@@ -78,7 +78,7 @@ describe("ContactForm", () => {
         }),
     );
 
-    render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
+    render(<ContactForm locale="en" labels={labels} />);
 
     fireEvent.change(screen.getByLabelText(labels.fields.name), { target: { value: "Silvano" } });
     fireEvent.change(screen.getByLabelText(labels.fields.email), { target: { value: "silvano@example.com" } });
@@ -116,7 +116,7 @@ describe("ContactForm", () => {
   it("shows a temporary error message when the remote submission fails", async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: false, json: vi.fn().mockResolvedValue({}) } as unknown as Response);
 
-    render(<ContactForm action="https://formspree.io/f/test" locale="en" labels={labels} />);
+    render(<ContactForm locale="en" labels={labels} />);
 
     fireEvent.change(screen.getByLabelText(labels.fields.name), { target: { value: "Silvano" } });
     fireEvent.change(screen.getByLabelText(labels.fields.email), { target: { value: "silvano@example.com" } });

@@ -36,10 +36,10 @@ export async function POST(
   }
 
   try {
-    const buffers = await renderCarouselImages(slides, type);
+    const { buffers } = await renderCarouselImages(slides, type);
     const images = buffers
       .filter(Boolean)
-      .map((buf) => `data:image/png;base64,${buf.toString('base64')}`);
+      .map((buf: Buffer) => `data:image/png;base64,${buf.toString('base64')}`);
     return NextResponse.json({ images });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error de render';
