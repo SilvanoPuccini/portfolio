@@ -50,11 +50,16 @@ const initialState: FormState = {
 export default function ContactForm({
   locale,
   labels,
+  defaultSubject,
 }: {
   locale: string;
   labels: ContactFormLabels;
+  defaultSubject?: string;
 }) {
-  const [values, setValues] = useState<FormState>(initialState);
+  const [values, setValues] = useState<FormState>({
+    ...initialState,
+    ...(defaultSubject ? { subject: defaultSubject } : {}),
+  });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
   const [toast, setToast] = useState<ToastState | null>(null);

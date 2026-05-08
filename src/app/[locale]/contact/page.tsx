@@ -196,21 +196,40 @@ export async function generateMetadata({
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
 
+  const contactLabel = content.navigation.find((item) => item.key === "contact")?.label ?? "Contact";
+
   return {
-    title: `${content.metadata.siteName} | ${content.navigation.find((item) => item.key === "contact")?.label ?? "Contact"}`,
+    title: `${content.metadata.siteName} | ${contactLabel}`,
     description: labels.metaDescription,
+    openGraph: {
+      title: `${content.metadata.siteName} | ${contactLabel}`,
+      description: labels.metaDescription,
+      type: "website",
+      url: `https://silvanopuccini.dev/${locale}/contact`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
+const serviceLabels: Record<string, Record<string, string>> = {
+  "full-stack-builds": { es: "Consulta: Desarrollo web a medida", en: "Inquiry: Custom web development" },
+  "automation-ai": { es: "Consulta: Automatización con IA", en: "Inquiry: AI automation" },
+  "product-ux-engineering": { es: "Consulta: Auditoría técnica", en: "Inquiry: Technical audit" },
+};
+
 export default async function ContactPage({
   params,
+  searchParams,
 }: {
   params: LocaleParams;
+  searchParams: Promise<{ service?: string }>;
 }) {
   const { locale } = await params;
+  const { service } = await searchParams;
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
+  const defaultSubject = service ? serviceLabels[service]?.[currentLocale] : undefined;
   const emailHref = `mailto:${content.metadata.email}`;
   const phoneHref = `https://wa.me/${content.metadata.phone.replace(/\D/g, "")}`;
   const linkedinHref = content.metadata.socialLinks.find((item) => item.platform === "linkedin")?.href;
@@ -261,7 +280,7 @@ export default async function ContactPage({
         <div className="mx-auto max-w-6xl space-y-5 lg:space-y-6">
           <div className="grid gap-5 lg:grid-cols-12 lg:items-stretch xl:gap-6">
             <div className="lg:col-span-7 xl:col-span-8">
-              <ContactForm locale={currentLocale} labels={labels.form} />
+              <ContactForm locale={currentLocale} labels={labels.form} defaultSubject={defaultSubject} />
             </div>
 
             <div className="lg:col-span-5 lg:h-full xl:col-span-4">

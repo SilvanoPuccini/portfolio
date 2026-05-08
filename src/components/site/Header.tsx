@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import LocaleSwitcher from "@/components/site/LocaleSwitcher";
 import MobileNav from "@/components/site/MobileNav";
 import ThemeToggle from "@/components/site/ThemeToggle";
@@ -19,7 +19,7 @@ const menuLabel = {
 export default function Header({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const content = getSiteContent(locale);
-  const [mobileNavOpen, setMobileNavOpen] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-outline-ghost/12 bg-background/95 shadow-[0_18px_48px_rgba(2,8,23,0.34)] backdrop-blur-xl">
@@ -79,20 +79,16 @@ export default function Header({ locale }: { locale: Locale }) {
               <ThemeToggle locale={locale} className="h-9 w-9 border border-outline-ghost/12 bg-surface-elevated/72" />
               <button
                 type="button"
-                onClick={() => setMobileNavOpen((current) => !current)}
+                onClick={() => setMobileNavOpen(true)}
                 className="interactive-control inline-flex h-9 w-9 items-center justify-center border border-outline-ghost/12 bg-surface-elevated/72 text-text-primary"
                 aria-label={menuLabel[locale]}
-                aria-expanded={mobileNavOpen}
-                aria-controls="mobile-nav-row"
               >
-                {mobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                <Menu className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          <div className="pt-3">
-            <MobileNav locale={locale} open={mobileNavOpen} />
-          </div>
+          <MobileNav locale={locale} open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
         </div>
       </div>
     </header>
