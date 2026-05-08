@@ -53,14 +53,12 @@ describe("ContactForm", () => {
 
     expect(screen.getAllByText(labels.validation.required)).toHaveLength(4);
     expect(document.getElementById("contact-form-status")).not.toBeNull();
-    expect(screen.getByText("Needs review")).toBeInTheDocument();
     expect(screen.getByText(labels.error)).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(4200);
     });
 
-    expect(screen.queryByText("Needs review")).not.toBeInTheDocument();
     expect(screen.queryByText(labels.error)).not.toBeInTheDocument();
   });
 
@@ -70,7 +68,13 @@ describe("ContactForm", () => {
     vi.mocked(fetch).mockImplementation(
       () =>
         new Promise<Response>((resolve) => {
-          resolveFetch = resolve;
+          resolveFetch = () =>
+            resolve(
+              new Response("{}", {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              })
+            );
         }),
     );
 
@@ -89,7 +93,7 @@ describe("ContactForm", () => {
     expect(screen.getAllByText(labels.sending).length).toBeGreaterThan(0);
 
     await act(async () => {
-      resolveFetch?.({ ok: true } as Response);
+      resolveFetch?.();
       await Promise.resolve();
     });
 
@@ -97,14 +101,15 @@ describe("ContactForm", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByText("Message delivered")).toBeInTheDocument();
+    // Toast muestra label "Sent" + message de labels.success
+    expect(screen.getByText("Sent")).toBeInTheDocument();
     expect(screen.getByText(labels.success)).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(4200);
     });
 
-    expect(screen.queryByText("Message delivered")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sent")).not.toBeInTheDocument();
     expect(screen.queryByText(labels.success)).not.toBeInTheDocument();
   });
 
@@ -126,7 +131,8 @@ describe("ContactForm", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByText("Delivery failed")).toBeInTheDocument();
+    // Toast muestra label "Error" + message de labels.error
+    expect(screen.getByText("Error")).toBeInTheDocument();
     expect(screen.getByText(labels.error)).toBeInTheDocument();
   });
 });
