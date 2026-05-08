@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { CATEGORY_COLOR } from '@/lib/resend';
+import { generateUnsubToken } from '@/lib/unsub-token';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,12 +153,18 @@ function buildEmail(opts: {
 </html>`;
 }
 
+const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
+
 export async function POST(req: NextRequest) {
   try {
     const auth = req.headers.get('authorization');
     const cookie = req.cookies.get('admin_session')?.value;
-    const secret = process.env.NOTIFY_SECRET;
-    if (auth !== `Bearer ${secret}` && cookie !== secret) {
+    const notifySecret = process.env.NOTIFY_SECRET;
+    const sessionSecret = process.env.ADMIN_SESSION_SECRET;
+    const authorized =
+      (notifySecret && auth === `Bearer ${notifySecret}`) ||
+      (sessionSecret && cookie === sessionSecret);
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -177,7 +184,7 @@ export async function POST(req: NextRequest) {
 
     const issueNum   = String(post.issue).padStart(2, '0');
     const issueLabel = `Nueva nota · Nº ${issueNum}`;
-    const postUrl    = `https://silvanopuccini.dev/es/blog/${slug}`;
+    const postUrl    = `${SITE_URL}/es/blog/${slug}`;
 
     const { data: subscribers, error: dbError } = await getSupabaseAdmin()
       .from('subscribers')
@@ -208,7 +215,10 @@ export async function POST(req: NextRequest) {
         readingTime: post.readingTime ?? '5 min',
         date:        formatDate(post.date),
         postUrl,
-        unsubUrl: `https://silvanopuccini.dev/unsubscribe?email=${encodeURIComponent(s.email)}`,
+        unsubUrl: (() => {
+          const { token, exp } = generateUnsubToken(s.email);
+          return `${SITE_URL}/unsubscribe?email=${encodeURIComponent(s.email)}&token=${token}&exp=${exp}`;
+        })(),
       }),
     }));
 

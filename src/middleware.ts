@@ -22,7 +22,7 @@ export function middleware(req: NextRequest) {
 
   // Validar cookie de sesión
   const session = req.cookies.get('admin_session')?.value;
-  const secret = process.env.NOTIFY_SECRET;
+  const secret = process.env.ADMIN_SESSION_SECRET;
 
   if (!session || !secret || session !== secret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

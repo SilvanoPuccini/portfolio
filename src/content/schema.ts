@@ -99,24 +99,6 @@ export type ServiceItem = {
   sourceUrls: string[];
 };
 
-export type BlogPostStatus = "published" | "placeholder";
-
-export type BlogPost = {
-  slug: string;
-  status: BlogPostStatus;
-  category: Localized<string>;
-  featured: boolean;
-  layout: "standard" | "wide";
-  accent: "cyan" | "blue" | "slate" | "amber";
-  publishedAt: string;
-  readingTime: string;
-  title: Localized<string>;
-  excerpt: Localized<string>;
-  body: Localized<string[]>;
-  temporaryLabel: Localized<string>;
-  sourceUrls: string[];
-};
-
 export type BlogContent = {
   eyebrow: Localized<string>;
   title: Localized<string>;
@@ -133,7 +115,6 @@ export type BlogContent = {
     ctaLabel: Localized<string>;
     helper: Localized<string>;
   };
-  posts: BlogPost[];
   sourceUrls: string[];
 };
 

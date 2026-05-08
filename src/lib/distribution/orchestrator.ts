@@ -104,11 +104,19 @@ export async function createDistribution(slug: string): Promise<string> {
 
     try {
       await log(id, 'render_linkedin', 'info', 'Renderizando slides LinkedIn');
-      linkedinImages = await renderAndUpload(id, content.linkedin.slides, 'linkedin');
+      const li = await renderAndUpload(id, content.linkedin.slides, 'linkedin');
+      linkedinImages = li.urls;
+      if (li.failedIndexes.length > 0) {
+        await log(id, 'render_linkedin', 'warn', `Slides fallidos: ${li.failedIndexes.join(', ')}`, { failedIndexes: li.failedIndexes });
+      }
       await log(id, 'render_linkedin', 'info', `${linkedinImages.length} slides LinkedIn renderizados`);
 
       await log(id, 'render_instagram', 'info', 'Renderizando slides Instagram');
-      instagramImages = await renderAndUpload(id, content.instagram.slides, 'instagram');
+      const ig = await renderAndUpload(id, content.instagram.slides, 'instagram');
+      instagramImages = ig.urls;
+      if (ig.failedIndexes.length > 0) {
+        await log(id, 'render_instagram', 'warn', `Slides fallidos: ${ig.failedIndexes.join(', ')}`, { failedIndexes: ig.failedIndexes });
+      }
       await log(id, 'render_instagram', 'info', `${instagramImages.length} slides Instagram renderizados`);
 
       await db.from('distributions')
@@ -208,7 +216,17 @@ export async function regenerateDistribution(
         : { ...existing.instagram_content };
       const fresh = platform === 'linkedin' ? content.linkedin : content.instagram;
       current.slides = [...current.slides];
-      current.slides[idx] = fresh.slides[idx] ?? current.slides[idx];
+      if (idx < 0 || idx >= current.slides.length) {
+        throw new Error(
+          `slideIndex ${idx} fuera de rango — la distribución tiene ${current.slides.length} slide(s)`
+        );
+      }
+      if (fresh.slides[idx] === undefined) {
+        throw new Error(
+          `El contenido regenerado no incluye slide en índice ${idx} (total fresh: ${fresh.slides.length})`
+        );
+      }
+      current.slides[idx] = fresh.slides[idx];
       updates[`${platform}_content`] = current;
       break;
     }

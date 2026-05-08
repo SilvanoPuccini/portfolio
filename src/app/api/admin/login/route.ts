@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+const loginSchema = z.object({ password: z.string().min(1) });
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +23,11 @@ export async function POST(req: NextRequest) {
 
   let password: string;
   try {
-    const body = await req.json() as { password?: unknown };
-    password = typeof body.password === 'string' ? body.password : '';
+    const parsed = loginSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Payload inválido.' }, { status: 400 });
+    }
+    password = parsed.data.password;
   } catch {
     return NextResponse.json({ error: 'Payload inválido.' }, { status: 400 });
   }
@@ -30,9 +36,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Contraseña incorrecta.' }, { status: 401 });
   }
 
-  const secret = process.env.NOTIFY_SECRET;
+  const secret = process.env.ADMIN_SESSION_SECRET;
   if (!secret) {
-    console.error('[login] NOTIFY_SECRET not configured');
+    console.error('[login] ADMIN_SESSION_SECRET not configured');
     return NextResponse.json({ error: 'Error de configuración.' }, { status: 500 });
   }
 

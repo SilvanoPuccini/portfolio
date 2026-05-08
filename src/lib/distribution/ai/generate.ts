@@ -24,6 +24,10 @@ function getClient() {
 }
 
 function isRetryable(err: Error): boolean {
+  // Prefer numeric status code when the SDK exposes it
+  const status = (err as { status?: number }).status;
+  if (status === 429 || status === 503) return true;
+
   const msg = err.message.toLowerCase();
   return (
     msg.includes('503') ||
