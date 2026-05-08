@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import profileImage from "@/assets/images/profile.png";
 import fotoColorImage from "@/assets/images/foto_perfil_ok01.png";
-import fotoGrisImage from "@/assets/images/foto_perfil_ok_black.png";
 import PageHero from "@/components/site/PageHero";
 import JsonLd from "@/components/JsonLd";
 import { getSiteContent } from "@/content/site";

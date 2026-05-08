@@ -26,59 +26,7 @@ export const CATEGORY_COLOR: Record<string, { bg: string; text: string; border: 
 
 const defaultCat = { bg: 'rgba(0,212,212,0.08)', text: '#00d4d4', border: 'rgba(0,212,212,0.2)' };
 
-// ─── Shared shell ─────────────────────────────────────────────────────────────
-function emailShell(body: string, unsubscribeUrl?: string): string {
-  const footer = unsubscribeUrl
-    ? `<p style="font-size:11px;font-family:monospace;color:${T.textTertiary};margin:0;">
-        Recibís este email porque te suscribiste a El Radar.&nbsp;·&nbsp;
-        <a href="${unsubscribeUrl}" style="color:${T.textTertiary};text-decoration:underline;">Desuscribirse</a>
-       </p>`
-    : `<p style="font-size:11px;font-family:monospace;color:${T.textTertiary};margin:0;">Silvano Puccini · Full Stack Dev</p>`;
-
-  return `
-<div style="max-width:580px;margin:0 auto;font-family:sans-serif;background:${T.bg};border-radius:12px;overflow:hidden;border:1px solid ${T.border};">
-  <div style="padding:20px 32px;border-bottom:1px solid ${T.borderSub};">
-    <span style="font-family:monospace;font-size:11px;color:${T.brand};letter-spacing:0.14em;text-transform:uppercase;">Silvano Puccini · Full Stack Dev</span>
-  </div>
-  <div style="padding:32px;">
-    ${body}
-  </div>
-  <div style="padding:16px 32px;border-top:1px solid ${T.borderSub};">
-    ${footer}
-  </div>
-</div>`;
-}
-
-// ─── El Radar logo block ──────────────────────────────────────────────────────
-function radarLogo(): string {
-  return `
-<div style="text-align:center;margin:24px 0;position:relative;">
-  <div style="display:inline-block;position:relative;">
-    <svg width="200" height="100" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
-      <g opacity="0.35">
-        <circle cx="100" cy="50" r="22" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
-        <circle cx="100" cy="50" r="40" stroke="#00d4d4" stroke-width="0.5"/>
-        <circle cx="100" cy="50" r="60" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
-        <circle cx="100" cy="50" r="82" stroke="#00d4d4" stroke-width="0.375"/>
-        <line x1="100" y1="50" x2="158" y2="8" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
-        <line x1="100" y1="50" x2="42" y2="92" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
-      </g>
-    </svg>
-    <div style="position:relative;z-index:1;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
-        <tr>
-          <td style="border-bottom:1px solid #333;width:40%;"></td>
-          <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#666;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
-          <td style="border-bottom:1px solid #333;width:40%;"></td>
-        </tr>
-      </table>
-      <p style="font-family:sans-serif;font-size:10px;font-weight:600;color:#999;letter-spacing:0.3em;text-transform:uppercase;margin:0 0 2px;">El</p>
-      <p style="font-family:sans-serif;font-size:20px;font-weight:700;color:${T.textDim};letter-spacing:0.14em;text-transform:uppercase;margin:0 0 4px;">Radar</p>
-      <p style="font-family:monospace;font-size:8px;color:#555;letter-spacing:0.18em;text-transform:uppercase;margin:0;">arquitectura · código · producto</p>
-    </div>
-  </div>
-</div>`;
-}
+// emailShell and radarLogo removed — not used
 
 // ─── Post card block ──────────────────────────────────────────────────────────
 export function postCardHtml(opts: {
