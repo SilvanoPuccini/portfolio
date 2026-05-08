@@ -34,3 +34,5 @@ docs/blog/
 docs/qa/
 .vercel
 .env*.local
+docs/
+portfolio-promo/
