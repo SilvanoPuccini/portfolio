@@ -51,19 +51,16 @@ export default function FeaturedProjects({
   return (
     <section className="bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.18),rgb(var(--surface)/0.1))] py-10 sm:py-12 lg:py-14">
       <div className="site-container">
-        <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-3xl space-y-5">
-            <p className="technical-label">{labels.eyebrow}</p>
-            <div className="space-y-4">
-              <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl lg:text-[3.2rem] lg:leading-[1.02]">
-                {labels.title}
-              </h2>
-              <p className="max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-                {labels.description}
-              </p>
-            </div>
+        <div className="mb-10 max-w-3xl space-y-5">
+          <p className="technical-label">{labels.eyebrow}</p>
+          <div className="space-y-4">
+            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl lg:text-[3.2rem] lg:leading-[1.02]">
+              {labels.title}
+            </h2>
+            <p className="max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
+              {labels.description}
+            </p>
           </div>
-
           <Link
             href={`/${locale}/projects`}
             className="inline-flex items-center justify-start font-mono text-xs uppercase tracking-[0.22em] text-brand-primary transition-opacity hover:opacity-80"
