@@ -25,3 +25,5 @@ docs/SPEC_DISTRIBUCION_POSTS.md
 docs/linkedin_carousel_template.html
 docs/blog/
 docs/qa/
+.vercel
+.env*.local
