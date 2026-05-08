@@ -63,12 +63,12 @@ describe("ContactForm", () => {
   });
 
   it("shows a temporary success toast after a valid submission", async () => {
-    let resolveFetch: ((value: Response) => void) | undefined;
+    let doResolve: (() => void) | undefined;
 
     vi.mocked(fetch).mockImplementation(
       () =>
         new Promise<Response>((resolve) => {
-          resolveFetch = () =>
+          doResolve = () =>
             resolve(
               new Response("{}", {
                 status: 200,
@@ -93,8 +93,7 @@ describe("ContactForm", () => {
     expect(screen.getAllByText(labels.sending).length).toBeGreaterThan(0);
 
     await act(async () => {
-      resolveFetch?.();
-      await Promise.resolve();
+      doResolve?.();
     });
 
     await act(async () => {
