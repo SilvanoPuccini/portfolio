@@ -6,7 +6,7 @@
 
 ---
 
-![Preview](https://raw.githubusercontent.com/SilvanoPuccini/portfolio/main/docs/assets/SilvanoPuccini_FullStack.png)
+![Preview](https://raw.githubusercontent.com/SilvanoPuccini/portfolio/main/src/assets/images/SilvanoPuccini_FullStack.png)
 
 ---
 ## Por qué existe esta versión
