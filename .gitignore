@@ -21,6 +21,13 @@ tsconfig.tsbuildinfo
 
 # Internal docs (no public value on GitHub)
 docs/assets/stitch/
+
+# AI Agent configurations (personal/dev environment)
+.agents/
+.claude/
+.kiro/
+.qwen/
+.windsurf/
 docs/SPEC_DISTRIBUCION_POSTS.md
 docs/linkedin_carousel_template.html
 docs/blog/
