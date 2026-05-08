@@ -236,7 +236,7 @@ export const projects: Project[] = [
       assetStatus: "real",
     },
     sourceUrls: [
-      "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+      "/cv/CV_Silvano_Puccini_FullStack.pdf",
       "https://github.com/SilvanoPuccini/payment-tracker-bot",
       "https://payment-tracker-bot.vercel.app/login",
     ],
@@ -356,7 +356,7 @@ export const projects: Project[] = [
       assetStatus: "real",
     },
     sourceUrls: [
-      "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+      "/cv/CV_Silvano_Puccini_FullStack.pdf",
       "README.md",
       "https://github.com/SilvanoPuccini/SilvanoPuccini",
       "https://github.com/SilvanoPuccini/FacturIA-2.0",

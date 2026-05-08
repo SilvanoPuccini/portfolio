@@ -60,7 +60,7 @@ const home: HomeContent = {
   },
   featuredProjectSlugs: ["ferrelonstock", "aktivar", "modern-art-gallery", "paytrack", "facturia-2-0"],
   sourceUrls: [
-    "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+    "/cv/CV_Silvano_Puccini_FullStack.pdf",
     "README.md",
     "https://github.com/SilvanoPuccini",
   ],
@@ -211,7 +211,7 @@ const about: AboutContent = {
     en: "Download CV",
   },
   sourceUrls: [
-    "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+    "/cv/CV_Silvano_Puccini_FullStack.pdf",
     "https://github.com/SilvanoPuccini",
     "https://www.linkedin.com/in/silvano-puccini/",
   ],
@@ -253,7 +253,7 @@ const services: ServiceItem[] = [
       en: ["FacturIA 2.0", "MCP / AI agents", "Dashboards and automatic classification"],
     },
     sourceUrls: [
-      "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+      "/cv/CV_Silvano_Puccini_FullStack.pdf",
       "https://github.com/SilvanoPuccini/FacturIA-2.0",
       "https://github.com/SilvanoPuccini",
     ],
@@ -273,7 +273,7 @@ const services: ServiceItem[] = [
       en: ["10+ years in commercial management", "Roadmaps and technical audits", "Focus on UX and narrative clarity"],
     },
     sourceUrls: [
-      "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+      "/cv/CV_Silvano_Puccini_FullStack.pdf",
       "https://github.com/SilvanoPuccini/SilvanoPuccini",
     ],
   },
@@ -366,7 +366,7 @@ const contact: ContactContent = {
   },
   formspreeAction: "https://formspree.io/f/xvgvlzgk",
   sourceUrls: [
-    "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+    "/cv/CV_Silvano_Puccini_FullStack.pdf",
     "src/js/main.js",
     "src/app/contacto/page.tsx",
   ],
@@ -409,7 +409,7 @@ export const siteContent: SiteContent = {
       { platform: "portfolio", label: "Portfolio", href: "https://silvanopuccini.github.io/portfolio/" },
     ],
     sourceUrls: [
-      "docs/assets/cv/CV_Silvano_Puccini_FullStack.pdf",
+      "/cv/CV_Silvano_Puccini_FullStack.pdf",
       "README.md",
       "https://github.com/SilvanoPuccini",
       "https://www.linkedin.com/in/silvano-puccini/",
