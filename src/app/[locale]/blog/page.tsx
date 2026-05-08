@@ -24,6 +24,13 @@ export async function generateMetadata({
   return {
     title: `${content.metadata.siteName} | Blog`,
     description: content.blog.intro,
+    openGraph: {
+      title: `${content.metadata.siteName} | Blog`,
+      description: content.blog.intro,
+      type: "website",
+      url: `https://silvanopuccini.dev/${locale}/blog`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 

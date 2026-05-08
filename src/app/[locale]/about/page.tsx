@@ -5,6 +5,7 @@ import profileImage from "@/assets/images/profile.png";
 import fotoColorImage from "@/assets/images/foto_perfil_ok01.png";
 import fotoGrisImage from "@/assets/images/foto_perfil_ok_black.png";
 import PageHero from "@/components/site/PageHero";
+import JsonLd from "@/components/JsonLd";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { StackSection } from "@/components/about/StackSection";
@@ -188,6 +189,13 @@ export async function generateMetadata({
   return {
     title: `${content.metadata.siteName} | ${content.about.eyebrow}`,
     description: content.about.summary[0],
+    openGraph: {
+      title: `${content.metadata.siteName} | ${content.about.eyebrow}`,
+      description: content.about.summary[0],
+      type: "website",
+      url: `https://silvanopuccini.dev/${locale}/about`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -284,6 +292,19 @@ export default async function AboutPage({
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: "Silvano Puccini",
+          jobTitle: "Full Stack Developer",
+          url: "https://silvanopuccini.dev",
+          sameAs: [
+            "https://github.com/SilvanoPuccini",
+            "https://www.linkedin.com/in/silvano-puccini/",
+          ],
+        }}
+      />
       <PageHero
         eyebrow={heroContent.eyebrow}
         title={heroContent.title}

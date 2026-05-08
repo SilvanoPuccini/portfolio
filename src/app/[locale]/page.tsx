@@ -3,6 +3,7 @@ import Link from "next/link";
 import FeaturedProjects from "@/components/blocks/FeaturedProjects";
 import HeroEditorial from "@/components/blocks/HeroEditorial";
 import TrustStrip from "@/components/blocks/TrustStrip";
+import JsonLd from "@/components/JsonLd";
 import { getFeaturedProjects, getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 
@@ -20,6 +21,13 @@ export async function generateMetadata({
   return {
     title: `${content.metadata.siteName} | ${content.metadata.role}`,
     description: content.metadata.description,
+    openGraph: {
+      title: `${content.metadata.siteName} | ${content.metadata.role}`,
+      description: content.metadata.description,
+      type: "website",
+      url: `https://silvanopuccini.dev/${locale}`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -39,6 +47,19 @@ export default async function LocaleHomePage({
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: "Silvano Puccini",
+          jobTitle: "Full Stack Developer",
+          url: "https://silvanopuccini.dev",
+          sameAs: [
+            "https://github.com/SilvanoPuccini",
+            "https://www.linkedin.com/in/silvano-puccini/",
+          ],
+        }}
+      />
       <HeroEditorial content={content} />
       <FeaturedProjects locale={currentLocale} projects={featuredProjects} />
       <TrustStrip locale={currentLocale} />

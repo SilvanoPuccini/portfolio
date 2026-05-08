@@ -5,6 +5,7 @@ import { getBlogPostBySlug, getAllBlogPosts } from "@/lib/mdx";
 import { MDXContent } from "@/components/blog/MDXContent";
 import { PostCover } from "@/components/blog/PostCover";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
+import JsonLd from "@/components/JsonLd";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { RadarBadge } from "@/components/blog/RadarBadge";
 import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
@@ -17,14 +18,23 @@ export async function generateMetadata({
 }: {
   params: LocaleParams;
 }) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const post = await getBlogPostBySlug(slug);
 
   if (!post) return { title: "Post no encontrado" };
 
+  const title = `${post.title} | Silvano Puccini`;
+
   return {
-    title: post.title,
+    title,
     description: post.excerpt,
+    openGraph: {
+      title,
+      description: post.excerpt,
+      type: "article",
+      url: `https://silvanopuccini.dev/${locale}/blog/${slug}`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -75,6 +85,16 @@ export default async function BlogPostPage({
 
   return (
     <div className="site-container py-10 sm:py-12 lg:py-16">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          datePublished: post.date,
+          author: { "@type": "Person", name: "Silvano Puccini" },
+          publisher: { "@type": "Person", name: "Silvano Puccini" },
+        }}
+      />
       <ScrollToTop />
       <div className="mx-auto max-w-3xl">
 

@@ -8,33 +8,36 @@ vi.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
 }));
 
+vi.mock("framer-motion", () => ({
+  motion: {
+    div: ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => <div {...props}>{children}</div>,
+    nav: ({ children, ...props }: React.ComponentPropsWithoutRef<"nav">) => <nav {...props}>{children}</nav>,
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 describe("MobileNav", () => {
+  const onClose = vi.fn();
+
   beforeEach(() => {
     usePathname.mockReset();
     usePathname.mockReturnValue("/es");
+    onClose.mockReset();
   });
 
-  it("renders the compact second-row nav as a single inline grid", () => {
-    render(<MobileNav locale="es" open />);
+  it("renders vertical nav links as a drawer", () => {
+    render(<MobileNav locale="es" open onClose={onClose} />);
 
     const nav = screen.getByRole("navigation", { name: "Navegación móvil" });
     const links = within(nav).getAllByRole("link");
 
     expect(links).toHaveLength(6);
-    expect(nav).toHaveClass("grid");
-    expect(nav).toHaveClass("grid-cols-6");
-    expect(nav).not.toHaveClass("flex-col");
-    expect(links[0]).toHaveTextContent("Home");
-    expect(links[3]).toHaveTextContent("Servicio");
-
-    for (const link of links) {
-      expect(link).toHaveClass("whitespace-nowrap");
-      expect(link).toHaveClass("text-[0.72rem]");
-    }
+    expect(links[0]).toHaveTextContent("Inicio");
+    expect(links[3]).toHaveTextContent("Servicios");
   });
 
-  it("hides the second row when the menu state is closed", () => {
-    render(<MobileNav locale="es" open={false} />);
+  it("hides the drawer when closed", () => {
+    render(<MobileNav locale="es" open={false} onClose={onClose} />);
 
     expect(screen.queryByRole("navigation", { name: "Navegación móvil" })).not.toBeInTheDocument();
   });

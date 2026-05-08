@@ -238,9 +238,18 @@ export async function generateMetadata({
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
 
+  const servicesLabel = content.navigation.find((item) => item.key === "services")?.label ?? "Services";
+
   return {
-    title: `${content.metadata.siteName} | ${content.navigation.find((item) => item.key === "services")?.label ?? "Services"}`,
+    title: `${content.metadata.siteName} | ${servicesLabel}`,
     description: labels.metaDescription,
+    openGraph: {
+      title: `${content.metadata.siteName} | ${servicesLabel}`,
+      description: labels.metaDescription,
+      type: "website",
+      url: `https://silvanopuccini.dev/${locale}/services`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -321,6 +330,7 @@ export default async function ServicesPage({
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {labels.services.cards.map((service, index) => {
             const Icon = [Code2, Cpu, ShieldCheck][index];
+            const serviceSlugs = ["full-stack-builds", "automation-ai", "product-ux-engineering"];
             return (
             <article
               key={service.number}
@@ -383,15 +393,13 @@ export default async function ServicesPage({
 
                 {/* CTA por card */}
                 <div className="mt-auto border-t border-outline-ghost/10 pt-6">
-                  <a
-                    href={phoneHref}
-                    target="_blank"
-                    rel="noreferrer"
+                  <Link
+                    href={`/${currentLocale}/contact?service=${serviceSlugs[index]}`}
                     className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:text-text-primary"
                   >
                     {service.cta}
                     <ArrowRight className="h-3 w-3" aria-hidden="true" />
-                  </a>
+                  </Link>
                 </div>
               </div>
             </article>

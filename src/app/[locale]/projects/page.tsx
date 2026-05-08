@@ -219,9 +219,19 @@ export async function generateMetadata({
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
 
+  const projectsLabel = content.navigation.find((item) => item.key === "projects")?.label ?? "Projects";
+  const projectsDescription = content.projects.find((project) => project.slug === "ferrelonstock")?.summary ?? content.metadata.description;
+
   return {
-    title: `${content.metadata.siteName} | ${content.navigation.find((item) => item.key === "projects")?.label ?? "Projects"}`,
-    description: content.projects.find((project) => project.slug === "ferrelonstock")?.summary ?? content.metadata.description,
+    title: `${content.metadata.siteName} | ${projectsLabel}`,
+    description: projectsDescription,
+    openGraph: {
+      title: `${content.metadata.siteName} | ${projectsLabel}`,
+      description: projectsDescription,
+      type: "website",
+      url: `https://silvanopuccini.dev/${locale}/projects`,
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
