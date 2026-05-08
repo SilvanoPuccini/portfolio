@@ -46,6 +46,19 @@ export function getAllBlogPosts(): BlogPost[] {
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
+function getIssueNumber(slug: string): number {
+  const files = fs.readdirSync(blogDirectory);
+  const entries = files
+    .filter(f => f.endsWith('.mdx'))
+    .map(f => {
+      const { data } = matter(fs.readFileSync(path.join(blogDirectory, f), 'utf8'));
+      return { slug: f.replace(/\.mdx$/, ''), date: data.date as string };
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const idx = entries.findIndex(e => e.slug === slug);
+  return idx >= 0 ? idx + 1 : 0;
+}
+
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   const fullPath = path.join(blogDirectory, `${slug}.mdx`);
 
@@ -56,9 +69,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const { data, content } = matter(fileContents);
 
-  // Obtener el número de edición desde la lista completa ordenada
-  const all = getAllBlogPosts();
-  const issue = all.find(p => p.slug === slug)?.issue ?? 0;
+  const issue = getIssueNumber(slug);
 
   return {
     slug,

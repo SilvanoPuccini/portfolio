@@ -48,24 +48,23 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const audienceId = process.env.RESEND_AUDIENCE_ID;
 
-    if (audienceId) {
-      // Verificar si el contacto ya existe antes de crear
-      // Resend trata contacts.create como upsert (no devuelve error para duplicados)
-      const { data: existing } = await resend.contacts.list({ audienceId });
-      // El SDK devuelve { data: { object: "list", data: Contact[] } }
-      const contacts = (existing as unknown as { data: { email: string; unsubscribed: boolean }[] })?.data ?? [];
-      const alreadySubscribed = contacts.some(
-        (c) => c.email === email && !c.unsubscribed
+    // Verificar duplicado en Supabase (fuente de verdad única, no lista todos los contactos de Resend)
+    const { data: existingSubscriber } = await getSupabaseAdmin()
+      .from('subscribers')
+      .select('email')
+      .eq('email', email)
+      .neq('status', 'unsubscribed')
+      .maybeSingle();
+
+    if (existingSubscriber) {
+      return NextResponse.json(
+        { error: 'Este email ya está suscrito a El Radar.' },
+        { status: 409 }
       );
+    }
 
-      if (alreadySubscribed) {
-        return NextResponse.json(
-          { error: 'Este email ya está suscrito a El Radar.' },
-          { status: 409 }
-        );
-      }
-
-      // Contacto nuevo — guardarlo en Audiences
+    if (audienceId) {
+      // Sincronizar con Resend Audiences
       const { error: contactError } = await resend.contacts.create({
         email,
         audienceId,

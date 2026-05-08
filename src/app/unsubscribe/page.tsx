@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { verifyUnsubToken } from '@/lib/unsub-token';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +22,17 @@ async function unsubscribeEmail(email: string): Promise<'success' | 'not_found' 
 export default async function UnsubscribePage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; token?: string; exp?: string }>;
 }) {
-  const { email } = await searchParams;
+  const { email, token, exp } = await searchParams;
 
-  const status = email
-    ? await unsubscribeEmail(decodeURIComponent(email))
+  const decoded = email ? decodeURIComponent(email) : '';
+  const expMs = exp ? Number(exp) : 0;
+  const validToken =
+    decoded && token && expMs > 0 && verifyUnsubToken(decoded, token, expMs);
+
+  const status = validToken
+    ? await unsubscribeEmail(decoded)
     : 'not_found';
 
   const content = {
