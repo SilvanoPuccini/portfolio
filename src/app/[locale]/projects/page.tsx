@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Globe } from "lucide-react";
-import ProjectCard from "@/components/blocks/ProjectCard";
-import ProjectGrid from "@/components/blocks/ProjectGrid";
 import CTACluster from "@/components/site/CTACluster";
 import { ProjectsPaginatedGrid } from "@/components/projects/ProjectsPaginatedGrid";
 import PageHero from "@/components/site/PageHero";

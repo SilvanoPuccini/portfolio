@@ -36,7 +36,7 @@ export async function POST(
   }
 
   try {
-    const { buffers, failedIndexes } = await renderCarouselImages(slides, type);
+    const buffers = await renderCarouselImages(slides, type);
     const images = buffers
       .filter(Boolean)
       .map((buf) => `data:image/png;base64,${buf.toString('base64')}`);

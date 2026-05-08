@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, use } from 'react';
+import Link from 'next/link';
 import { s } from '@/components/admin/AdminShell';
 import CarouselPreview from '@/components/admin/distribution/CarouselPreview';
 import SlideEditor from '@/components/admin/distribution/SlideEditor';
@@ -180,7 +181,7 @@ function downloadLinkedInPDF(dist: import('@/lib/distribution/types').Distributi
 <body>
   ${slidesHTML}
   ${captionHTML}
-  <script>window.onload = () => { window.print(); }<\/script>
+  <script>window.onload = () => { window.print(); }</script>
 </body>
 </html>`;
 
@@ -392,9 +393,9 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button onClick={load} style={s.btn}>Reintentar</button>
-          <a href="/admin/distribuciones">
+          <Link href="/admin/distribuciones">
             <button style={s.btnGhost}>← Volver a la lista</button>
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -423,9 +424,9 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div style={{ flex: 1, minWidth: 0, marginRight: 16 }}>
-          <a href="/admin/distribuciones" style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', textDecoration: 'none' }}>
+          <Link href="/admin/distribuciones" style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', textDecoration: 'none' }}>
             ← Distribuciones
-          </a>
+          </Link>
           <h1 style={{ ...s.heading, fontSize: 22, margin: '6px 0 8px' }}>{dist.post_title}</h1>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, fontFamily: 'monospace', background: statusBg, color: statusColor }}>

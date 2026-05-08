@@ -5,7 +5,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [".next/**", "coverage/**", "playwright-report/**", "test-results/**", "dist/**", "docs/assets/**", "src/js/**", "vite.config.js"],
+    ignores: [".next/**", "coverage/**", "playwright-report/**", "test-results/**", "dist/**", "docs/assets/**", "src/js/**", "vite.config.js", ".agents/**", "portfolio-promo/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
