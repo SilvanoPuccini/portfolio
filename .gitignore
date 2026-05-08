@@ -36,3 +36,5 @@ docs/qa/
 .env*.local
 docs/
 portfolio-promo/
+
+# Local build outputs
