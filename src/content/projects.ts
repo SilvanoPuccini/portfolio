@@ -76,6 +76,68 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "my-marketing-agency",
+    name: "My Marketing Agency",
+    featured: true,
+    priority: true,
+    category: "platform",
+    status: "live",
+    year: "2026",
+    headline: {
+      es: "Plataforma SaaS para agencias de marketing con calendario editorial, aprobaciones y portal de clientes.",
+      en: "SaaS platform for marketing agencies with editorial calendar, approval workflows, and client portal.",
+    },
+    summary: {
+      es: "Sistema integrado que centraliza la gestión de cuentas, calendarios editoriales, flujos de aprobación, seguimiento de horas, facturación y comunicación con clientes en una sola interfaz.",
+      en: "Integrated system that centralizes account management, editorial calendars, approval workflows, time tracking, billing, and client communication in one unified interface.",
+    },
+    challenge: {
+      es: "Unificar la operación diaria de una agencia de marketing en una sola plataforma con tres interfaces diferenciadas: landing pública, backoffice interno y portal de clientes.",
+      en: "Unify the daily operations of a marketing agency into a single platform with three differentiated interfaces: public landing, internal backoffice, and client portal.",
+    },
+    impact: {
+      es: [
+        "Calendario editorial mensual con piezas filtrables y ciclo de vida de 5 estados.",
+        "Portal de clientes con aprobación en tiempo real e historial completo.",
+        "Stack moderno con React 19, TypeScript, Supabase y Stripe para pagos.",
+      ],
+      en: [
+        "Monthly editorial calendar with filterable content pieces and a 5-state lifecycle.",
+        "Client portal with real-time approvals and complete historical records.",
+        "Modern stack with React 19, TypeScript, Supabase, and Stripe for payments.",
+      ],
+    },
+    stack: [
+      "React 19",
+      "TypeScript",
+      "Vite",
+      "Tailwind CSS",
+      "Shadcn/UI",
+      "Zustand",
+      "TanStack Query",
+      "Supabase",
+      "Stripe",
+      "Framer Motion",
+    ],
+    links: {
+      demo: "https://my-marketing-agency.vercel.app/",
+      repo: "https://github.com/SilvanoPuccini/my-marketing-agency",
+    },
+    media: {
+      cover: "/projects/my-marketing-agency.png",
+      alt: {
+        es: "Captura de My Marketing Agency.",
+        en: "My Marketing Agency screenshot.",
+      },
+      assetStatus: "real",
+    },
+    sourceUrls: [
+      "https://raw.githubusercontent.com/SilvanoPuccini/my-marketing-agency/main/README.md",
+      "https://github.com/SilvanoPuccini/my-marketing-agency",
+      "https://my-marketing-agency.vercel.app/",
+    ],
+  },
+  {
     slug: "aktivar",
     name: "Aktivar",
     featured: true,
