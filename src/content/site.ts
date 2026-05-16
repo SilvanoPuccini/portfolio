@@ -58,7 +58,7 @@ const home: HomeContent = {
       { label: "Let’s talk", href: "/contact" },
     ],
   },
-  featuredProjectSlugs: ["ferrelonstock", "aktivar", "modern-art-gallery", "paytrack", "facturia-2-0"],
+  featuredProjectSlugs: ["ferrelonstock", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack", "facturia-2-0"],
   sourceUrls: [
     "/cv/CV_Silvano_Puccini_FullStack.pdf",
     "README.md",

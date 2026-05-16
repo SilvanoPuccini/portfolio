@@ -11,7 +11,7 @@ import { resolveLocale, type Locale } from "@/lib/i18n";
 
 type LocaleParams = Promise<{ locale: string }>;
 
-const primarySlugs = ["ferrelonstock", "aktivar", "modern-art-gallery", "paytrack"] as const;
+const primarySlugs = ["ferrelonstock", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack"] as const;
 
 const copy = {
   es: {
@@ -50,6 +50,15 @@ const copy = {
       ctaDemo: "Ver demo",
       ctaCode: "Código",
       cards: {
+        "my-marketing-agency": {
+          description:
+            "Plataforma SaaS que centraliza operaciones de agencia con calendario editorial, aprobaciones y portal de clientes.",
+          bullets: [
+            "Tres interfaces diferenciadas",
+            "Flujos de aprobación en tiempo real",
+            "Pagos integrados con Stripe",
+          ],
+        },
         aktivar: {
           description:
             "Plataforma orientada a performance y claridad de producto, con foco en interacción y comunicación visual.",
@@ -146,6 +155,15 @@ const copy = {
       ctaDemo: "View demo",
       ctaCode: "Code",
       cards: {
+        "my-marketing-agency": {
+          description:
+            "SaaS platform that centralizes agency operations with editorial calendar, approval workflows, and client portal.",
+          bullets: [
+            "Three differentiated interfaces",
+            "Real-time approval workflows",
+            "Stripe payment integration",
+          ],
+        },
         aktivar: {
           description:
             "Platform centered on performance and product clarity, with a strong focus on interaction and visual communication.",
