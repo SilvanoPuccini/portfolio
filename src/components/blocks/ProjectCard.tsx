@@ -52,7 +52,7 @@ export default function ProjectCard({
   const isFacturiaFeature = isFeature && project.slug === "facturia-2-0";
   const isFacturiaProject = project.slug === "facturia-2-0";
   const usesContainedMedia =
-    project.slug === "aktivar" || project.slug === "ferrestock" || project.slug === "facturia-2-0";
+    project.slug === "aktivar" || project.slug === "my-marketing-agency" || project.slug === "ferrestock" || project.slug === "facturia-2-0";
   const mediaPanelClassName = cn(
     "relative overflow-hidden bg-surface-dim",
     isFacturiaFeature && "grid xl:grid-rows-[minmax(0,1fr)_auto]",

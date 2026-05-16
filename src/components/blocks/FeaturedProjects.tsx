@@ -233,20 +233,20 @@ export default function FeaturedProjects({
                 >
                   <div
                     className={
-                      project.slug === "aktivar"
+                      project.slug === "aktivar" || project.slug === "my-marketing-agency"
                         ? "project-media-hover project-media-hover-contained relative aspect-[16/9] overflow-hidden bg-surface-dim"
                         : "project-media-hover relative aspect-[16/9] overflow-hidden bg-surface-dim"
                     }
                   >
                     <div
-                      className={project.slug === "aktivar" ? "project-media-asset absolute inset-2 sm:inset-3" : "project-media-asset absolute inset-0"}
+                      className={project.slug === "aktivar" || project.slug === "my-marketing-agency" ? "project-media-asset absolute inset-2 sm:inset-3" : "project-media-asset absolute inset-0"}
                     >
                       <Image
                         src={project.media.cover}
                         alt={project.media.alt}
                         fill
                         sizes="(min-width: 1024px) 28vw, 100vw"
-                        className={project.slug === "aktivar" ? "object-contain object-center" : "object-cover"}
+                        className={project.slug === "aktivar" || project.slug === "my-marketing-agency" ? "object-contain object-center" : "object-cover"}
                       />
                     </div>
                     <div className="project-media-overlay absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.02),rgba(10,14,24,0.38))]" />
