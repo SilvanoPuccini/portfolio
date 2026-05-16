@@ -38,3 +38,4 @@ docs/
 portfolio-promo/
 
 # Local build outputs
+.atl/
