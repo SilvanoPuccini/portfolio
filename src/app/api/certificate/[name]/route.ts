@@ -14,6 +14,10 @@ const ALLOWED: Record<string, string> = {
   "linux-terminal.pdf": "linux-terminal.pdf",
   "SQL.pdf": "SQL.pdf",
   "css-experto.pdf": "css-experto.pdf",
+  "Certificado-Django-Avanzado.pdf": "Certificado-Django-Avanzado.pdf",
+  "Certificado-Java-backend.pdf": "Certificado-Java-backend.pdf",
+  "Certificado-Rust.pdf": "Certificado-Rust.pdf",
+  "docker.pdf": "docker.pdf",
 };
 
 export async function GET(

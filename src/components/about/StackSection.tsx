@@ -20,10 +20,14 @@ const CERTIFICATES: Record<string, string> = {
   Angular: "Angular.pdf",
   "Vue.js": "vuejs.pdf",
   Python: "Python-Avanzado.pdf",
+  Django: "Certificado-Django-Avanzado.pdf",
+  Java: "Certificado-Java-backend.pdf",
+  Rust: "Certificado-Rust.pdf",
   "Git/GitHub": "Git-Github.pdf",
   "Linux/WSL": "linux-terminal.pdf",
   PostgreSQL: "SQL.pdf",
   "Tailwind CSS": "css-experto.pdf",
+  Docker: "docker.pdf",
 };
 
 /* ── Icons ───────────────────────────────────────────────────── */
@@ -61,6 +65,9 @@ const ICONS: Record<string, StackItemIcon> = {
   DigitalOcean: { icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/digitalocean/digitalocean-original.svg", alt: "Digital Ocean" }] },
   "Digital Ocean": { icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/digitalocean/digitalocean-original.svg", alt: "Digital Ocean" }] },
   Cloudinary: { icons: [{ src: "https://cdn.simpleicons.org/cloudinary", alt: "Cloudinary" }] },
+  Java: { icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg", alt: "Java" }] },
+  Rust: { icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg", alt: "Rust", className: "dark:invert" }] },
+  Docker: { icons: [{ src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg", alt: "Docker" }] },
 };
 
 function StackIcon({ item }: { item: string }) {
