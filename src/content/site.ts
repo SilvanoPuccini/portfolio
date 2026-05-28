@@ -191,7 +191,7 @@ const about: AboutContent = {
     },
     {
       title: { es: "Backend", en: "Backend" },
-      items: ["Node.js", "Express.js", "Python", "Django", "APIs REST"],
+      items: ["Node.js", "Express.js", "Python", "Django", "Java", "Rust", "APIs REST"],
     },
     {
       title: { es: "Datos", en: "Data" },
@@ -203,7 +203,7 @@ const about: AboutContent = {
     },
     {
       title: { es: "Deploy", en: "Deploy" },
-      items: ["VPS", "Vercel", "AWS", "Render", "Digital Ocean", "Cloudinary"],
+      items: ["VPS", "Vercel", "AWS", "Render", "Digital Ocean", "Cloudinary", "Docker"],
     },
   ],
   cvLabel: {
