@@ -93,6 +93,7 @@ export type AboutContent = {
 
 export type ServiceItem = {
   slug: string;
+  subtitle: Localized<string>;
   title: Localized<string>;
   description: Localized<string>;
   proofPoints: Localized<string[]>;
