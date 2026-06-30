@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 
+import IntakeForm from "@/components/blocks/IntakeForm";
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
@@ -571,6 +572,20 @@ export default async function ServicesPage({
             ))}
           </div>
         </div>
+      </SectionShell>
+
+      {/* ── INTAKE FORM ── */}
+      <SectionShell
+        eyebrow={currentLocale === "es" ? "Empeza aca" : "Start here"}
+        title={currentLocale === "es" ? "Contanos sobre tu proyecto" : "Tell us about your project"}
+        description={currentLocale === "es"
+          ? "Completa este formulario y te contactamos para una llamada de diagnostico gratuita."
+          : "Fill out this form and we'll reach out for a free diagnostic call."}
+        sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.22),rgb(var(--surface-dim)/0.32))]"
+        containerClassName="py-10 sm:py-12 lg:py-16"
+        surface="plain"
+      >
+        <IntakeForm locale={currentLocale} />
       </SectionShell>
 
       {/* ── CTA CIERRE ── */}
