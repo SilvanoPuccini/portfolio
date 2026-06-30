@@ -35,6 +35,7 @@ const copy = {
       cards: [
         {
           number: "01",
+          subtitle: "La estructura digital de tu negocio",
           title: "Desarrollo web a medida",
           description:
             "Construcción end-to-end: frontend, backend, datos, autenticación y deploy. Proyectos que funcionan en producción desde el día uno.",
@@ -48,6 +49,7 @@ const copy = {
         },
         {
           number: "02",
+          subtitle: "Los procesos que corren sin vos",
           title: "Automatización con IA",
           description:
             "Flujos que reemplazan trabajo manual repetitivo. Clasificación, extracción, validación y pipelines auditables — con humano en el loop cuando importa.",
@@ -61,6 +63,7 @@ const copy = {
         },
         {
           number: "03",
+          subtitle: "Claridad antes de invertir",
           title: "Auditoría técnica",
           description:
             "Revisión de arquitectura, performance y deuda técnica. Salís con un diagnóstico claro y un roadmap ejecutable — no con una lista de problemas sin solución.",
@@ -71,6 +74,42 @@ const copy = {
           ],
           references: ["Roadmaps técnicos", "Auditoría 360", "Negocio + ejecución"],
           cta: "Solicitar auditoría",
+        },
+      ],
+    },
+    howIWork: {
+      eyebrow: "Método",
+      title: "Cómo trabajo",
+      description:
+        "Cada proyecto pasa por cuatro ejes que garantizan que la solución funcione en producción y tenga impacto real en tu negocio.",
+      pillars: [
+        {
+          title: "Estructura",
+          description:
+            "Arquitectura sólida que sostiene tu operación digital. Base de datos, backend, frontend y deploy — todo conectado y testeado.",
+          anchor: "FerrelonStock",
+          anchorDetail: "E-commerce con 65 tests, panel admin y gestión de inventario",
+        },
+        {
+          title: "Procesos",
+          description:
+            "Automatizo lo que hoy hacés a mano. Clasificación, extracción y validación con IA — para que no pierdas tiempo en tareas repetitivas.",
+          anchor: "FacturIA 2.0",
+          anchorDetail: "Pipeline de facturación automatizada con IA",
+        },
+        {
+          title: "Liderazgo",
+          description:
+            "Antes de escribir código, entiendo tu negocio. 10 años en gestión comercial me enseñaron que el problema real rara vez es el que te dicen primero.",
+          anchor: "+10 años en negocio",
+          anchorDetail: "Experiencia comercial aplicada a decisiones técnicas",
+        },
+        {
+          title: "Libertad",
+          description:
+            "El objetivo final: que tu sistema funcione sin depender de mí. Código documentado, paneles de admin y procesos que corren solos.",
+          anchor: "My Marketing Agency",
+          anchorDetail: "SaaS donde el cliente opera sin asistencia técnica",
         },
       ],
     },
@@ -139,9 +178,10 @@ const copy = {
       cards: [
         {
           number: "01",
+          subtitle: "The digital backbone of your business",
           title: "Custom web development",
           description:
-            "End-to-end build: frontend, backend, data, auth and deploy. Projects that work in production from day one.",
+            "End-to-end build: frontend, backend, data, auth, and deploy. Projects that work in production from day one.",
           details: [
             { label: "Frontend", value: "Next.js / React / TypeScript" },
             { label: "Backend", value: "Node.js / Django / Python / APIs" },
@@ -152,9 +192,10 @@ const copy = {
         },
         {
           number: "02",
+          subtitle: "Processes that run without you",
           title: "AI automation",
           description:
-            "Flows that replace repetitive manual work. Classification, extraction, validation and auditable pipelines — with a human in the loop when it matters.",
+            "Flows that replace repetitive manual work. Classification, extraction, validation, and auditable pipelines — with a human in the loop when it matters.",
           details: [
             { label: "Processes", value: "Classification / extraction / validation" },
             { label: "Tooling", value: "Pipelines / agents / dashboards" },
@@ -165,9 +206,10 @@ const copy = {
         },
         {
           number: "03",
+          subtitle: "Clarity before you invest",
           title: "Technical audit",
           description:
-            "Architecture, performance and tech debt review. You leave with a clear diagnosis and an executable roadmap — not just a list of problems.",
+            "Architecture, performance, and tech debt review. You leave with a clear diagnosis and an executable roadmap — not just a list of problems.",
           details: [
             { label: "Architecture", value: "Stack / scalability / debt" },
             { label: "Product", value: "UX / narrative / priorities" },
@@ -175,6 +217,42 @@ const copy = {
           ],
           references: ["Technical roadmaps", "360 audit", "Business + execution"],
           cta: "Request an audit",
+        },
+      ],
+    },
+    howIWork: {
+      eyebrow: "Method",
+      title: "How I work",
+      description:
+        "Every project goes through four pillars that ensure the solution works in production and delivers real business impact.",
+      pillars: [
+        {
+          title: "Structure",
+          description:
+            "Solid architecture that supports your digital operation. Database, backend, frontend, and deploy — all connected and tested.",
+          anchor: "FerrelonStock",
+          anchorDetail: "E-commerce with 65 tests, admin panel, and inventory management",
+        },
+        {
+          title: "Processes",
+          description:
+            "I automate what you do by hand today. Classification, extraction, and AI-powered validation — so you stop wasting time on repetitive tasks.",
+          anchor: "FacturIA 2.0",
+          anchorDetail: "AI-powered automated invoicing pipeline",
+        },
+        {
+          title: "Leadership",
+          description:
+            "Before writing code, I understand your business. Ten years in commercial management taught me that the real problem is rarely what they tell you first.",
+          anchor: "10+ years in business",
+          anchorDetail: "Commercial experience applied to technical decisions",
+        },
+        {
+          title: "Freedom",
+          description:
+            "The end goal: your system works without depending on me. Documented code, admin panels, and processes that run on their own.",
+          anchor: "My Marketing Agency",
+          anchorDetail: "SaaS where the client operates without technical assistance",
         },
       ],
     },
@@ -351,7 +429,10 @@ export default async function ServicesPage({
               {/* Contenido */}
               <div className="mt-6 flex flex-1 flex-col">
                 <div>
-                  <h3 className="text-2xl font-semibold text-text-primary">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
+                    {service.subtitle}
+                  </p>
+                  <h3 className="mt-2 text-2xl font-semibold text-text-primary">
                     {service.title}
                   </h3>
                   <p className="mt-4 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
@@ -405,6 +486,48 @@ export default async function ServicesPage({
             </article>
             );
           })}
+        </div>
+      </SectionShell>
+
+      {/* ── CÓMO TRABAJO ── */}
+      <SectionShell
+        eyebrow={labels.howIWork.eyebrow}
+        title={labels.howIWork.title}
+        description={labels.howIWork.description}
+        sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.18),rgb(var(--surface)/0.12))]"
+        containerClassName="py-10 sm:py-12 lg:py-16"
+        surface="plain"
+      >
+        <div className="grid gap-5 md:grid-cols-2">
+          {labels.howIWork.pillars.map((pillar, index) => (
+            <article
+              key={pillar.title}
+              className="surface-panel no-line-stack group relative flex flex-col overflow-hidden border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-6 py-7 sm:px-7 sm:py-8"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span
+                  className="font-display text-[2.8rem] leading-none tracking-[-0.04em] text-brand-primary/20"
+                  aria-hidden="true"
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <h3 className="mt-4 text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
+                {pillar.title}
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
+                {pillar.description}
+              </p>
+              <div className="mt-5 border-t border-outline-ghost/10 pt-4">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
+                  {pillar.anchor}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-text-tertiary">
+                  {pillar.anchorDetail}
+                </p>
+              </div>
+            </article>
+          ))}
         </div>
       </SectionShell>
 

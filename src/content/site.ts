@@ -21,20 +21,20 @@ const navigation: NavigationItem[] = [
 
 const home: HomeContent = {
   eyebrow: {
-    es: "Portfolio editorial · full stack + negocio",
-    en: "Editorial portfolio · full stack + business",
+    es: "Desarrollo web · Automatización · Arquitectura",
+    en: "Web Development · Automation · Architecture",
   },
   title: {
     es: "Silvano Puccini",
     en: "Silvano Puccini",
   },
   subtitle: {
-    es: "Construyo productos digitales con impacto real en negocio.",
-    en: "I build digital products that work in real-world scenarios, from architecture to the final experience.",
+    es: "Construyo el sistema que tu negocio necesita para vender, ordenarse y crecer.",
+    en: "I build the system your business needs to sell, organize, and grow.",
   },
   intro: {
-    es: "Full Stack Developer enfocado en ejecución, performance y sistemas escalables. Trabajo en plataformas, automatización y soluciones que funcionan en producción.",
-    en: "Full Stack Developer focused on execution, performance, and scalable systems. I work on platforms, automation, and products with real business impact.",
+    es: "Desarrollo web, automatización y arquitectura para negocios que quieren dejar de operar a mano. Resultados reales, código en producción.",
+    en: "Web development, automation, and architecture for businesses ready to stop running everything by hand. Real results, production code.",
   },
   narrative: {
     es: [
@@ -50,12 +50,12 @@ const home: HomeContent = {
   },
   ctas: {
     es: [
+      { label: "Solicitar un servicio", href: "/services" },
       { label: "Ver proyectos", href: "/projects" },
-      { label: "Hablemos", href: "/contact" },
     ],
     en: [
+      { label: "Request a service", href: "/services" },
       { label: "View projects", href: "/projects" },
-      { label: "Let’s talk", href: "/contact" },
     ],
   },
   featuredProjectSlugs: ["ferrelonstock", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack", "facturia-2-0"],
@@ -220,13 +220,17 @@ const about: AboutContent = {
 const services: ServiceItem[] = [
   {
     slug: "full-stack-builds",
+    subtitle: {
+      es: "La estructura digital de tu negocio",
+      en: "The digital backbone of your business",
+    },
     title: {
-      es: "Desarrollo full stack end-to-end",
-      en: "End-to-end full stack development",
+      es: "Desarrollo web a medida",
+      en: "Custom web development",
     },
     description: {
-      es: "Diseño e implementación de aplicaciones con frontend, backend, base de datos, autenticación y despliegue real.",
-      en: "Design and implementation of applications covering frontend, backend, database, authentication, and real deployment.",
+      es: "Construcción end-to-end: frontend, backend, datos, autenticación y deploy. Proyectos que funcionan en producción desde el día uno.",
+      en: "End-to-end build: frontend, backend, data, auth, and deploy. Projects that work in production from day one.",
     },
     proofPoints: {
       es: ["FerrelonStock", "Aktivar", "PayTrack"],
@@ -240,13 +244,17 @@ const services: ServiceItem[] = [
   },
   {
     slug: "automation-ai",
+    subtitle: {
+      es: "Los procesos que corren sin vos",
+      en: "Processes that run without you",
+    },
     title: {
-      es: "Automatización e IA aplicada",
-      en: "Applied automation and AI",
+      es: "Automatización con IA",
+      en: "AI automation",
     },
     description: {
-      es: "Uso IA, pipelines y tooling productivo para reducir tareas manuales y generar flujos auditables.",
-      en: "I use AI, pipelines, and production-grade tooling to reduce manual work and create auditable workflows.",
+      es: "Flujos que reemplazan trabajo manual repetitivo. Clasificación, extracción, validación y pipelines auditables — con humano en el loop cuando importa.",
+      en: "Flows that replace repetitive manual work. Classification, extraction, validation, and auditable pipelines — with a human in the loop when it matters.",
     },
     proofPoints: {
       es: ["FacturIA 2.0", "MCP / agentes IA", "Dashboards y clasificación automática"],
@@ -260,13 +268,17 @@ const services: ServiceItem[] = [
   },
   {
     slug: "product-ux-engineering",
+    subtitle: {
+      es: "Claridad antes de invertir",
+      en: "Clarity before you invest",
+    },
     title: {
-      es: "Ingeniería con visión de producto y negocio",
-      en: "Engineering with product and business perspective",
+      es: "Auditoría técnica",
+      en: "Technical audit",
     },
     description: {
-      es: "Traduzco necesidades comerciales en experiencias utilizables, medibles y técnicamente sostenibles.",
-      en: "I translate business needs into usable, measurable, and technically sustainable experiences.",
+      es: "Revisión de arquitectura, performance y deuda técnica. Salís con un diagnóstico claro y un roadmap ejecutable — no con una lista de problemas sin solución.",
+      en: "Architecture, performance, and tech debt review. You leave with a clear diagnosis and an executable roadmap — not just a list of problems.",
     },
     proofPoints: {
       es: ["+10 años en gestión comercial", "Roadmaps y auditorías técnicas", "Foco en UX y claridad narrativa"],
@@ -476,6 +488,7 @@ export function getSiteContent(locale: Locale) {
     },
     services: siteContent.services.map((item) => ({
       ...item,
+      subtitle: item.subtitle[locale],
       title: item.title[locale],
       description: item.description[locale],
       proofPoints: item.proofPoints[locale],
