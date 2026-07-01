@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 
 import IntakeForm from "@/components/blocks/IntakeForm";
@@ -475,13 +474,13 @@ export default async function ServicesPage({
 
                 {/* CTA por card */}
                 <div className="mt-auto border-t border-outline-ghost/10 pt-6">
-                  <Link
-                    href={`/${currentLocale}/contact?service=${serviceSlugs[index]}`}
+                  <a
+                    href="#intake"
                     className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:text-text-primary"
                   >
                     {service.cta}
                     <ArrowRight className="h-3 w-3" aria-hidden="true" />
-                  </Link>
+                  </a>
                 </div>
               </div>
             </article>
@@ -576,6 +575,7 @@ export default async function ServicesPage({
 
       {/* ── INTAKE FORM ── */}
       <SectionShell
+        id="intake"
         eyebrow={currentLocale === "es" ? "Empeza aca" : "Start here"}
         title={currentLocale === "es" ? "Contanos sobre tu proyecto" : "Tell us about your project"}
         description={currentLocale === "es"

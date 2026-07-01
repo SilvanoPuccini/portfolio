@@ -11,6 +11,7 @@ export default function SectionShell({
   containerClassName,
   contentClassName,
   surface = "contained",
+  id,
 }: {
   eyebrow?: string;
   title?: ReactNode;
@@ -20,9 +21,10 @@ export default function SectionShell({
   containerClassName?: string;
   contentClassName?: string;
   surface?: "contained" | "plain";
+  id?: string;
 }) {
   return (
-    <section className={sectionClassName}>
+    <section id={id} className={sectionClassName}>
       <div className={cn("site-container pb-10 sm:pb-12 lg:pb-14", containerClassName)}>
         <div
           className={cn(
