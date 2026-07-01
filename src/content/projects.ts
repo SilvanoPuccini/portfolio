@@ -76,6 +76,69 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "pediacore",
+    name: "PediaCore",
+    featured: true,
+    priority: true,
+    category: "platform",
+    status: "live",
+    year: "2026",
+    headline: {
+      es: "Plataforma integral para consultorio pediátrico con historia clínica, turnos online y pagos.",
+      en: "Full-stack pediatric clinic platform with medical records, online booking, and payments.",
+    },
+    summary: {
+      es: "Sistema que digitaliza la operación completa de un consultorio pediátrico independiente en Chile: reservas online, historia clínica con curvas OMS, portal de padres, pagos con MercadoPago y panel administrativo con analítica financiera.",
+      en: "System that digitizes the entire operation of an independent pediatric practice in Chile: online booking, medical records with WHO growth curves, parent portal, MercadoPago payments, and admin dashboard with financial analytics.",
+    },
+    challenge: {
+      es: "Reemplazar un flujo fragmentado entre papel, WhatsApp y planillas por una plataforma unificada que gestione turnos, historias clínicas, pagos y comunicación — en producción real con pacientes.",
+      en: "Replace a fragmented workflow of paper, WhatsApp, and spreadsheets with a unified platform managing appointments, medical records, payments, and communications — in real production with patients.",
+    },
+    impact: {
+      es: [
+        "Historia clínica SOAP con antropometría OMS, vacunas PNI y archivos adjuntos — con auditoría de acceso.",
+        "Reservas multi-sede con calendario dinámico, hold atómico de 15 min y waitlist automática.",
+        "773 tests en 50 archivos. Desplegado en DigitalOcean con Docker, Nginx y TLS automático.",
+      ],
+      en: [
+        "SOAP medical records with WHO anthropometrics, PNI vaccination calendar, and file attachments — with access audit logging.",
+        "Multi-location booking with dynamic calendar, 15-min atomic hold, and automatic waitlist.",
+        "773 tests across 50 files. Deployed on DigitalOcean with Docker, Nginx, and auto-TLS.",
+      ],
+    },
+    stack: [
+      "Python 3.12",
+      "Django 5.2",
+      "Django REST Framework",
+      "React 19",
+      "TypeScript",
+      "Vite",
+      "Tailwind CSS",
+      "PostgreSQL 16",
+      "MercadoPago",
+      "Docker",
+      "Nginx",
+      "Sentry",
+    ],
+    links: {
+      demo: "https://estefipediatra.com",
+      repo: "https://github.com/SilvanoPuccini/pediacore",
+    },
+    media: {
+      cover: "/projects/pediacore.png",
+      alt: {
+        es: "Captura de PediaCore — consultorio pediátrico.",
+        en: "PediaCore screenshot — pediatric clinic platform.",
+      },
+      assetStatus: "placeholder",
+    },
+    sourceUrls: [
+      "https://github.com/SilvanoPuccini/pediacore",
+      "https://estefipediatra.com",
+    ],
+  },
+  {
     slug: "my-marketing-agency",
     name: "My Marketing Agency",
     featured: true,
