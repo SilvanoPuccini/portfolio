@@ -62,6 +62,7 @@ const labels = {
     submitting: "Enviando...",
     // Validation
     required: "Este campo es requerido.",
+    requiredSelect: "Selecciona una opcion.",
     invalidEmail: "Email invalido.",
     // Success
     successTitle: "Recibimos tu informacion",
@@ -125,6 +126,7 @@ const labels = {
     submitting: "Submitting...",
     // Validation
     required: "This field is required.",
+    requiredSelect: "Please select an option.",
     invalidEmail: "Invalid email address.",
     // Success
     successTitle: "We received your information",
@@ -388,18 +390,26 @@ function Step1({
           selected={data.current_situation}
           onChange={(v) => onChange("current_situation", v as string)}
         />
+        <FieldError message={errors.current_situation} />
       </div>
     </div>
   );
 }
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <span className="text-xs text-red-300">{message}</span>;
+}
+
 function Step2({
   data,
   l,
+  errors,
   onChange,
 }: {
   data: FormData;
   l: LabelSet;
+  errors: Record<string, string>;
   onChange: <K extends keyof FormData>(key: K, value: FormData[K]) => void;
 }) {
   return (
@@ -411,6 +421,7 @@ function Step2({
           selected={data.tipo_proyecto}
           onChange={(v) => onChange("tipo_proyecto", v as string)}
         />
+        <FieldError message={errors.tipo_proyecto} />
       </div>
 
       <div className="space-y-2">
@@ -420,6 +431,7 @@ function Step2({
           selected={data.secciones}
           onChange={(v) => onChange("secciones", v as string)}
         />
+        <FieldError message={errors.secciones} />
       </div>
 
       <div className="space-y-2">
@@ -430,6 +442,7 @@ function Step2({
           yesLabel={l.yes}
           noLabel={l.no}
         />
+        <FieldError message={errors.tiene_login} />
       </div>
 
       <div className="space-y-2">
@@ -440,6 +453,7 @@ function Step2({
           yesLabel={l.yes}
           noLabel={l.no}
         />
+        <FieldError message={errors.tiene_pagos} />
       </div>
 
       <div className="space-y-2">
@@ -450,6 +464,7 @@ function Step2({
           yesLabel={l.yes}
           noLabel={l.no}
         />
+        <FieldError message={errors.tiene_admin} />
       </div>
 
       <div className="space-y-2">
@@ -460,6 +475,7 @@ function Step2({
           onChange={(v) => onChange("integraciones", v as string[])}
           multi
         />
+        <FieldError message={errors.integraciones} />
       </div>
 
       <label className="block space-y-2">
@@ -480,10 +496,12 @@ function Step2({
 function Step3({
   data,
   l,
+  errors,
   onChange,
 }: {
   data: FormData;
   l: LabelSet;
+  errors: Record<string, string>;
   onChange: <K extends keyof FormData>(key: K, value: FormData[K]) => void;
 }) {
   return (
@@ -496,6 +514,7 @@ function Step3({
           yesLabel={l.s3_brand_yes}
           noLabel={l.s3_brand_no}
         />
+        <FieldError message={errors.tiene_marca} />
       </div>
 
       <div className="space-y-2">
@@ -506,6 +525,7 @@ function Step3({
           yesLabel={l.s3_content_yes}
           noLabel={l.s3_content_no}
         />
+        <FieldError message={errors.tiene_contenido} />
       </div>
 
       <div className="space-y-2">
@@ -515,6 +535,7 @@ function Step3({
           selected={data.presupuesto_rango}
           onChange={(v) => onChange("presupuesto_rango", v as string)}
         />
+        <FieldError message={errors.presupuesto_rango} />
       </div>
 
       <div className="space-y-2">
@@ -524,6 +545,7 @@ function Step3({
           selected={data.plazo}
           onChange={(v) => onChange("plazo", v as string)}
         />
+        <FieldError message={errors.plazo} />
       </div>
 
       <div className="space-y-2">
@@ -533,6 +555,7 @@ function Step3({
           selected={data.canal_llamada}
           onChange={(v) => onChange("canal_llamada", v as string)}
         />
+        <FieldError message={errors.canal_llamada} />
       </div>
     </div>
   );
@@ -631,19 +654,42 @@ export default function IntakeForm({ locale }: { locale: string }) {
   }
 
   function validateStep(stepIndex: number): boolean {
-    const nextErrors: Record<string, string> = {};
+    const e: Record<string, string> = {};
+
+    if (stepIndex === 0) {
+      if (!data.que_construir.trim()) e.que_construir = l.required;
+      if (!data.problema.trim()) e.problema = l.required;
+      if (!data.current_situation) e.current_situation = l.requiredSelect;
+    }
+
+    if (stepIndex === 1) {
+      if (!data.tipo_proyecto) e.tipo_proyecto = l.requiredSelect;
+      if (!data.secciones) e.secciones = l.requiredSelect;
+      if (data.tiene_login === null) e.tiene_login = l.requiredSelect;
+      if (data.tiene_pagos === null) e.tiene_pagos = l.requiredSelect;
+      if (data.tiene_admin === null) e.tiene_admin = l.requiredSelect;
+      if (data.integraciones.length === 0) e.integraciones = l.requiredSelect;
+    }
+
+    if (stepIndex === 2) {
+      if (data.tiene_marca === null) e.tiene_marca = l.requiredSelect;
+      if (data.tiene_contenido === null) e.tiene_contenido = l.requiredSelect;
+      if (!data.presupuesto_rango) e.presupuesto_rango = l.requiredSelect;
+      if (!data.plazo) e.plazo = l.requiredSelect;
+      if (!data.canal_llamada) e.canal_llamada = l.requiredSelect;
+    }
 
     if (stepIndex === 3) {
-      if (!data.nombre.trim()) nextErrors.nombre = l.required;
+      if (!data.nombre.trim()) e.nombre = l.required;
       if (!data.email.trim()) {
-        nextErrors.email = l.required;
+        e.email = l.required;
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-        nextErrors.email = l.invalidEmail;
+        e.email = l.invalidEmail;
       }
     }
 
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    setErrors(e);
+    return Object.keys(e).length === 0;
   }
 
   function handleNext() {
@@ -759,8 +805,8 @@ export default function IntakeForm({ locale }: { locale: string }) {
         noValidate
       >
         {step === 0 && <Step1 data={data} l={l} errors={errors} onChange={updateField} />}
-        {step === 1 && <Step2 data={data} l={l} onChange={updateField} />}
-        {step === 2 && <Step3 data={data} l={l} onChange={updateField} />}
+        {step === 1 && <Step2 data={data} l={l} errors={errors} onChange={updateField} />}
+        {step === 2 && <Step3 data={data} l={l} errors={errors} onChange={updateField} />}
         {step === 3 && <Step4 data={data} l={l} errors={errors} onChange={updateField} />}
 
         {/* Error message for submit failures */}

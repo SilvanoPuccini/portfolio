@@ -368,7 +368,7 @@ const contact: ContactContent = {
   },
   primaryCtas: {
     es: [
-      { label: "Hablemos de tu proyecto", href: "/contact" },
+      { label: "Hablemos de tu proyecto", href: "/services#intake" },
       { label: "LinkedIn", href: "https://www.linkedin.com/in/silvano-puccini/" },
     ],
     en: [
