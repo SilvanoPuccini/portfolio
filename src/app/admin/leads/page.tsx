@@ -15,10 +15,11 @@ type Lead = {
   estado: string;
 };
 
-const ESTADOS = ['nuevo', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
+const ESTADOS = ['nuevo', 'llamada_agendada', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
 
 const ESTADO_COLORS: Record<string, string> = {
   nuevo: '#00d4d4',
+  llamada_agendada: '#4ade80',
   'en conversación': '#f59e0b',
   presupuestado: '#818cf8',
   cerrado: '#4ade80',

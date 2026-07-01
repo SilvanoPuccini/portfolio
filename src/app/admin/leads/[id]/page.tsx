@@ -34,6 +34,7 @@ type Lead = {
   diagnostico_requerimiento: string | null;
   monto_presupuestado: number | null;
   horas_calculadas: number | null;
+  fecha_llamada: string | null;
 };
 
 type Module = {
@@ -55,7 +56,7 @@ type PertRow = {
   selected: boolean;
 };
 
-const ESTADOS = ['nuevo', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
+const ESTADOS = ['nuevo', 'llamada_agendada', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
 
 const BASE_MAP: Record<string, string> = {
   'Landing page': 'landing_base',
@@ -350,6 +351,30 @@ export default function LeadDetailPage() {
         style={{ ...s.btnGhost, marginBottom: 20 }}>
         ← Volver a Leads
       </button>
+
+      {/* Scheduled call badge */}
+      {lead.fecha_llamada && (
+        <div style={{
+          background: 'rgba(74, 222, 128, 0.1)',
+          border: '1px solid #4ade80',
+          borderRadius: 10,
+          padding: '12px 18px',
+          marginBottom: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>📞</span>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#4ade80', margin: 0 }}>
+              Llamada agendada
+            </p>
+            <p style={{ fontSize: 13, color: '#94a3b8', margin: '2px 0 0' }}>
+              {fmt(lead.fecha_llamada)}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
