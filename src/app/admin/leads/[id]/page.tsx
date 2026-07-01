@@ -35,6 +35,9 @@ type Lead = {
   monto_presupuestado: number | null;
   horas_calculadas: number | null;
   fecha_llamada: string | null;
+  grabacion_url: string | null;
+  transcripcion: string | null;
+  pago_estado: string | null;
 };
 
 type Module = {
@@ -376,6 +379,48 @@ export default function LeadDetailPage() {
         </div>
       )}
 
+      {/* Payment badge */}
+      {lead.pago_estado && (
+        <div style={{
+          background: lead.pago_estado === 'pagado' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+          border: `1px solid ${lead.pago_estado === 'pagado' ? '#4ade80' : '#f59e0b'}`,
+          borderRadius: 10, padding: '10px 18px', marginBottom: 20,
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 16 }}>💳</span>
+          <p style={{ fontSize: 13, fontWeight: 600, color: lead.pago_estado === 'pagado' ? '#4ade80' : '#f59e0b', margin: 0 }}>
+            Pago {lead.pago_estado}
+          </p>
+        </div>
+      )}
+
+      {/* Recording + Transcription badges */}
+      {(lead.grabacion_url || lead.transcripcion) && (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          {lead.grabacion_url && (
+            <a href={lead.grabacion_url} target="_blank" rel="noopener noreferrer"
+              style={{
+                background: 'rgba(129, 140, 248, 0.1)', border: '1px solid #818cf8',
+                borderRadius: 10, padding: '10px 18px',
+                display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none',
+              }}>
+              <span style={{ fontSize: 16 }}>🎥</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#818cf8' }}>Ver grabación</span>
+            </a>
+          )}
+          {lead.transcripcion && (
+            <span style={{
+              background: 'rgba(129, 140, 248, 0.1)', border: '1px solid #818cf8',
+              borderRadius: 10, padding: '10px 18px',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: 16 }}>📝</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#818cf8' }}>Transcripción disponible</span>
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <p style={s.eyebrow}>Lead</p>
@@ -408,6 +453,20 @@ export default function LeadDetailPage() {
         <ReadField label="Plazo" value={lead.plazo} />
         <ReadField label="Canal de llamada" value={lead.canal_llamada} />
       </div>
+
+      {/* Transcription */}
+      {lead.transcripcion && (
+        <div style={{ ...s.card, marginBottom: 20 }}>
+          <p style={s.sectionTitle}>Transcripción de la llamada</p>
+          <pre style={{
+            fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.7,
+            whiteSpace: 'pre-wrap', fontFamily: 'inherit',
+            maxHeight: 400, overflowY: 'auto',
+          }}>
+            {lead.transcripcion}
+          </pre>
+        </div>
+      )}
 
       {/* Editable: Datos del cliente */}
       <div style={{ ...s.card, marginBottom: 20 }}>
