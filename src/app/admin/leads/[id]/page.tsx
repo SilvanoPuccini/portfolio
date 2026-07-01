@@ -153,6 +153,9 @@ export default function LeadDetailPage() {
   const [budgetSaved, setBudgetSaved] = useState(false);
   const [budgetInit, setBudgetInit] = useState(false);
 
+  // Contract generation
+  const [contractLoading, setContractLoading] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/admin/leads/${id}`);
@@ -241,6 +244,26 @@ export default function LeadDetailPage() {
     });
     setDiagSaved(true);
     setTimeout(() => setDiagSaved(false), 3000);
+  }
+
+  async function downloadContract() {
+    if (!lead) return;
+    setContractLoading(true);
+    try {
+      const res = await fetch(`/api/admin/contract/${id}`);
+      if (!res.ok) throw new Error('Error al generar el contrato');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contrato-${lead.nombre.replace(/\s+/g, '-').toLowerCase()}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[downloadContract]', err);
+    } finally {
+      setContractLoading(false);
+    }
   }
 
   async function saveBudget() {
@@ -432,6 +455,26 @@ export default function LeadDetailPage() {
             <p style={{ ...s.hint, marginTop: 8 }}>
               Último guardado: ${lead.monto_presupuestado.toLocaleString('en-US')} ({lead.horas_calculadas}h)
             </p>
+          )}
+
+          {lead.monto_presupuestado != null && (
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
+              <button
+                style={{
+                  ...s.btn,
+                  background: contractLoading ? '#6366f1' : '#818cf8',
+                  opacity: contractLoading ? 0.7 : 1,
+                  cursor: contractLoading ? 'not-allowed' : 'pointer',
+                }}
+                onClick={downloadContract}
+                disabled={contractLoading}
+              >
+                {contractLoading ? 'Generando...' : 'Generar contrato'}
+              </button>
+              <p style={{ ...s.hint, marginTop: 6 }}>
+                Descarga el contrato en formato .docx listo para firmar.
+              </p>
+            </div>
           )}
         </div>
       </div>
