@@ -56,7 +56,7 @@ type PertRow = {
   selected: boolean;
 };
 
-const ESTADOS = ['nuevo', 'llamada_agendada', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
+const ESTADOS = ['nuevo', 'llamada_agendada', 'no_show', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
 
 const BASE_MAP: Record<string, string> = {
   'Landing page': 'landing_base',
