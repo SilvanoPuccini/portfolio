@@ -131,7 +131,7 @@ export const projects: Project[] = [
         es: "Captura de PediaCore — consultorio pediátrico.",
         en: "PediaCore screenshot — pediatric clinic platform.",
       },
-      assetStatus: "placeholder",
+      assetStatus: "real",
     },
     sourceUrls: [
       "https://github.com/SilvanoPuccini/pediacore",
