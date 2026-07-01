@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { CATEGORY_COLOR } from '@/lib/resend';
 import { generateUnsubToken } from '@/lib/unsub-token';
+import { verifySessionToken } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -25,6 +36,17 @@ function buildEmail(opts: {
   unsubUrl: string;
 }): string {
   const cat = CATEGORY_COLOR[opts.category] ?? CATEGORY_COLOR['Producto'];
+
+  // Escape user-derived content to prevent HTML injection
+  const e = {
+    title: escapeHtml(opts.title),
+    excerpt: escapeHtml(opts.excerpt),
+    category: escapeHtml(opts.category),
+    issue: escapeHtml(opts.issue),
+    keyword: escapeHtml(opts.keyword),
+    readingTime: escapeHtml(opts.readingTime),
+    date: escapeHtml(opts.date),
+  };
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -87,10 +109,10 @@ function buildEmail(opts: {
       <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 8px;text-align:center;line-height:1.6;">
         <span style="color:#94a3b8;">El Radar</span>
         <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
-        <span style="color:#00d4d4;">Nueva nota · Nº ${opts.issue}</span>
+        <span style="color:#00d4d4;">Nueva nota · Nº ${e.issue}</span>
       </p>
       <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 40px;text-align:center;">
-        <span style="color:${cat.text};">${opts.keyword.toUpperCase()}</span>
+        <span style="color:${cat.text};">${e.keyword.toUpperCase()}</span>
       </p>
 
       <!-- Card del post -->
@@ -101,12 +123,12 @@ function buildEmail(opts: {
           <tr>
             <td>
               <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:4px 12px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">
-                ${opts.category}
+                ${e.category}
               </span>
             </td>
             <td style="text-align:right;">
               <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#8c909f;letter-spacing:0.14em;text-transform:uppercase;">
-                Nº ${opts.issue}
+                Nº ${e.issue}
               </span>
             </td>
           </tr>
@@ -115,10 +137,10 @@ function buildEmail(opts: {
         <!-- Card body -->
         <div style="padding:32px 24px 28px;">
           <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">
-            ${opts.title}
+            ${e.title}
           </h2>
           <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 28px;border-left:2px solid ${cat.text};padding-left:14px;">
-            ${opts.excerpt}
+            ${e.excerpt}
           </p>
 
           <!-- Meta + CTA en misma fila -->
@@ -126,7 +148,7 @@ function buildEmail(opts: {
             <tr>
               <td style="vertical-align:middle;">
                 <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8c909f;letter-spacing:0.06em;">
-                  ${opts.readingTime} · ${opts.date}
+                  ${e.readingTime} · ${e.date}
                 </span>
               </td>
               <td style="text-align:right;vertical-align:middle;">
@@ -157,13 +179,28 @@ const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.de
 
 export async function POST(req: NextRequest) {
   try {
+    // Auth: bearer token OR signed session cookie (both timing-safe)
     const auth = req.headers.get('authorization');
-    const cookie = req.cookies.get('admin_session')?.value;
     const notifySecret = process.env.NOTIFY_SECRET;
-    const sessionSecret = process.env.ADMIN_SESSION_SECRET;
-    const authorized =
-      (notifySecret && auth === `Bearer ${notifySecret}`) ||
-      (sessionSecret && cookie === sessionSecret);
+    let authorized = false;
+
+    if (notifySecret && auth) {
+      const provided = auth.replace(/^Bearer\s+/, '');
+      const bufA = Buffer.from(provided);
+      const bufB = Buffer.from(notifySecret);
+      if (bufA.length === bufB.length) {
+        authorized = timingSafeEqual(bufA, bufB);
+      }
+    }
+
+    if (!authorized) {
+      const cookie = req.cookies.get('admin_session')?.value;
+      const sessionSecret = process.env.ADMIN_SESSION_SECRET;
+      if (cookie && sessionSecret) {
+        authorized = verifySessionToken(cookie, sessionSecret);
+      }
+    }
+
     if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

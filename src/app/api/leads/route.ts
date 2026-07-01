@@ -63,26 +63,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Coerce optional fields to expected types
+    const optStr = (v: unknown) => (typeof v === 'string' ? v.slice(0, MAX_TEXT) : null);
+    const optBool = (v: unknown) => (typeof v === 'boolean' ? v : null);
+    const optNum = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
     const { data, error: dbError } = await getSupabaseAdmin()
       .from('leads')
       .insert({
         nombre,
         email,
-        telefono: body.telefono ?? null,
-        tipo_proyecto: body.tipo_proyecto ?? null,
-        que_construir: body.que_construir ?? null,
-        secciones: body.secciones ?? null,
-        tiene_login: body.tiene_login ?? null,
-        tiene_pagos: body.tiene_pagos ?? null,
-        tiene_admin: body.tiene_admin ?? null,
-        integraciones: body.integraciones ?? null,
-        idiomas: body.idiomas ?? 1,
-        tiene_marca: body.tiene_marca ?? null,
-        tiene_contenido: body.tiene_contenido ?? null,
-        problema: body.problema ?? null,
-        presupuesto_rango: body.presupuesto_rango ?? null,
-        plazo: body.plazo ?? null,
-        canal_llamada: body.canal_llamada ?? null,
+        telefono: optStr(body.telefono),
+        tipo_proyecto: optStr(body.tipo_proyecto),
+        que_construir: optStr(body.que_construir),
+        secciones: optStr(body.secciones),
+        tiene_login: optBool(body.tiene_login),
+        tiene_pagos: optBool(body.tiene_pagos),
+        tiene_admin: optBool(body.tiene_admin),
+        integraciones: optStr(body.integraciones),
+        idiomas: optNum(body.idiomas) ?? 1,
+        tiene_marca: optBool(body.tiene_marca),
+        tiene_contenido: optBool(body.tiene_contenido),
+        problema: optStr(body.problema),
+        presupuesto_rango: optStr(body.presupuesto_rango),
+        plazo: optStr(body.plazo),
+        canal_llamada: optStr(body.canal_llamada),
       })
       .select('id')
       .single();
