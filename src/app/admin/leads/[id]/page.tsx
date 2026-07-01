@@ -156,6 +156,10 @@ export default function LeadDetailPage() {
   // Contract generation
   const [contractLoading, setContractLoading] = useState(false);
 
+  // Proposal prompt
+  const [promptVisible, setPromptVisible] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/admin/leads/${id}`);
@@ -264,6 +268,59 @@ export default function LeadDetailPage() {
     } finally {
       setContractLoading(false);
     }
+  }
+
+  function buildProposalPrompt(): string {
+    if (!lead) return '';
+    const modules = selectedRows.map((r) => `- ${r.label}: ${pertHours(r.o, r.m, r.p).toFixed(0)}h`).join('\n');
+    return [
+      '# BRIEF PARA PROPUESTA VISUAL',
+      '',
+      '## Cliente',
+      `- Nombre: ${lead.titular || lead.nombre}`,
+      lead.que_construir ? `- Negocio: ${lead.que_construir}` : null,
+      lead.localidad || lead.pais ? `- Ubicación: ${[lead.localidad, lead.pais].filter(Boolean).join(', ')}` : null,
+      '',
+      '## Diagnóstico',
+      diagObjetivo ? `**Objetivo:** ${diagObjetivo}` : null,
+      diagSituacion ? `**Situación:** ${diagSituacion}` : null,
+      diagRequerimiento ? `**Requerimiento:** ${diagRequerimiento}` : null,
+      '',
+      '## Alcance del proyecto',
+      `- Tipo: ${lead.tipo_proyecto || 'No definido'}`,
+      lead.secciones ? `- Secciones: ${lead.secciones}` : null,
+      lead.tiene_login === true ? '- Login de usuarios: Sí' : null,
+      lead.tiene_pagos === true ? '- Pagos online: Sí' : null,
+      lead.tiene_admin === 'yes' ? '- Panel admin: Sí' : null,
+      lead.integraciones?.length ? `- Integraciones: ${lead.integraciones.join(', ')}` : null,
+      lead.idiomas && lead.idiomas > 1 ? `- Multi-idioma: ${lead.idiomas} idiomas` : null,
+      '',
+      '## Módulos incluidos',
+      modules || '(ninguno seleccionado)',
+      '',
+      '## Presupuesto',
+      `- Horas estimadas: ${bufferedHours.toFixed(1)}h (PERT + ${rateConfig.buffer_pct}% buffer)`,
+      `- Tarifa: $${rateConfig.tarifa_hora}/hr`,
+      `- Total: $${totalPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+      lead.plazo ? `- Plazo deseado: ${lead.plazo}` : null,
+      '',
+      '## Instrucciones',
+      'Generá una propuesta visual profesional para este cliente con:',
+      '1. Portada con el nombre del proyecto y el logo de Silvano Puccini Dev',
+      '2. Resumen del problema y la solución propuesta',
+      '3. Desglose de módulos con horas estimadas',
+      '4. Inversión total con condiciones de pago (50% inicio, 50% entrega)',
+      '5. Timeline estimado en semanas',
+      '6. Sección de garantía (30 días de corrección de bugs post-entrega)',
+      '7. Diseño limpio, oscuro, minimalista, tipografía moderna',
+    ].filter((line) => line !== null).join('\n');
+  }
+
+  async function copyPrompt() {
+    const prompt = buildProposalPrompt();
+    await navigator.clipboard.writeText(prompt);
+    setPromptCopied(true);
+    setTimeout(() => setPromptCopied(false), 3000);
   }
 
   async function saveBudget() {
@@ -478,6 +535,48 @@ export default function LeadDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Proposal Prompt Generator */}
+      {lead.monto_presupuestado != null && (
+        <div style={{ ...s.card, marginBottom: 20 }}>
+          <p style={s.sectionTitle}>Prompt para propuesta</p>
+          <p style={s.hint}>
+            Compilá los datos del lead en un prompt listo para generar la propuesta visual.
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
+            <button
+              style={{ ...s.btn, background: '#f59e0b', color: '#0a0a14' }}
+              onClick={() => setPromptVisible(!promptVisible)}
+            >
+              {promptVisible ? 'Ocultar prompt' : 'Ver prompt'}
+            </button>
+            {promptVisible && (
+              <button style={s.btn} onClick={copyPrompt}>
+                {promptCopied ? 'Copiado!' : 'Copiar al portapapeles'}
+              </button>
+            )}
+            {promptCopied && <p style={s.successText}>Copiado</p>}
+          </div>
+
+          {promptVisible && (
+            <textarea
+              readOnly
+              value={buildProposalPrompt()}
+              style={{
+                ...s.input,
+                marginTop: 14,
+                minHeight: 320,
+                resize: 'vertical' as React.CSSProperties['resize'],
+                fontSize: 13,
+                lineHeight: 1.6,
+                fontFamily: 'monospace',
+                color: '#94a3b8',
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
