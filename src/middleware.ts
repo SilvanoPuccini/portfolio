@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAuthorized } from '@/lib/admin-auth';
 
 // Endpoints públicos dentro de /api/admin — no requieren sesión
 const PUBLIC_ADMIN_PATHS = [
   '/api/admin/login',
-  '/api/admin/logout',
   '/api/admin/session',
 ];
 
@@ -20,11 +20,8 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Validar cookie de sesión
-  const session = req.cookies.get('admin_session')?.value;
-  const secret = process.env.ADMIN_SESSION_SECRET;
-
-  if (!session || !secret || session !== secret) {
+  // Validar auth (timing-safe, supports cookie + bearer)
+  if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   try {
     const ip = getIp(req);
 
-    if (!rateLimit(ip, 5, 60_000)) {
+    if (!rateLimit(`subscribe:${ip}`, 5, 60_000)) {
       return NextResponse.json(
         { error: 'Demasiados intentos. Esperá un minuto y volvé a intentar.' },
         { status: 429 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,10 @@ function verifySignature(body: string, signature: string | null): boolean {
   const secret = process.env.CALCOM_WEBHOOK_SECRET;
   if (!secret || !signature) return false;
   const expected = createHmac('sha256', secret).update(body).digest('hex');
-  return signature === expected;
+  const bufSig = Buffer.from(signature);
+  const bufExp = Buffer.from(expected);
+  if (bufSig.length !== bufExp.length) return false;
+  return timingSafeEqual(bufSig, bufExp);
 }
 
 export async function POST(req: NextRequest) {

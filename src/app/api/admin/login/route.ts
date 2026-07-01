@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { rateLimit } from '@/lib/rate-limit';
+import { createSessionToken } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 const loginSchema = z.object({ password: z.string().min(1) });
@@ -8,6 +10,13 @@ export const dynamic = 'force-dynamic';
 
 function getIp(req: NextRequest) {
   return req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+}
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
 }
 
 export async function POST(req: NextRequest) {
@@ -32,7 +41,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Payload inválido.' }, { status: 400 });
   }
 
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword || !safeCompare(password, adminPassword)) {
     return NextResponse.json({ error: 'Contraseña incorrecta.' }, { status: 401 });
   }
 
@@ -42,8 +52,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Error de configuración.' }, { status: 500 });
   }
 
+  const token = createSessionToken(secret);
   const response = NextResponse.json({ success: true });
-  response.cookies.set('admin_session', secret, {
+  response.cookies.set('admin_session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',

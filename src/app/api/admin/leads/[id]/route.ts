@@ -41,15 +41,30 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json() as Record<string, unknown>;
 
-    const allowed = [
+    const allowedStrings = [
       'titular', 'localidad', 'pais', 'notas_llamada', 'estado',
       'diagnostico_objetivo', 'diagnostico_situacion', 'diagnostico_requerimiento',
-      'monto_presupuestado', 'horas_calculadas',
     ];
+    const allowedNumbers = ['monto_presupuestado', 'horas_calculadas'];
 
     const updates: Record<string, unknown> = {};
-    for (const key of allowed) {
-      if (key in body) updates[key] = body[key];
+    for (const key of allowedStrings) {
+      if (key in body) {
+        const v = body[key];
+        if (v !== null && typeof v !== 'string') {
+          return NextResponse.json({ error: `Field "${key}" must be a string or null.` }, { status: 400 });
+        }
+        updates[key] = v;
+      }
+    }
+    for (const key of allowedNumbers) {
+      if (key in body) {
+        const v = body[key];
+        if (v !== null && typeof v !== 'number') {
+          return NextResponse.json({ error: `Field "${key}" must be a number or null.` }, { status: 400 });
+        }
+        updates[key] = v;
+      }
     }
 
     if (Object.keys(updates).length === 0) {

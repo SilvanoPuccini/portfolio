@@ -19,9 +19,12 @@ async function generateLegalClause(country: string): Promise<string> {
     const client = new GoogleGenerativeAI(apiKey);
     const model = client.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+    // Sanitize country: strip anything that isn't alphanumeric, spaces, or basic punctuation
+    const safeCountry = country.replace(/[^\p{L}\p{N}\s.,'-]/gu, '').slice(0, 100);
+
     const prompt =
       `Generate a brief applicable law and jurisdiction clause for a web development service ` +
-      `contract between a provider in Buenos Aires, Argentina and a client in ${country}. ` +
+      `contract between a provider in Buenos Aires, Argentina and a client in ${safeCountry}. ` +
       `Write in Spanish. 2-3 sentences maximum. Professional legal tone.`;
 
     const result = await model.generateContent(prompt);
