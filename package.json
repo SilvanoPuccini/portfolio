@@ -23,6 +23,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
+    "docx": "^9.7.1",
     "framer-motion": "^12.6.5",
     "gray-matter": "^4.0.3",
     "jsonrepair": "^3.14.0",
