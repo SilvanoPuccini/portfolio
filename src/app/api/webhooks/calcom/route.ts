@@ -9,6 +9,10 @@ type CalWebhookPayload = {
   payload: {
     startTime?: string;
     attendees?: { email: string }[];
+    downloadLink?: string;
+    transcription?: { text?: string }[];
+    metadata?: Record<string, unknown>;
+    responses?: Record<string, { value: string }>;
   };
 };
 
@@ -41,7 +45,13 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabaseAdmin();
 
-  type UpdateData = { estado?: string; fecha_llamada?: string | null };
+  type UpdateData = {
+    estado?: string;
+    fecha_llamada?: string | null;
+    grabacion_url?: string;
+    transcripcion?: string;
+    pago_estado?: string;
+  };
   let updates: UpdateData | null = null;
   let action = 'ignored';
 
@@ -72,6 +82,40 @@ export async function POST(req: NextRequest) {
     case 'MEETING_ENDED': {
       updates = { estado: 'en conversación' };
       action = 'en_conversacion';
+      break;
+    }
+    case 'RECORDING_DOWNLOAD_LINK_READY': {
+      const url = event.payload.downloadLink;
+      if (url) {
+        updates = { grabacion_url: url };
+        action = 'recording_saved';
+      }
+      break;
+    }
+    case 'TRANSCRIPTION_GENERATED': {
+      const segments = event.payload.transcription;
+      if (segments?.length) {
+        const text = segments.map((s) => s.text ?? '').join('\n').trim();
+        if (text) {
+          updates = { transcripcion: text };
+          action = 'transcription_saved';
+        }
+      }
+      break;
+    }
+    case 'BOOKING_PAYMENT_INITIATED': {
+      updates = { pago_estado: 'iniciado' };
+      action = 'pago_iniciado';
+      break;
+    }
+    case 'BOOKING_PAID': {
+      updates = { pago_estado: 'pagado' };
+      action = 'pago_confirmado';
+      break;
+    }
+    case 'FORM_SUBMITTED': {
+      // Cal.com routing form — log for now, lead already exists by email
+      action = 'form_received';
       break;
     }
   }
