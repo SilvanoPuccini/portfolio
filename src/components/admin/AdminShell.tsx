@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/content', label: 'Contenido' },
   { href: '/admin/distribuciones', label: 'Distribuciones' },
   { href: '/admin/debug', label: 'Debug IA' },
+  { href: '/admin/config', label: 'Config' },
 ];
 
 export default function AdminShell({ children }: { children: ReactNode }) {

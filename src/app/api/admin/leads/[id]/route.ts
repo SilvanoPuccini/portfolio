@@ -44,6 +44,7 @@ export async function PATCH(
     const allowed = [
       'titular', 'localidad', 'pais', 'notas_llamada', 'estado',
       'diagnostico_objetivo', 'diagnostico_situacion', 'diagnostico_requerimiento',
+      'monto_presupuestado', 'horas_calculadas',
     ];
 
     const updates: Record<string, unknown> = {};
