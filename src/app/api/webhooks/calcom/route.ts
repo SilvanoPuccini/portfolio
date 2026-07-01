@@ -41,35 +41,54 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabaseAdmin();
 
-  if (event.triggerEvent === 'BOOKING_CREATED') {
-    const fechaLlamada = event.payload.startTime ?? new Date().toISOString();
+  type UpdateData = { estado?: string; fecha_llamada?: string | null };
+  let updates: UpdateData | null = null;
+  let action = 'ignored';
 
-    const { error } = await supabase
-      .from('leads')
-      .update({ estado: 'llamada_agendada', fecha_llamada: fechaLlamada })
-      .eq('email', email);
-
-    if (error) {
-      console.error('[webhook/calcom] BOOKING_CREATED update error:', error);
-      return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+  switch (event.triggerEvent) {
+    case 'BOOKING_CREATED': {
+      const fecha = event.payload.startTime ?? new Date().toISOString();
+      updates = { estado: 'llamada_agendada', fecha_llamada: fecha };
+      action = 'llamada_agendada';
+      break;
     }
-
-    return NextResponse.json({ ok: true, action: 'llamada_agendada' });
+    case 'BOOKING_RESCHEDULED': {
+      const fecha = event.payload.startTime ?? new Date().toISOString();
+      updates = { fecha_llamada: fecha };
+      action = 'rescheduled';
+      break;
+    }
+    case 'BOOKING_CANCELLED':
+    case 'BOOKING_REJECTED': {
+      updates = { estado: 'nuevo', fecha_llamada: null };
+      action = 'reverted_to_nuevo';
+      break;
+    }
+    case 'BOOKING_NO_SHOW': {
+      updates = { estado: 'no_show' };
+      action = 'no_show';
+      break;
+    }
+    case 'MEETING_ENDED': {
+      updates = { estado: 'en conversación' };
+      action = 'en_conversacion';
+      break;
+    }
   }
 
-  if (event.triggerEvent === 'BOOKING_CANCELLED') {
-    const { error } = await supabase
-      .from('leads')
-      .update({ estado: 'nuevo', fecha_llamada: null })
-      .eq('email', email);
-
-    if (error) {
-      console.error('[webhook/calcom] BOOKING_CANCELLED update error:', error);
-      return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true, action: 'reverted_to_nuevo' });
+  if (!updates) {
+    return NextResponse.json({ ok: true, action });
   }
 
-  return NextResponse.json({ ok: true, action: 'ignored' });
+  const { error } = await supabase
+    .from('leads')
+    .update(updates)
+    .eq('email', email);
+
+  if (error) {
+    console.error(`[webhook/calcom] ${event.triggerEvent} error:`, error);
+    return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, action });
 }
