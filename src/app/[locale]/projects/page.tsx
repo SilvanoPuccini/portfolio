@@ -11,7 +11,7 @@ import { resolveLocale, type Locale } from "@/lib/i18n";
 
 type LocaleParams = Promise<{ locale: string }>;
 
-const primarySlugs = ["ferrelonstock", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack"] as const;
+const primarySlugs = ["ferrelonstock", "pediacore", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack"] as const;
 
 const copy = {
   es: {
