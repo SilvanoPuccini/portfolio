@@ -23,7 +23,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://cdn.jsdelivr.net https://cdn.simpleicons.org https://res.cloudinary.com",
       "font-src 'self'",
       "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com",
-      "frame-src https://www.openstreetmap.org",
+      "frame-src https://www.openstreetmap.org https://cal.com",
       "frame-ancestors 'none'",
     ].join('; '),
   },
