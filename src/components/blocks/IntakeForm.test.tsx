@@ -14,21 +14,56 @@ vi.mock("next/navigation", () => ({
 /*  PR1-1: serviceQuestions map shape                                         */
 /* -------------------------------------------------------------------------- */
 
-describe("serviceQuestions map", () => {
-  it("full-stack-builds has 7 questions", () => {
-    expect(serviceQuestions["full-stack-builds"].questions).toHaveLength(7);
+describe("serviceQuestions map — business-oriented questions", () => {
+  it("full-stack-builds has 6 business-oriented questions", () => {
+    expect(serviceQuestions["full-stack-builds"].questions).toHaveLength(6);
   });
 
-  it("automation-ai has 6 questions", () => {
+  it("automation-ai has 6 business-oriented questions", () => {
     expect(serviceQuestions["automation-ai"].questions).toHaveLength(6);
   });
 
-  it("product-ux-engineering has 5 questions", () => {
+  it("product-ux-engineering has 5 business-oriented questions", () => {
     expect(serviceQuestions["product-ux-engineering"].questions).toHaveLength(5);
   });
 
-  it("default has 7 questions matching generic Step 2", () => {
-    expect(serviceQuestions["default"].questions).toHaveLength(7);
+  it("default mirrors full-stack-builds with 6 questions", () => {
+    expect(serviceQuestions["default"].questions).toHaveLength(6);
+  });
+
+  it("full-stack-builds keys are business-focused (fs_business, fs_vision, etc.)", () => {
+    const keys = serviceQuestions["full-stack-builds"].questions.map((q) => q.key);
+    expect(keys).toEqual([
+      "fs_business",
+      "fs_vision",
+      "fs_current_state",
+      "fs_success",
+      "fs_brand_materials",
+      "fs_timeline",
+    ]);
+  });
+
+  it("automation-ai keys are business-focused (ai_pain_task, ai_handling, etc.)", () => {
+    const keys = serviceQuestions["automation-ai"].questions.map((q) => q.key);
+    expect(keys).toEqual([
+      "ai_pain_task",
+      "ai_handling",
+      "ai_people",
+      "ai_impact",
+      "ai_data",
+      "ai_urgency",
+    ]);
+  });
+
+  it("product-ux-engineering keys are business-focused (audit_product, audit_concern, etc.)", () => {
+    const keys = serviceQuestions["product-ux-engineering"].questions.map((q) => q.key);
+    expect(keys).toEqual([
+      "audit_product",
+      "audit_concern",
+      "audit_team",
+      "audit_trigger",
+      "audit_outcome",
+    ]);
   });
 
   it("every question has es and en labels", () => {
@@ -44,12 +79,18 @@ describe("serviceQuestions map", () => {
     }
   });
 
-  it("automation-ai Q6 has showWhen pointing to Q5", () => {
-    const q6 = serviceQuestions["automation-ai"].questions[5];
-    expect(q6.key).toBe("ai_format");
-    expect(q6.showWhen).toBeDefined();
-    expect(q6.showWhen?.key).toBe("ai_data");
-    expect(q6.showWhen?.values).toContain("yes");
+  it("automation-ai ai_data is a toggle question (no showWhen)", () => {
+    const aiData = serviceQuestions["automation-ai"].questions.find((q) => q.key === "ai_data");
+    expect(aiData).toBeDefined();
+    expect(aiData!.type).toBe("toggle");
+  });
+
+  it("no questions use showWhen in the new business-oriented set", () => {
+    for (const [, set] of Object.entries(serviceQuestions)) {
+      for (const q of set.questions) {
+        expect(q.showWhen, `${q.key} should not have showWhen`).toBeUndefined();
+      }
+    }
   });
 });
 
@@ -115,44 +156,26 @@ describe("IntakeForm — service prop", () => {
     });
   }
 
-  it("renders 7 questions for full-stack-builds service prop", async () => {
+  it("renders 6 business-oriented questions for full-stack-builds", async () => {
     render(<IntakeForm locale="en" service="full-stack-builds" />);
     await advanceToStep2();
 
-    // All 7 question labels should appear on screen
     const qs = serviceQuestions["full-stack-builds"].questions;
+    expect(qs).toHaveLength(6);
     for (const q of qs) {
       expect(screen.getByText(q.label.en)).toBeInTheDocument();
     }
   });
 
-  it("renders Q1-Q5 for automation-ai and hides Q6 initially", async () => {
+  it("renders all 6 questions for automation-ai (no conditional visibility)", async () => {
     render(<IntakeForm locale="en" service="automation-ai" />);
     await advanceToStep2();
 
-    const q5Label = serviceQuestions["automation-ai"].questions[4].label.en;
-    const q6Label = serviceQuestions["automation-ai"].questions[5].label.en;
-
-    expect(screen.getByText(q5Label)).toBeInTheDocument();
-    // Q6 (ai_format) should be hidden because Q5 (ai_data) not yet answered as "yes"
-    expect(screen.queryByText(q6Label)).not.toBeInTheDocument();
-  });
-
-  it("shows Q6 when Q5 (existing data) is answered Yes for automation-ai", async () => {
-    render(<IntakeForm locale="en" service="automation-ai" />);
-    await advanceToStep2();
-
-    const q6Label = serviceQuestions["automation-ai"].questions[5].label.en;
-
-    // Click "Yes" toggle for Q5
-    const yesButtons = screen.getAllByRole("button", { name: "Yes" });
-    // Q5 is the toggle "Do you have existing data/files to process?"
-    // The first Yes button could be for any toggle — we need the one for ai_data
-    // Since Q3 and Q4 are chip selects (not toggles), the only toggle before Q6 is Q5 (ai_data)
-    fireEvent.click(yesButtons[0]);
-
-    // Q6 should now be visible
-    expect(screen.getByText(q6Label)).toBeInTheDocument();
+    const qs = serviceQuestions["automation-ai"].questions;
+    expect(qs).toHaveLength(6);
+    for (const q of qs) {
+      expect(screen.getByText(q.label.en)).toBeInTheDocument();
+    }
   });
 
   it("renders 5 questions for product-ux-engineering via service prop", async () => {
@@ -160,6 +183,7 @@ describe("IntakeForm — service prop", () => {
     await advanceToStep2();
 
     const qs = serviceQuestions["product-ux-engineering"].questions;
+    expect(qs).toHaveLength(5);
     for (const q of qs) {
       expect(screen.getByText(q.label.es)).toBeInTheDocument();
     }
