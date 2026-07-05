@@ -1,10 +1,265 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/* -------------------------------------------------------------------------- */
+/*  ServiceSlug type and serviceQuestions map (PR1-1)                         */
+/* -------------------------------------------------------------------------- */
+
+export type ServiceSlug =
+  | "full-stack-builds"
+  | "automation-ai"
+  | "product-ux-engineering";
+
+type QuestionOption = {
+  es: readonly string[];
+  en: readonly string[];
+};
+
+type ServiceQuestion = {
+  key: string;
+  label: { es: string; en: string };
+  type: "chip" | "toggle" | "text" | "number" | "textarea";
+  options?: QuestionOption;
+  multi?: boolean;
+  /** When set, this question is only shown when the named sibling question has
+   *  one of the listed values in serviceData. */
+  showWhen?: { key: string; values: string[] };
+  required?: boolean;
+  maxLength?: number;
+};
+
+type ServiceQuestionSet = {
+  stepTitle: { es: string; en: string };
+  questions: ServiceQuestion[];
+};
+
+export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSet> = {
+  "full-stack-builds": {
+    stepTitle: { es: "Tu producto web", en: "Your web product" },
+    questions: [
+      {
+        key: "fs_type",
+        label: { es: "Que tipo de producto tenes en mente?", en: "What type of product do you have in mind?" },
+        type: "chip",
+        options: {
+          es: ["Landing page", "E-commerce", "Plataforma", "Sistema interno", "No estoy seguro"],
+          en: ["Landing page", "E-commerce", "Platform", "Internal system", "Not sure"],
+        },
+        required: true,
+      },
+      {
+        key: "fs_sections",
+        label: { es: "Cuantas secciones o pantallas principales?", en: "How many main sections or screens?" },
+        type: "chip",
+        options: { es: ["1-3", "4-8", "9+"], en: ["1-3", "4-8", "9+"] },
+        required: true,
+      },
+      {
+        key: "fs_login",
+        label: { es: "Los usuarios se registran e inician sesion?", en: "Do users register and log in?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "fs_payments",
+        label: { es: "Va a procesar pagos online?", en: "Will it process online payments?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "fs_admin",
+        label: { es: "Necesitas un panel de administracion?", en: "Do you need an admin panel?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "fs_integrations",
+        label: { es: "Se conecta con otras herramientas?", en: "Does it connect with other tools?" },
+        type: "chip",
+        multi: true,
+        options: {
+          es: ["WhatsApp", "Email", "IA", "Otro sistema", "Ninguno"],
+          en: ["WhatsApp", "Email", "AI", "Other system", "None"],
+        },
+        required: true,
+      },
+      {
+        key: "fs_languages",
+        label: { es: "Cuantos idiomas?", en: "How many languages?" },
+        type: "number",
+        required: true,
+      },
+    ],
+  },
+  "automation-ai": {
+    stepTitle: { es: "Tu proceso de automatizacion", en: "Your automation process" },
+    questions: [
+      {
+        key: "ai_process",
+        label: { es: "Que proceso queres automatizar?", en: "What process do you want to automate?" },
+        type: "textarea",
+        required: true,
+        maxLength: 500,
+      },
+      {
+        key: "ai_tools",
+        label: { es: "Que herramientas usas actualmente?", en: "What tools do you currently use?" },
+        type: "chip",
+        multi: true,
+        options: {
+          es: ["Excel", "Google Sheets", "CRM", "ERP", "WhatsApp", "Email", "Otro"],
+          en: ["Excel", "Google Sheets", "CRM", "ERP", "WhatsApp", "Email", "Other"],
+        },
+        required: true,
+      },
+      {
+        key: "ai_people",
+        label: { es: "Cuantas personas participan en este proceso?", en: "How many people are involved in this process?" },
+        type: "chip",
+        options: { es: ["1-3", "4-10", "10+"], en: ["1-3", "4-10", "10+"] },
+        required: true,
+      },
+      {
+        key: "ai_pain",
+        label: { es: "Cual es el principal problema?", en: "What is the main pain point?" },
+        type: "chip",
+        options: {
+          es: ["Velocidad", "Errores", "Costo", "Escala"],
+          en: ["Speed", "Errors", "Cost", "Scale"],
+        },
+        required: true,
+      },
+      {
+        key: "ai_data",
+        label: { es: "Tenes datos o archivos existentes para procesar?", en: "Do you have existing data/files to process?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "ai_format",
+        label: { es: "En que formato estan?", en: "What format are they in?" },
+        type: "chip",
+        multi: true,
+        options: {
+          es: ["PDF", "Imagenes", "CSV", "Email", "Otro"],
+          en: ["PDF", "Images", "CSV", "Email", "Other"],
+        },
+        showWhen: { key: "ai_data", values: ["yes"] },
+        required: false,
+      },
+    ],
+  },
+  "product-ux-engineering": {
+    stepTitle: { es: "Tu producto actual", en: "Your current product" },
+    questions: [
+      {
+        key: "ux_today",
+        label: { es: "Que existe hoy?", en: "What exists today?" },
+        type: "chip",
+        options: {
+          es: ["Nada", "Solo landing", "MVP", "Producto completo"],
+          en: ["Nothing", "Landing only", "MVP", "Full product"],
+        },
+        required: true,
+      },
+      {
+        key: "ux_concern",
+        label: { es: "Cual es la principal preocupacion?", en: "What is the main concern?" },
+        type: "chip",
+        options: {
+          es: ["Performance", "UX/Diseño", "Arquitectura", "Seguridad"],
+          en: ["Performance", "UX/Design", "Architecture", "Security"],
+        },
+        required: true,
+      },
+      {
+        key: "ux_designs",
+        label: { es: "Tenes diseños o wireframes?", en: "Do you have designs or wireframes?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "ux_stack",
+        label: { es: "Cual es el stack tecnologico?", en: "What is the tech stack?" },
+        type: "text",
+        required: false,
+        maxLength: 300,
+      },
+      {
+        key: "ux_team",
+        label: { es: "Hay un equipo o trabajas solo?", en: "Is there a team or are you solo?" },
+        type: "chip",
+        options: {
+          es: ["Solo", "Equipo pequeño", "Equipo con devs"],
+          en: ["Solo", "Small team", "Team with devs"],
+        },
+        required: true,
+      },
+    ],
+  },
+  default: {
+    stepTitle: { es: "Que vamos a construir", en: "What are we building" },
+    questions: [
+      {
+        key: "tipo_proyecto",
+        label: { es: "Que tipo de producto tenes en mente?", en: "What type of product do you have in mind?" },
+        type: "chip",
+        options: {
+          es: ["Landing page", "E-commerce", "Plataforma", "Sistema interno", "No estoy seguro"],
+          en: ["Landing page", "E-commerce", "Platform", "Internal system", "Not sure"],
+        },
+        required: true,
+      },
+      {
+        key: "secciones",
+        label: { es: "Cuantas secciones o pantallas principales?", en: "How many main sections or screens?" },
+        type: "chip",
+        options: { es: ["1-3", "4-8", "9+"], en: ["1-3", "4-8", "9+"] },
+        required: true,
+      },
+      {
+        key: "tiene_login",
+        label: { es: "Los usuarios se registran e inician sesion?", en: "Do users register and log in?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "tiene_pagos",
+        label: { es: "Va a procesar pagos online?", en: "Will it process online payments?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "tiene_admin",
+        label: { es: "Necesitas un panel de administracion?", en: "Do you need an admin panel?" },
+        type: "toggle",
+        required: true,
+      },
+      {
+        key: "integraciones",
+        label: { es: "Se conecta con otras herramientas?", en: "Does it connect with other tools?" },
+        type: "chip",
+        multi: true,
+        options: {
+          es: ["WhatsApp", "Email", "IA", "Otro sistema", "Ninguno"],
+          en: ["WhatsApp", "Email", "AI", "Other system", "None"],
+        },
+        required: true,
+      },
+      {
+        key: "idiomas",
+        label: { es: "Cuantos idiomas?", en: "How many languages?" },
+        type: "number",
+        required: true,
+      },
+    ],
+  },
+};
 
 /* -------------------------------------------------------------------------- */
 /*  Bilingual labels                                                          */
@@ -25,17 +280,6 @@ const labels = {
     s1_problem_ph: "Ej: Quiero que mis clientes compren online y les llegue a domicilio",
     s1_current_q: "Como manejas eso hoy?",
     s1_current_opts: ["Papel", "Excel", "WhatsApp", "Sistema existente"],
-    // Step 2
-    s2_type_q: "Que tipo de producto tenes en mente?",
-    s2_type_opts: ["Landing page", "E-commerce", "Plataforma", "Sistema interno", "No estoy seguro"],
-    s2_sections_q: "Cuantas secciones o pantallas principales?",
-    s2_sections_opts: ["1-3", "4-8", "9+"],
-    s2_login_q: "Los usuarios se registran e inician sesion?",
-    s2_payments_q: "Va a procesar pagos online?",
-    s2_admin_q: "Necesitas un panel de administracion?",
-    s2_integrations_q: "Se conecta con otras herramientas?",
-    s2_integrations_opts: ["WhatsApp", "Email", "IA", "Otro sistema", "Ninguno"],
-    s2_languages_q: "Cuantos idiomas?",
     // Step 3
     s3_brand_q: "Tenes logo y marca, o hay que crearlos?",
     s3_brand_yes: "Ya tengo",
@@ -89,17 +333,6 @@ const labels = {
     s1_problem_ph: "E.g. I want my customers to buy online and get home delivery",
     s1_current_q: "How do you handle this today?",
     s1_current_opts: ["Paper", "Excel", "WhatsApp", "Existing system"],
-    // Step 2
-    s2_type_q: "What type of product do you have in mind?",
-    s2_type_opts: ["Landing page", "E-commerce", "Platform", "Internal system", "Not sure"],
-    s2_sections_q: "How many main sections or screens?",
-    s2_sections_opts: ["1-3", "4-8", "9+"],
-    s2_login_q: "Do users register and log in?",
-    s2_payments_q: "Will it process online payments?",
-    s2_admin_q: "Do you need an admin panel?",
-    s2_integrations_q: "Does it connect with other tools?",
-    s2_integrations_opts: ["WhatsApp", "Email", "AI", "Other system", "None"],
-    s2_languages_q: "How many languages?",
     // Step 3
     s3_brand_q: "Do you have a logo and brand, or do we need to create it?",
     s3_brand_yes: "I have it",
@@ -151,6 +384,7 @@ type FormData = {
   que_construir: string;
   problema: string;
   current_situation: string;
+  // Legacy Step 2 fields (used when no service is active / default service)
   tipo_proyecto: string;
   secciones: string;
   tiene_login: boolean | null;
@@ -158,11 +392,15 @@ type FormData = {
   tiene_admin: string | null;
   integraciones: string[];
   idiomas: number;
+  // Service-specific Step 2 fields
+  serviceData: Record<string, string | string[] | boolean | number | null>;
+  // Step 3
   tiene_marca: boolean | null;
   tiene_contenido: boolean | null;
   presupuesto_rango: string;
   plazo: string;
   canal_llamada: string;
+  // Step 4
   nombre: string;
   email: string;
   telefono: string;
@@ -180,6 +418,7 @@ const initialFormData: FormData = {
   tiene_admin: null,
   integraciones: [],
   idiomas: 1,
+  serviceData: {},
   tiene_marca: null,
   tiene_contenido: null,
   presupuesto_rango: "",
@@ -402,97 +641,131 @@ function FieldError({ message }: { message?: string }) {
   return <span className="text-xs text-red-300">{message}</span>;
 }
 
-function Step2({
-  data,
-  l,
+/* -------------------------------------------------------------------------- */
+/*  Service-aware Step 2 renderer (PR1-2)                                     */
+/* -------------------------------------------------------------------------- */
+
+function ServiceStep2({
+  locale,
+  questionSet,
+  serviceData,
   errors,
-  onChange,
+  onServiceDataChange,
+  yesLabel,
+  noLabel,
 }: {
-  data: FormData;
-  l: LabelSet;
+  locale: "es" | "en";
+  questionSet: ServiceQuestionSet;
+  serviceData: Record<string, string | string[] | boolean | number | null>;
   errors: Record<string, string>;
-  onChange: <K extends keyof FormData>(key: K, value: FormData[K]) => void;
+  onServiceDataChange: (key: string, value: string | string[] | boolean | number | null) => void;
+  yesLabel: string;
+  noLabel: string;
 }) {
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <FieldLabel>{l.s2_type_q}</FieldLabel>
-        <ChipSelect
-          options={l.s2_type_opts}
-          selected={data.tipo_proyecto}
-          onChange={(v) => onChange("tipo_proyecto", v as string)}
-        />
-        <FieldError message={errors.tipo_proyecto} />
-      </div>
+      {questionSet.questions.map((q) => {
+        // Conditional visibility
+        if (q.showWhen) {
+          const dep = serviceData[q.showWhen.key];
+          const depValue = dep === true ? "yes" : dep === false ? "no" : String(dep ?? "");
+          if (!q.showWhen.values.includes(depValue)) return null;
+        }
 
-      <div className="space-y-2">
-        <FieldLabel>{l.s2_sections_q}</FieldLabel>
-        <ChipSelect
-          options={l.s2_sections_opts}
-          selected={data.secciones}
-          onChange={(v) => onChange("secciones", v as string)}
-        />
-        <FieldError message={errors.secciones} />
-      </div>
+        const currentValue = serviceData[q.key] ?? (q.multi ? [] : q.type === "number" ? 1 : "");
 
-      <div className="space-y-2">
-        <FieldLabel>{l.s2_login_q}</FieldLabel>
-        <PillToggle
-          value={data.tiene_login}
-          onChange={(v) => onChange("tiene_login", v)}
-          yesLabel={l.yes}
-          noLabel={l.no}
-        />
-        <FieldError message={errors.tiene_login} />
-      </div>
+        if (q.type === "chip" && q.options) {
+          return (
+            <div key={q.key} className="space-y-2">
+              <FieldLabel>{q.label[locale]}</FieldLabel>
+              <ChipSelect
+                options={q.options[locale]}
+                selected={currentValue as string | string[]}
+                onChange={(v) => onServiceDataChange(q.key, v)}
+                multi={q.multi}
+              />
+              <FieldError message={errors[q.key]} />
+            </div>
+          );
+        }
 
-      <div className="space-y-2">
-        <FieldLabel>{l.s2_payments_q}</FieldLabel>
-        <PillToggle
-          value={data.tiene_pagos}
-          onChange={(v) => onChange("tiene_pagos", v)}
-          yesLabel={l.yes}
-          noLabel={l.no}
-        />
-        <FieldError message={errors.tiene_pagos} />
-      </div>
+        if (q.type === "toggle") {
+          const boolValue = currentValue === null || currentValue === "" ? null : currentValue === true || currentValue === "yes";
+          return (
+            <div key={q.key} className="space-y-2">
+              <FieldLabel>{q.label[locale]}</FieldLabel>
+              <PillToggle
+                value={boolValue as boolean | null}
+                onChange={(v) => onServiceDataChange(q.key, v ? "yes" : "no")}
+                yesLabel={yesLabel}
+                noLabel={noLabel}
+              />
+              <FieldError message={errors[q.key]} />
+            </div>
+          );
+        }
 
-      <div className="space-y-2">
-        <FieldLabel>{l.s2_admin_q}</FieldLabel>
-        <PillToggle
-          value={data.tiene_admin === null ? null : data.tiene_admin === "yes"}
-          onChange={(v) => onChange("tiene_admin", v ? "yes" : "no")}
-          yesLabel={l.yes}
-          noLabel={l.no}
-        />
-        <FieldError message={errors.tiene_admin} />
-      </div>
+        if (q.type === "text") {
+          return (
+            <label key={q.key} className="block space-y-2">
+              <FieldLabel>{q.label[locale]}</FieldLabel>
+              <input
+                type="text"
+                value={currentValue as string}
+                onChange={(e) => onServiceDataChange(q.key, e.target.value)}
+                maxLength={q.maxLength}
+                className={cn(
+                  "field-shell",
+                  errors[q.key] ? "border-red-400/60" : "border-outline-ghost/15"
+                )}
+              />
+              <FieldError message={errors[q.key]} />
+            </label>
+          );
+        }
 
-      <div className="space-y-2">
-        <FieldLabel>{l.s2_integrations_q}</FieldLabel>
-        <ChipSelect
-          options={l.s2_integrations_opts}
-          selected={data.integraciones}
-          onChange={(v) => onChange("integraciones", v as string[])}
-          multi
-        />
-        <FieldError message={errors.integraciones} />
-      </div>
+        if (q.type === "textarea") {
+          return (
+            <label key={q.key} className="block space-y-2">
+              <FieldLabel>{q.label[locale]}</FieldLabel>
+              <textarea
+                rows={3}
+                value={currentValue as string}
+                onChange={(e) => onServiceDataChange(q.key, e.target.value)}
+                maxLength={q.maxLength}
+                className={cn(
+                  "field-shell min-h-[5rem] resize-none",
+                  errors[q.key] ? "border-red-400/60" : "border-outline-ghost/15"
+                )}
+              />
+              <FieldError message={errors[q.key]} />
+            </label>
+          );
+        }
 
-      <label className="block space-y-2">
-        <FieldLabel>{l.s2_languages_q}</FieldLabel>
-        <input
-          type="number"
-          min={1}
-          max={10}
-          value={data.idiomas}
-          onChange={(e) => onChange("idiomas", Math.max(1, parseInt(e.target.value) || 1))}
-          className="field-shell w-24 border-outline-ghost/15"
-        />
-      </label>
+        if (q.type === "number") {
+          return (
+            <label key={q.key} className="block space-y-2">
+              <FieldLabel>{q.label[locale]}</FieldLabel>
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={currentValue as number}
+                onChange={(e) => onServiceDataChange(q.key, Math.max(1, parseInt(e.target.value) || 1))}
+                className="field-shell w-24 border-outline-ghost/15"
+              />
+              <FieldError message={errors[q.key]} />
+            </label>
+          );
+        }
+
+        return null;
+      })}
     </div>
   );
 }
+
 
 function Step3({
   data,
@@ -632,10 +905,37 @@ function Step4({
 }
 
 /* -------------------------------------------------------------------------- */
+/*  ServiceSlug parsing from URL hash                                         */
+/* -------------------------------------------------------------------------- */
+
+const VALID_SERVICE_SLUGS: ServiceSlug[] = [
+  "full-stack-builds",
+  "automation-ai",
+  "product-ux-engineering",
+];
+
+export function parseServiceFromHash(hash: string): ServiceSlug | undefined {
+  // hash may look like: #intake?service=automation-ai or #intake
+  const queryPart = hash.includes("?") ? hash.slice(hash.indexOf("?") + 1) : "";
+  const params = new URLSearchParams(queryPart);
+  const slug = params.get("service");
+  if (slug && VALID_SERVICE_SLUGS.includes(slug as ServiceSlug)) {
+    return slug as ServiceSlug;
+  }
+  return undefined;
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Main component                                                            */
 /* -------------------------------------------------------------------------- */
 
-export default function IntakeForm({ locale }: { locale: string }) {
+export default function IntakeForm({
+  locale,
+  service: serviceProp,
+}: {
+  locale: string;
+  service?: ServiceSlug;
+}) {
   const resolvedLocale = locale === "es" || locale === "en" ? locale : "en";
   const l = labels[resolvedLocale];
   const router = useRouter();
@@ -645,9 +945,37 @@ export default function IntakeForm({ locale }: { locale: string }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [leadId, setLeadId] = useState<string | null>(null);
+  // PR1-2: active service state — initialized from prop or hash
+  const [activeService, setActiveService] = useState<ServiceSlug | undefined>(serviceProp);
+
+  // PR1-2: read hash on mount and listen for hashchange
+  useEffect(() => {
+    function readHash() {
+      const slug = parseServiceFromHash(window.location.hash);
+      if (slug) setActiveService(slug);
+    }
+
+    readHash();
+    window.addEventListener("hashchange", readHash);
+    return () => window.removeEventListener("hashchange", readHash);
+  }, []);
+
+  const questionSet = serviceQuestions[activeService ?? "default"];
 
   function updateField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
+
+  function updateServiceData(key: string, value: string | string[] | boolean | number | null) {
+    setData((prev) => ({
+      ...prev,
+      serviceData: { ...prev.serviceData, [key]: value },
+    }));
     setErrors((prev) => {
       const next = { ...prev };
       delete next[key];
@@ -665,12 +993,38 @@ export default function IntakeForm({ locale }: { locale: string }) {
     }
 
     if (stepIndex === 1) {
-      if (!data.tipo_proyecto) e.tipo_proyecto = l.requiredSelect;
-      if (!data.secciones) e.secciones = l.requiredSelect;
-      if (data.tiene_login === null) e.tiene_login = l.requiredSelect;
-      if (data.tiene_pagos === null) e.tiene_pagos = l.requiredSelect;
-      if (data.tiene_admin === null) e.tiene_admin = l.requiredSelect;
-      if (data.integraciones.length === 0) e.integraciones = l.requiredSelect;
+      // Validate against active question set
+      for (const q of questionSet.questions) {
+        if (!q.required) continue;
+
+        // Skip conditionally hidden questions
+        if (q.showWhen) {
+          const dep = data.serviceData[q.showWhen.key];
+          const depValue = dep === true ? "yes" : dep === false ? "no" : String(dep ?? "");
+          if (!q.showWhen.values.includes(depValue)) continue;
+        }
+
+        const val = data.serviceData[q.key];
+
+        if (q.type === "toggle") {
+          if (val === undefined || val === null || val === "") {
+            e[q.key] = l.requiredSelect;
+          }
+        } else if (q.multi) {
+          if (!Array.isArray(val) || val.length === 0) {
+            e[q.key] = l.requiredSelect;
+          }
+        } else if (q.type === "text" || q.type === "textarea") {
+          if (!val || String(val).trim() === "") {
+            e[q.key] = l.required;
+          }
+        } else if (q.type === "chip") {
+          if (!val || val === "") {
+            e[q.key] = l.requiredSelect;
+          }
+        }
+        // number type: value defaults to 1 so always valid
+      }
     }
 
     if (stepIndex === 2) {
@@ -723,6 +1077,9 @@ export default function IntakeForm({ locale }: { locale: string }) {
       telefono: data.telefono.trim() || undefined,
       que_construir: data.que_construir.trim() || undefined,
       problema: problema.trim() || undefined,
+      service: activeService,
+      serviceData: Object.keys(data.serviceData).length > 0 ? data.serviceData : undefined,
+      // Legacy fields for backward compat (populated when using default service)
       tipo_proyecto: data.tipo_proyecto || undefined,
       secciones: data.secciones || undefined,
       tiene_login: data.tiene_login,
@@ -755,10 +1112,12 @@ export default function IntakeForm({ locale }: { locale: string }) {
 
       if (result.id) {
         setLeadId(result.id);
+        // PR1-4: include service param in redirect URL
         const params = new URLSearchParams({
           leadId: result.id,
           name: data.nombre.trim(),
           email: data.email.trim().toLowerCase(),
+          ...(activeService ? { service: activeService } : {}),
         });
         setTimeout(() => {
           router.push(`/${resolvedLocale}/services/agendar?${params.toString()}`);
@@ -770,8 +1129,19 @@ export default function IntakeForm({ locale }: { locale: string }) {
     }
   }
 
+  // Compute step title — Step 2 title adapts to active service
+  const stepTitles = [...l.steps] as string[];
+  if (activeService) {
+    stepTitles[1] = questionSet.stepTitle[resolvedLocale];
+  }
+
   // Success state
   if (status === "success") {
+    // PR1-4: include service in the success CTA link
+    const agendarParams = new URLSearchParams({
+      ...(leadId ? { leadId, name: data.nombre.trim(), email: data.email.trim().toLowerCase() } : {}),
+      ...(activeService ? { service: activeService } : {}),
+    });
     return (
       <div className="surface-panel border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-6 py-10 text-center sm:px-10 sm:py-14">
         <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-400" />
@@ -780,7 +1150,7 @@ export default function IntakeForm({ locale }: { locale: string }) {
           {l.successMessage}
         </p>
         <Link
-          href={`/${resolvedLocale}/services/agendar${leadId ? `?leadId=${leadId}&name=${encodeURIComponent(data.nombre.trim())}&email=${encodeURIComponent(data.email.trim().toLowerCase())}` : ""}`}
+          href={`/${resolvedLocale}/services/agendar${agendarParams.toString() ? `?${agendarParams.toString()}` : ""}`}
           className="mt-6 inline-block font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
         >
           {l.successCta}
@@ -796,12 +1166,12 @@ export default function IntakeForm({ locale }: { locale: string }) {
     <div className="surface-panel relative border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-6 py-7 sm:px-7 sm:py-8 lg:px-8">
       {/* Step indicator */}
       <div className="mb-8">
-        <StepIndicator steps={l.steps} current={step} />
+        <StepIndicator steps={stepTitles} current={step} />
       </div>
 
       {/* Step title */}
       <h3 className="mb-6 text-2xl font-semibold text-text-primary sm:text-3xl">
-        {l.steps[step]}
+        {stepTitles[step]}
       </h3>
 
       {/* Step content */}
@@ -814,7 +1184,17 @@ export default function IntakeForm({ locale }: { locale: string }) {
         noValidate
       >
         {step === 0 && <Step1 data={data} l={l} errors={errors} onChange={updateField} />}
-        {step === 1 && <Step2 data={data} l={l} errors={errors} onChange={updateField} />}
+        {step === 1 && (
+          <ServiceStep2
+            locale={resolvedLocale}
+            questionSet={questionSet}
+            serviceData={data.serviceData}
+            errors={errors}
+            onServiceDataChange={updateServiceData}
+            yesLabel={l.yes}
+            noLabel={l.no}
+          />
+        )}
         {step === 2 && <Step3 data={data} l={l} errors={errors} onChange={updateField} />}
         {step === 3 && <Step4 data={data} l={l} errors={errors} onChange={updateField} />}
 

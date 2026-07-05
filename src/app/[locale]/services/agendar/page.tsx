@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 
 type LocaleParams = Promise<{ locale: string }>;
-type SearchParams = Promise<{ leadId?: string; name?: string; email?: string }>;
+// PR1-4: extend SearchParams with optional service param
+type SearchParams = Promise<{ leadId?: string; name?: string; email?: string; service?: string }>;
 
 const copy = {
   es: {
@@ -20,6 +23,10 @@ const copy = {
     fallbackMessage:
       "Mientras tanto, podés escribirnos directamente para coordinar una llamada.",
     fallbackCta: "Contactar por email",
+    backToServices: "Volver a servicios",
+    serviceConfirmation: {
+      prefix: "Consultando sobre:",
+    },
   },
   en: {
     metaTitle: "Schedule a call",
@@ -33,8 +40,30 @@ const copy = {
     fallbackMessage:
       "In the meantime, you can reach out directly to coordinate a call.",
     fallbackCta: "Contact via email",
+    backToServices: "Back to services",
+    serviceConfirmation: {
+      prefix: "Consulting about:",
+    },
   },
 } as const;
+
+// PR1-4: service confirmation copy per slug
+const serviceConfirmationCopy: Record<string, { es: string; en: string }> = {
+  "full-stack-builds": {
+    es: "Desarrollo web a medida",
+    en: "Custom web development",
+  },
+  "automation-ai": {
+    es: "Automatizacion con IA",
+    en: "AI automation",
+  },
+  "product-ux-engineering": {
+    es: "Auditoria tecnica y producto",
+    en: "Technical audit & product",
+  },
+};
+
+const VALID_SERVICE_SLUGS = ["full-stack-builds", "automation-ai", "product-ux-engineering"];
 
 export async function generateMetadata({
   params,
@@ -67,11 +96,15 @@ export default async function AgendarPage({
   searchParams: SearchParams;
 }) {
   const { locale } = await params;
-  const { name, email } = await searchParams;
+  const { name, email, service } = await searchParams;
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
   const calcomLink = process.env.NEXT_PUBLIC_CALCOM_LINK;
+
+  // Validate the service slug so we never render arbitrary strings
+  const activeService =
+    service && VALID_SERVICE_SLUGS.includes(service) ? service : undefined;
 
   const calUrl = calcomLink
     ? `${calcomLink}?${new URLSearchParams({
@@ -89,6 +122,27 @@ export default async function AgendarPage({
       />
 
       <section className="site-container pb-16 sm:pb-20">
+        {/* PR1-4: service confirmation banner */}
+        {activeService && serviceConfirmationCopy[activeService] ? (
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-[var(--radius-soft)] border border-brand-primary/20 bg-brand-primary/5 px-5 py-4">
+            <p className="text-sm text-text-secondary">
+              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
+                {labels.serviceConfirmation.prefix}
+              </span>{" "}
+              <span className="font-medium text-text-primary">
+                {serviceConfirmationCopy[activeService][currentLocale]}
+              </span>
+            </p>
+            <Link
+              href={`/${currentLocale}/services`}
+              className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-text-secondary transition-colors hover:text-text-primary"
+            >
+              <ArrowLeft className="h-3 w-3" aria-hidden="true" />
+              {labels.backToServices}
+            </Link>
+          </div>
+        ) : null}
+
         {calUrl ? (
           <div className="surface-panel overflow-hidden border border-outline-ghost/10">
             <iframe
@@ -116,6 +170,17 @@ export default async function AgendarPage({
             </div>
           </div>
         )}
+
+        {/* PR1-4: "Back to services" link at the bottom — always shown */}
+        <div className="mt-8 flex justify-center">
+          <Link
+            href={`/${currentLocale}/services`}
+            className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-secondary transition-colors hover:text-text-primary"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            {labels.backToServices}
+          </Link>
+        </div>
       </section>
     </>
   );
