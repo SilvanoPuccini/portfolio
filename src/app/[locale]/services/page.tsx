@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Calendar, Code2, Cpu, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-import IntakeForm from "@/components/blocks/IntakeForm";
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
+import ServiceFormFlow from "@/components/blocks/ServiceFormFlow";
+import type { ServiceCardData } from "@/components/blocks/ServiceFormFlow";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";
@@ -23,7 +23,7 @@ const copy = {
         "Arquitectura de software de alto rendimiento diseñada para escalar. Resolvemos cuellos de botella técnicos para que puedas enfocarte en el crecimiento de tu negocio.",
       description:
         "Full stack + automatización + criterio comercial — para que no tengas que elegir entre velocidad y calidad.",
-      primaryCta: "Agendá una llamada",
+      primaryCta: "Ver servicios",
       secondaryCta: "Ver servicios",
     },
     metrics: [
@@ -49,6 +49,7 @@ const copy = {
           ],
           references: ["FerrelonStock", "Aktivar", "PayTrack"],
           cta: "Consultar presupuesto",
+          slug: "full-stack-builds" as const,
         },
         {
           number: "02",
@@ -63,6 +64,7 @@ const copy = {
           ],
           references: ["FacturIA 2.0", "PayTrack", "MCP / agentes IA"],
           cta: "Consultar factibilidad",
+          slug: "automation-ai" as const,
         },
         {
           number: "03",
@@ -77,6 +79,7 @@ const copy = {
           ],
           references: ["Roadmaps técnicos", "Auditoría 360", "Negocio + ejecución"],
           cta: "Solicitar auditoría",
+          slug: "product-ux-engineering" as const,
         },
       ],
     },
@@ -148,13 +151,8 @@ const copy = {
         },
       ],
     },
-    cta: {
-      title: "Tu próximo proyecto empieza con una conversación de 45 minutos.",
-      subtitle:
-        "Sin compromiso. Analizamos qué necesitás y si tiene sentido trabajar juntos.",
-      primaryCta: "AGENDÁ LA LLAMADA",
-      secondaryCta: "hola@silvanopuccini.dev",
-    },
+    closing:
+      "Completá el formulario del servicio que te interesa para agendar tu llamada de diagnóstico gratuita.",
   },
   en: {
     metaDescription:
@@ -166,7 +164,7 @@ const copy = {
         "High-performance software architecture designed to scale. We resolve technical bottlenecks so you can focus on growing your business.",
       description:
         "Full stack + automation + commercial judgment — so you don't have to choose between speed and quality.",
-      primaryCta: "Schedule a call",
+      primaryCta: "See services",
       secondaryCta: "See services",
     },
     metrics: [
@@ -192,6 +190,7 @@ const copy = {
           ],
           references: ["FerrelonStock", "Aktivar", "PayTrack"],
           cta: "Request a quote",
+          slug: "full-stack-builds" as const,
         },
         {
           number: "02",
@@ -206,6 +205,7 @@ const copy = {
           ],
           references: ["FacturIA 2.0", "PayTrack", "MCP / AI agents"],
           cta: "Check feasibility",
+          slug: "automation-ai" as const,
         },
         {
           number: "03",
@@ -220,6 +220,7 @@ const copy = {
           ],
           references: ["Technical roadmaps", "360 audit", "Business + execution"],
           cta: "Request an audit",
+          slug: "product-ux-engineering" as const,
         },
       ],
     },
@@ -291,13 +292,8 @@ const copy = {
         },
       ],
     },
-    cta: {
-      title: "Your next project starts with a 45-minute conversation.",
-      subtitle:
-        "No commitment. We analyze what you need and whether it makes sense to work together.",
-      primaryCta: "SCHEDULE A CALL",
-      secondaryCta: "hola@silvanopuccini.dev",
-    },
+    closing:
+      "Complete the service form that interests you to schedule your free diagnostic call.",
   },
 } as const;
 
@@ -329,13 +325,24 @@ export default async function ServicesPage({
 }) {
   const { locale } = await params;
   const currentLocale: Locale = resolveLocale(locale);
-  const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
 
   const serviceSchemas = labels.services.cards.map((card, index) => ({
     name: card.title,
     description: card.description,
     url: `https://silvanopuccini.dev/${currentLocale}/services#service-${index + 1}`,
+  }));
+
+  // Build ServiceCardData array for the client component
+  const serviceCards: ServiceCardData[] = labels.services.cards.map((card) => ({
+    number: card.number,
+    subtitle: card.subtitle,
+    title: card.title,
+    description: card.description,
+    details: [...card.details],
+    references: [...card.references],
+    cta: card.cta,
+    slug: card.slug,
   }));
 
   return (
@@ -354,7 +361,7 @@ export default async function ServicesPage({
         actions={
           <>
             <a
-              href="#intake"
+              href="#servicios"
               className="button-primary w-full gap-2.5 sm:min-w-[13.5rem] sm:w-auto"
             >
               <span>{labels.hero.primaryCta}</span>
@@ -370,7 +377,7 @@ export default async function ServicesPage({
         }
       />
 
-      {/* ── MÉTRICAS ── */}
+      {/* ── METRICS ── */}
       <div className="border-y border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.5),rgb(var(--surface-dim)/0.7))]">
         <div className="site-container py-8 sm:py-10">
           <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
@@ -394,7 +401,7 @@ export default async function ServicesPage({
         </div>
       </div>
 
-      {/* ── SERVICIOS ── */}
+      {/* ── SERVICES (vertical stack with form flow) ── */}
       <div id="servicios" />
       <SectionShell
         eyebrow={labels.services.eyebrow}
@@ -403,91 +410,10 @@ export default async function ServicesPage({
         containerClassName="py-10 sm:py-12 lg:py-16"
         surface="plain"
       >
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {labels.services.cards.map((service, index) => {
-            const Icon = [Code2, Cpu, ShieldCheck][index];
-            const serviceSlugs = ["full-stack-builds", "automation-ai", "product-ux-engineering"];
-            return (
-            <article
-              key={service.number}
-              className={`surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 px-5 py-6 sm:px-6 sm:py-7 ${
-                index === 1
-                  ? "bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]"
-                  : "bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
-              }`}
-            >
-              {/* Número + icono */}
-              <div className="flex items-center justify-between border-b border-outline-ghost/10 pb-4">
-                <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-text-tertiary">
-                  {service.number}
-                </p>
-                <Icon className="h-5 w-5 text-brand-primary/60" aria-hidden="true" />
-              </div>
-
-              {/* Contenido */}
-              <div className="mt-6 flex flex-1 flex-col">
-                <div>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
-                    {service.subtitle}
-                  </p>
-                  <h3 className="mt-2 text-2xl font-semibold text-text-primary">
-                    {service.title}
-                  </h3>
-                  <p className="mt-4 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
-                    {service.description}
-                  </p>
-                </div>
-
-                {/* Stack details */}
-                <div className="mt-6 grid gap-2">
-                  {service.details.map((detail) => (
-                    <div
-                      key={detail.label}
-                      className="rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-4 py-3"
-                    >
-                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary">
-                        {detail.label}
-                      </p>
-                      <p
-                        className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.04em] whitespace-nowrap"
-                        style={{ color: "rgb(var(--brand-primary))" }}
-                      >
-                        {detail.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Referencias */}
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {service.references.map((ref) => (
-                    <span
-                      key={ref}
-                      className="rounded-pill border border-outline-ghost/12 bg-surface-dim/75 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
-                    >
-                      {ref}
-                    </span>
-                  ))}
-                </div>
-
-                {/* CTA por card */}
-                <div className="mt-auto border-t border-outline-ghost/10 pt-6">
-                  <a
-                    href={`#intake?service=${serviceSlugs[index]}`}
-                    className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:text-text-primary"
-                  >
-                    {service.cta}
-                    <ArrowRight className="h-3 w-3" aria-hidden="true" />
-                  </a>
-                </div>
-              </div>
-            </article>
-            );
-          })}
-        </div>
+        <ServiceFormFlow locale={currentLocale} cards={serviceCards} />
       </SectionShell>
 
-      {/* ── CÓMO TRABAJO ── */}
+      {/* ── HOW I WORK ── */}
       <SectionShell
         eyebrow={labels.howIWork.eyebrow}
         title={labels.howIWork.title}
@@ -529,7 +455,7 @@ export default async function ServicesPage({
         </div>
       </SectionShell>
 
-      {/* ── PROCESO ── */}
+      {/* ── PROCESS ── */}
       <SectionShell
         sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.08),rgb(var(--surface-dim)/0.22))]"
         containerClassName="py-10 sm:py-12 lg:py-16"
@@ -571,52 +497,12 @@ export default async function ServicesPage({
         </div>
       </SectionShell>
 
-      {/* ── INTAKE FORM ── */}
-      <SectionShell
-        id="intake"
-        eyebrow={currentLocale === "es" ? "Empeza aca" : "Start here"}
-        title={currentLocale === "es" ? "Contanos sobre tu proyecto" : "Tell us about your project"}
-        description={currentLocale === "es"
-          ? "Completa este formulario y te contactamos para una llamada de diagnostico gratuita."
-          : "Fill out this form and we'll reach out for a free diagnostic call."}
-        sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.22),rgb(var(--surface-dim)/0.32))]"
-        containerClassName="py-10 sm:py-12 lg:py-16"
-        surface="plain"
-      >
-        <IntakeForm locale={currentLocale} />
-      </SectionShell>
-
-      {/* ── CTA CIERRE ── */}
-      <section className="site-container py-16 sm:py-20 lg:py-28">
-        <div className="group relative overflow-hidden rounded-sm border border-outline-ghost/10 bg-[rgb(var(--surface-elevated))] px-8 py-14 text-center sm:px-16 sm:py-20">
-          {/* glows */}
-          <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-primary/8 blur-[100px] transition-colors duration-700 group-hover:bg-brand-primary/14" />
-          <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-brand-secondary/8 blur-[80px]" />
-
-          <div className="relative mx-auto max-w-2xl">
-            <h2 className="text-3xl font-semibold leading-tight tracking-tight text-text-primary sm:text-4xl lg:text-5xl">
-              {labels.cta.title}
-            </h2>
-            <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg">
-              {labels.cta.subtitle}
-            </p>
-            <div className="mt-10 flex flex-col items-center gap-5">
-              <Link
-                href={`/${currentLocale}/services/agendar`}
-                className="button-primary inline-flex w-full items-center justify-center gap-2.5 sm:w-auto sm:min-w-[16rem]"
-              >
-                <Calendar aria-hidden="true" className="h-[1.1rem] w-[1.1rem] shrink-0" />
-                <span>{labels.cta.primaryCta}</span>
-                <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
-              </Link>
-              <a
-                href={`mailto:${labels.cta.secondaryCta}`}
-                className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-secondary transition-colors hover:text-brand-primary"
-              >
-                {labels.cta.secondaryCta}
-              </a>
-            </div>
-          </div>
+      {/* ── CLOSING TEXT ── */}
+      <section className="site-container py-14 sm:py-18 lg:py-22">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-lg leading-8 text-text-secondary sm:text-xl sm:leading-9">
+            {labels.closing}
+          </p>
         </div>
       </section>
     </>
