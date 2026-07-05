@@ -82,6 +82,7 @@ const copy = {
       leadIn: "Mi enfoque combina:",
       body: "Busco crear soluciones que no solo funcionen, sino que tengan sentido dentro del negocio.",
       points: ["ingeniería", "producto", "contexto real"],
+      pointLabels: ["Misión", "Creación", "Confianza"],
     },
     closing: {
       eyebrow: "Cierre",
@@ -163,6 +164,7 @@ const copy = {
       leadIn: "My approach combines:",
       body: "I aim to create solutions that do not just work, but also make sense within the business.",
       points: ["engineering", "product", "real context"],
+      pointLabels: ["Mission", "Creation", "Trust"],
     },
     closing: {
       eyebrow: "Closing",
@@ -473,12 +475,12 @@ export default async function AboutPage({
               </div>
 
               <ul className="grid gap-3 sm:grid-cols-3">
-                {labels.vision.points.map((point) => (
+                {labels.vision.points.map((point, index) => (
                   <li
                     key={point}
                     className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-[var(--radius-soft)] bg-[rgb(var(--surface-elevated)/0.62)] px-3 py-4 text-center shadow-[0_18px_40px_rgba(2,8,23,0.08)] sm:min-h-[7rem]"
                   >
-                    <span className="technical-label">{labels.vision.eyebrow}</span>
+                    <span className="technical-label">{labels.vision.pointLabels[index]}</span>
                     <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-primary">{point}</span>
                   </li>
                 ))}
