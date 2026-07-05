@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Calendar, Code2, Cpu, ShieldCheck } from "lucide-react";
 
 import IntakeForm from "@/components/blocks/IntakeForm";
 import PageHero from "@/components/site/PageHero";
@@ -146,7 +147,7 @@ const copy = {
       ],
     },
     cta: {
-      title: "Tu próximo proyecto empieza con una conversación de 30 minutos.",
+      title: "Tu próximo proyecto empieza con una conversación de 45 minutos.",
       subtitle:
         "Sin compromiso. Analizamos qué necesitás y si tiene sentido trabajar juntos.",
       primaryCta: "AGENDÁ LA LLAMADA",
@@ -289,7 +290,7 @@ const copy = {
       ],
     },
     cta: {
-      title: "Your next project starts with a 30-minute conversation.",
+      title: "Your next project starts with a 45-minute conversation.",
       subtitle:
         "No commitment. We analyze what you need and whether it makes sense to work together.",
       primaryCta: "SCHEDULE A CALL",
@@ -603,16 +604,14 @@ export default async function ServicesPage({
               {labels.cta.subtitle}
             </p>
             <div className="mt-10 flex justify-center">
-              <a
-                href={phoneHref}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href={`/${currentLocale}/services/agendar`}
                 className="button-primary inline-flex w-full items-center justify-center gap-2.5 sm:w-auto sm:min-w-[16rem]"
               >
-                <WhatsAppIcon className="h-[1.1rem] w-[1.1rem] shrink-0" />
+                <Calendar aria-hidden="true" className="h-[1.1rem] w-[1.1rem] shrink-0" />
                 <span>{labels.cta.primaryCta}</span>
                 <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

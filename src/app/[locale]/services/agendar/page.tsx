@@ -15,7 +15,7 @@ const copy = {
     heroEyebrow: "Siguiente paso",
     heroTitle: "Agenda tu llamada de diagnostico gratuita",
     heroSubtitle:
-      "Elegí un horario que te quede cómodo. La llamada dura 30 minutos y no tiene costo ni compromiso.",
+      "Elegí un horario que te quede cómodo. La llamada dura 45 minutos y no tiene costo ni compromiso.",
     fallbackTitle: "Estamos configurando el calendario",
     fallbackMessage:
       "Mientras tanto, podés escribirnos directamente para coordinar una llamada.",
@@ -28,7 +28,7 @@ const copy = {
     heroEyebrow: "Next step",
     heroTitle: "Schedule your free diagnostic call",
     heroSubtitle:
-      "Pick a time that works for you. The call takes 30 minutes and has no cost or commitment.",
+      "Pick a time that works for you. The call takes 45 minutes and has no cost or commitment.",
     fallbackTitle: "We are setting up the calendar",
     fallbackMessage:
       "In the meantime, you can reach out directly to coordinate a call.",
