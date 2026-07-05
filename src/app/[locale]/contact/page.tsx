@@ -71,7 +71,7 @@ const copy = {
       title: "Si ya tenés una idea, contexto o problema técnico, podemos pasar del primer mensaje al siguiente paso.",
       description:
         "Producto digital, automatización aplicada o una plataforma en evolución: el objetivo es ordenar rápido el contexto y definir cómo avanzar.",
-      primary: "Empezá tu proyecto",
+      primary: "Hablemos",
       secondary: "Ir a servicios",
     },
     anchor: {
@@ -145,7 +145,7 @@ const copy = {
       title: "If you already have an idea, context, or technical problem, we can move from the first message to the next step.",
       description:
         "Digital product, applied automation, or an evolving platform: the goal is to structure the context quickly and define how to move forward.",
-      primary: "Start your project",
+      primary: "Let's talk",
       secondary: "Go to services",
     },
     anchor: {
@@ -261,7 +261,7 @@ export default async function ContactPage({
         description={<p>{labels.hero.support}</p>}
         actions={
           <>
-            <a href={`/${currentLocale}/services#intake`} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+            <a href="#formulario" className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
               {labels.ctaBanner.primary}
             </a>
             <Link href={`/${currentLocale}/services`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
@@ -271,6 +271,7 @@ export default async function ContactPage({
         }
       />
 
+      <div id="formulario" className="scroll-mt-24" />
       <SectionShell
         sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.28))]"
         containerClassName="pt-4 pb-7 sm:pt-5 sm:pb-9 lg:pt-6 lg:pb-10"
