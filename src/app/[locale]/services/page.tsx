@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Calendar } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
@@ -23,13 +24,13 @@ const copy = {
         "Arquitectura de software de alto rendimiento diseñada para escalar. Resolvemos cuellos de botella técnicos para que puedas enfocarte en el crecimiento de tu negocio.",
       description:
         "Full stack + automatización + criterio comercial — para que no tengas que elegir entre velocidad y calidad.",
-      primaryCta: "Ver servicios",
-      secondaryCta: "Ver servicios",
+      primaryCta: "Empezá tu proyecto",
+      secondaryCta: "Agendá una llamada",
     },
     metrics: [
-      { value: "10 años", label: "en negocio" },
-      { value: "65", label: "tests automatizados" },
-      { value: "7", label: "proyectos en producción" },
+      { value: "10+", label: "años en negocio" },
+      { value: "8", label: "proyectos en producción" },
+      { value: "3", label: "industrias diferentes" },
       { value: "30 días", label: "de soporte incluido" },
     ],
     services: {
@@ -164,13 +165,13 @@ const copy = {
         "High-performance software architecture designed to scale. We resolve technical bottlenecks so you can focus on growing your business.",
       description:
         "Full stack + automation + commercial judgment — so you don't have to choose between speed and quality.",
-      primaryCta: "See services",
-      secondaryCta: "See services",
+      primaryCta: "Start your project",
+      secondaryCta: "Schedule a call",
     },
     metrics: [
-      { value: "10 years", label: "in business" },
-      { value: "65", label: "automated tests" },
-      { value: "7", label: "projects in production" },
+      { value: "10+", label: "years in business" },
+      { value: "8", label: "projects in production" },
+      { value: "3", label: "different industries" },
       { value: "30 days", label: "of support included" },
     ],
     services: {
@@ -367,12 +368,13 @@ export default async function ServicesPage({
               <span>{labels.hero.primaryCta}</span>
               <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
             </a>
-            <a
-              href="#servicios"
-              className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto"
+            <Link
+              href={`/${currentLocale}/services/agendar`}
+              className="button-secondary w-full gap-2 sm:min-w-[13.5rem] sm:w-auto"
             >
-              {labels.hero.secondaryCta}
-            </a>
+              <Calendar aria-hidden="true" className="h-4 w-4 shrink-0" />
+              <span>{labels.hero.secondaryCta}</span>
+            </Link>
           </>
         }
       />
