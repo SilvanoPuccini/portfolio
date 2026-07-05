@@ -9,7 +9,7 @@ import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { PostCover } from "@/components/blog/PostCover";
 import { RadarBadge } from "@/components/blog/RadarBadge";
 import Link from "next/link";
-import { Linkedin } from "lucide-react";
+import { Instagram, Linkedin } from "lucide-react";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -242,7 +242,30 @@ export default async function BlogPage({
               </a>
             </div>
 
-            {/* Instagram card intentionally removed — account not active yet. Re-add when live. */}
+            {/* Instagram */}
+            <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
+              <div className="pointer-events-none absolute -right-12 -bottom-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
+
+              <div className="relative">
+                <p className="technical-label">Instagram</p>
+                <h3 className="mt-4 text-xl font-semibold text-text-primary">
+                  {pc.instagramHeading}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-text-secondary">
+                  {pc.instagramBody}
+                </p>
+              </div>
+
+              <a
+                href="https://www.instagram.com/silvanopuccini.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
+              >
+                <Instagram size={13} />
+                {pc.instagramCta}
+              </a>
+            </div>
 
           </div>{/* fin columna derecha */}
         </div>{/* fin grid */}

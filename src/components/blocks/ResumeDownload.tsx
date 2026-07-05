@@ -45,7 +45,7 @@ export default function ResumeDownload({
 
             <CTACluster
               items={[
-                { label: downloadLabel, href: downloadHref },
+                { label: downloadLabel, href: downloadHref, download: true },
                 { label: contactLabel, href: contactHref, variant: "secondary" },
               ]}
             />
