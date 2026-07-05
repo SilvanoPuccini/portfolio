@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 import IntakeForm, { type ServiceSlug } from "@/components/blocks/IntakeForm";
 
@@ -27,6 +27,21 @@ const backLabels = {
   es: "Volver a servicios",
   en: "Back to services",
 } as const;
+
+const formTitles: Record<ServiceSlug, { es: string; en: string }> = {
+  "full-stack-builds": {
+    es: "Contanos sobre tu proyecto web",
+    en: "Tell us about your web project",
+  },
+  "automation-ai": {
+    es: "Contanos sobre tu proceso",
+    en: "Tell us about your process",
+  },
+  "product-ux-engineering": {
+    es: "Contanos sobre tu producto",
+    en: "Tell us about your product",
+  },
+};
 
 /* -------------------------------------------------------------------------- */
 /*  Service card (vertical, full-width)                                        */
@@ -138,35 +153,86 @@ export default function ServiceFormFlow({
   cards: ServiceCardData[];
 }) {
   const [activeService, setActiveService] = useState<ServiceSlug | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const resolvedLocale = locale === "es" || locale === "en" ? locale : "en";
 
-  if (activeService) {
-    return (
-      <div className="space-y-6">
-        <button
-          type="button"
-          onClick={() => setActiveService(null)}
-          className="button-secondary inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>{backLabels[resolvedLocale]}</span>
-        </button>
+  const handleSelect = useCallback((slug: ServiceSlug) => {
+    setIsTransitioning(true);
+    // Brief fade-out before swapping content
+    setTimeout(() => {
+      setActiveService(slug);
+      setIsTransitioning(false);
+    }, 200);
+  }, []);
 
-        <IntakeForm locale={resolvedLocale} service={activeService} />
-      </div>
-    );
-  }
+  const handleBack = useCallback(() => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveService(null);
+      setIsTransitioning(false);
+    }, 200);
+  }, []);
+
+  // Scroll to form container after transition
+  useEffect(() => {
+    if (!isTransitioning && containerRef.current) {
+      containerRef.current.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    }
+  }, [activeService, isTransitioning]);
 
   return (
-    <div className="space-y-6 lg:space-y-8">
-      {cards.map((card, index) => (
-        <FullWidthServiceCard
-          key={card.slug}
-          card={card}
-          index={index}
-          onSelect={() => setActiveService(card.slug)}
-        />
-      ))}
+    <div
+      ref={containerRef}
+      className="scroll-mt-24"
+      style={{
+        opacity: isTransitioning ? 0 : 1,
+        transform: isTransitioning ? "translateY(12px)" : "translateY(0)",
+        transition: "opacity 200ms ease-out, transform 200ms ease-out",
+      }}
+    >
+      {activeService ? (
+        <div className="space-y-8">
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={handleBack}
+            className="button-secondary inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>{backLabels[resolvedLocale]}</span>
+          </button>
+
+          {/* Form header */}
+          <div className="surface-panel overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]">
+            <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+              <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
+                {formTitles[activeService][resolvedLocale]}
+              </h3>
+              <p className="mt-3 text-base leading-7 text-text-secondary">
+                {resolvedLocale === "es"
+                  ? "Completá estos datos y te contactamos para una llamada de diagnóstico gratuita."
+                  : "Fill in these details and we'll reach out for a free diagnostic call."}
+              </p>
+
+              <div className="mt-8">
+                <IntakeForm locale={resolvedLocale} service={activeService} />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6 lg:space-y-8">
+          {cards.map((card, index) => (
+            <FullWidthServiceCard
+              key={card.slug}
+              card={card}
+              index={index}
+              onSelect={() => handleSelect(card.slug)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

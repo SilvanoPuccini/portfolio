@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, act } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ServiceFormFlow from "@/components/blocks/ServiceFormFlow";
 
@@ -33,6 +33,14 @@ const mockCards = [
   },
 ];
 
+async function clickAndWaitTransition(button: HTMLElement) {
+  fireEvent.click(button);
+  // Wait for the 200ms setTimeout transition
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 250));
+  });
+}
+
 describe("ServiceFormFlow", () => {
   it("renders all service cards when no service is active", () => {
     render(
@@ -43,48 +51,40 @@ describe("ServiceFormFlow", () => {
     expect(screen.getByText("AI automation")).toBeInTheDocument();
   });
 
-  it("shows the IntakeForm when a service CTA is clicked", () => {
+  it("shows the IntakeForm when a service CTA is clicked", async () => {
     render(
       <ServiceFormFlow locale="en" cards={mockCards} />
     );
 
     const ctaButton = screen.getByRole("button", { name: /Request a quote/i });
-    fireEvent.click(ctaButton);
+    await clickAndWaitTransition(ctaButton);
 
-    // IntakeForm should now be visible (step indicator + step heading both show the step title)
     expect(screen.getAllByText("About your business").length).toBeGreaterThanOrEqual(1);
-    // Service cards should be hidden
     expect(screen.queryByText("AI automation")).not.toBeInTheDocument();
   });
 
-  it("shows a back button that returns to service cards", () => {
+  it("shows a back button that returns to service cards", async () => {
     render(
       <ServiceFormFlow locale="en" cards={mockCards} />
     );
 
-    // Click a CTA to show the form
-    fireEvent.click(screen.getByRole("button", { name: /Request a quote/i }));
+    await clickAndWaitTransition(screen.getByRole("button", { name: /Request a quote/i }));
 
-    // Click back button
     const backButton = screen.getByRole("button", { name: /Back to services|Volver a servicios/i });
-    fireEvent.click(backButton);
+    await clickAndWaitTransition(backButton);
 
-    // Service cards should reappear
     expect(screen.getByText("Custom web development")).toBeInTheDocument();
     expect(screen.getByText("AI automation")).toBeInTheDocument();
   });
 
-  it("passes the correct service slug to IntakeForm", () => {
+  it("passes the correct service slug to IntakeForm", async () => {
     render(
       <ServiceFormFlow locale="en" cards={mockCards} />
     );
 
-    // Click automation-ai CTA
-    fireEvent.click(screen.getByRole("button", { name: /Check feasibility/i }));
+    await clickAndWaitTransition(screen.getByRole("button", { name: /Check feasibility/i }));
 
-    // IntakeForm should be visible with step 1 content
     expect(screen.getAllByText("About your business").length).toBeGreaterThanOrEqual(1);
-    // Back to services button should be present
     expect(screen.getByRole("button", { name: /Back to services/i })).toBeInTheDocument();
   });
 });
