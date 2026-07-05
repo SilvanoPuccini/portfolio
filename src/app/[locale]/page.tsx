@@ -6,6 +6,7 @@ import TrustStrip from "@/components/blocks/TrustStrip";
 import JsonLd from "@/components/JsonLd";
 import { getFeaturedProjects, getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -18,17 +19,12 @@ export async function generateMetadata({
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "",
     title: `${content.metadata.siteName} | ${content.metadata.role}`,
     description: content.metadata.description,
-    openGraph: {
-      title: `${content.metadata.siteName} | ${content.metadata.role}`,
-      description: content.metadata.description,
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+  });
 }
 
 export default async function LocaleHomePage({
@@ -61,7 +57,7 @@ export default async function LocaleHomePage({
         }}
       />
       <HeroEditorial content={content} />
-      <FeaturedProjects locale={currentLocale} projects={featuredProjects} />
+      <FeaturedProjects locale={currentLocale} projects={featuredProjects} showAllProjectsLink={false} condensedMain={true} />
       <TrustStrip locale={currentLocale} />
 
       <section className="bg-[linear-gradient(180deg,rgba(var(--surface-dim),0.42),rgba(var(--surface),0.18))] py-10 sm:py-12 lg:py-14">

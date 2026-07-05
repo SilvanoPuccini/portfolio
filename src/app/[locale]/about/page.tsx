@@ -7,6 +7,7 @@ import JsonLd from "@/components/JsonLd";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { StackSection } from "@/components/about/StackSection";
+import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -186,17 +187,12 @@ export async function generateMetadata({
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "about",
     title: `${content.metadata.siteName} | ${content.about.eyebrow}`,
     description: content.about.summary[0],
-    openGraph: {
-      title: `${content.metadata.siteName} | ${content.about.eyebrow}`,
-      description: content.about.summary[0],
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}/about`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+  });
 }
 
 export default async function AboutPage({
@@ -282,7 +278,7 @@ export default async function AboutPage({
           },
           {
             label: "Previous stage",
-            title: "Commercial experience (10+ years)",
+            title: "Commercial experience",
             detail:
               "Sales, operations, account management, and team coordination in real companies.",
           },

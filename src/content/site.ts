@@ -281,8 +281,8 @@ const services: ServiceItem[] = [
       en: "Architecture, performance, and tech debt review. You leave with a clear diagnosis and an executable roadmap — not just a list of problems.",
     },
     proofPoints: {
-      es: ["+10 años en gestión comercial", "Roadmaps y auditorías técnicas", "Foco en UX y claridad narrativa"],
-      en: ["10+ years in commercial management", "Roadmaps and technical audits", "Focus on UX and narrative clarity"],
+      es: ["Experiencia en gestión comercial", "Roadmaps y auditorías técnicas", "Foco en UX y claridad narrativa"],
+      en: ["Commercial management experience", "Roadmaps and technical audits", "Focus on UX and narrative clarity"],
     },
     sourceUrls: [
       "/cv/CV_Silvano_Puccini_FullStack.pdf",
