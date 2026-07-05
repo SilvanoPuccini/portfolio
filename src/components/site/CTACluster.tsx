@@ -7,6 +7,7 @@ type CTAItem = {
   label: string;
   href: string;
   external?: boolean;
+  download?: boolean;
   variant?: "primary" | "secondary";
   icon?: CTAIcon;
   trailingIcon?: CTAIcon;
@@ -43,6 +44,21 @@ export default function CTACluster({
             {TrailingIcon ? <TrailingIcon aria-hidden="true" className="h-4 w-4 shrink-0" /> : null}
           </>
         );
+
+        if (item.download) {
+          return (
+            <a
+              key={`${item.label}-${item.href}`}
+              href={item.href}
+              download
+              target="_blank"
+              rel="noreferrer"
+              className={className}
+            >
+              {content}
+            </a>
+          );
+        }
 
         if (item.external) {
           return (

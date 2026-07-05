@@ -315,9 +315,9 @@ export default async function AboutPage({
         }
         actions={
           <>
-            <Link href={content.metadata.cv.downloadHref} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+            <a href={content.metadata.cv.downloadHref} download target="_blank" rel="noreferrer" className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
               {labels.hero.ctas.cv}
-            </Link>
+            </a>
             <Link href={`/${currentLocale}/contact`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
               {labels.hero.ctas.contact}
             </Link>
