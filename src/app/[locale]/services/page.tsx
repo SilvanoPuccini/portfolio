@@ -603,7 +603,7 @@ export default async function ServicesPage({
             <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg">
               {labels.cta.subtitle}
             </p>
-            <div className="mt-10 flex justify-center">
+            <div className="mt-10 flex flex-col items-center gap-5">
               <Link
                 href={`/${currentLocale}/services/agendar`}
                 className="button-primary inline-flex w-full items-center justify-center gap-2.5 sm:w-auto sm:min-w-[16rem]"
@@ -612,6 +612,12 @@ export default async function ServicesPage({
                 <span>{labels.cta.primaryCta}</span>
                 <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
               </Link>
+              <a
+                href={`mailto:${labels.cta.secondaryCta}`}
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-secondary transition-colors hover:text-brand-primary"
+              >
+                {labels.cta.secondaryCta}
+              </a>
             </div>
           </div>
         </div>

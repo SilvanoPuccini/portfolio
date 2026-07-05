@@ -10,6 +10,14 @@ const PUBLIC_ADMIN_PATHS = [
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Locale header injection for /(es|en)/:path* routes
+  if (pathname.startsWith('/es') || pathname.startsWith('/en')) {
+    const locale = pathname.startsWith('/en') ? 'en' : 'es';
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-locale', locale);
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   // Solo protegemos rutas de API admin
   if (!pathname.startsWith('/api/admin')) {
     return NextResponse.next();
@@ -29,5 +37,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/admin/:path*'],
+  matcher: ['/api/admin/:path*', '/(es|en)/:path*'],
 };

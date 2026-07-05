@@ -20,7 +20,7 @@ const compactLabels = {
     home: "Home",
     about: "Sobre mí",
     projects: "Proyectos",
-    services: "Servicio",
+    services: "Servicios",
     blog: "Blog",
     contact: "Contacto",
   },

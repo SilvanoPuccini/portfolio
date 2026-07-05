@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -643,6 +644,7 @@ export default function IntakeForm({ locale }: { locale: string }) {
   const [data, setData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
+  const [leadId, setLeadId] = useState<string | null>(null);
 
   function updateField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -752,6 +754,7 @@ export default function IntakeForm({ locale }: { locale: string }) {
       setStatus("success");
 
       if (result.id) {
+        setLeadId(result.id);
         const params = new URLSearchParams({
           leadId: result.id,
           name: data.nombre.trim(),
@@ -776,8 +779,14 @@ export default function IntakeForm({ locale }: { locale: string }) {
         <p className="mx-auto mt-3 max-w-md text-base leading-7 text-text-secondary">
           {l.successMessage}
         </p>
-        <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary">
+        <Link
+          href={`/${resolvedLocale}/services/agendar${leadId ? `?leadId=${leadId}&name=${encodeURIComponent(data.nombre.trim())}&email=${encodeURIComponent(data.email.trim().toLowerCase())}` : ""}`}
+          className="mt-6 inline-block font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary hover:underline"
+        >
           {l.successCta}
+        </Link>
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
+          {resolvedLocale === "es" ? "Redirigiendo..." : "Redirecting..."}
         </p>
       </div>
     );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import { themeScript } from "@/lib/theme";
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
   title: "Silvano Puccini | Full Stack Developer",
   description:
     "Portfolio editorial de Silvano Puccini enfocado en producto, sistemas web y experiencias premium.",
-  metadataBase: new URL("https://silvanopuccini-portfolio.vercel.app"),
+  metadataBase: new URL("https://silvanopuccini.dev"),
   alternates: {
     languages: {
       es: "/es",
@@ -39,13 +40,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const lang = headersList.get("x-locale") ?? "es";
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
       >

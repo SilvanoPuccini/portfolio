@@ -406,7 +406,7 @@ export const siteContent: SiteContent = {
     phone: "+54 9 249 4309584",
     cv: {
       fileName: "CV_Silvano_Puccini-FullStack.pdf",
-      downloadHref: "/cv",
+      downloadHref: "/cv/CV_Silvano_Puccini_FullStack.pdf",
       sourcePath: "src/assets/cv/CV_Silvano_Puccini-FullStack.pdf",
     },
     socialLinks: [
