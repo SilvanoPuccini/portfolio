@@ -203,7 +203,7 @@ export default function ServiceFormFlow({
             <span>{backLabels[resolvedLocale]}</span>
           </button>
 
-          {/* Form header */}
+          {/* Form panel */}
           <div className="surface-panel overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]">
             <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
               <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
@@ -218,6 +218,28 @@ export default function ServiceFormFlow({
               <div className="mt-8">
                 <IntakeForm locale={resolvedLocale} service={activeService} />
               </div>
+            </div>
+          </div>
+
+          {/* Service switcher — jump to another service */}
+          <div className="border-t border-outline-ghost/10 pt-8">
+            <p className="mb-4 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+              {resolvedLocale === "es" ? "O consultá por otro servicio" : "Or check out another service"}
+            </p>
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              {cards
+                .filter((c) => c.slug !== activeService)
+                .map((card) => (
+                  <button
+                    key={card.slug}
+                    type="button"
+                    onClick={() => handleSelect(card.slug)}
+                    className="button-secondary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+                  >
+                    <span>{card.cta}</span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  </button>
+                ))}
             </div>
           </div>
         </div>

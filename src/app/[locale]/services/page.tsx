@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Calendar } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
@@ -25,7 +24,7 @@ const copy = {
       description:
         "Full stack + automatización + criterio comercial — para que no tengas que elegir entre velocidad y calidad.",
       primaryCta: "Empezá tu proyecto",
-      secondaryCta: "Agendá una llamada",
+      secondaryCta: "Conocé el método",
     },
     metrics: [
       { value: "10+", label: "años en negocio" },
@@ -152,8 +151,10 @@ const copy = {
         },
       ],
     },
-    closing:
-      "Completá el formulario del servicio que te interesa para agendar tu llamada de diagnóstico gratuita.",
+    closing: {
+      title: "Elegí el servicio que necesitás",
+      description: "Completá el formulario y agendamos una llamada de diagnóstico gratuita. Sin compromiso.",
+    },
   },
   en: {
     metaDescription:
@@ -166,7 +167,7 @@ const copy = {
       description:
         "Full stack + automation + commercial judgment — so you don't have to choose between speed and quality.",
       primaryCta: "Start your project",
-      secondaryCta: "Schedule a call",
+      secondaryCta: "See the method",
     },
     metrics: [
       { value: "10+", label: "years in business" },
@@ -294,7 +295,10 @@ const copy = {
       ],
     },
     closing:
-      "Complete the service form that interests you to schedule your free diagnostic call.",
+{
+      title: "Choose the service you need",
+      description: "Fill out the form and we'll schedule a free diagnostic call. No commitment.",
+    },
   },
 } as const;
 
@@ -368,13 +372,12 @@ export default async function ServicesPage({
               <span>{labels.hero.primaryCta}</span>
               <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
             </a>
-            <Link
-              href={`/${currentLocale}/services/agendar`}
-              className="button-secondary w-full gap-2 sm:min-w-[13.5rem] sm:w-auto"
+            <a
+              href="#metodo"
+              className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto"
             >
-              <Calendar aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>{labels.hero.secondaryCta}</span>
-            </Link>
+              {labels.hero.secondaryCta}
+            </a>
           </>
         }
       />
@@ -416,6 +419,7 @@ export default async function ServicesPage({
       </SectionShell>
 
       {/* ── HOW I WORK ── */}
+      <div id="metodo" className="scroll-mt-24" />
       <SectionShell
         eyebrow={labels.howIWork.eyebrow}
         title={labels.howIWork.title}
@@ -499,12 +503,33 @@ export default async function ServicesPage({
         </div>
       </SectionShell>
 
-      {/* ── CLOSING TEXT ── */}
-      <section className="site-container py-14 sm:py-18 lg:py-22">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-lg leading-8 text-text-secondary sm:text-xl sm:leading-9">
-            {labels.closing}
-          </p>
+      {/* ── CLOSING CTA ── */}
+      <section className="site-container py-16 sm:py-20 lg:py-28">
+        <div className="group relative overflow-hidden rounded-sm border border-outline-ghost/10 bg-[rgb(var(--surface-elevated))] px-8 py-14 text-center sm:px-16 sm:py-20">
+          <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-primary/8 blur-[100px] transition-colors duration-700 group-hover:bg-brand-primary/14" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-brand-secondary/8 blur-[80px]" />
+
+          <div className="relative mx-auto max-w-2xl">
+            <h2 className="text-3xl font-semibold leading-tight tracking-tight text-text-primary sm:text-4xl">
+              {labels.closing.title}
+            </h2>
+            <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg">
+              {labels.closing.description}
+            </p>
+
+            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              {labels.services.cards.map((card) => (
+                <a
+                  key={card.slug}
+                  href="#servicios"
+                  className="button-primary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+                >
+                  <span>{card.cta}</span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </>
