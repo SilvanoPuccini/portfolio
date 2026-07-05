@@ -8,6 +8,8 @@ import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { generatePageMetadata } from "@/lib/metadata";
+import ContactPointJsonLd from "@/components/blocks/ContactPointJsonLd";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -198,17 +200,12 @@ export async function generateMetadata({
 
   const contactLabel = content.navigation.find((item) => item.key === "contact")?.label ?? "Contact";
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "contact",
     title: `${content.metadata.siteName} | ${contactLabel}`,
     description: labels.metaDescription,
-    openGraph: {
-      title: `${content.metadata.siteName} | ${contactLabel}`,
-      description: labels.metaDescription,
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}/contact`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+  });
 }
 
 const serviceLabels: Record<string, Record<string, string>> = {
@@ -250,6 +247,7 @@ export default async function ContactPage({
 
   return (
     <>
+      <ContactPointJsonLd siteUrl="https://silvanopuccini.dev" />
       <PageHero
         eyebrow={content.contact.eyebrow}
         title={

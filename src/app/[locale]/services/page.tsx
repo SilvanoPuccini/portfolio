@@ -7,6 +7,8 @@ import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { generatePageMetadata } from "@/lib/metadata";
+import ServiceJsonLd from "@/components/blocks/ServiceJsonLd";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -25,7 +27,7 @@ const copy = {
       secondaryCta: "Ver servicios",
     },
     metrics: [
-      { value: "10+", label: "años en negocio" },
+      { value: "10 años", label: "en negocio" },
       { value: "65", label: "tests automatizados" },
       { value: "7", label: "proyectos en producción" },
       { value: "30 días", label: "de soporte incluido" },
@@ -168,7 +170,7 @@ const copy = {
       secondaryCta: "See services",
     },
     metrics: [
-      { value: "10+", label: "years in business" },
+      { value: "10 years", label: "in business" },
       { value: "65", label: "automated tests" },
       { value: "7", label: "projects in production" },
       { value: "30 days", label: "of support included" },
@@ -245,7 +247,7 @@ const copy = {
           title: "Leadership",
           description:
             "Before writing code, I understand your business. Ten years in commercial management taught me that the real problem is rarely what they tell you first.",
-          anchor: "10+ years in business",
+          anchor: "Business experience",
           anchorDetail: "Commercial experience applied to technical decisions",
         },
         {
@@ -312,17 +314,12 @@ export async function generateMetadata({
 
   const servicesLabel = content.navigation.find((item) => item.key === "services")?.label ?? "Services";
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "services",
     title: `${content.metadata.siteName} | ${servicesLabel}`,
     description: labels.metaDescription,
-    openGraph: {
-      title: `${content.metadata.siteName} | ${servicesLabel}`,
-      description: labels.metaDescription,
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}/services`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+  });
 }
 
 export default async function ServicesPage({
@@ -335,8 +332,19 @@ export default async function ServicesPage({
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
 
+  const serviceSchemas = labels.services.cards.map((card, index) => ({
+    name: card.title,
+    description: card.description,
+    url: `https://silvanopuccini.dev/${currentLocale}/services#service-${index + 1}`,
+  }));
+
   return (
     <>
+      <ServiceJsonLd
+        services={serviceSchemas}
+        providerName="Silvano Puccini"
+        providerUrl="https://silvanopuccini.dev"
+      />
       {/* ── HERO ── */}
       <PageHero
         eyebrow={labels.hero.eyebrow}

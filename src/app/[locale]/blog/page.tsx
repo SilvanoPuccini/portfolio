@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { generatePageMetadata } from "@/lib/metadata";
 import { getAllBlogPosts } from "@/lib/mdx";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
@@ -21,17 +22,12 @@ export async function generateMetadata({
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "blog",
     title: `${content.metadata.siteName} | Blog`,
     description: content.blog.intro,
-    openGraph: {
-      title: `${content.metadata.siteName} | Blog`,
-      description: content.blog.intro,
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}/blog`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+  });
 }
 
 export default async function BlogPage({
@@ -92,10 +88,11 @@ export default async function BlogPage({
     'Editorial':      'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
   };
 
-  // Formatear fecha
+  // Format date with locale-aware output
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return `${pc.months[date.getMonth()]} ${date.getFullYear()}`;
+    const date = new Date(dateStr + "T00:00:00");
+    const localeCode = currentLocale === "es" ? "es-AR" : "en-US";
+    return date.toLocaleDateString(localeCode, { year: "numeric", month: "long", day: "numeric" });
   };
 
   return (

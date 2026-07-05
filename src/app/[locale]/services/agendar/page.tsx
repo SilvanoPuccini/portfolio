@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
 // PR1-4: extend SearchParams with optional service param
@@ -75,17 +76,12 @@ export async function generateMetadata({
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "services/agendar",
     title: `${content.metadata.siteName} | ${labels.metaTitle}`,
     description: labels.metaDescription,
-    openGraph: {
-      title: `${content.metadata.siteName} | ${labels.metaTitle}`,
-      description: labels.metaDescription,
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}/services/agendar`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+  });
 }
 
 export default async function AgendarPage({

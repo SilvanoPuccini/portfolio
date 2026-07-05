@@ -8,6 +8,7 @@ import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
+import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
 
@@ -226,6 +227,11 @@ const copy = {
   },
 } as const;
 
+const projectsMetaDescription = {
+  es: "Portfolio de proyectos de Silvano Puccini — Full Stack Developer. Casos reales con arquitectura visible, decisiones técnicas y sistemas en producción.",
+  en: "Project portfolio by Silvano Puccini — Full Stack Developer. Real case studies with visible architecture, technical decisions, and production systems.",
+} as const;
+
 export async function generateMetadata({
   params,
 }: {
@@ -236,19 +242,13 @@ export async function generateMetadata({
   const content = getSiteContent(currentLocale);
 
   const projectsLabel = content.navigation.find((item) => item.key === "projects")?.label ?? "Projects";
-  const projectsDescription = content.projects.find((project) => project.slug === "ferrelonstock")?.summary ?? content.metadata.description;
 
-  return {
+  return generatePageMetadata({
+    locale: currentLocale,
+    path: "projects",
     title: `${content.metadata.siteName} | ${projectsLabel}`,
-    description: projectsDescription,
-    openGraph: {
-      title: `${content.metadata.siteName} | ${projectsLabel}`,
-      description: projectsDescription,
-      type: "website",
-      url: `https://silvanopuccini.dev/${locale}/projects`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+    description: projectsMetaDescription[currentLocale],
+  });
 }
 
 export default async function ProjectsPage({
