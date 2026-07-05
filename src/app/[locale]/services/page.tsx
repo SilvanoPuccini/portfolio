@@ -299,13 +299,6 @@ const copy = {
   },
 } as const;
 
-function WhatsAppIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
-      <path d="M19.11 4.89A9.88 9.88 0 0 0 12.06 2C6.57 2 2.1 6.47 2.1 11.96c0 1.76.46 3.47 1.33 4.98L2 22l5.22-1.37a9.9 9.9 0 0 0 4.74 1.21h.01c5.49 0 9.96-4.47 9.96-9.96a9.9 9.9 0 0 0-2.82-6.99ZM12 20.16h-.01a8.21 8.21 0 0 1-4.19-1.15l-.3-.18-3.1.81.83-3.02-.2-.31a8.25 8.25 0 0 1 12.81-10.2A8.16 8.16 0 0 1 20.26 12c0 4.55-3.71 8.16-8.26 8.16Zm4.53-6.15c-.25-.13-1.47-.72-1.7-.8-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.14.17-.28.19-.53.06-.25-.13-1.05-.39-2-.25-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.28.37-.42.12-.14.16-.24.24-.41.08-.16.04-.31-.02-.44-.06-.13-.56-1.35-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.66.31-.23.25-.86.84-.86 2.05 0 1.2.88 2.36 1 2.52.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.52.1.46-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.3Z" />
-    </svg>
-  );
-}
 
 export async function generateMetadata({
   params,
@@ -341,7 +334,6 @@ export default async function ServicesPage({
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
-  const phoneHref = `https://wa.me/${content.metadata.phone.replace(/\D/g, "")}`;
 
   return (
     <>
@@ -354,12 +346,9 @@ export default async function ServicesPage({
         actions={
           <>
             <a
-              href={phoneHref}
-              target="_blank"
-              rel="noreferrer"
+              href="#intake"
               className="button-primary w-full gap-2.5 sm:min-w-[13.5rem] sm:w-auto"
             >
-              <WhatsAppIcon className="h-[1.1rem] w-[1.1rem] shrink-0" />
               <span>{labels.hero.primaryCta}</span>
               <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
             </a>
@@ -476,7 +465,7 @@ export default async function ServicesPage({
                 {/* CTA por card */}
                 <div className="mt-auto border-t border-outline-ghost/10 pt-6">
                   <a
-                    href="#intake"
+                    href={`#intake?service=${serviceSlugs[index]}`}
                     className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:text-text-primary"
                   >
                     {service.cta}

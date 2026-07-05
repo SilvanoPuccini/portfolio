@@ -69,7 +69,7 @@ const copy = {
       title: "Si ya tenés una idea, contexto o problema técnico, podemos pasar del primer mensaje al siguiente paso.",
       description:
         "Producto digital, automatización aplicada o una plataforma en evolución: el objetivo es ordenar rápido el contexto y definir cómo avanzar.",
-      primary: "Abrir email",
+      primary: "Empezá tu proyecto",
       secondary: "Ir a servicios",
     },
     anchor: {
@@ -143,7 +143,7 @@ const copy = {
       title: "If you already have an idea, context, or technical problem, we can move from the first message to the next step.",
       description:
         "Digital product, applied automation, or an evolving platform: the goal is to structure the context quickly and define how to move forward.",
-      primary: "Open email",
+      primary: "Start your project",
       secondary: "Go to services",
     },
     anchor: {
@@ -263,9 +263,9 @@ export default async function ContactPage({
         description={<p>{labels.hero.support}</p>}
         actions={
           <>
-            <Link href={emailHref} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
+            <a href={`/${currentLocale}/services#intake`} className="button-primary w-full sm:min-w-[13.5rem] sm:w-auto">
               {labels.ctaBanner.primary}
-            </Link>
+            </a>
             <Link href={`/${currentLocale}/services`} className="button-secondary w-full sm:min-w-[13.5rem] sm:w-auto">
               {labels.ctaBanner.secondary}
             </Link>
