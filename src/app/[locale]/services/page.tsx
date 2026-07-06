@@ -521,7 +521,7 @@ export default async function ServicesPage({
               {labels.services.cards.map((card) => (
                 <a
                   key={card.slug}
-                  href="#servicios"
+                  href={`#service-${card.slug}`}
                   className="button-primary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
                 >
                   <span>{card.cta}</span>
