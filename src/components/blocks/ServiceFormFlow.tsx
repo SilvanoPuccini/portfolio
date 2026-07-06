@@ -23,25 +23,42 @@ export type ServiceCardData = {
 
 const ICONS = [Code2, Cpu, ShieldCheck];
 
+const VALID_SLUGS: ServiceSlug[] = ["full-stack-builds", "automation-ai", "product-ux-engineering"];
+
 const backLabels = {
   es: "Volver a servicios",
   en: "Back to services",
 } as const;
 
-const formTitles: Record<ServiceSlug, { es: string; en: string }> = {
+const serviceIdentity: Record<ServiceSlug, { number: string; es: string; en: string }> = {
   "full-stack-builds": {
-    es: "Contanos sobre tu proyecto web",
-    en: "Tell us about your web project",
+    number: "01",
+    es: "Desarrollo web a medida",
+    en: "Custom web development",
   },
   "automation-ai": {
-    es: "Contanos sobre tu proceso",
-    en: "Tell us about your process",
+    number: "02",
+    es: "Automatización con IA",
+    en: "AI automation",
   },
   "product-ux-engineering": {
-    es: "Contanos sobre tu producto",
-    en: "Tell us about your product",
+    number: "03",
+    es: "Auditoría técnica",
+    en: "Technical audit",
   },
 };
+
+const formSubtitles: Record<string, string> = {
+  es: "Completá estos datos y te contactamos para una llamada de diagnóstico gratuita.",
+  en: "Fill in these details and we'll reach out for a free diagnostic call.",
+};
+
+function parseServiceFromHash(hash: string): ServiceSlug | null {
+  const match = hash.match(/^#service-(.+)$/);
+  if (!match) return null;
+  const slug = match[1] as ServiceSlug;
+  return VALID_SLUGS.includes(slug) ? slug : null;
+}
 
 /* -------------------------------------------------------------------------- */
 /*  Service card (vertical, full-width)                                        */
@@ -174,6 +191,25 @@ export default function ServiceFormFlow({
     }, 200);
   }, []);
 
+  // Handle hash-based service activation (from external links like #service-full-stack-builds)
+  useEffect(() => {
+    const activateFromHash = () => {
+      const slug = parseServiceFromHash(window.location.hash);
+      if (slug) {
+        handleSelect(slug);
+        // Clean up the hash so it doesn't re-trigger
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    };
+
+    // Check on mount
+    activateFromHash();
+
+    // Listen for hash changes
+    window.addEventListener("hashchange", activateFromHash);
+    return () => window.removeEventListener("hashchange", activateFromHash);
+  }, [handleSelect]);
+
   // Scroll to form container after transition
   useEffect(() => {
     if (!isTransitioning && containerRef.current) {
@@ -206,13 +242,19 @@ export default function ServiceFormFlow({
           {/* Form panel */}
           <div className="surface-panel overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]">
             <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-              <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
-                {formTitles[activeService][resolvedLocale]}
-              </h3>
-              <p className="mt-3 text-base leading-7 text-text-secondary">
-                {resolvedLocale === "es"
-                  ? "Completá estos datos y te contactamos para una llamada de diagnóstico gratuita."
-                  : "Fill in these details and we'll reach out for a free diagnostic call."}
+              <div className="flex items-center gap-4 border-b border-outline-ghost/10 pb-5">
+                <span
+                  className="font-display text-[3rem] leading-none tracking-[-0.04em] text-brand-primary/25"
+                  aria-hidden="true"
+                >
+                  {serviceIdentity[activeService].number}
+                </span>
+                <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
+                  {serviceIdentity[activeService][resolvedLocale]}
+                </h3>
+              </div>
+              <p className="mt-5 text-base leading-7 text-text-secondary">
+                {formSubtitles[resolvedLocale]}
               </p>
 
               <div className="mt-8">
