@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
     return NextResponse.json({ leads: data });
   } catch (err) {
-    console.error('[admin/leads] GET error:', err);
-    return NextResponse.json({ error: 'Error al obtener leads.' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[admin/leads] GET error:', message);
+    return NextResponse.json({ error: `Error al obtener leads: ${message}` }, { status: 500 });
   }
 }
