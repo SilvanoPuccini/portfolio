@@ -29,9 +29,9 @@ export default function DashboardPage() {
       ]);
 
       if (!statsRes.ok || !subsRes.ok || !msgsRes.ok) {
-        const failedEndpoint = !statsRes.ok ? 'stats' : !subsRes.ok ? 'subscribers' : 'messages';
-        const failedStatus = !statsRes.ok ? statsRes.status : !subsRes.ok ? subsRes.status : msgsRes.status;
-        setError(`Error al cargar ${failedEndpoint} (${failedStatus}). Intentá recargar o volvé a iniciar sesión.`);
+        const failedRes = !statsRes.ok ? statsRes : !subsRes.ok ? subsRes : msgsRes;
+        const body = await failedRes.json().catch(() => ({})) as { error?: string };
+        setError(body.error ?? `Error al cargar datos (${failedRes.status}).`);
         setLoading(false);
         return;
       }

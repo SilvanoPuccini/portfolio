@@ -20,8 +20,9 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
     return NextResponse.json({ messages: data });
   } catch (err) {
-    console.error('[admin/messages] GET error:', err);
-    return NextResponse.json({ error: 'Error al obtener mensajes.' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[admin/messages] GET error:', message);
+    return NextResponse.json({ error: `Error al obtener mensajes: ${message}` }, { status: 500 });
   }
 }
 

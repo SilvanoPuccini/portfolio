@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
       totalPosts: posts.length,
     });
   } catch (err) {
-    console.error('[admin/stats] error:', err);
-    return NextResponse.json({ error: 'Error al obtener stats.' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[admin/stats] error:', message);
+    return NextResponse.json({ error: `Error al obtener stats: ${message}` }, { status: 500 });
   }
 }
