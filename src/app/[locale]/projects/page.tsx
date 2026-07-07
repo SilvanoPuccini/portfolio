@@ -20,7 +20,7 @@ const copy = {
       eyebrow: "PROYECTOS",
       title: "Casos reales con foco en producto, ejecución y sistemas en producción",
       intro: "Desarrollo soluciones donde la arquitectura, la experiencia y el negocio funcionan como un sistema.",
-      support: "Cada proyecto refleja decisiones técnicas reales — del diseño a la puesta en producción.",
+      support: "Cada proyecto refleja decisiones técnicas reales: del diseño a la puesta en producción.",
       primaryCta: "Ver proyectos",
       secondaryCta: "Hablemos",
       visualEyebrow: "Sistema en producción",
@@ -125,7 +125,7 @@ const copy = {
       eyebrow: "PROJECTS",
       title: "Real case studies focused on product, execution, and systems running in production.",
       intro: "I build solutions where architecture, experience, and business work as one system.",
-      support: "Every project reflects real technical decisions — from design to production.",
+      support: "Every project reflects real technical decisions: from design to production.",
       primaryCta: "View projects",
       secondaryCta: "Let’s talk",
       visualEyebrow: "Production system",
@@ -228,8 +228,8 @@ const copy = {
 } as const;
 
 const projectsMetaDescription = {
-  es: "Portfolio de proyectos de Silvano Puccini — Full Stack Developer. Casos reales con arquitectura visible, decisiones técnicas y sistemas en producción.",
-  en: "Project portfolio by Silvano Puccini — Full Stack Developer. Real case studies with visible architecture, technical decisions, and production systems.",
+  es: "Portfolio de proyectos de Silvano Puccini | Full Stack Developer. Casos reales con arquitectura visible, decisiones técnicas y sistemas en producción.",
+  en: "Project portfolio by Silvano Puccini | Full Stack Developer. Real case studies with visible architecture, technical decisions, and production systems.",
 } as const;
 
 export async function generateMetadata({

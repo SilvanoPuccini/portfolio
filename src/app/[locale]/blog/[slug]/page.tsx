@@ -202,7 +202,7 @@ export default async function BlogPostPage({
               ¡No te pierdas! Mantenete cerca del radar.
             </h3>
             <p className="mt-3 max-w-md text-sm leading-7 text-text-secondary">
-              Recibí semanalmente lo que estoy construyendo — artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
+              Recibí semanalmente lo que estoy construyendo: artículos, recursos técnicos y reflexiones sobre el futuro del diseño digital. Sin spam, solo arquitectura.
             </p>
             <SubscribeForm />
           </div>
