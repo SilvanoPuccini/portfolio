@@ -39,15 +39,24 @@ export default function LeadsPage() {
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/leads');
-    const data = await res.json() as { leads: Lead[] };
-    setLeads(data.leads ?? []);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/leads');
+      if (!res.ok) { setError('Error al cargar datos (' + res.status + '). Intentá recargar o volvé a iniciar sesión.'); return; }
+      const data = await res.json() as { leads: Lead[] };
+      setLeads(data.leads ?? []);
+    } catch (err) {
+      console.error('leads load:', err);
+      setError('Error de conexión.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -74,6 +83,8 @@ export default function LeadsPage() {
           }).join('')}
         </p>
       </div>
+
+      {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
       {/* Filter buttons */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>

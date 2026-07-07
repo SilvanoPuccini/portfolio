@@ -8,20 +8,31 @@ type Results = Record<string, string>;
 export default function DebugPage() {
   const [results, setResults] = useState<Results | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function runTest() {
     setLoading(true);
     setResults(null);
-    const res = await fetch('/api/admin/debug');
-    const data = await res.json() as { results?: Results; error?: string };
-    setResults(data.results ?? { error: data.error ?? 'Error desconocido' });
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/debug');
+      if (!res.ok) { setError('Error al cargar datos (' + res.status + '). Intentá recargar o volvé a iniciar sesión.'); return; }
+      const data = await res.json() as { results?: Results; error?: string };
+      setResults(data.results ?? { error: data.error ?? 'Error desconocido' });
+    } catch (err) {
+      console.error('debug runTest:', err);
+      setError('Error de conexión.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div>
       <p style={s.eyebrow}>Sistema</p>
       <h1 style={{ ...s.heading, fontSize: 24, marginBottom: 20 }}>Test modelos IA</h1>
+
+      {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
       <div style={{ ...s.card, maxWidth: 520 }}>
         <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
