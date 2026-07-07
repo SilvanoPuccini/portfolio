@@ -17,25 +17,40 @@ export default function SubscribersPage() {
   const [filter, setFilter] = useState<Filter>('all');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/subscribers');
-    const data = await res.json() as { subscribers: Subscriber[] };
-    setAll(data.subscribers ?? []);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/subscribers');
+      if (!res.ok) { setError('Error al cargar datos (' + res.status + '). Intentá recargar o volvé a iniciar sesión.'); return; }
+      const data = await res.json() as { subscribers: Subscriber[] };
+      setAll(data.subscribers ?? []);
+    } catch (err) {
+      console.error('subscribers load:', err);
+      setError('Error de conexión.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   async function toggleStatus(sub: Subscriber) {
     const next = sub.status === 'active' ? 'unsubscribed' : 'active';
-    await fetch('/api/admin/subscribers', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: sub.id, status: next }),
-    });
-    setAll((prev) => prev.map((s) => s.id === sub.id ? { ...s, status: next } : s));
+    try {
+      const res = await fetch('/api/admin/subscribers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: sub.id, status: next }),
+      });
+      if (!res.ok) { setError('Error al actualizar (' + res.status + ').'); return; }
+      setAll((prev) => prev.map((s) => s.id === sub.id ? { ...s, status: next } : s));
+    } catch (err) {
+      console.error('subscribers toggle:', err);
+      setError('Error de conexión.');
+    }
   }
 
   const filtered = filter === 'all' ? all : all.filter((s) => s.status === filter);
@@ -60,6 +75,8 @@ export default function SubscribersPage() {
         </div>
         <button onClick={exportCSV} style={s.btnGhost}>Exportar CSV →</button>
       </div>
+
+      {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
       {/* Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>

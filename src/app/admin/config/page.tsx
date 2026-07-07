@@ -9,26 +9,42 @@ export default function ConfigPage() {
   const [config, setConfig] = useState<RateConfig>({ tarifa_hora: 35, buffer_pct: 20 });
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/config');
-    const data = await res.json() as { config: RateConfig };
-    if (data.config) setConfig(data.config);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/config');
+      if (!res.ok) { setError('Error al cargar datos (' + res.status + '). Intentá recargar o volvé a iniciar sesión.'); return; }
+      const data = await res.json() as { config: RateConfig };
+      if (data.config) setConfig(data.config);
+    } catch (err) {
+      console.error('config load:', err);
+      setError('Error de conexión.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   async function save() {
     setSaved(false);
-    await fetch('/api/admin/config', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config),
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) { setError('Error al guardar (' + res.status + ').'); return; }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('config save:', err);
+      setError('Error de conexión.');
+    }
   }
 
   if (loading) return <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>;
@@ -39,6 +55,8 @@ export default function ConfigPage() {
         <p style={s.eyebrow}>Configuración</p>
         <h1 style={{ ...s.heading, fontSize: 24 }}>Tarifa y Buffer</h1>
       </div>
+
+      {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
       <div style={{ ...s.card, maxWidth: 400 }}>
         <div style={{ marginBottom: 14 }}>

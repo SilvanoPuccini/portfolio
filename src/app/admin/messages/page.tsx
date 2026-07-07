@@ -14,28 +14,43 @@ const PER_PAGE = 10;
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Message | null>(null);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/messages', {});
-    const data = await res.json() as { messages: Message[] };
-    setMessages(data.messages ?? []);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/messages', {});
+      if (!res.ok) { setError('Error al cargar datos (' + res.status + '). Intentá recargar o volvé a iniciar sesión.'); return; }
+      const data = await res.json() as { messages: Message[] };
+      setMessages(data.messages ?? []);
+    } catch (err) {
+      console.error('messages load:', err);
+      setError('Error de conexión.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   async function markAsRead(id: string) {
-    await fetch('/api/admin/messages', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    setMessages((prev) => prev.map((m) => m.id === id ? { ...m, read: true } : m));
-    if (selected?.id === id) setSelected((prev) => prev ? { ...prev, read: true } : null);
+    try {
+      const res = await fetch('/api/admin/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) { setError('Error al actualizar (' + res.status + ').'); return; }
+      setMessages((prev) => prev.map((m) => m.id === id ? { ...m, read: true } : m));
+      if (selected?.id === id) setSelected((prev) => prev ? { ...prev, read: true } : null);
+    } catch (err) {
+      console.error('messages markAsRead:', err);
+      setError('Error de conexión.');
+    }
   }
 
   const filtered = filter === 'all' ? messages : messages.filter((m) => !m.read);
@@ -52,6 +67,8 @@ export default function MessagesPage() {
         </div>
         <p style={{ color: '#475569', fontSize: 13 }}>{unread > 0 ? `${unread} sin leer` : 'Todo leído'} · {messages.length} total</p>
       </div>
+
+      {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
       {/* Filter */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
