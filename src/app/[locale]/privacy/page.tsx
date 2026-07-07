@@ -13,7 +13,7 @@ export async function generateMetadata({
   const isEs = resolveLocale(locale) === "es";
 
   return {
-    title: isEs ? "Política de Privacidad — Silvano Puccini" : "Privacy Policy — Silvano Puccini",
+    title: isEs ? "Política de Privacidad | Silvano Puccini" : "Privacy Policy | Silvano Puccini",
     robots: { index: false },
   };
 }
@@ -133,21 +133,21 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
                 <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-outline-ghost/40" />
                 <span>
                   <strong className="text-text-primary">Formspree</strong>
-                  {isEs ? " — procesamiento del formulario de contacto." : " — contact form processing."}
+                  {isEs ? ": procesamiento del formulario de contacto." : ": contact form processing."}
                 </span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-outline-ghost/40" />
                 <span>
                   <strong className="text-text-primary">Resend</strong>
-                  {isEs ? " — envío de emails del newsletter." : " — newsletter email delivery."}
+                  {isEs ? ": envío de emails del newsletter." : ": newsletter email delivery."}
                 </span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-outline-ghost/40" />
                 <span>
                   <strong className="text-text-primary">Vercel</strong>
-                  {isEs ? " — hosting del sitio. Puede registrar logs de acceso estándar." : " — site hosting. May log standard access logs."}
+                  {isEs ? ": hosting del sitio. Puede registrar logs de acceso estándar." : ": site hosting. May log standard access logs."}
                 </span>
               </li>
             </ul>

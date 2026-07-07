@@ -249,7 +249,7 @@ export default async function AboutPage({
           },
           {
             label: "Formación especializada",
-            title: "Máster en Desarrollo Web Full Stack — Conquer Blocks",
+            title: "Máster en Desarrollo Web Full Stack, Conquer Blocks",
             detail: "Especialización intensiva en desarrollo web full stack.",
           },
           {
@@ -273,7 +273,7 @@ export default async function AboutPage({
           },
           {
             label: "Specialized training",
-            title: "Full Stack Web Development Master’s — Conquer Blocks",
+            title: "Full Stack Web Development Master’s, Conquer Blocks",
             detail: "Intensive specialization in full stack web development.",
           },
           {

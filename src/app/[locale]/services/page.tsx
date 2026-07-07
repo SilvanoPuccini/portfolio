@@ -22,7 +22,7 @@ const copy = {
       subtitle:
         "Arquitectura de software de alto rendimiento diseñada para escalar. Resolvemos cuellos de botella técnicos para que puedas enfocarte en el crecimiento de tu negocio.",
       description:
-        "Full stack + automatización + criterio comercial — para que no tengas que elegir entre velocidad y calidad.",
+        "Full stack + automatización + criterio comercial. Para que no tengas que elegir entre velocidad y calidad.",
       primaryCta: "Empezá tu proyecto",
       secondaryCta: "Conocé el método",
     },
@@ -56,7 +56,7 @@ const copy = {
           subtitle: "Los procesos que corren sin vos",
           title: "Automatización con IA",
           description:
-            "Flujos que reemplazan trabajo manual repetitivo. Clasificación, extracción, validación y pipelines auditables — con humano en el loop cuando importa.",
+            "Flujos que reemplazan trabajo manual repetitivo. Clasificación, extracción, validación y pipelines auditables, con humano en el loop cuando importa.",
           details: [
             { label: "Procesos", value: "Clasificación / extracción / validación" },
             { label: "Tooling", value: "Pipelines / agentes / dashboards" },
@@ -92,14 +92,14 @@ const copy = {
         {
           title: "Estructura",
           description:
-            "Arquitectura sólida que sostiene tu operación digital. Base de datos, backend, frontend y deploy — todo conectado y testeado.",
+            "Arquitectura sólida que sostiene tu operación digital. Base de datos, backend, frontend y deploy. Todo conectado y testeado.",
           anchor: "FerrelonStock",
           anchorDetail: "E-commerce con 65 tests, panel admin y gestión de inventario",
         },
         {
           title: "Procesos",
           description:
-            "Automatizo lo que hoy hacés a mano. Clasificación, extracción y validación con IA — para que no pierdas tiempo en tareas repetitivas.",
+            "Automatizo lo que hoy hacés a mano. Clasificación, extracción y validación con IA, para que no pierdas tiempo en tareas repetitivas.",
           anchor: "FacturIA 2.0",
           anchorDetail: "Pipeline de facturación automatizada con IA",
         },
@@ -165,7 +165,7 @@ const copy = {
       subtitle:
         "High-performance software architecture designed to scale. We resolve technical bottlenecks so you can focus on growing your business.",
       description:
-        "Full stack + automation + commercial judgment — so you don't have to choose between speed and quality.",
+        "Full stack + automation + commercial judgment. So you don't have to choose between speed and quality.",
       primaryCta: "Start your project",
       secondaryCta: "See the method",
     },
@@ -199,7 +199,7 @@ const copy = {
           subtitle: "Processes that run without you",
           title: "AI automation",
           description:
-            "Flows that replace repetitive manual work. Classification, extraction, validation, and auditable pipelines — with a human in the loop when it matters.",
+            "Flows that replace repetitive manual work. Classification, extraction, validation, and auditable pipelines, with a human in the loop when it matters.",
           details: [
             { label: "Processes", value: "Classification / extraction / validation" },
             { label: "Tooling", value: "Pipelines / agents / dashboards" },
@@ -235,14 +235,14 @@ const copy = {
         {
           title: "Structure",
           description:
-            "Solid architecture that supports your digital operation. Database, backend, frontend, and deploy — all connected and tested.",
+            "Solid architecture that supports your digital operation. Database, backend, frontend, and deploy. All connected and tested.",
           anchor: "FerrelonStock",
           anchorDetail: "E-commerce with 65 tests, admin panel, and inventory management",
         },
         {
           title: "Processes",
           description:
-            "I automate what you do by hand today. Classification, extraction, and AI-powered validation — so you stop wasting time on repetitive tasks.",
+            "I automate what you do by hand today. Classification, extraction, and AI-powered validation, so you stop wasting time on repetitive tasks.",
           anchor: "FacturIA 2.0",
           anchorDetail: "AI-powered automated invoicing pipeline",
         },
