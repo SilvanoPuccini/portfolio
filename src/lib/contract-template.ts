@@ -2,16 +2,15 @@ import {
   Document,
   Paragraph,
   TextRun,
-  HeadingLevel,
   AlignmentType,
   Packer,
-  BorderStyle,
   WidthType,
   Table,
   TableRow,
   TableCell,
   ShadingType,
 } from 'docx';
+import { docTitle, docSubtitle, clauseHeading, bodyParagraph, divider } from '@/lib/docx-helpers';
 
 export type ContractData = {
   clientName: string;
@@ -32,84 +31,10 @@ export type ContractData = {
 export { Packer };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+// Shared helpers imported from docx-helpers.ts; contract-specific helpers below
 
-function title(text: string): Paragraph {
-  return new Paragraph({
-    children: [
-      new TextRun({
-        text,
-        bold: true,
-        size: 32, // 16pt
-        font: 'Calibri',
-        color: '1A1A2E',
-      }),
-    ],
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 120 },
-  });
-}
-
-function subtitle(text: string): Paragraph {
-  return new Paragraph({
-    children: [
-      new TextRun({
-        text,
-        size: 22, // 11pt
-        font: 'Calibri',
-        color: '4A4A6A',
-        italics: true,
-      }),
-    ],
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 480 },
-  });
-}
-
-function clauseHeading(number: string, clauseTitle: string): Paragraph {
-  return new Paragraph({
-    children: [
-      new TextRun({
-        text: `${number}. ${clauseTitle}`,
-        bold: true,
-        size: 26, // 13pt
-        font: 'Calibri',
-        color: '1A1A2E',
-      }),
-    ],
-    heading: HeadingLevel.HEADING_2,
-    spacing: { before: 360, after: 120 },
-  });
-}
-
-function bodyParagraph(text: string, indent = false): Paragraph {
-  return new Paragraph({
-    children: [
-      new TextRun({
-        text,
-        size: 24, // 12pt
-        font: 'Calibri',
-        color: '2D2D2D',
-      }),
-    ],
-    alignment: AlignmentType.JUSTIFIED,
-    spacing: { after: 160, line: 360 },
-    indent: indent ? { left: 720 } : undefined,
-  });
-}
-
-function divider(): Paragraph {
-  return new Paragraph({
-    border: {
-      bottom: {
-        color: 'CCCCCC',
-        style: BorderStyle.SINGLE,
-        size: 6,
-      },
-    },
-    spacing: { before: 120, after: 120 },
-    children: [],
-  });
-}
+const title = docTitle;
+const subtitle = docSubtitle;
 
 function signatureLine(label: string): Paragraph {
   return new Paragraph({

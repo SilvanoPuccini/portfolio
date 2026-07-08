@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
+import { autoSelectSlugs as computeAutoSelectSlugs } from '@/lib/auto-select-slugs';
 
 type Lead = {
   id: string;
@@ -32,12 +33,19 @@ type Lead = {
   diagnostico_objetivo: string | null;
   diagnostico_situacion: string | null;
   diagnostico_requerimiento: string | null;
+  diagnostico_dolor: string | null;
+  diagnostico_deseo: string | null;
+  diagnostico_preocupaciones: string | null;
   monto_presupuestado: number | null;
   horas_calculadas: number | null;
   fecha_llamada: string | null;
   grabacion_url: string | null;
   transcripcion: string | null;
   pago_estado: string | null;
+  service: string | null;
+  service_data: Record<string, unknown> | null;
+  proposal_sent_at: string | null;
+  contract_sent_at: string | null;
 };
 
 type Module = {
@@ -61,15 +69,6 @@ type PertRow = {
 
 const ESTADOS = ['nuevo', 'llamada_agendada', 'no_show', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
 
-const BASE_MAP: Record<string, string> = {
-  'Landing page': 'landing_base',
-  'E-commerce': 'ecommerce_base',
-  'Plataforma': 'saas_base',
-  'Platform': 'saas_base',
-  'Sistema interno': 'web_multipagina_base',
-  'Internal system': 'web_multipagina_base',
-};
-
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -85,23 +84,7 @@ function pertHours(o: number, m: number, p: number) {
 }
 
 function autoSelectSlugs(lead: Lead): Set<string> {
-  const slugs = new Set<string>();
-
-  // Base module from project type
-  if (lead.tipo_proyecto && BASE_MAP[lead.tipo_proyecto]) {
-    slugs.add(BASE_MAP[lead.tipo_proyecto]);
-  }
-
-  // Feature modules
-  if (lead.tiene_login === true) slugs.add('login');
-  if (lead.tiene_pagos === true) slugs.add('pagos');
-  if (lead.tiene_admin === 'yes') slugs.add('admin_panel');
-  if (lead.integraciones && lead.integraciones.length > 0) slugs.add('integracion_externa');
-  if (lead.idiomas && lead.idiomas > 1) slugs.add('i18n');
-  if (lead.tiene_marca === false) slugs.add('diseno_desde_cero');
-  if (lead.tiene_contenido === false) slugs.add('contenido');
-
-  return slugs;
+  return computeAutoSelectSlugs(lead);
 }
 
 function buildPertRows(modules: Module[], selectedSlugs: Set<string>): PertRow[] {
@@ -148,6 +131,9 @@ export default function LeadDetailPage() {
   const [diagObjetivo, setDiagObjetivo] = useState('');
   const [diagSituacion, setDiagSituacion] = useState('');
   const [diagRequerimiento, setDiagRequerimiento] = useState('');
+  const [diagDolor, setDiagDolor] = useState('');
+  const [diagDeseo, setDiagDeseo] = useState('');
+  const [diagPreocupaciones, setDiagPreocupaciones] = useState('');
   const [diagSaved, setDiagSaved] = useState(false);
 
   // Budget calculator
@@ -159,6 +145,24 @@ export default function LeadDetailPage() {
 
   // Contract generation
   const [contractLoading, setContractLoading] = useState(false);
+
+  // Proposal DOCX download
+  const [proposalLoading, setProposalLoading] = useState(false);
+
+  // Send questionnaire
+  const [questionnaireSending, setQuestionnaireSending] = useState(false);
+  const [questionnaireSent, setQuestionnaireSent] = useState(false);
+  const [questionnaireError, setQuestionnaireError] = useState('');
+
+  // Send proposal email
+  const [proposalSending, setProposalSending] = useState(false);
+  const [proposalEmailSent, setProposalEmailSent] = useState(false);
+  const [proposalEmailError, setProposalEmailError] = useState('');
+
+  // Send contract email
+  const [contractSending, setContractSending] = useState(false);
+  const [contractEmailSent, setContractEmailSent] = useState(false);
+  const [contractEmailError, setContractEmailError] = useState('');
 
   // Proposal prompt
   const [promptVisible, setPromptVisible] = useState(false);
@@ -178,6 +182,9 @@ export default function LeadDetailPage() {
     setDiagObjetivo(l.diagnostico_objetivo ?? '');
     setDiagSituacion(l.diagnostico_situacion ?? '');
     setDiagRequerimiento(l.diagnostico_requerimiento ?? '');
+    setDiagDolor(l.diagnostico_dolor ?? '');
+    setDiagDeseo(l.diagnostico_deseo ?? '');
+    setDiagPreocupaciones(l.diagnostico_preocupaciones ?? '');
     setLoading(false);
   }, [id]);
 
@@ -248,6 +255,9 @@ export default function LeadDetailPage() {
         diagnostico_objetivo: diagObjetivo,
         diagnostico_situacion: diagSituacion,
         diagnostico_requerimiento: diagRequerimiento,
+        diagnostico_dolor: diagDolor,
+        diagnostico_deseo: diagDeseo,
+        diagnostico_preocupaciones: diagPreocupaciones,
       }),
     });
     setDiagSaved(true);
@@ -325,6 +335,90 @@ export default function LeadDetailPage() {
     await navigator.clipboard.writeText(prompt);
     setPromptCopied(true);
     setTimeout(() => setPromptCopied(false), 3000);
+  }
+
+  async function downloadProposal() {
+    if (!lead) return;
+    setProposalLoading(true);
+    try {
+      const res = await fetch(`/api/admin/proposal/${id}`);
+      if (!res.ok) {
+        const body = await res.json() as { error?: string };
+        console.error('[downloadProposal]', body.error);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `propuesta-${lead.nombre.replace(/\s+/g, '-').toLowerCase()}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[downloadProposal]', err);
+    } finally {
+      setProposalLoading(false);
+    }
+  }
+
+  async function sendQuestionnaire() {
+    setQuestionnaireSending(true);
+    setQuestionnaireSent(false);
+    setQuestionnaireError('');
+    try {
+      const res = await fetch(`/api/admin/leads/${id}/questionnaire`, { method: 'POST' });
+      if (res.ok) {
+        setQuestionnaireSent(true);
+        setTimeout(() => setQuestionnaireSent(false), 4000);
+      } else {
+        const body = await res.json() as { error?: string };
+        setQuestionnaireError(body.error ?? 'Error al enviar el cuestionario.');
+      }
+    } catch {
+      setQuestionnaireError('Error de conexión.');
+    } finally {
+      setQuestionnaireSending(false);
+    }
+  }
+
+  async function sendProposalEmail() {
+    setProposalSending(true);
+    setProposalEmailSent(false);
+    setProposalEmailError('');
+    try {
+      const res = await fetch(`/api/admin/leads/${id}/send-proposal`, { method: 'POST' });
+      if (res.ok) {
+        setProposalEmailSent(true);
+        await load(); // refresh lead to show proposal_sent_at
+      } else {
+        const body = await res.json() as { error?: string };
+        setProposalEmailError(body.error ?? 'Error al enviar la propuesta.');
+      }
+    } catch {
+      setProposalEmailError('Error de conexión.');
+    } finally {
+      setProposalSending(false);
+    }
+  }
+
+  async function sendContractEmail() {
+    setContractSending(true);
+    setContractEmailSent(false);
+    setContractEmailError('');
+    try {
+      const res = await fetch(`/api/admin/leads/${id}/send-contract`, { method: 'POST' });
+      if (res.ok) {
+        setContractEmailSent(true);
+        await load(); // refresh lead to show contract_sent_at
+      } else {
+        const body = await res.json() as { error?: string };
+        setContractEmailError(body.error ?? 'Error al enviar el contrato.');
+      }
+    } catch {
+      setContractEmailError('Error de conexión.');
+    } finally {
+      setContractSending(false);
+    }
   }
 
   async function saveBudget() {
@@ -454,6 +548,58 @@ export default function LeadDetailPage() {
         <ReadField label="Canal de llamada" value={lead.canal_llamada} />
       </div>
 
+      {/* Service Details — task 8.1 */}
+      {(lead.service || lead.service_data) && (
+        <div style={{ ...s.card, marginBottom: 20 }}>
+          <p style={s.sectionTitle}>Detalles del servicio</p>
+          {lead.service && (
+            <div style={{ marginBottom: 14 }}>
+              <p style={s.label}>Servicio</p>
+              <p style={{ fontSize: 14, color: '#00d4d4', margin: 0, fontFamily: 'monospace' }}>
+                {lead.service}
+              </p>
+            </div>
+          )}
+          {lead.service_data && (
+            <div>
+              <p style={{ ...s.label, marginBottom: 10 }}>Datos de intake</p>
+              {Object.entries(lead.service_data).map(([key, val]) => (
+                <div key={key} style={{ marginBottom: 10 }}>
+                  <p style={s.label}>{key}</p>
+                  <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, whiteSpace: 'pre-wrap' }}>
+                    {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val ?? '—')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Send Questionnaire — task 8.3 */}
+      <div style={{ ...s.card, marginBottom: 20 }}>
+        <p style={s.sectionTitle}>Cuestionario</p>
+        <p style={s.hint}>
+          Enviá un cuestionario al cliente para recopilar información detallada sobre su proyecto.
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
+          <button
+            style={{
+              ...s.btn,
+              background: questionnaireSending ? '#334155' : '#0ea5e9',
+              opacity: questionnaireSending ? 0.7 : 1,
+              cursor: questionnaireSending ? 'not-allowed' : 'pointer',
+            }}
+            onClick={sendQuestionnaire}
+            disabled={questionnaireSending}
+          >
+            {questionnaireSending ? 'Enviando...' : 'Enviar cuestionario'}
+          </button>
+          {questionnaireSent && <p style={s.successText}>Cuestionario enviado</p>}
+          {questionnaireError && <p style={s.errorText}>{questionnaireError}</p>}
+        </div>
+      </div>
+
       {/* Transcription */}
       {lead.transcripcion && (
         <div style={{ ...s.card, marginBottom: 20 }}>
@@ -531,6 +677,26 @@ export default function LeadDetailPage() {
             value={diagRequerimiento} onChange={(e) => setDiagRequerimiento(e.target.value)} />
         </div>
 
+        <div style={s.divider} />
+
+        <div style={{ marginBottom: 14 }}>
+          <label style={s.label}>Dolor — ¿Qué le duele hoy?</label>
+          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
+            value={diagDolor} onChange={(e) => setDiagDolor(e.target.value)} />
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <label style={s.label}>Deseo — ¿Qué quiere lograr?</label>
+          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
+            value={diagDeseo} onChange={(e) => setDiagDeseo(e.target.value)} />
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <label style={s.label}>Preocupaciones — ¿Qué le preocupa?</label>
+          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
+            value={diagPreocupaciones} onChange={(e) => setDiagPreocupaciones(e.target.value)} />
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button style={s.btn} onClick={saveDiagnosis}>Guardar</button>
           {diagSaved && <p style={s.successText}>Guardado</p>}
@@ -543,6 +709,35 @@ export default function LeadDetailPage() {
         <p style={s.hint}>
           PERT = (O + 4M + P) / 6 · Buffer {rateConfig.buffer_pct}% · ${rateConfig.tarifa_hora}/hr
         </p>
+
+        {/* Service Context panel — task 8.5 */}
+        {lead.service_data && (
+          <div style={{
+            background: 'rgba(0,212,212,0.04)',
+            border: '1px solid rgba(0,212,212,0.2)',
+            borderRadius: 8,
+            padding: '14px 16px',
+            marginTop: 16,
+            marginBottom: 8,
+          }}>
+            <p style={{ ...s.label, color: '#00d4d4', marginBottom: 10 }}>Contexto del servicio</p>
+            {lead.service && (
+              <p style={{ fontSize: 13, color: '#00d4d4', fontFamily: 'monospace', margin: '0 0 8px' }}>
+                {lead.service}
+              </p>
+            )}
+            {Object.entries(lead.service_data).slice(0, 5).map(([key, val]) => (
+              <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace', minWidth: 120 }}>
+                  {key}
+                </span>
+                <span style={{ fontSize: 12, color: '#94a3b8' }}>
+                  {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Base modules */}
         {baseModules.length > 0 && (
@@ -600,21 +795,86 @@ export default function LeadDetailPage() {
 
           {lead.monto_presupuestado != null && (
             <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
-              <button
-                style={{
-                  ...s.btn,
-                  background: contractLoading ? '#6366f1' : '#818cf8',
-                  opacity: contractLoading ? 0.7 : 1,
-                  cursor: contractLoading ? 'not-allowed' : 'pointer',
-                }}
-                onClick={downloadContract}
-                disabled={contractLoading}
-              >
-                {contractLoading ? 'Generando...' : 'Generar contrato'}
-              </button>
-              <p style={{ ...s.hint, marginTop: 6 }}>
-                Descarga el contrato en formato .docx listo para firmar.
-              </p>
+              {/* Download Proposal — task 8.4 */}
+              <div style={{ marginBottom: 16 }}>
+                <button
+                  style={{
+                    ...s.btn,
+                    background: proposalLoading ? '#334155' : '#00d4d4',
+                    opacity: proposalLoading ? 0.7 : 1,
+                    cursor: proposalLoading ? 'not-allowed' : 'pointer',
+                  }}
+                  onClick={downloadProposal}
+                  disabled={proposalLoading}
+                >
+                  {proposalLoading ? 'Generando...' : 'Descargar propuesta'}
+                </button>
+                <p style={{ ...s.hint, marginTop: 6 }}>
+                  Descarga la propuesta en formato .docx.
+                </p>
+              </div>
+
+              {/* Send Proposal Email — task 8.4 */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button
+                    style={{
+                      ...s.btn,
+                      background: proposalSending ? '#334155' : '#0ea5e9',
+                      opacity: proposalSending ? 0.7 : 1,
+                      cursor: proposalSending ? 'not-allowed' : 'pointer',
+                    }}
+                    onClick={sendProposalEmail}
+                    disabled={proposalSending}
+                  >
+                    {proposalSending ? 'Enviando...' : 'Enviar propuesta'}
+                  </button>
+                  {proposalEmailSent && <p style={s.successText}>Propuesta enviada</p>}
+                  {proposalEmailError && <p style={s.errorText}>{proposalEmailError}</p>}
+                </div>
+                {lead.proposal_sent_at && (
+                  <p style={{ ...s.hint, marginTop: 6 }}>
+                    Enviada el {fmt(lead.proposal_sent_at)}
+                  </p>
+                )}
+              </div>
+
+              {/* Send Contract / Download Contract — task 8.4 */}
+              <div style={{ marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button
+                    style={{
+                      ...s.btn,
+                      background: contractLoading ? '#6366f1' : '#818cf8',
+                      opacity: contractLoading ? 0.7 : 1,
+                      cursor: contractLoading ? 'not-allowed' : 'pointer',
+                    }}
+                    onClick={downloadContract}
+                    disabled={contractLoading}
+                  >
+                    {contractLoading ? 'Generando...' : 'Generar contrato'}
+                  </button>
+                  <button
+                    style={{
+                      ...s.btn,
+                      background: contractSending ? '#334155' : '#7c3aed',
+                      opacity: contractSending ? 0.7 : 1,
+                      cursor: contractSending ? 'not-allowed' : 'pointer',
+                    }}
+                    onClick={sendContractEmail}
+                    disabled={contractSending}
+                  >
+                    {contractSending ? 'Enviando...' : 'Enviar contrato'}
+                  </button>
+                  {contractEmailSent && <p style={s.successText}>Contrato enviado</p>}
+                  {contractEmailError && <p style={s.errorText}>{contractEmailError}</p>}
+                </div>
+                {lead.contract_sent_at && (
+                  <p style={{ ...s.hint, marginTop: 6 }}>
+                    Enviado el {fmt(lead.contract_sent_at)}
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>

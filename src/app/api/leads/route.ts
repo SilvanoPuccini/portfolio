@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rate-limit';
+import { sendCrmEmail } from '@/lib/resend';
+import { newLeadHtml } from '@/lib/email-templates/new-lead';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
     const optStr = (v: unknown) => (typeof v === 'string' ? v.slice(0, MAX_TEXT) : null);
     const optBool = (v: unknown) => (typeof v === 'boolean' ? v : null);
     const optNum = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+    const optObj = (v: unknown) => (v !== null && typeof v === 'object' && !Array.isArray(v) ? v : null);
 
     const { data, error: dbError } = await getSupabaseAdmin()
       .from('leads')
@@ -88,6 +91,8 @@ export async function POST(req: NextRequest) {
         presupuesto_rango: optStr(body.presupuesto_rango),
         plazo: optStr(body.plazo),
         canal_llamada: optStr(body.canal_llamada),
+        service: optStr(body.service),
+        service_data: optObj(body.service_data),
       })
       .select('id')
       .single();
@@ -98,6 +103,22 @@ export async function POST(req: NextRequest) {
         { error: 'Could not save the lead. Please try again.' },
         { status: 500 }
       );
+    }
+
+    // Fire-and-forget admin notification — never block the response
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      sendCrmEmail(
+        adminEmail,
+        `New lead: ${nombre}`,
+        newLeadHtml({
+          name: nombre,
+          email,
+          service: optStr(body.service),
+          project_type: optStr(body.tipo_proyecto),
+          created_at: new Date().toISOString(),
+        }),
+      ).catch((err) => console.error('[leads] Admin notification failed:', err));
     }
 
     return NextResponse.json({ success: true, id: data.id });

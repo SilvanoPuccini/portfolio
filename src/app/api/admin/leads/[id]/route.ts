@@ -44,6 +44,8 @@ export async function PATCH(
     const allowedStrings = [
       'titular', 'localidad', 'pais', 'notas_llamada', 'estado',
       'diagnostico_objetivo', 'diagnostico_situacion', 'diagnostico_requerimiento',
+      'diagnostico_dolor', 'diagnostico_deseo', 'diagnostico_preocupaciones',
+      'proposal_sent_at', 'contract_sent_at',
     ];
     const allowedNumbers = ['monto_presupuestado', 'horas_calculadas'];
 
