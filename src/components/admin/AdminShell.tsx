@@ -57,11 +57,13 @@ export default function AdminShell({ children }: { children: ReactNode }) {
     }
   }
 
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   async function handleLogout() {
-    if (!confirm('¿Cerrár sesión?')) return;
     await fetch('/api/admin/logout', { method: 'POST' });
     setAuthed(false);
     setPassword('');
+    setShowLogoutModal(false);
   }
 
   if (!ready) return null;
@@ -106,7 +108,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
                 {item.label}
               </Link>
             ))}
-            <button onClick={handleLogout} style={s.navLogout}>Salir</button>
+            <button onClick={() => setShowLogoutModal(true)} style={s.navLogout}>Salir</button>
           </div>
         </div>
       </nav>
@@ -115,6 +117,37 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       <main style={{ maxWidth: 920, margin: '0 auto', padding: '28px 24px' }}>
         {children}
       </main>
+
+      {/* Logout confirmation modal */}
+      {showLogoutModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(10, 10, 20, 0.85)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+          }}
+          onClick={() => setShowLogoutModal(false)}
+        >
+          <div
+            style={{ ...s.card, maxWidth: 380, textAlign: 'center' as const }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ ...s.eyebrow, marginBottom: 8 }}>Confirmar</p>
+            <h2 style={{ ...s.heading, fontSize: 18, marginBottom: 8 }}>Cerrar sesión</h2>
+            <p style={{ color: '#94a3b8', fontSize: 13, margin: '0 0 24px' }}>
+              ¿Estás seguro de que querés cerrar la sesión?
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button onClick={() => setShowLogoutModal(false)} style={s.btnGhost}>
+                Cancelar
+              </button>
+              <button onClick={handleLogout} style={s.btn}>
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
