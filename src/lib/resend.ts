@@ -1,5 +1,15 @@
 import { Resend } from 'resend';
 
+// ─── CRM email wrapper ────────────────────────────────────────────────────────
+export async function sendCrmEmail(to: string, subject: string, html: string): Promise<void> {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const FROM = process.env.RESEND_FROM_EMAIL
+    ? `Silvano Puccini Dev <${process.env.RESEND_FROM_EMAIL}>`
+    : 'Silvano Puccini Dev <onboarding@resend.dev>';
+
+  await resend.emails.send({ from: FROM, to, subject, html });
+}
+
 // ─── Design tokens ──────────────────────────────────────────────────────────
 const T = {
   bg:         '#0a0a14',
