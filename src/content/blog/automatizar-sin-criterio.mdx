@@ -1,0 +1,54 @@
+---
+title: 'Automatizar sin criterio es peor que no automatizar'
+date: '2026-07-24'
+category: 'Automatización'
+excerpt: 'Automatizar un proceso no elimina el juicio que ese proceso necesitaba. Lo esconde. Y un juicio escondido falla en silencio, que es la peor forma de fallar, porque nadie se entera hasta que el daño ya está hecho.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+keyword: 'automatización con criterio'
+---
+
+Automatizar un proceso no elimina el juicio que ese proceso necesitaba. Lo esconde. Y un juicio escondido falla en silencio, que es la peor forma de fallar, porque nadie se entera hasta que el daño ya está hecho.
+
+Este análisis no aplica a automatizaciones simples y reversibles: mandar un email, generar un PDF, actualizar un campo. Aplica al momento en que la automatización toca algo que no se puede deshacer fácil: dinero, datos, o una decisión que afecta a otra persona.
+
+## El caso típico
+
+Pensemos en un sistema que procesa pagos online. En algún momento, alguien decide automatizar los reintentos. Si un pago falla por timeout de red, el sistema reintenta solo, sin que nadie tenga que hacer nada. Suena bien: menos soporte, menos fricción para el usuario.
+
+La restricción que casi nadie ve a tiempo es esta: un timeout no dice que el pago falló. Dice que la respuesta no llegó. El cargo puede haberse procesado del lado del banco, y el reintento automático lo procesa de nuevo. El cliente paga dos veces por una sola compra.
+
+La decisión correcta ahí no es "automatizar los reintentos". Es "automatizar los reintentos con una clave de idempotencia", un identificador único por transacción que le dice al sistema de pagos: esta operación ya la vi, no la proceses de nuevo aunque me la pidas otra vez. Sin esa clave, la automatización no resuelve el problema de los timeouts, lo multiplica.
+
+La consecuencia de automatizar sin esa capa de criterio no es un bug que se ve en el momento. Es un reclamo tres semanas después, cuando el cliente revisa su resumen de tarjeta y encuentra un cargo repetido que nadie puede explicar, porque del lado del sistema todo salió "correctamente".
+
+## Cómo se resuelve en la práctica
+
+Técnicamente esto necesita poca ceremonia, no una arquitectura enorme. Un backend en Python que expone el endpoint de pago genera una clave de idempotencia por transacción (un UUID) y la guarda en Redis antes de llamar a la pasarela. Si el timeout ocurre y el cliente reintenta, la request usa la misma clave. Stripe o Mercado Pago la reciben, ven que ya procesaron esa clave, y devuelven el resultado guardado en vez de cobrar de nuevo.
+
+Si el sistema necesita reintentar solo, sin intervención humana, una cola con Celery (o algo más liviano como RQ) maneja los reintentos con backoff exponencial: espera un poco más entre cada intento fallido, en vez de insistir cada segundo. Y el comprobante final se renderiza con WeasyPrint a partir de una plantilla HTML, no se arma a mano cada vez que alguien lo pide.
+
+Nada de esto es exótico. Es la diferencia entre automatizar el síntoma (el timeout) y automatizar la causa entendida (qué significa que esta operación se repita).
+
+## Por qué esto no es un problema de automatización
+
+Es tentador leer esto como "no automatices pagos". No es la lección.
+
+La lección es que automatizar un proceso obliga a hacer explícito el criterio que antes vivía implícito en una persona resolviendo caso por caso. Un humano que ve un timeout de pago probablemente pregunta "¿esto ya se cobró?" antes de reintentar. Ese instinto no se transfiere solo porque el proceso ahora corre en un servidor, hay que programarlo, o desaparece.
+
+Automatizar sin trasladar ese criterio no es más rápido que no automatizar. Es más rápido hasta que falla, y cuando falla, falla a escala: no una vez, sino en cada transacción que pasó por el mismo camino roto.
+
+## Lo que la automatización no reemplaza
+
+No reemplaza entender el dominio del problema antes de tocar código. La clave de idempotencia no es una buena práctica genérica de "ingeniería prolija". Es la traducción técnica exacta de una pregunta de negocio: ¿qué significa que esta operación se repita? Sin esa pregunta respondida primero, no hay patrón técnico que la salve.
+
+## Una tensión que no está resuelta
+
+Lo que todavía no tengo resuelto es cómo se enseña esto antes de vivirlo. La mayoría de los cursos explican idempotencia como un concepto: clave única, operación repetible, listo. Pocos explican el momento exacto en que decidís no confiar en la respuesta de una API externa, que es donde realmente se activa el criterio.
+
+Sospecho que ese instinto, desconfiar de una respuesta ausente en vez de asumir que todo salió bien, se entrena viendo fallar sistemas, no leyendo sobre ellos. Todavía no sé cómo acortar esa curva sin pasar por el error real.
+
+---
+
+Este tipo de decisiones, qué automatizar con confianza ciega y qué necesita criterio explícito antes de correr solo, es exactamente lo que analizo cada semana en El Radar. Si te interesa seguir esta línea, suscribite. Una nota por semana, directo en tu casilla.
