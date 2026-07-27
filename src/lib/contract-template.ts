@@ -4,11 +4,6 @@ import {
   TextRun,
   AlignmentType,
   Packer,
-  WidthType,
-  Table,
-  TableRow,
-  TableCell,
-  ShadingType,
 } from 'docx';
 import { docTitle, docSubtitle, clauseHeading, bodyParagraph, divider } from '@/lib/docx-helpers';
 
