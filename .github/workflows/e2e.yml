@@ -1,15 +1,22 @@
 name: E2E Tests
 
+# Manual trigger only. The suite in src/test/e2e still asserts against an
+# earlier version of the site (a placeholder blog page, a /cv link on the
+# about page, an underscore in the CV filename), so it fails on main today.
+#
+# To run it automatically again, update those specs first, then restore:
+#
+#   on:
+#     workflow_run:
+#       workflows: [Deploy]     # plural and a list; "workflow: Deploy"
+#       types: [completed]      # is not valid and never ran
 on:
-  workflow_run:
-    workflow: Deploy
-    types: [completed]
+  workflow_dispatch:
 
 jobs:
   e2e:
     name: Playwright smoke tests
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
