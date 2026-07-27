@@ -42,8 +42,6 @@ describe('buildProposal', () => {
     const { Packer } = await import('docx');
     const doc = buildProposal(mockData);
     const buffer = await Packer.toBuffer(doc);
-    // DOCX is a ZIP containing XML — convert to string to check content
-    const str = buffer.toString();
     // The DOCX binary content doesn't easily stringify, but we can check
     // the document was built without errors and has non-zero size
     expect(buffer.byteLength).toBeGreaterThan(1000);
