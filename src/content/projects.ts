@@ -390,17 +390,17 @@ export const projects: Project[] = [
       es: [
         "Dashboard con metricas, graficos y alertas de stock bajo.",
         "Importacion masiva por CSV y reportes exportables en CSV, Excel y PDF.",
-        "Demo publica en Railway con roles Administrador, Operador y Consulta.",
+        "Demo publica en Render con roles Administrador, Operador y Consulta.",
       ],
       en: [
         "Dashboard with metrics, charts, and low-stock alerts.",
         "Bulk CSV import plus exportable CSV, Excel, and PDF reports.",
-        "Public Railway demo with Administrator, Operator, and Viewer roles.",
+        "Public Render demo with Administrator, Operator, and Viewer roles.",
       ],
     },
     stack: ["Python 3.12", "Django 5", "PostgreSQL", "Bootstrap 5", "openpyxl", "reportlab", "Cloudinary"],
     links: {
-      demo: "https://ferrestock.up.railway.app",
+      demo: "https://ferrestock-accu.onrender.com",
       repo: "https://github.com/SilvanoPuccini/ferrestock",
     },
     demoAccess: {
@@ -424,7 +424,7 @@ export const projects: Project[] = [
     sourceUrls: [
       "https://raw.githubusercontent.com/SilvanoPuccini/ferrestock/main/README.md",
       "https://github.com/SilvanoPuccini/ferrestock",
-      "https://ferrestock.up.railway.app",
+      "https://ferrestock-accu.onrender.com",
       "https://res.cloudinary.com/dukgz1lpn/image/upload/v1775621645/Inicio-FerreStock_tp9n5y.png",
     ],
   },
