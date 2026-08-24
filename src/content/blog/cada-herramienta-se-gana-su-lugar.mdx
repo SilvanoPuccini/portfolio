@@ -19,15 +19,13 @@ Esto no es sobre las herramientas. Es sobre que cada capa de este entorno suma a
 
 Este análisis no aplica a quien recién arranca y necesita lo mínimo para escribir su primer script. Aplica al momento en que ya tenés varios proyectos corriendo en paralelo y el entorno deja de ser indiferente.
 
-<Diagram w={1200} caption="El stack completo, capa por capa">
-  <StackDiagram />
-</Diagram>
+<StackDiagramBlock />
 
 ## 01 — La base: Ubuntu sobre Windows, no como preferencia
 
 Aunque hoy uso **Windows** como sistema base, programo en **Ubuntu** vía **WSL2**. No es estética. **Linux** usa un **kernel monolítico**: los servicios centrales corren en el mismo espacio de memoria, con llamadas directas. Windows usa un **kernel híbrido** que separa servicios en procesos comunicados por paso de mensajes: más tolerante a fallos, pero con overhead en cada proceso que se crea.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/wsl2-subsistema-linux.jpg" alt="WSL · Subsistema de Linux para Windows" caption="WSL · Subsistema de Linux para Windows" />
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/powershell-administrador.jpg" alt="PowerShell como administrador" caption="PowerShell como administrador" />
 </Row>
@@ -45,9 +43,7 @@ Y la terminal de Linux no es un lujo de power user, es el lugar donde vivís. Lo
 - `cat archivo.txt`: ver el contenido de un archivo
 - `grep "error" *`: buscar texto dentro de archivos
 
-<Diagram w={1600} caption="Los comandos base, en uso real">
-  <CommandsDiagram />
-</Diagram>
+<CommandsDiagramBlock />
 
 Esa precisión es la diferencia con la GUI: no clickeás por menús, declarás exactamente qué querés. Y encima, instalar herramientas en Linux suele ser un one-liner: PostgreSQL, Redis, Node en cuatro comandos de `apt`, contra un instalador con su propio PATH cada uno en Windows.
 
@@ -72,9 +68,7 @@ git commit -m "feat: x"  # confirmar con un mensaje
 git push                 # subir al remoto
 ```
 
-<Diagram w={1200} caption="De clonar a publicar">
-  <CloneToPublishDiagram />
-</Diagram>
+<CloneToPublishDiagramBlock />
 
 Para que ese `git push` funcione sin escribir contraseña cada vez, uso claves SSH, que se generan una vez y se asocian a GitHub:
 
@@ -89,11 +83,9 @@ Y cuando necesito una segunda cabeza sobre un problema, llamo a **Claude Code** 
 
 **Warp** no es una terminal con más colores. Organiza cada comando y su salida en **bloques**: unidades que podés copiar, buscar o compartir sin desplazarte por un scroll infinito. Y tiene IA nativa desde el diseño, no como plugin: entiende tu directorio actual, tu historial y los errores que generaste, y usa ese contexto para sugerir el siguiente paso. Se siente parecida a la experiencia de Mac porque corre agentes con conciencia del entorno de terminal en sí, no solo del código.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/warp-terminal-ia.jpg" alt="Warp · terminal con IA nativa" caption="Warp · terminal con IA nativa" />
-  <Diagram w={1600} caption="Un bloque por comando">
-    <WarpBlocksDiagram />
-  </Diagram>
+  <WarpBlocksDiagramBlock />
 </Row>
 
 Un dato que poca gente sabe: Warp también trae un **editor de código integrado**: con resaltado de sintaxis, pestañas y atajos de Vim, pensado para ediciones rápidas sin salir de la terminal. No reemplaza a **VS Code** para mí todavía, pero ya cubre una parte de lo que técnicamente necesitaría un editor aparte.
@@ -102,14 +94,12 @@ Un dato que poca gente sabe: Warp también trae un **editor de código integrado
 
 **Zsh** con **Oh My Zsh** suma **autosugerencias** (completa comandos que ya usaste) y **resaltado de sintaxis** (te marca en rojo un comando mal escrito antes de correrlo). **Powerlevel10k** agrega info en el prompt mismo: en qué rama de git estás, si hay cambios sin commitear, sin tener que correr `git status` para saberlo.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/oh-my-zsh.jpg" alt="Oh My Zsh · framework de configuración" caption="Oh My Zsh · framework de configuración" />
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/powerlevel10k-prompt.jpg" alt="Powerlevel10k · prompt con estado de git" caption="Powerlevel10k · prompt con estado de git" />
 </Row>
 
-<Diagram w={1200} caption="El prompt, en detalle">
-  <PromptDetailDiagram />
-</Diagram>
+<PromptDetailDiagramBlock />
 
 ## 05 — El editor: VS Code hoy, y la decisión que tengo pendiente
 
@@ -117,11 +107,9 @@ Uso **Visual Studio Code** de siempre: es el estándar, estable, con el ecosiste
 
 Para que `code .` abra tu proyecto de Ubuntu dentro de VS Code hace falta la extensión WSL (la del ícono del pingüino). Sin ella, VS Code abre en modo Windows y no ve el filesystem de Linux. Con la extensión instalada, VS Code corre conectado a WSL2 y su terminal integrada es la misma terminal de Ubuntu.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/vscode-wsl-ubuntu.jpg" alt="VS Code conectado a WSL: Ubuntu" caption="VS Code conectado a WSL: Ubuntu" />
-  <Diagram w={1600} caption="El editor conectado a WSL2">
-    <EditorWslDiagram />
-  </Diagram>
+  <EditorWslDiagramBlock />
 </Row>
 
 Y acá está la única capa que todavía no resolví. Google lanzó **Antigravity** en noviembre de 2025. No es un editor con IA al costado, es un IDE *agent-first*: en vez de asistirte mientras escribís, centrás el trabajo en un Agent Manager donde lanzás y supervisás varios agentes que operan sobre editor, terminal y navegador a la vez. Es gratis en su preview.
@@ -132,7 +120,7 @@ La pregunta es honesta: con Claude Code como agente principal en la terminal, VS
 
 Uso **Claude Code** como agente principal: con **MCP** (Model Context Protocol) conectando herramientas externas, plugins y skills que extienden lo que puede hacer sin tocar el core. Se instala nativo con un comando, y de los que uso a diario el que más me cambió el flujo es `--continue`: retoma la conversación donde la dejaste, sin volver a explicar el proyecto desde cero.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/claude-code-terminal.jpg" alt="Claude Code · agente principal en la terminal" caption="Claude Code · agente principal en la terminal" />
   <Zoomable caption="Instalación y uso diario">
 
@@ -156,25 +144,21 @@ Pero no dependo de un solo agente, y las dos capas que sumé no son al azar.
 
 **OpenCode** es un entorno similar a Claude Code, pero totalmente open source. La razón concreta por la que lo tengo instalado no es redundancia: si me quedo sin tokens de Claude en medio de algo, puedo seguir trabajando conectando OpenCode a otro modelo. Ahí es donde se vuelve interesante: no depende de un solo proveedor. Puedo apuntarlo a **Codex**, a **Kimi** (el modelo abierto de Moonshot AI, mucho más barato para tareas largas), o directamente a **Ollama** corriendo un modelo en mi propia máquina, sin costo de API y sin depender de internet para lo básico. El cambio es literalmente apuntar OpenCode a otro endpoint: nativo con Ollama local, o a la nube con cualquiera de los otros. Es mi red de seguridad completa: el flujo no se frena porque se acabó una cuota, ni porque un proveedor esté caído.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/opencode-agente.jpg" alt="OpenCode · agente open source" caption="OpenCode · agente open source" />
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/opencode-modelos.jpg" alt="Modelos disponibles: DeepSeek, Kimi, Ollama, Codex…" caption="Modelos disponibles: DeepSeek, Kimi, Ollama, Codex…" />
 </Row>
 
-<Diagram w={1200} caption="Un agente, varios modelos intercambiables">
-  <ModelSwapDiagram />
-</Diagram>
+<ModelSwapDiagramBlock />
 
 **Gentle AI** es una elección más personal, y por eso la valoro distinto. Es el ecosistema de IA de Alan Buscaglia (Gentleman Programming), que fue profesor mío en ConquerBlocks. Dio los módulos de React, React avanzado y React con TypeScript, además de Vue, Angular, Astro y el backend con Go, básicamente toda la capa de frameworks de la formación. Su ecosistema no es un wrapper genérico sobre un modelo: tiene el conocimiento de sus propios cursos integrado, así que cuando le pregunto algo, responde con el mismo criterio con el que aprendí. Junto a **Engram** (contexto persistente entre sesiones) y **GGA** (hooks de git automatizados), es la capa que más se parece a cómo pienso yo el código, porque literalmente aprendí con ese material.
 
-<Row cols={2}>
+<Row>
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/gentle-ai-ecosistema.jpg" alt="Gentle AI · ecosistema de Gentleman Programming" caption="Gentle AI · ecosistema de Gentleman Programming" />
   <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/gentle-ai-doctor.jpg" alt="gentle-ai doctor · verificación del entorno" caption="gentle-ai doctor · verificación del entorno" />
 </Row>
 
-<Diagram w={1400} caption="Verificación del entorno en un comando">
-  <VerificationDiagram />
-</Diagram>
+<VerificationDiagramBlock />
 
 Todo esto se instala sobre **Homebrew**: un gestor de paquetes nacido en Mac que hoy también corre en Linux (como Linuxbrew). La ventaja de fondo es la reproducibilidad: cada paquete (formula) tiene una definición versionada y verificable, en vez de un instalador suelto bajado de cualquier lado, y los repositorios de terceros (taps, como el de Gentleman-Programming, de donde sale Gentle AI) se habilitan con un paso de confianza explícito (`brew trust`) antes de poder instalar nada de ahí. Es la misma lógica de curaduría que aplico al resto del entorno: nada entra sin saber de dónde viene.
 

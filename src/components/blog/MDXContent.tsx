@@ -1,23 +1,23 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import rehypePrettyCode from 'rehype-pretty-code';
 import remarkGfm from 'remark-gfm';
-import { Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
+import { DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
 import { CodeBlock } from './CodeBlock';
 import {
-  StackDiagram,
-  CommandsDiagram,
-  CloneToPublishDiagram,
-  WarpBlocksDiagram,
-  PromptDetailDiagram,
-  EditorWslDiagram,
-  ModelSwapDiagram,
-  VerificationDiagram,
+  StackDiagramBlock,
+  CommandsDiagramBlock,
+  CloneToPublishDiagramBlock,
+  WarpBlocksDiagramBlock,
+  PromptDetailDiagramBlock,
+  EditorWslDiagramBlock,
+  ModelSwapDiagramBlock,
+  VerificationDiagramBlock,
 } from './diagrams/EntornoDiagrams';
 
 const mdxComponents = {
-  Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
-  StackDiagram, CommandsDiagram, CloneToPublishDiagram, WarpBlocksDiagram,
-  PromptDetailDiagram, EditorWslDiagram, ModelSwapDiagram, VerificationDiagram,
+  DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
+  StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
+  PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
 };
 
 const mdxOptions = {

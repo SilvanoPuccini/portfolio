@@ -1,10 +1,15 @@
 /**
  * Diagramas HTML/CSS del post "Cada herramienta que sumo tiene que ganarse
  * su lugar". Viven en .tsx (no en el .mdx) porque next-mdx-remote/rsc pierde
- * los props `style={{...}}` escritos directamente en el body de un .mdx al
- * evaluarlo en runtime — className, id y demás atributos sobreviven, style no.
- * Estos componentes son el contenido que va dentro de <Diagram>.
+ * cualquier prop pasado como expresión JS (`prop={...}`) escrito directamente
+ * en el body de un .mdx al evaluarlo en runtime — atributos de string plano
+ * (`prop="..."`) sobreviven, `style={{}}` y `w={1200}` no. Por eso el propio
+ * <Diagram w={...}> también vive acá adentro: los componentes *Block ya
+ * incluyen el wrapper con su ancho fijo, y el .mdx solo los referencia con
+ * un tag autocontenido, sin props entre llaves.
  */
+
+import { Diagram } from '../PostRich';
 
 export function StackDiagram() {
   return (
@@ -313,5 +318,75 @@ export function VerificationDiagram() {
         <div><span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#eef2f5' }}>▌</span></div>
       </div>
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// *Block — cada diagrama ya envuelto en <Diagram w={...}>, listas para
+// referenciar desde el .mdx como un tag autocontenido sin props entre
+// llaves (ese es justo el prop que next-mdx-remote/rsc pierde).
+// ─────────────────────────────────────────────────────────────────
+
+export function StackDiagramBlock() {
+  return (
+    <Diagram w={1200} caption="El stack completo, capa por capa">
+      <StackDiagram />
+    </Diagram>
+  );
+}
+
+export function CommandsDiagramBlock() {
+  return (
+    <Diagram w={1600} caption="Los comandos base, en uso real">
+      <CommandsDiagram />
+    </Diagram>
+  );
+}
+
+export function CloneToPublishDiagramBlock() {
+  return (
+    <Diagram w={1200} caption="De clonar a publicar">
+      <CloneToPublishDiagram />
+    </Diagram>
+  );
+}
+
+export function WarpBlocksDiagramBlock() {
+  return (
+    <Diagram w={1600} caption="Un bloque por comando">
+      <WarpBlocksDiagram />
+    </Diagram>
+  );
+}
+
+export function PromptDetailDiagramBlock() {
+  return (
+    <Diagram w={1200} caption="El prompt, en detalle">
+      <PromptDetailDiagram />
+    </Diagram>
+  );
+}
+
+export function EditorWslDiagramBlock() {
+  return (
+    <Diagram w={1600} caption="El editor conectado a WSL2">
+      <EditorWslDiagram />
+    </Diagram>
+  );
+}
+
+export function ModelSwapDiagramBlock() {
+  return (
+    <Diagram w={1200} caption="Un agente, varios modelos intercambiables">
+      <ModelSwapDiagram />
+    </Diagram>
+  );
+}
+
+export function VerificationDiagramBlock() {
+  return (
+    <Diagram w={1400} caption="Verificación del entorno en un comando">
+      <VerificationDiagram />
+    </Diagram>
   );
 }
