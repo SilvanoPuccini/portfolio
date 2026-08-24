@@ -1,6 +1,10 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import rehypePrettyCode from 'rehype-pretty-code';
 import remarkGfm from 'remark-gfm';
+import { Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
+import { CodeBlock } from './CodeBlock';
+
+const mdxComponents = { Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock };
 
 const mdxOptions = {
   mdxOptions: {
@@ -51,7 +55,7 @@ export function MDXContent({ source }: Props) {
       prose-td:text-text-secondary prose-td:py-3 prose-td:px-5 prose-td:border prose-td:border-outline-ghost/10
       prose-tr:even:bg-surface-dim/40
     ">
-      <MDXRemote source={source} options={mdxOptions} />
+      <MDXRemote source={source} options={mdxOptions} components={mdxComponents} />
     </div>
   );
 }
