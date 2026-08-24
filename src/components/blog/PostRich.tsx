@@ -39,15 +39,17 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
   return (
     <>
       <figure
-        className={`group m-0 cursor-zoom-in overflow-hidden rounded-[10px] border border-[#1e2937] bg-[#0e141d] transition-colors duration-150 hover:border-[#22d3d3] ${className}`}
+        className={`group m-0 flex cursor-zoom-in flex-col gap-3.5 ${className}`}
         onClick={() => setOpen(true)}
       >
-        {children}
         {caption && (
-          <figcaption className="border-t border-[#1a2230] bg-[#0c1219] px-2.5 py-[7px] font-mono text-[11px] text-[#8b94a3]">
+          <figcaption className="font-mono text-xs uppercase tracking-[0.14em] text-[#22d3d3]">
             {caption}
           </figcaption>
         )}
+        <div className="overflow-hidden rounded-[10px] border border-[#1e2937] bg-[#0e141d] transition-colors duration-150 group-hover:border-[#22d3d3]">
+          {children}
+        </div>
       </figure>
 
       {open && (
