@@ -83,10 +83,9 @@ Y cuando necesito una segunda cabeza sobre un problema, llamo a **Claude Code** 
 
 **Warp** no es una terminal con más colores. Organiza cada comando y su salida en **bloques**: unidades que podés copiar, buscar o compartir sin desplazarte por un scroll infinito. Y tiene IA nativa desde el diseño, no como plugin: entiende tu directorio actual, tu historial y los errores que generaste, y usa ese contexto para sugerir el siguiente paso. Se siente parecida a la experiencia de Mac porque corre agentes con conciencia del entorno de terminal en sí, no solo del código.
 
-<Row>
-  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/warp-terminal-ia.jpg" alt="Warp · terminal con IA nativa" caption="Warp · terminal con IA nativa" />
-  <WarpBlocksDiagramBlock />
-</Row>
+<ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/warp-terminal-ia.jpg" alt="Warp · terminal con IA nativa" caption="Warp · terminal con IA nativa" size="full" />
+
+<WarpBlocksDiagramBlock />
 
 Un dato que poca gente sabe: Warp también trae un **editor de código integrado**: con resaltado de sintaxis, pestañas y atajos de Vim, pensado para ediciones rápidas sin salir de la terminal. No reemplaza a **VS Code** para mí todavía, pero ya cubre una parte de lo que técnicamente necesitaría un editor aparte.
 
@@ -107,10 +106,9 @@ Uso **Visual Studio Code** de siempre: es el estándar, estable, con el ecosiste
 
 Para que `code .` abra tu proyecto de Ubuntu dentro de VS Code hace falta la extensión WSL (la del ícono del pingüino). Sin ella, VS Code abre en modo Windows y no ve el filesystem de Linux. Con la extensión instalada, VS Code corre conectado a WSL2 y su terminal integrada es la misma terminal de Ubuntu.
 
-<Row>
-  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/vscode-wsl-ubuntu.jpg" alt="VS Code conectado a WSL: Ubuntu" caption="VS Code conectado a WSL: Ubuntu" />
-  <EditorWslDiagramBlock />
-</Row>
+<ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/vscode-wsl-ubuntu.jpg" alt="VS Code conectado a WSL: Ubuntu" caption="VS Code conectado a WSL: Ubuntu" size="full" />
+
+<EditorWslDiagramBlock />
 
 Y acá está la única capa que todavía no resolví. Google lanzó **Antigravity** en noviembre de 2025. No es un editor con IA al costado, es un IDE *agent-first*: en vez de asistirte mientras escribís, centrás el trabajo en un Agent Manager donde lanzás y supervisás varios agentes que operan sobre editor, terminal y navegador a la vez. Es gratis en su preview.
 
@@ -120,9 +118,9 @@ La pregunta es honesta: con Claude Code como agente principal en la terminal, VS
 
 Uso **Claude Code** como agente principal: con **MCP** (Model Context Protocol) conectando herramientas externas, plugins y skills que extienden lo que puede hacer sin tocar el core. Se instala nativo con un comando, y de los que uso a diario el que más me cambió el flujo es `--continue`: retoma la conversación donde la dejaste, sin volver a explicar el proyecto desde cero.
 
-<Row>
-  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/claude-code-terminal.jpg" alt="Claude Code · agente principal en la terminal" caption="Claude Code · agente principal en la terminal" />
-  <Zoomable caption="Instalación y uso diario">
+<ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/claude-code-terminal.jpg" alt="Claude Code · agente principal en la terminal" caption="Claude Code · agente principal en la terminal" size="full" />
+
+<Zoomable caption="Instalación y uso diario">
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
@@ -137,8 +135,7 @@ claude --resume           # elegir sesión anterior
 claude -n "auth-refactor" # sesión con nombre
 ```
 
-  </Zoomable>
-</Row>
+</Zoomable>
 
 Pero no dependo de un solo agente, y las dos capas que sumé no son al azar.
 

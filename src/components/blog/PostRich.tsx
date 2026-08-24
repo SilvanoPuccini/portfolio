@@ -107,7 +107,20 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
 // ImageShot — screenshot recortado, expande a tamaño completo
 // ─────────────────────────────────────────────────────────────────
 
-export function ImageShot({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
+export function ImageShot({
+  src,
+  alt,
+  caption,
+  size = "thumb",
+}: {
+  src: string;
+  alt: string;
+  caption?: string;
+  /** "thumb" (default) para pares en <Row>, "full" para una captura sola a todo el ancho. */
+  size?: "thumb" | "full";
+}) {
+  const heightClass = size === "full" ? "h-[220px] sm:h-[420px]" : "h-[190px] sm:h-[220px]";
+
   return (
     <Zoomable
       caption={caption ?? alt}
@@ -121,7 +134,7 @@ export function ImageShot({ src, alt, caption }: { src: string; alt: string; cap
       }
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="block h-[190px] w-full object-cover sm:h-[220px]" />
+      <img src={src} alt={alt} className={`block w-full object-cover ${heightClass}`} />
     </Zoomable>
   );
 }
@@ -238,7 +251,7 @@ export function DownloadGuides() {
   return (
     <div className="mt-8 flex flex-wrap gap-3">
       <a
-        className="inline-flex items-center gap-[11px] rounded-[10px] border border-transparent bg-[#22d3d3] px-[22px] py-[13px] text-[14.5px] font-semibold text-[#062024] no-underline transition-colors hover:bg-[#5ceaea]"
+        className="inline-flex items-center gap-[11px] rounded-[10px] border border-[#25384a] bg-transparent px-[22px] py-[13px] text-[14.5px] font-semibold text-[#eef2f5] no-underline transition-colors hover:border-[#22d3d3] hover:text-[#22d3d3]"
         href="/guias/guia-instalacion-windows-wsl.pdf"
         download
       >
