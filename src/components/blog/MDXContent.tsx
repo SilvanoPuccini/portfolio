@@ -3,8 +3,22 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import remarkGfm from 'remark-gfm';
 import { Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
 import { CodeBlock } from './CodeBlock';
+import {
+  StackDiagram,
+  CommandsDiagram,
+  CloneToPublishDiagram,
+  WarpBlocksDiagram,
+  PromptDetailDiagram,
+  EditorWslDiagram,
+  ModelSwapDiagram,
+  VerificationDiagram,
+} from './diagrams/EntornoDiagrams';
 
-const mdxComponents = { Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock };
+const mdxComponents = {
+  Diagram, DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
+  StackDiagram, CommandsDiagram, CloneToPublishDiagram, WarpBlocksDiagram,
+  PromptDetailDiagram, EditorWslDiagram, ModelSwapDiagram, VerificationDiagram,
+};
 
 const mdxOptions = {
   mdxOptions: {

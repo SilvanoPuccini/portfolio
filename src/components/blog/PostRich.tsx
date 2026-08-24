@@ -156,7 +156,6 @@ function useAutoScaleToWidth(w: number) {
       ro.disconnect();
       window.removeEventListener("resize", fit);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [w]);
 
   return { wrapRef, innerRef, scale, scaledHeight };
@@ -176,7 +175,6 @@ function DiagramExpanded({ w, children }: { w: number; children: React.ReactNode
     const s = Math.min(maxW / w, maxH / naturalH, 1.6);
     setScale(s);
     setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [w]);
 
   return (
