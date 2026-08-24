@@ -1,0 +1,453 @@
+---
+title: 'Cada herramienta que sumo tiene que ganarse su lugar'
+date: '2026-08-24'
+category: 'Producto'
+excerpt: 'Hoy tengo Windows porque es el equipo que tengo ahora, pero no trabajo en Windows: trabajo en Ubuntu, en Linux. El día de mañana me gustaría tener una Mac o un Linux nativo. La mayoría de la gente arranca con Windows (hoy ronda el 62% del mercado de escritorio a nivel mundial), así que escribo este post para el que está en esa mayoría y todavía no se cruzó con lo que yo me crucé.'
+featured: false
+linkedinCarousel: false
+readingTime: '9 min'
+keyword: 'WSL2'
+---
+
+<Eyebrow>ENTORNO DE DESARROLLO</Eyebrow>
+
+Hoy tengo **Windows** porque es el equipo que tengo ahora, pero no trabajo en Windows: trabajo en **Ubuntu**, en **Linux**. El día de mañana me gustaría tener una Mac o un Linux nativo. La mayoría de la gente arranca con Windows (hoy ronda el 62% del mercado de escritorio a nivel mundial), así que escribo este post para el que está en esa mayoría y todavía no se cruzó con lo que yo me crucé.
+
+Lo que cambió mi forma de programar no lo aprendí en la facultad. Lo aprendí en el módulo de Linux y terminal del máster full stack de ConquerBlocks. Entender cómo funciona el sistema operativo por dentro, y qué beneficio concreto le da a alguien que programa, fue el momento en que decidí modificar todo mi entorno. Mi capacidad para resolver problemas técnicos pasó a otro nivel a partir de ahí, no de forma abstracta, sino en cosas medibles: menos tiempo instalando, menos fricción para automatizar, comandos que hacen exactamente lo que dicen que hacen.
+
+Esto no es sobre las herramientas. Es sobre que cada capa de este entorno suma algo puntual: no resuelve un problema por descarte, agrega una capacidad que antes no tenía.
+
+Este análisis no aplica a quien recién arranca y necesita lo mínimo para escribir su primer script. Aplica al momento en que ya tenés varios proyectos corriendo en paralelo y el entorno deja de ser indiferente.
+
+<Diagram w={1200} caption="El stack completo, capa por capa">
+  <div style={{ boxSizing: 'border-box', width: '1200px', height: '800px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', padding: '56px 64px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0' }}>
+    <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '13px', letterSpacing: '.16em', color: '#8b94a3', marginBottom: '34px' }}>EL STACK, CAPA POR CAPA</div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: '26px', padding: '18px 26px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e', width: '70px' }}>BASE</div>
+      <div style={{ fontSize: '24px', fontWeight: '700', flex: '1' }}>Windows</div>
+      <div style={{ fontSize: '15px', color: '#8b94a3' }}>el equipo que tengo hoy</div>
+    </div>
+    <div style={{ height: '22px', width: '2px', background: '#22d3d3', marginLeft: '130px', opacity: '.55' }}></div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: '26px', padding: '18px 26px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e', width: '70px' }}>01</div>
+      <div style={{ fontSize: '24px', fontWeight: '700', flex: '1' }}>WSL2</div>
+      <div style={{ fontSize: '15px', color: '#8b94a3' }}>kernel Linux real sobre Windows</div>
+    </div>
+    <div style={{ height: '22px', width: '2px', background: '#22d3d3', marginLeft: '130px', opacity: '.55' }}></div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: '26px', padding: '18px 26px', background: '#0d1c22', border: '1px solid #22d3d3', borderRadius: '10px' }}>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#22d3d3', width: '70px' }}>02</div>
+      <div style={{ fontSize: '26px', fontWeight: '800', flex: '1', color: '#eef2f5' }}>Ubuntu</div>
+      <div style={{ fontSize: '15px', color: '#a9e8e8' }}>acá viven los proyectos, en <span style={{ fontFamily: 'ui-monospace,monospace' }}>~/</span></div>
+    </div>
+    <div style={{ height: '22px', width: '2px', background: '#22d3d3', marginLeft: '130px', opacity: '.55' }}></div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: '26px', padding: '18px 26px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e', width: '70px' }}>03</div>
+      <div style={{ fontSize: '24px', fontWeight: '700', flex: '1' }}>Warp</div>
+      <div style={{ fontSize: '15px', color: '#8b94a3' }}>bloques en vez de scroll infinito</div>
+    </div>
+    <div style={{ height: '22px', width: '2px', background: '#22d3d3', marginLeft: '130px', opacity: '.55' }}></div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: '26px', padding: '18px 26px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e', width: '70px' }}>04</div>
+      <div style={{ fontSize: '24px', fontWeight: '700', flex: '1' }}>Zsh + Powerlevel10k</div>
+      <div style={{ fontSize: '15px', color: '#8b94a3' }}>autosugerencias, rama de git en el prompt</div>
+    </div>
+    <div style={{ height: '22px', width: '2px', background: '#22d3d3', marginLeft: '130px', opacity: '.55' }}></div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: '26px', padding: '18px 26px' }}>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e', width: '70px' }}>05</div>
+      <div style={{ flex: '1', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px' }}>
+        <div style={{ padding: '16px 18px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>Claude Code</div>
+          <div style={{ fontSize: '13px', color: '#8b94a3', marginTop: '4px' }}>agente principal</div>
+        </div>
+        <div style={{ padding: '16px 18px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>OpenCode</div>
+          <div style={{ fontSize: '13px', color: '#8b94a3', marginTop: '4px' }}>modelo intercambiable</div>
+        </div>
+        <div style={{ padding: '16px 18px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>Gentle AI</div>
+          <div style={{ fontSize: '13px', color: '#8b94a3', marginTop: '4px' }}>Engram · GGA</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Diagram>
+
+## 01 — La base: Ubuntu sobre Windows, no como preferencia
+
+Aunque hoy uso **Windows** como sistema base, programo en **Ubuntu** vía **WSL2**. No es estética. **Linux** usa un **kernel monolítico**: los servicios centrales corren en el mismo espacio de memoria, con llamadas directas. Windows usa un **kernel híbrido** que separa servicios en procesos comunicados por paso de mensajes: más tolerante a fallos, pero con overhead en cada proceso que se crea.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/wsl2-subsistema-linux.jpg" alt="WSL · Subsistema de Linux para Windows" caption="WSL · Subsistema de Linux para Windows" />
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/powershell-administrador.jpg" alt="PowerShell como administrador" caption="PowerShell como administrador" />
+</Row>
+
+```bash
+wsl --install -d Ubuntu   # en PowerShell como administrador
+```
+
+Y la terminal de Linux no es un lujo de power user, es el lugar donde vivís. Los comandos base que uso todo el día son los mismos hace décadas porque son precisos: hacen una cosa y la hacen bien.
+
+- `cd proyecto`: entrar a una carpeta
+- `ls -la`: listar archivos, incluidos los ocultos
+- `mkdir src`: crear un directorio
+- `rm -rf build`: borrar una carpeta y su contenido
+- `cat archivo.txt`: ver el contenido de un archivo
+- `grep "error" *`: buscar texto dentro de archivos
+
+<Diagram w={1600} caption="Los comandos base, en uso real">
+  <div style={{ width: '1600px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 20px', background: '#0c1219', borderBottom: '1px solid #1a2230' }}>
+      <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: '#2a3a4a' }}></div>
+      <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: '#2a3a4a' }}></div>
+      <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: '#2a3a4a' }}></div>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#8b94a3', marginLeft: '14px' }}>silvano@ubuntu: ~/proyecto</div>
+    </div>
+    <div style={{ padding: '26px 30px', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: '16px', lineHeight: '2', color: '#a9e8e8' }}>
+      <div><span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#8b94a3' }}>~ </span>cd proyecto</div>
+      <div><span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#8b94a3' }}>proyecto </span>ls -la</div>
+      <div style={{ color: '#b6bfca' }}>total 48</div>
+      <div style={{ color: '#b6bfca' }}>drwxr-xr-x  8 silvano silvano  4096 nov 12 10:22 <span style={{ color: '#22d3d3' }}>.</span></div>
+      <div style={{ color: '#b6bfca' }}>drwxr-xr-x 21 silvano silvano  4096 nov 12 09:58 <span style={{ color: '#22d3d3' }}>..</span></div>
+      <div style={{ color: '#b6bfca' }}>drwxr-xr-x  9 silvano silvano  4096 nov 12 10:21 <span style={{ color: '#22d3d3' }}>.git</span></div>
+      <div style={{ color: '#b6bfca' }}>-rw-r--r--  1 silvano silvano    58 nov 11 18:40 .gitignore</div>
+      <div style={{ color: '#b6bfca' }}>-rw-r--r--  1 silvano silvano  1204 nov 12 10:04 package.json</div>
+      <div style={{ color: '#b6bfca' }}>drwxr-xr-x  4 silvano silvano  4096 nov 12 10:20 <span style={{ color: '#22d3d3' }}>src</span></div>
+      <div style={{ color: '#b6bfca' }}>-rw-r--r--  1 silvano silvano   842 nov 10 21:15 README.md</div>
+      <div><span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#8b94a3' }}>proyecto </span>grep "error" src/*.js</div>
+      <div style={{ color: '#b6bfca' }}>src/api.js:42:  console.<span style={{ color: '#22d3d3' }}>error</span>("fetch falló", err)</div>
+      <div><span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#8b94a3' }}>proyecto </span><span style={{ color: '#eef2f5' }}>▌</span></div>
+    </div>
+  </div>
+</Diagram>
+
+Esa precisión es la diferencia con la GUI: no clickeás por menús, declarás exactamente qué querés. Y encima, instalar herramientas en Linux suele ser un one-liner: PostgreSQL, Redis, Node en cuatro comandos de `apt`, contra un instalador con su propio PATH cada uno en Windows.
+
+> Un detalle técnico que me costó aprender: en WSL2, si guardás los proyectos en `/mnt/c/` en vez del filesystem nativo de Linux (`~/`), cada herramienta con muchas operaciones de archivo (npm, pip, un watcher de hot reload) sufre una penalización real de I/O al cruzar el filesystem. Mover los proyectos a `~/` es la diferencia entre un `npm install` de segundos y uno que se siente colgado.
+
+## 02 — El circuito de trabajo real: de la terminal al código
+
+Esto es un día cualquiera, comando por comando. Clono un repo, entro, lo abro en el editor sin soltar la terminal:
+
+```bash
+git clone git@github.com:usuario/proyecto.git
+cd proyecto
+code .           # abre VS Code en esta carpeta, desde la terminal
+```
+
+Trabajo, y cuando termino un cambio, el ciclo de git:
+
+```bash
+git status               # qué cambió
+git add .                # preparar los cambios
+git commit -m "feat: x"  # confirmar con un mensaje
+git push                 # subir al remoto
+```
+
+<Diagram w={1200} caption="De clonar a publicar">
+  <div style={{ boxSizing: 'border-box', width: '1200px', height: '400px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', padding: '48px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '34px' }}>
+    <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '13px', letterSpacing: '.16em', color: '#8b94a3' }}>DE CLONAR A PUBLICAR</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#a9e8e8' }}>git clone</div>
+        <div style={{ fontSize: '12px', color: '#54606e', marginTop: '6px' }}>traer el repo</div>
+      </div>
+      <div style={{ color: '#22d3d3', fontSize: '20px' }}>→</div>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#a9e8e8' }}>cd</div>
+        <div style={{ fontSize: '12px', color: '#54606e', marginTop: '6px' }}>entrar</div>
+      </div>
+      <div style={{ color: '#22d3d3', fontSize: '20px' }}>→</div>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0d1c22', border: '1px solid #22d3d3', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#22d3d3' }}>code .</div>
+        <div style={{ fontSize: '12px', color: '#8b94a3', marginTop: '6px' }}>abrir editor</div>
+      </div>
+      <div style={{ color: '#22d3d3', fontSize: '20px' }}>→</div>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#a9e8e8' }}>editar</div>
+        <div style={{ fontSize: '12px', color: '#54606e', marginTop: '6px' }}>trabajar</div>
+      </div>
+    </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#a9e8e8' }}>git status</div>
+        <div style={{ fontSize: '12px', color: '#54606e', marginTop: '6px' }}>qué cambió</div>
+      </div>
+      <div style={{ color: '#22d3d3', fontSize: '20px' }}>→</div>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#a9e8e8' }}>git add .</div>
+        <div style={{ fontSize: '12px', color: '#54606e', marginTop: '6px' }}>preparar</div>
+      </div>
+      <div style={{ color: '#22d3d3', fontSize: '20px' }}>→</div>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#a9e8e8' }}>git commit</div>
+        <div style={{ fontSize: '12px', color: '#54606e', marginTop: '6px' }}>confirmar</div>
+      </div>
+      <div style={{ color: '#22d3d3', fontSize: '20px' }}>→</div>
+      <div style={{ flex: '1', padding: '18px 12px', textAlign: 'center', background: '#0d1c22', border: '1px solid #22d3d3', borderRadius: '10px' }}>
+        <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '15px', color: '#22d3d3' }}>git push</div>
+        <div style={{ fontSize: '12px', color: '#8b94a3', marginTop: '6px' }}>publicar</div>
+      </div>
+    </div>
+  </div>
+</Diagram>
+
+Para que ese `git push` funcione sin escribir contraseña cada vez, uso claves SSH, que se generan una vez y se asocian a GitHub:
+
+```bash
+ssh-keygen -t ed25519 -C "tu-email"
+cat ~/.ssh/id_ed25519.pub   # copiar esta clave a GitHub → Settings → SSH
+```
+
+Y cuando necesito una segunda cabeza sobre un problema, llamo a **Claude Code** sin salir del proyecto, escribiendo `claude` en la misma terminal. El agente ya está parado en la carpeta correcta, con el contexto del repo disponible.
+
+## 03 — La terminal: Warp sobre la terminal por defecto
+
+**Warp** no es una terminal con más colores. Organiza cada comando y su salida en **bloques**: unidades que podés copiar, buscar o compartir sin desplazarte por un scroll infinito. Y tiene IA nativa desde el diseño, no como plugin: entiende tu directorio actual, tu historial y los errores que generaste, y usa ese contexto para sugerir el siguiente paso. Se siente parecida a la experiencia de Mac porque corre agentes con conciencia del entorno de terminal en sí, no solo del código.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/warp-terminal-ia.jpg" alt="Warp · terminal con IA nativa" caption="Warp · terminal con IA nativa" />
+  <Diagram w={1600} caption="Un bloque por comando">
+    <div style={{ width: '1600px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', padding: '26px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#8b94a3', padding: '0 6px 8px' }}>
+        <span>~/proyecto — bloque por comando</span>
+        <span style={{ color: '#54606e' }}>3 bloques</span>
+      </div>
+      <div style={{ background: '#0c1219', border: '1px solid #1e2937', borderLeft: '3px solid #22d3d3', borderRadius: '0 10px 10px 0', padding: '16px 20px', fontFamily: 'ui-monospace,monospace', fontSize: '15px', lineHeight: '1.9' }}>
+        <div style={{ color: '#eef2f5' }}><span style={{ color: '#22d3d3' }}>proyecto</span> <span style={{ color: '#8b94a3' }}>git:(</span><span style={{ color: '#e0a34a' }}>main</span><span style={{ color: '#8b94a3' }}>) ✗ </span>npm run build</div>
+        <div style={{ color: '#b6bfca' }}>✓ compilado en 3.4s · 214 kB</div>
+      </div>
+      <div style={{ background: '#0c1219', border: '1px solid #1e2937', borderLeft: '3px solid #22d3d3', borderRadius: '0 10px 10px 0', padding: '16px 20px', fontFamily: 'ui-monospace,monospace', fontSize: '15px', lineHeight: '1.9' }}>
+        <div style={{ color: '#eef2f5' }}><span style={{ color: '#22d3d3' }}>proyecto</span> <span style={{ color: '#8b94a3' }}>git:(</span><span style={{ color: '#e0a34a' }}>main</span><span style={{ color: '#8b94a3' }}>) ✗ </span>git status -sb</div>
+        <div style={{ color: '#b6bfca' }}>## main...origin/main</div>
+        <div style={{ color: '#b6bfca' }}> M src/api.js</div>
+        <div style={{ color: '#b6bfca' }}>?? src/hooks/useEnv.js</div>
+      </div>
+      <div style={{ background: '#0c1219', border: '1px solid #1e2937', borderLeft: '3px solid #22d3d3', borderRadius: '0 10px 10px 0', padding: '16px 20px', fontFamily: 'ui-monospace,monospace', fontSize: '15px', lineHeight: '1.9' }}>
+        <div style={{ color: '#eef2f5' }}><span style={{ color: '#22d3d3' }}>proyecto</span> <span style={{ color: '#8b94a3' }}>git:(</span><span style={{ color: '#e0a34a' }}>main</span><span style={{ color: '#8b94a3' }}>) ✗ </span>claude</div>
+        <div style={{ color: '#a9e8e8' }}>agente listo en ~/proyecto · contexto del repo cargado</div>
+      </div>
+    </div>
+  </Diagram>
+</Row>
+
+Un dato que poca gente sabe: Warp también trae un **editor de código integrado**: con resaltado de sintaxis, pestañas y atajos de Vim, pensado para ediciones rápidas sin salir de la terminal. No reemplaza a **VS Code** para mí todavía, pero ya cubre una parte de lo que técnicamente necesitaría un editor aparte.
+
+## 04 — La shell: Zsh, con Oh My Zsh arriba
+
+**Zsh** con **Oh My Zsh** suma **autosugerencias** (completa comandos que ya usaste) y **resaltado de sintaxis** (te marca en rojo un comando mal escrito antes de correrlo). **Powerlevel10k** agrega info en el prompt mismo: en qué rama de git estás, si hay cambios sin commitear, sin tener que correr `git status` para saberlo.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/oh-my-zsh.jpg" alt="Oh My Zsh · framework de configuración" caption="Oh My Zsh · framework de configuración" />
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/powerlevel10k-prompt.jpg" alt="Powerlevel10k · prompt con estado de git" caption="Powerlevel10k · prompt con estado de git" />
+</Row>
+
+<Diagram w={1200} caption="El prompt, en detalle">
+  <div style={{ width: '1200px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', padding: '44px 40px', display: 'flex', flexDirection: 'column', gap: '26px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'ui-monospace,monospace', fontSize: '22px' }}>
+      <span style={{ background: '#123039', color: '#22d3d3', padding: '10px 18px' }}>~/proyecto</span>
+      <span style={{ background: '#2a2113', color: '#e0a34a', padding: '10px 18px' }}>⎇ feat/entorno</span>
+      <span style={{ background: '#2b1a1a', color: '#e07a7a', padding: '10px 18px' }}>✗ 2 sin commitear</span>
+    </div>
+    <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '22px', lineHeight: '1.8' }}>
+      <span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#eef2f5' }}>git com</span><span style={{ color: '#4c586a' }}>mit -m "feat: warp + zsh"</span>
+    </div>
+    <div style={{ display: 'flex', gap: '34px', fontFamily: 'ui-monospace,monospace', fontSize: '13px', color: '#54606e', borderTop: '1px solid #1a2230', paddingTop: '20px' }}>
+      <span><span style={{ color: '#22d3d3' }}>■</span> carpeta actual</span>
+      <span><span style={{ color: '#e0a34a' }}>■</span> rama de git</span>
+      <span><span style={{ color: '#e07a7a' }}>■</span> cambios pendientes</span>
+      <span><span style={{ color: '#4c586a' }}>■</span> autosugerencia del historial</span>
+    </div>
+  </div>
+</Diagram>
+
+## 05 — El editor: VS Code hoy, y la decisión que tengo pendiente
+
+Uso **Visual Studio Code** de siempre: es el estándar, estable, con el ecosistema de extensiones más grande. Lo abro desde la terminal con `code .` y me sirve como verificador visual: ver diffs, navegar archivos, revisar lo que un agente propuso antes de aceptarlo. Como verificación de código ya la tengo cubierta con **Claude Code**, así que VS Code hoy es sobre todo mi lente para mirar lo que se está construyendo.
+
+Para que `code .` abra tu proyecto de Ubuntu dentro de VS Code hace falta la extensión WSL (la del ícono del pingüino). Sin ella, VS Code abre en modo Windows y no ve el filesystem de Linux. Con la extensión instalada, VS Code corre conectado a WSL2 y su terminal integrada es la misma terminal de Ubuntu.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/vscode-wsl-ubuntu.jpg" alt="VS Code conectado a WSL: Ubuntu" caption="VS Code conectado a WSL: Ubuntu" />
+  <Diagram w={1600} caption="El editor conectado a WSL2">
+    <div style={{ width: '1600px', height: '760px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '18px', padding: '12px 20px', background: '#0c1219', borderBottom: '1px solid #1a2230', fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#8b94a3' }}>
+        <span style={{ color: '#eef2f5' }}>proyecto</span>
+        <span>archivo</span>
+        <span>editar</span>
+        <span>ver</span>
+        <span>terminal</span>
+      </div>
+      <div style={{ flex: '1', display: 'flex', minHeight: '0' }}>
+        <div style={{ width: '260px', borderRight: '1px solid #1a2230', padding: '18px 16px', fontFamily: 'ui-monospace,monospace', fontSize: '13px', color: '#8b94a3', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ color: '#54606e', letterSpacing: '.1em', fontSize: '11px' }}>EXPLORADOR</div>
+          <div style={{ color: '#eef2f5' }}>▾ src</div>
+          <div style={{ paddingLeft: '16px' }}>api.js</div>
+          <div style={{ paddingLeft: '16px', color: '#22d3d3' }}>index.js</div>
+          <div style={{ paddingLeft: '16px' }}>env.config.js</div>
+          <div>▸ public</div>
+          <div>package.json</div>
+          <div>README.md</div>
+        </div>
+        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', minWidth: '0' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid #1a2230', fontFamily: 'ui-monospace,monospace', fontSize: '13px' }}>
+            <div style={{ padding: '12px 20px', color: '#eef2f5', background: '#0c1219', borderRight: '1px solid #1a2230', borderTop: '2px solid #22d3d3' }}>index.js</div>
+            <div style={{ padding: '12px 20px', color: '#54606e', borderRight: '1px solid #1a2230' }}>api.js</div>
+          </div>
+          <div style={{ flex: '1', padding: '22px 26px', fontFamily: 'ui-monospace,monospace', fontSize: '15px', lineHeight: '2', color: '#b6bfca' }}>
+            <div><span style={{ color: '#54606e' }}>1</span>  <span style={{ color: '#22d3d3' }}>import</span> {'{ createServer }'} <span style={{ color: '#22d3d3' }}>from</span> <span style={{ color: '#a9e8e8' }}>&quot;./server.js&quot;</span></div>
+            <div><span style={{ color: '#54606e' }}>2</span>  <span style={{ color: '#22d3d3' }}>import</span> {'{ env }'} <span style={{ color: '#22d3d3' }}>from</span> <span style={{ color: '#a9e8e8' }}>&quot;./env.config.js&quot;</span></div>
+            <div><span style={{ color: '#54606e' }}>3</span></div>
+            <div><span style={{ color: '#54606e' }}>4</span>  <span style={{ color: '#22d3d3' }}>const</span> {'app = createServer({ port: env.PORT })'}</div>
+            <div><span style={{ color: '#54606e' }}>5</span></div>
+            <div><span style={{ color: '#54606e' }}>6</span>  {'app.listen(() => {'}</div>
+            <div><span style={{ color: '#54606e' }}>7</span>    console.log(<span style={{ color: '#a9e8e8' }}>{'`escuchando en :${env.PORT}`'}</span>)</div>
+            <div><span style={{ color: '#54606e' }}>8</span>  {'})'}</div>
+          </div>
+          <div style={{ borderTop: '1px solid #1a2230', padding: '16px 26px', fontFamily: 'ui-monospace,monospace', fontSize: '14px', color: '#a9e8e8', background: '#0c1219' }}>
+            <div style={{ color: '#54606e', fontSize: '11px', letterSpacing: '.1em', marginBottom: '8px' }}>TERMINAL INTEGRADA — UBUNTU</div>
+            <div><span style={{ color: '#22d3d3' }}>➜ </span>node src/index.js</div>
+            <div style={{ color: '#b6bfca' }}>escuchando en :3000</div>
+          </div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '0', background: '#0c1219', borderTop: '1px solid #1a2230', fontFamily: 'ui-monospace,monospace', fontSize: '13px', color: '#8b94a3' }}>
+        <div style={{ background: '#1c6b52', color: '#eafff6', padding: '10px 18px' }}>⇄ WSL: Ubuntu</div>
+        <span>⎇ feat/entorno</span>
+        <span>JavaScript</span>
+        <span>UTF-8</span>
+        <span>LF</span>
+      </div>
+    </div>
+  </Diagram>
+</Row>
+
+Y acá está la única capa que todavía no resolví. Google lanzó **Antigravity** en noviembre de 2025. No es un editor con IA al costado, es un IDE *agent-first*: en vez de asistirte mientras escribís, centrás el trabajo en un Agent Manager donde lanzás y supervisás varios agentes que operan sobre editor, terminal y navegador a la vez. Es gratis en su preview.
+
+La pregunta es honesta: con Claude Code como agente principal en la terminal, VS Code como lente de revisión, y Warp ya cubriendo ediciones rápidas desde la propia terminal, ¿Antigravity me agrega una capacidad real, o me duplica lo que ya tengo repartido en dos herramientas? Es un buen ejemplo de la tensión de fondo: a veces sumar un editor más es directamente innecesario, porque las piezas que ya tenés (en este caso, hasta la propia terminal) ya cumplen esa función sin que lo hayas buscado. No lo sé todavía. Mi próximo paso probablemente sea migrar a Antigravity y medirlo en un proyecto real, no adoptarlo por hype ni descartarlo por comodidad. Ese es, en el fondo, el criterio que atraviesa todo este entorno: **una herramienta nueva justifica su lugar solo si suma una capacidad que las que ya tengo no cubren.** La única forma honesta de saberlo es probarla contra un problema real y estar dispuesto a soltarla si no aporta.
+
+## 06 — Los agentes: Claude Code como principal, con dos contrapuntos elegidos
+
+Uso **Claude Code** como agente principal: con **MCP** (Model Context Protocol) conectando herramientas externas, plugins y skills que extienden lo que puede hacer sin tocar el core. Se instala nativo con un comando, y de los que uso a diario el que más me cambió el flujo es `--continue`: retoma la conversación donde la dejaste, sin volver a explicar el proyecto desde cero.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/claude-code-terminal.jpg" alt="Claude Code · agente principal en la terminal" caption="Claude Code · agente principal en la terminal" />
+  <Zoomable caption="Instalación y uso diario">
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+# --- instalación ---
+claude --version
+claude doctor             # salud del entorno
+
+# --- uso diario ---
+claude                    # abrir el agente acá
+claude --continue         # seguir la última charla
+claude --resume           # elegir sesión anterior
+claude -n "auth-refactor" # sesión con nombre
+```
+
+  </Zoomable>
+</Row>
+
+Pero no dependo de un solo agente, y las dos capas que sumé no son al azar.
+
+**OpenCode** es un entorno similar a Claude Code, pero totalmente open source. La razón concreta por la que lo tengo instalado no es redundancia: si me quedo sin tokens de Claude en medio de algo, puedo seguir trabajando conectando OpenCode a otro modelo. Ahí es donde se vuelve interesante: no depende de un solo proveedor. Puedo apuntarlo a **Codex**, a **Kimi** (el modelo abierto de Moonshot AI, mucho más barato para tareas largas), o directamente a **Ollama** corriendo un modelo en mi propia máquina, sin costo de API y sin depender de internet para lo básico. El cambio es literalmente apuntar OpenCode a otro endpoint: nativo con Ollama local, o a la nube con cualquiera de los otros. Es mi red de seguridad completa: el flujo no se frena porque se acabó una cuota, ni porque un proveedor esté caído.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/opencode-agente.jpg" alt="OpenCode · agente open source" caption="OpenCode · agente open source" />
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/opencode-modelos.jpg" alt="Modelos disponibles: DeepSeek, Kimi, Ollama, Codex…" caption="Modelos disponibles: DeepSeek, Kimi, Ollama, Codex…" />
+</Row>
+
+<Diagram w={1200} caption="Un agente, varios modelos intercambiables">
+  <div style={{ boxSizing: 'border-box', width: '1200px', height: '600px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', padding: '48px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '30px' }}>
+    <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '13px', letterSpacing: '.16em', color: '#8b94a3' }}>UN AGENTE, VARIOS MODELOS INTERCAMBIABLES</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
+      <div style={{ width: '300px', padding: '30px 26px', background: '#0d1c22', border: '1px solid #22d3d3', borderRadius: '12px' }}>
+        <div style={{ fontSize: '30px', fontWeight: '800', color: '#eef2f5' }}>OpenCode</div>
+        <div style={{ fontSize: '15px', color: '#a9e8e8', marginTop: '8px', lineHeight: '1.5' }}>open source · el endpoint se cambia, el flujo no se frena</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: '1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '52px', height: '1px', background: '#22d3d3', opacity: '.6' }}></div>
+          <div style={{ flex: '1', padding: '16px 22px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '20px', fontWeight: '700' }}>Codex</span>
+            <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e' }}>nube</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '52px', height: '1px', background: '#22d3d3', opacity: '.6' }}></div>
+          <div style={{ flex: '1', padding: '16px 22px', background: '#0c1219', border: '1px solid #1e2937', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '20px', fontWeight: '700' }}>Kimi</span>
+            <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e' }}>abierto · barato para tareas largas</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '52px', height: '1px', background: '#22d3d3', opacity: '.6' }}></div>
+          <div style={{ flex: '1', padding: '16px 22px', background: '#0c1219', border: '1px solid #22d3d3', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '20px', fontWeight: '700', color: '#22d3d3' }}>Ollama</span>
+            <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#8b94a3' }}>local · sin API, sin internet</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '52px', height: '1px', background: '#22d3d3', opacity: '.6' }}></div>
+          <div style={{ flex: '1', padding: '16px 22px', background: '#0c1219', border: '1px dashed #2a3a4a', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '20px', fontWeight: '700', color: '#8b94a3' }}>cualquier otro endpoint</span>
+            <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#54606e' }}>compatible</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Diagram>
+
+**Gentle AI** es una elección más personal, y por eso la valoro distinto. Es el ecosistema de IA de Alan Buscaglia (Gentleman Programming), que fue profesor mío en ConquerBlocks. Dio los módulos de React, React avanzado y React con TypeScript, además de Vue, Angular, Astro y el backend con Go, básicamente toda la capa de frameworks de la formación. Su ecosistema no es un wrapper genérico sobre un modelo: tiene el conocimiento de sus propios cursos integrado, así que cuando le pregunto algo, responde con el mismo criterio con el que aprendí. Junto a **Engram** (contexto persistente entre sesiones) y **GGA** (hooks de git automatizados), es la capa que más se parece a cómo pienso yo el código, porque literalmente aprendí con ese material.
+
+<Row cols={2}>
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/gentle-ai-ecosistema.jpg" alt="Gentle AI · ecosistema de Gentleman Programming" caption="Gentle AI · ecosistema de Gentleman Programming" />
+  <ImageShot src="/blog/cada-herramienta-se-gana-su-lugar/gentle-ai-doctor.jpg" alt="gentle-ai doctor · verificación del entorno" caption="gentle-ai doctor · verificación del entorno" />
+</Row>
+
+<Diagram w={1400} caption="Verificación del entorno en un comando">
+  <div style={{ width: '1400px', background: '#0a0e14', border: '1px solid #1a2230', borderRadius: '14px', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 20px', background: '#0c1219', borderBottom: '1px solid #1a2230' }}>
+      <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: '#2a3a4a' }}></div>
+      <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: '#2a3a4a' }}></div>
+      <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: '#2a3a4a' }}></div>
+      <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: '#8b94a3', marginLeft: '14px' }}>silvano@ubuntu: ~</div>
+    </div>
+    <div style={{ padding: '26px 30px', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: '16px', lineHeight: '2', color: '#b6bfca' }}>
+      <div><span style={{ color: '#22d3d3' }}>➜ </span>gentle-ai doctor</div>
+      <div style={{ color: '#54606e', marginTop: '6px' }}>verificando ecosistema…</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> Homebrew instalado y en PATH</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> tap Gentleman-Programming confiado</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> gentle-ai v1.4.2</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> Engram — contexto persistente activo</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> GGA — hooks de git instalados</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> credenciales de modelo configuradas</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> shell Zsh detectada</div>
+      <div><span style={{ color: '#4ade80' }}>✓</span> Node 22.11.0</div>
+      <div style={{ marginTop: '10px' }}><span style={{ color: '#4ade80', fontWeight: '700' }}>Status: healthy</span> <span style={{ color: '#54606e' }}>— 8/8 checks</span></div>
+      <div><span style={{ color: '#22d3d3' }}>➜ </span><span style={{ color: '#eef2f5' }}>▌</span></div>
+    </div>
+  </div>
+</Diagram>
+
+Todo esto se instala sobre **Homebrew**: un gestor de paquetes nacido en Mac que hoy también corre en Linux (como Linuxbrew). La ventaja de fondo es la reproducibilidad: cada paquete (formula) tiene una definición versionada y verificable, en vez de un instalador suelto bajado de cualquier lado, y los repositorios de terceros (taps, como el de Gentleman-Programming, de donde sale Gentle AI) se habilitan con un paso de confianza explícito (`brew trust`) antes de poder instalar nada de ahí. Es la misma lógica de curaduría que aplico al resto del entorno: nada entra sin saber de dónde viene.
+
+## 07 — Lo que ninguna herramienta reemplaza
+
+Ningún agente de IA, por bueno que sea, reemplaza entender qué está pasando cuando algo falla. La semana que perdí diagnosticando un corte de red en **WSL2** (conexiones HTTPS que se cerraban a mitad del TLS handshake) no la resolvió ninguna herramienta instalada. La resolvió aislar el problema capa por capa: probar con `curl`, descartar el DNS, llegar a que era el modo de red de WSL2. Ese razonamiento no lo delegás.
+
+Documentar cada capa por separado, como en esta guía, es mi forma de chequear que cada una siga ganándose su lugar. Si te interesa el paso a paso completo de instalación (Windows+WSL2 o Linux nativo), pedímelo en los comentarios.
+
+Si querés montar este mismo entorno, podés descargar la guía y copiársela a la IA que uses para que te acompañe paso a paso en la instalación.
+
+<DownloadGuides />
+
+Este tipo de decisiones de entorno y herramientas es exactamente lo que analizo cada semana en El Radar. Si te interesa esta línea, suscribite. Una nota por semana, directo en tu casilla.
