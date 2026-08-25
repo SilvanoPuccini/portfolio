@@ -79,7 +79,7 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
       {/* Panel */}
       <div
         className="relative z-10 flex w-[min(92vw,64rem)] flex-col overflow-hidden rounded-[var(--radius-surface)] border border-outline-ghost/15 bg-[rgb(var(--surface))] shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
-        style={{ height: "88vh" }}
+        style={{ height: "88dvh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

@@ -87,7 +87,7 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
             cerrar ✕
           </button>
           <div
-            className="max-h-[78vh] max-w-[78vw] cursor-auto overflow-auto"
+            className="max-h-[78dvh] max-w-[78vw] cursor-auto overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {expanded ?? children}
@@ -148,7 +148,7 @@ export function ImageShot({
         <img
           src={src}
           alt={alt}
-          className="h-[78vh] w-[78vw] rounded-lg object-contain"
+          className="h-[78dvh] w-[78vw] rounded-lg object-contain"
         />
       }
     >
