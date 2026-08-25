@@ -16,20 +16,27 @@ interface Props {
 
 export function CertificateModal({ stackName, fileName, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState<number>(0);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  // Alto/ancho natural de la página del PDF (a escala 1), para no exceder el alto disponible.
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
-  const updateWidth = useCallback(() => {
+  const updateSize = useCallback(() => {
     if (containerRef.current) {
-      setWidth(containerRef.current.clientWidth);
+      const { clientWidth, clientHeight } = containerRef.current;
+      setContainerSize({ width: clientWidth, height: clientHeight });
     }
   }, []);
 
   useEffect(() => {
-    updateWidth();
-    const observer = new ResizeObserver(updateWidth);
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [updateWidth]);
+  }, [updateSize]);
+
+  const width = aspectRatio
+    ? Math.min(containerSize.width, containerSize.height / aspectRatio)
+    : containerSize.width;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -94,7 +101,13 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
               </div>
             }
           >
-            {width > 0 && <Page pageNumber={1} width={width} />}
+            {width > 0 && (
+              <Page
+                pageNumber={1}
+                width={width}
+                onLoadSuccess={(page) => setAspectRatio(page.height / page.width)}
+              />
+            )}
           </Document>
         </div>
       </div>
