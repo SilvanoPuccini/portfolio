@@ -39,17 +39,15 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
   return (
     <>
       <figure
-        className={`group m-0 flex cursor-zoom-in flex-col gap-3.5 ${className}`}
+        className={`group m-0 cursor-zoom-in overflow-hidden rounded-[10px] border border-[#1e2937] bg-[#0e141d] transition-colors duration-150 hover:border-[#22d3d3] ${className}`}
         onClick={() => setOpen(true)}
       >
+        {children}
         {caption && (
-          <figcaption className="truncate font-mono text-xs uppercase tracking-[0.14em] text-[#22d3d3]">
+          <figcaption className="border-t border-[#1a2230] bg-[#0c1219] px-2.5 py-[7px] font-mono text-[11px] text-[#8b94a3]">
             {caption}
           </figcaption>
         )}
-        <div className="overflow-hidden rounded-[10px] border border-[#1e2937] bg-[#0e141d] transition-colors duration-150 group-hover:border-[#22d3d3]">
-          {children}
-        </div>
       </figure>
 
       {open && (
@@ -251,12 +249,12 @@ export function DownloadGuides() {
   return (
     <div className="mt-8 flex flex-wrap gap-3">
       <a
-        className="button-primary w-full gap-[11px] normal-case tracking-normal no-underline sm:w-auto"
+        className="inline-flex w-full items-center gap-[11px] rounded-[10px] border border-transparent bg-[#22d3d3] px-[22px] py-[13px] text-[14.5px] font-semibold text-[#062024] no-underline transition-colors hover:bg-[#5ceaea] sm:w-auto"
         href="/guias/guia-instalacion-windows-wsl.pdf"
         download
       >
         <WindowsIcon />
-        <span className="text-left text-[14.5px] font-semibold">
+        <span>
           Guía para Windows
           <span className="mt-px block font-mono text-[10.5px] font-normal opacity-75">
             WSL2 + Ubuntu · PDF
@@ -264,12 +262,12 @@ export function DownloadGuides() {
         </span>
       </a>
       <a
-        className="button-secondary w-full gap-[11px] normal-case tracking-normal no-underline sm:w-auto"
+        className="inline-flex w-full items-center gap-[11px] rounded-[10px] border border-[#25384a] bg-transparent px-[22px] py-[13px] text-[14.5px] font-semibold text-[#eef2f5] no-underline transition-colors hover:border-[#22d3d3] hover:text-[#22d3d3] sm:w-auto"
         href="/guias/guia-instalacion-linux-nativo.pdf"
         download
       >
         <LinuxIcon />
-        <span className="text-left text-[14.5px] font-semibold">
+        <span>
           Guía para Ubuntu
           <span className="mt-px block font-mono text-[10.5px] font-normal opacity-75">
             instalación nativa · PDF

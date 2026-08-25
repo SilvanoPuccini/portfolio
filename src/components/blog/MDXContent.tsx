@@ -53,7 +53,7 @@ export function MDXContent({ source }: Props) {
 
       prose-code:text-brand-primary prose-code:bg-surface-elevated/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
 
-      prose-pre:text-sm
+      prose-pre:text-[12.5px] prose-pre:whitespace-pre-wrap prose-pre:break-words
 
       prose-blockquote:border-l-2 prose-blockquote:border-brand-primary/50 prose-blockquote:pl-6 prose-blockquote:py-1 prose-blockquote:text-text-secondary prose-blockquote:not-italic prose-blockquote:my-8
 
