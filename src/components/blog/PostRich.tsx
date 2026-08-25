@@ -150,14 +150,13 @@ function ImageExpanded({ src, alt }: { src: string; alt: string }) {
   }, []);
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      ref={imgRef}
-      src={src}
-      alt={alt}
+    <div
+      className="overflow-hidden rounded-lg"
       style={{ width: size?.w, height: size?.h, opacity: size ? 1 : 0, transition: "opacity .12s" }}
-      className="max-h-[78vh] max-w-[78vw] rounded-lg object-contain"
-    />
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img ref={imgRef} src={src} alt={alt} className="h-full w-full object-contain" />
+    </div>
   );
 }
 
