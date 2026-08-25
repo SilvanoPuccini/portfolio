@@ -251,7 +251,7 @@ export function DownloadGuides() {
   return (
     <div className="mt-8 flex flex-wrap gap-3">
       <a
-        className="button-primary gap-[11px] normal-case tracking-normal no-underline"
+        className="button-primary w-full gap-[11px] normal-case tracking-normal no-underline sm:w-auto"
         href="/guias/guia-instalacion-windows-wsl.pdf"
         download
       >
@@ -264,7 +264,7 @@ export function DownloadGuides() {
         </span>
       </a>
       <a
-        className="button-secondary gap-[11px] normal-case tracking-normal no-underline"
+        className="button-secondary w-full gap-[11px] normal-case tracking-normal no-underline sm:w-auto"
         href="/guias/guia-instalacion-linux-nativo.pdf"
         download
       >
