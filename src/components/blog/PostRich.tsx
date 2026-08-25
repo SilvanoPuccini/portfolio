@@ -43,7 +43,7 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
         onClick={() => setOpen(true)}
       >
         {caption && (
-          <figcaption className="font-mono text-xs uppercase tracking-[0.14em] text-[#22d3d3]">
+          <figcaption className="truncate font-mono text-xs uppercase tracking-[0.14em] text-[#22d3d3]">
             {caption}
           </figcaption>
         )}
@@ -251,12 +251,12 @@ export function DownloadGuides() {
   return (
     <div className="mt-8 flex flex-wrap gap-3">
       <a
-        className="inline-flex items-center gap-[11px] rounded-[10px] border border-[#25384a] bg-transparent px-[22px] py-[13px] text-[14.5px] font-semibold text-[#eef2f5] no-underline transition-colors hover:border-[#22d3d3] hover:text-[#22d3d3]"
+        className="button-primary gap-[11px] normal-case tracking-normal no-underline"
         href="/guias/guia-instalacion-windows-wsl.pdf"
         download
       >
         <WindowsIcon />
-        <span>
+        <span className="text-left text-[14.5px] font-semibold">
           Guía para Windows
           <span className="mt-px block font-mono text-[10.5px] font-normal opacity-75">
             WSL2 + Ubuntu · PDF
@@ -264,12 +264,12 @@ export function DownloadGuides() {
         </span>
       </a>
       <a
-        className="inline-flex items-center gap-[11px] rounded-[10px] border border-[#25384a] bg-transparent px-[22px] py-[13px] text-[14.5px] font-semibold text-[#eef2f5] no-underline transition-colors hover:border-[#22d3d3] hover:text-[#22d3d3]"
+        className="button-secondary gap-[11px] normal-case tracking-normal no-underline"
         href="/guias/guia-instalacion-linux-nativo.pdf"
         download
       >
         <LinuxIcon />
-        <span>
+        <span className="text-left text-[14.5px] font-semibold">
           Guía para Ubuntu
           <span className="mt-px block font-mono text-[10.5px] font-normal opacity-75">
             instalación nativa · PDF
