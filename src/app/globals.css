@@ -351,6 +351,17 @@ figure[data-rehype-pretty-code-figure] pre code {
   min-width: max-content;
 }
 
+/* Blog posts: wrap long command lines instead of a horizontal scrollbar. */
+.prose figure[data-rehype-pretty-code-figure] pre {
+  overflow-x: visible !important;
+}
+
+.prose figure[data-rehype-pretty-code-figure] pre code {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
