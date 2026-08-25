@@ -68,7 +68,7 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
             cerrar ✕
           </button>
           <div
-            className="max-h-[70vh] max-w-[70vw] cursor-auto overflow-auto"
+            className="max-h-[78vh] max-w-[78vw] cursor-auto overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {expanded ?? children}
@@ -129,7 +129,7 @@ export function ImageShot({
         <img
           src={src}
           alt={alt}
-          className="max-h-[70vh] max-w-[70vw] rounded-lg object-contain"
+          className="max-h-[78vh] max-w-[78vw] rounded-lg object-contain"
         />
       }
     >
@@ -177,22 +177,24 @@ function useAutoScaleToWidth(w: number) {
 function DiagramExpanded({ w, children }: { w: number; children: React.ReactNode }) {
   const innerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [scaledHeight, setScaledHeight] = useState<number | undefined>(undefined);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const inner = innerRef.current;
     if (!inner) return;
     const naturalH = inner.offsetHeight;
-    const maxW = window.innerWidth * 0.7;
-    const maxH = window.innerHeight * 0.7;
+    const maxW = window.innerWidth * 0.78;
+    const maxH = window.innerHeight * 0.78;
     const s = Math.min(maxW / w, maxH / naturalH, 1.6);
     setScale(s);
+    setScaledHeight(naturalH * s);
     setReady(true);
   }, [w]);
 
   return (
     <div
-      style={{ width: w * scale, transition: "opacity .12s", opacity: ready ? 1 : 0 }}
+      style={{ width: w * scale, height: scaledHeight, transition: "opacity .12s", opacity: ready ? 1 : 0 }}
       className="overflow-hidden"
     >
       <div ref={innerRef} style={{ width: w, transform: `scale(${scale})`, transformOrigin: "top left" }}>
