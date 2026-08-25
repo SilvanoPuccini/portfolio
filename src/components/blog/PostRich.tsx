@@ -24,17 +24,36 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
 
   useEffect(() => {
     if (!open) return;
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") close();
     }
+    // Un back físico/gesto de mobile mientras el lightbox está abierto no debe
+    // sacar de la página: consume la entrada de historial que empujamos abajo.
+    function onPopState() {
+      setOpen(false);
+    }
+
     document.addEventListener("keydown", onKey);
+    window.addEventListener("popstate", onPopState);
+    window.history.pushState({ zoomable: true }, "");
+
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("popstate", onPopState);
       document.body.style.overflow = prevOverflow;
     };
   }, [open]);
+
+  function close() {
+    if (window.history.state?.zoomable) {
+      window.history.back();
+    } else {
+      setOpen(false);
+    }
+  }
 
   return (
     <>
@@ -55,14 +74,14 @@ export function Zoomable({ children, expanded, caption, className = "" }: Zoomab
       {open && (
         <div
           className="fixed inset-0 z-[999] flex cursor-zoom-out items-center justify-center bg-[rgba(5,8,12,0.96)] p-6"
-          onClick={() => setOpen(false)}
+          onClick={close}
         >
           <button
             type="button"
             className="fixed right-5 top-5 rounded-md border border-[#22d3d3] bg-transparent px-3 py-1.5 font-mono text-[13px] text-[#22d3d3] transition-colors hover:bg-[#22d3d3]/10"
             onClick={(e) => {
               e.stopPropagation();
-              setOpen(false);
+              close();
             }}
           >
             cerrar ✕
@@ -129,7 +148,7 @@ export function ImageShot({
         <img
           src={src}
           alt={alt}
-          className="max-h-[78vh] max-w-[78vw] rounded-lg object-contain"
+          className="h-[78vh] w-[78vw] rounded-lg object-contain"
         />
       }
     >

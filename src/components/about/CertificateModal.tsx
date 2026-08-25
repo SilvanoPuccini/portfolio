@@ -40,28 +40,46 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     }
+    // Un back físico/gesto de mobile mientras el certificado está abierto no
+    // debe sacar de la página: consume la entrada de historial que empujamos.
+    function onPopState() {
+      onClose();
+    }
+
     document.addEventListener("keydown", onKey);
+    window.addEventListener("popstate", onPopState);
+    window.history.pushState({ certificateModal: true }, "");
+
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("popstate", onPopState);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, []);
+
+  function close() {
+    if (window.history.state?.certificateModal) {
+      window.history.back();
+    } else {
+      onClose();
+    }
+  }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-      onClick={onClose}
+      onClick={close}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
 
       {/* Panel */}
       <div
-        className="relative z-10 flex w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-surface)] border border-outline-ghost/15 bg-[rgb(var(--surface))] shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
-        style={{ maxHeight: "90vh" }}
+        className="relative z-10 flex w-[min(92vw,64rem)] flex-col overflow-hidden rounded-[var(--radius-surface)] border border-outline-ghost/15 bg-[rgb(var(--surface))] shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
+        style={{ height: "88vh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -75,7 +93,7 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             className="flex h-8 w-8 items-center justify-center rounded-pill border border-outline-ghost/15 text-text-tertiary transition-colors hover:border-outline-ghost/30 hover:text-text-primary"
             aria-label="Cerrar"
           >
