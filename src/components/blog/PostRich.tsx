@@ -126,6 +126,41 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
 // ImageShot — screenshot recortado, expande a tamaño completo
 // ─────────────────────────────────────────────────────────────────
 
+function ImageExpanded({ src, alt }: { src: string; alt: string }) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    function fit() {
+      const img = imgRef.current;
+      if (!img || !img.naturalWidth) return;
+      const maxW = window.innerWidth * 0.78;
+      const maxH = window.innerHeight * 0.78;
+      const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
+      setSize({ w: img.naturalWidth * scale, h: img.naturalHeight * scale });
+    }
+    const img = imgRef.current;
+    if (img?.complete) fit();
+    img?.addEventListener("load", fit);
+    window.addEventListener("resize", fit);
+    return () => {
+      img?.removeEventListener("load", fit);
+      window.removeEventListener("resize", fit);
+    };
+  }, []);
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      ref={imgRef}
+      src={src}
+      alt={alt}
+      style={{ width: size?.w, height: size?.h, opacity: size ? 1 : 0, transition: "opacity .12s" }}
+      className="rounded-lg"
+    />
+  );
+}
+
 export function ImageShot({
   src,
   alt,
@@ -143,14 +178,7 @@ export function ImageShot({
   return (
     <Zoomable
       caption={caption ?? alt}
-      expanded={
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt={alt}
-          className="h-[78dvh] w-[78vw] rounded-lg object-contain"
-        />
-      }
+      expanded={<ImageExpanded src={src} alt={alt} />}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt} className={`block w-full object-cover ${heightClass}`} />

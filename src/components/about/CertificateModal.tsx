@@ -16,27 +16,37 @@ interface Props {
 
 export function CertificateModal({ stackName, fileName, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  // Alto disponible calculado en JS con window.innerHeight (igual que los
+  // diagramas del blog) — nunca depende del clientHeight de un contenedor
+  // cuyo propio tamaño termina dependiendo del PDF ya renderizado adentro.
+  const [availableHeight, setAvailableHeight] = useState(0);
   // Alto/ancho natural de la página del PDF (a escala 1), para no exceder el alto disponible.
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   const updateSize = useCallback(() => {
     if (containerRef.current) {
-      const { clientWidth, clientHeight } = containerRef.current;
-      setContainerSize({ width: clientWidth, height: clientHeight });
+      setContainerWidth(containerRef.current.clientWidth);
     }
+    const headerH = headerRef.current?.offsetHeight ?? 0;
+    setAvailableHeight(window.innerHeight * 0.88 - headerH);
   }, []);
 
   useEffect(() => {
     updateSize();
     const observer = new ResizeObserver(updateSize);
     if (containerRef.current) observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    window.addEventListener("resize", updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateSize);
+    };
   }, [updateSize]);
 
   const width = aspectRatio
-    ? Math.min(containerSize.width, containerSize.height / aspectRatio)
-    : containerSize.width;
+    ? Math.min(containerWidth, availableHeight / aspectRatio)
+    : containerWidth;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -79,11 +89,13 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
       {/* Panel */}
       <div
         className="relative z-10 flex w-[min(92vw,64rem)] flex-col overflow-hidden rounded-[var(--radius-surface)] border border-outline-ghost/15 bg-[rgb(var(--surface))] shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
-        style={{ height: "88dvh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-outline-ghost/10 px-5 py-4 sm:px-6">
+        <div
+          ref={headerRef}
+          className="flex items-center justify-between border-b border-outline-ghost/10 px-5 py-4 sm:px-6"
+        >
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary">
               Certificado
@@ -104,7 +116,8 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
         {/* PDF Viewer */}
         <div
           ref={containerRef}
-          className="flex flex-1 items-center justify-center overflow-auto"
+          className="flex items-center justify-center overflow-auto"
+          style={{ height: availableHeight || undefined }}
         >
           <Document
             file={`/api/certificate/${encodeURIComponent(fileName)}`}
