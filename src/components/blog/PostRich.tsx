@@ -249,7 +249,7 @@ function LinuxIcon() {
 
 export function DownloadGuides() {
   return (
-    <div className="mt-8 flex flex-wrap gap-3">
+    <div className="not-prose mt-8 flex flex-wrap gap-3">
       <a
         className="button-primary w-full gap-[11px] no-underline sm:w-auto"
         href="/guias/guia-instalacion-windows-wsl.pdf"
