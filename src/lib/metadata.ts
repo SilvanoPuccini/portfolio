@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://silvanopuccini.dev";
-// Note: replace og-default.svg with a 1200x630 PNG for maximum social crawler compatibility.
-const DEFAULT_OG_IMAGE = "/og-default.svg";
+// PNG required: social crawlers (LinkedIn, Facebook, Twitter) do not render SVG og:image.
+const DEFAULT_OG_IMAGE = "/og-default.png";
 
 export type PageMetadataOptions = {
   locale: Locale;
