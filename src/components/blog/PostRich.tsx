@@ -156,7 +156,7 @@ function ImageExpanded({ src, alt }: { src: string; alt: string }) {
       src={src}
       alt={alt}
       style={{ width: size?.w, height: size?.h, opacity: size ? 1 : 0, transition: "opacity .12s" }}
-      className="rounded-lg"
+      className="max-h-[78vh] max-w-[78vw] rounded-lg object-contain"
     />
   );
 }
@@ -300,7 +300,7 @@ export function DownloadGuides() {
   return (
     <div className="not-prose mt-8 flex flex-wrap gap-3">
       <a
-        className="button-primary w-full gap-[11px] no-underline sm:w-auto"
+        className="button-primary w-full gap-[30px] no-underline sm:w-auto"
         href="/guias/guia-instalacion-windows-wsl.pdf"
         download
       >
@@ -313,7 +313,7 @@ export function DownloadGuides() {
         </span>
       </a>
       <a
-        className="button-secondary w-full gap-[11px] no-underline sm:w-auto"
+        className="button-secondary w-full gap-[30px] no-underline sm:w-auto"
         href="/guias/guia-instalacion-linux-nativo.pdf"
         download
       >
