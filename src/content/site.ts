@@ -58,7 +58,7 @@ const home: HomeContent = {
       { label: "View projects", href: "/projects" },
     ],
   },
-  featuredProjectSlugs: ["ferrelonstock", "pediacore", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack", "facturia-2-0"],
+  featuredProjectSlugs: ["ferrelonstock", "pediacore", "my-marketing-agency", "aktivar", "mindcode-academy", "modern-art-gallery", "paytrack", "facturia-2-0"],
   sourceUrls: [
     "/cv/CV_Silvano_Puccini_FullStack.pdf",
     "README.md",

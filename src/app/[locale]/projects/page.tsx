@@ -12,7 +12,7 @@ import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
 
-const primarySlugs = ["ferrelonstock", "pediacore", "my-marketing-agency", "aktivar", "modern-art-gallery", "paytrack"] as const;
+const primarySlugs = ["ferrelonstock", "pediacore", "my-marketing-agency", "aktivar", "mindcode-academy", "modern-art-gallery", "paytrack"] as const;
 
 const copy = {
   es: {
