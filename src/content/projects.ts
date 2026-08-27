@@ -92,17 +92,17 @@ export const projects: Project[] = [
       en: "System that digitizes the entire operation of an independent pediatric practice in Chile: online booking, medical records with WHO growth curves, parent portal, MercadoPago payments, and admin dashboard with financial analytics.",
     },
     challenge: {
-      es: "Reemplazar un flujo fragmentado entre papel, WhatsApp y planillas por una plataforma unificada que gestione turnos, historias clínicas, pagos y comunicación — en producción real con pacientes.",
-      en: "Replace a fragmented workflow of paper, WhatsApp, and spreadsheets with a unified platform managing appointments, medical records, payments, and communications — in real production with patients.",
+      es: "Reemplazar un flujo fragmentado entre papel, WhatsApp y planillas por una plataforma unificada que gestione turnos, historias clínicas, pagos y comunicación, en producción real con pacientes.",
+      en: "Replace a fragmented workflow of paper, WhatsApp, and spreadsheets with a unified platform managing appointments, medical records, payments, and communications, in real production with patients.",
     },
     impact: {
       es: [
-        "Historia clínica SOAP con antropometría OMS, vacunas PNI y archivos adjuntos — con auditoría de acceso.",
+        "Historia clínica SOAP con antropometría OMS, vacunas PNI y archivos adjuntos, con auditoría de acceso.",
         "Reservas multi-sede con calendario dinámico, hold atómico de 15 min y waitlist automática.",
         "773 tests en 50 archivos. Desplegado en DigitalOcean con Docker, Nginx y TLS automático.",
       ],
       en: [
-        "SOAP medical records with WHO anthropometrics, PNI vaccination calendar, and file attachments — with access audit logging.",
+        "SOAP medical records with WHO anthropometrics, PNI vaccination calendar, and file attachments, with access audit logging.",
         "Multi-location booking with dynamic calendar, 15-min atomic hold, and automatic waitlist.",
         "773 tests across 50 files. Deployed on DigitalOcean with Docker, Nginx, and auto-TLS.",
       ],
