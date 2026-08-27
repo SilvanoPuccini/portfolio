@@ -3,7 +3,9 @@ import type { Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://silvanopuccini.dev";
 // PNG required: social crawlers (LinkedIn, Facebook, Twitter) do not render SVG og:image.
-const DEFAULT_OG_IMAGE = "/og-default.png";
+// Cache-busting query param: bump this when og-default.png changes so LinkedIn/Facebook
+// treat it as a new URL instead of serving their stale cached image.
+const DEFAULT_OG_IMAGE = "/og-default.png?v=2";
 
 export type PageMetadataOptions = {
   locale: Locale;
