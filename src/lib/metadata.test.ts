@@ -93,7 +93,7 @@ describe("generatePageMetadata", () => {
       const images = (meta.openGraph?.images ?? []) as Array<{ url: string }>;
       expect(images.length).toBeGreaterThan(0);
       expect(images[0].url).toContain("silvanopuccini.dev");
-      expect(images[0].url).toMatch(/og-default\.(png|svg)$/);
+      expect(images[0].url).toMatch(/og-default\.(png|svg)(\?.*)?$/);
     });
 
     it("uses the override og image when provided", () => {
