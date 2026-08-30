@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
 import { CodeBlock } from './CodeBlock';
 import { DevelopmentCycleDiagram, TestingQaDiagram } from './diagrams/DevelopmentCycleDiagrams';
+import { CierreDiagram } from './diagrams/CierreDiagram';
 import {
   StackDiagramBlock,
   CommandsDiagramBlock,
@@ -17,7 +18,7 @@ import {
 
 const mdxComponents = {
   DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
-  DevelopmentCycleDiagram, TestingQaDiagram,
+  DevelopmentCycleDiagram, TestingQaDiagram, CierreDiagram,
   StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
   PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
 };
