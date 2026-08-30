@@ -10,6 +10,7 @@ import { resolveLocale, type Locale } from "@/lib/i18n";
 import { RadarBadge } from "@/components/blog/RadarBadge";
 import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
+import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
 
@@ -25,17 +26,14 @@ export async function generateMetadata({
 
   const title = `${post.title} | Silvano Puccini`;
 
-  return {
+  return generatePageMetadata({
+    locale: resolveLocale(locale),
+    path: `blog/${slug}`,
     title,
     description: post.excerpt,
-    openGraph: {
-      title,
-      description: post.excerpt,
-      type: "article",
-      url: `https://silvanopuccini.dev/${locale}/blog/${slug}`,
-    },
-    twitter: { card: "summary_large_image" },
-  };
+    ogImage: post.ogImage,
+    ogType: "article",
+  });
 }
 
 const categoryColors: Record<string, string> = {
@@ -119,7 +117,7 @@ export default async function BlogPostPage({
                 <span
                   className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
                 >
-                  {post.category}
+                  {post.displayCategory ?? post.category}
                 </span>
                 {post.readingTime && (
                   <span className="font-mono text-[11px] text-text-tertiary">

@@ -18,9 +18,11 @@ vi.mock('fs', () => ({
 import { getAllBlogPosts, getBlogPostBySlug } from './mdx';
 
 // Helper: genera frontmatter MDX mínimo válido
-function makeMdx(overrides: { title?: string; date?: string; category?: string; excerpt?: string } = {}) {
-  const { title = 'Test Post', date = '2026-01-01', category = 'Performance', excerpt = 'Test excerpt' } = overrides;
-  return `---\ntitle: '${title}'\ndate: '${date}'\ncategory: '${category}'\nexcerpt: '${excerpt}'\nreadingTime: '3 min'\n---\nContent here.`;
+function makeMdx(overrides: { title?: string; date?: string; category?: string; displayCategory?: string; excerpt?: string; ogImage?: string } = {}) {
+  const { title = 'Test Post', date = '2026-01-01', category = 'Performance', displayCategory, excerpt = 'Test excerpt', ogImage } = overrides;
+  const displayCategoryField = displayCategory ? `displayCategory: '${displayCategory}'\n` : '';
+  const imageField = ogImage ? `ogImage: '${ogImage}'\n` : '';
+  return `---\ntitle: '${title}'\ndate: '${date}'\ncategory: '${category}'\n${displayCategoryField}excerpt: '${excerpt}'\n${imageField}readingTime: '3 min'\n---\nContent here.`;
 }
 
 const POSTS = [
@@ -111,5 +113,30 @@ describe('getBlogPostBySlug()', () => {
     expect(post?.slug).toBe('post-middle');
     expect(post?.title).toBe('Middle Post');
     expect(post?.content).toContain('Content here.');
+  });
+
+  it('maps an optional post-specific Open Graph image', async () => {
+    mockReadFileSync.mockImplementation((filePath: string) => {
+      const match = POSTS.find((p) => filePath.includes(p.slug));
+      if (!match) return '';
+      return makeMdx({ title: match.title, date: match.date, ogImage: '/blog/post/og.png' });
+    });
+
+    const post = await getBlogPostBySlug('post-middle');
+
+    expect(post?.ogImage).toBe('/blog/post/og.png');
+  });
+
+  it('maps an optional editorial display category without changing the technical category', async () => {
+    mockReadFileSync.mockImplementation((filePath: string) => {
+      const match = POSTS.find((p) => filePath.includes(p.slug));
+      if (!match) return '';
+      return makeMdx({ title: match.title, date: match.date, category: 'Criterio', displayCategory: 'Arquitectura / IA aplicada' });
+    });
+
+    const post = await getBlogPostBySlug('post-middle');
+
+    expect(post?.category).toBe('Criterio');
+    expect(post?.displayCategory).toBe('Arquitectura / IA aplicada');
   });
 });

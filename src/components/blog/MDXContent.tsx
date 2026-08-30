@@ -3,6 +3,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import remarkGfm from 'remark-gfm';
 import { DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
 import { CodeBlock } from './CodeBlock';
+import { DevelopmentCycleDiagram, TestingQaDiagram } from './diagrams/DevelopmentCycleDiagrams';
 import {
   StackDiagramBlock,
   CommandsDiagramBlock,
@@ -16,6 +17,7 @@ import {
 
 const mdxComponents = {
   DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
+  DevelopmentCycleDiagram, TestingQaDiagram,
   StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
   PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
 };

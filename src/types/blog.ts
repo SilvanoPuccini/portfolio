@@ -3,8 +3,10 @@ export interface BlogPost {
   title: string;
   date: string;
   category: string;
+  displayCategory?: string;
   excerpt: string;
   coverImage?: string;
+  ogImage?: string;
   keyword?: string;
   featured?: boolean;
   linkedinCarousel?: boolean;

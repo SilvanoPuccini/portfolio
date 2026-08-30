@@ -1,0 +1,165 @@
+---
+title: 'La IA no cambió el ciclo de desarrollo. Cambió su velocidad.'
+date: '2026-08-30'
+category: 'Criterio'
+displayCategory: 'Arquitectura / IA aplicada'
+excerpt: 'Cómo uso planificación, diseño, código, test, deploy y QA para convertir un problema real en un sistema que puede funcionar en producción.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+keyword: 'ciclo IA'
+ogImage: '/blog/planificacion-diseno-codigo-test-deploy-qa-ia/og.png'
+---
+
+La IA puede escribir código en minutos.
+
+También puede equivocarse en minutos.
+
+Por eso, para mí, desarrollar con agentes no consiste en describir una pantalla, esperar una respuesta y aceptar todo lo que aparece en el repositorio.
+
+Consiste en dirigir un proceso.
+
+Trabajo con cinco fases de construcción —planificación, diseño, código, test y deploy— y una sexta capa que cierra el ciclo: QA.
+
+Aprendí a pensar el desarrollo de esta manera durante mi formación en la facultad, especialmente en Calidad y Testing y en Desarrollo de Software I y II. Ahí entendí que construir software no es solamente programar: también implica planificar, diseñar, verificar, desplegar y evaluar la calidad del sistema completo.
+
+Con el tiempo convertí ese proceso en mi propia forma de trabajar. Es el flujo que hoy aplico en mis proyectos y que adapté a un entorno donde los agentes de IA pueden participar en cada fase. Lo que cambió no es el fundamento del ciclo, sino cuánto puedo automatizar y acelerar dentro de él.
+
+El ciclo sigue siendo el mismo:
+
+**Problema real → planificación → diseño → código → test → deploy → QA → nueva planificación.**
+
+La diferencia está en que hoy un agente puede redactar especificaciones, proponer una arquitectura, implementar funcionalidades, generar pruebas y preparar un despliegue. Pero acelerar una etapa no elimina la necesidad de entenderla.
+
+<DevelopmentCycleDiagram />
+
+## 1. Planificación: convertir una idea en algo verificable
+
+No empiezo por el código. Empiezo por el problema.
+
+¿Quién necesita la solución? ¿Qué tarea quiere resolver? ¿Qué datos intervienen? ¿Qué restricciones existen? ¿Cómo sabremos que el resultado funciona?
+
+Con esas respuestas construyo una especificación: un documento que define el objetivo, el alcance, los actores, los flujos principales, las reglas del negocio y los criterios de aceptación.
+
+Si el proyecto fuera un sistema que procesa facturas, por ejemplo, no alcanzaría con pedir: “creá una aplicación para cargar facturas”. Antes habría que resolver preguntas concretas:
+
+- ¿Qué formatos acepta?
+- ¿Qué información debe extraer?
+- ¿Cómo se validan los datos?
+- ¿Qué ocurre cuando falta un campo?
+- ¿Quién puede corregir un resultado?
+- ¿Dónde se guarda la información?
+
+La planificación no intenta adivinar todo desde el comienzo. Su función es reducir ambigüedad y dejar decisiones explícitas.
+
+Cuanto mejor es la especificación, menos tiempo se pierde corrigiendo interpretaciones durante la implementación.
+
+## 2. Diseño: decidir antes de construir
+
+Una especificación explica qué debe hacer el sistema. El diseño define cómo va a hacerlo.
+
+Acá aparecen la arquitectura, el modelo de datos, las integraciones, los límites entre módulos, la seguridad, el costo de infraestructura y la experiencia de uso.
+
+Un agente puede proponer estas decisiones, pero no debería aprobarlas por mí.
+
+Mi trabajo es revisar si la solución responde al problema real y si las decisiones son sostenibles:
+
+- ¿La arquitectura soporta el uso esperado?
+- ¿Estamos agregando complejidad innecesaria?
+- ¿Los datos sensibles están protegidos?
+- ¿La solución puede mantenerse?
+- ¿El costo tiene sentido para el producto?
+
+El diseño es el lugar donde una idea empieza a convertirse en sistema. Si esta fase es débil, el código solamente implementa una decisión débil más rápido.
+
+## 3. Código: ejecutar una especificación, no improvisar prompts
+
+Cuando el plan y el diseño están claros, el agente puede implementar.
+
+La diferencia frente al llamado *vibe coding* no está necesariamente en quién escribe las líneas. El mismo modelo podría generar el código en ambos casos.
+
+La diferencia está en el contexto que recibe y en el control que existe alrededor de su trabajo.
+
+En lugar de pedir páginas aisladas, el agente trabaja contra una especificación, una arquitectura, convenciones del repositorio y una definición de terminado.
+
+Yo sigo revisando los cambios: navego los archivos, miro los diffs, verifico las dependencias y confirmo que la implementación respete las decisiones anteriores.
+
+La IA reduce el tiempo de escritura. No transfiere la responsabilidad técnica.
+
+## 4. Test: comprobar antes de confiar
+
+Que el código compile no significa que el sistema funcione.
+
+Los tests comprueban si la implementación cumple el comportamiento definido. Pueden cubrir unidades pequeñas, integraciones, flujos completos o la interfaz desde la perspectiva de un usuario.
+
+Los agentes también pueden generar y ejecutar estas pruebas. Incluso pueden corregir una implementación cuando una prueba falla. Pero hay una condición: los criterios del test deben surgir de la especificación y del comportamiento esperado, no solamente del código que el mismo agente acaba de escribir.
+
+De otro modo, el sistema corre el riesgo de evaluarse con sus propias respuestas.
+
+Una estrategia útil es separar funciones: un agente implementa y otro revisa, busca casos límite o intenta romper el resultado. Esa revisión adversarial no reemplaza el criterio humano, pero ayuda a detectar supuestos que el primer agente dejó pasar.
+
+## 5. Deploy: llevar el sistema a un entorno real
+
+El deploy no es subir una carpeta y esperar que todo funcione.
+
+Incluye configurar entornos, variables, secretos, base de datos, infraestructura, integración continua, migraciones y una forma segura de volver atrás si algo falla.
+
+Gran parte de este trabajo puede automatizarse con CLI, pipelines e infraestructura como código. Un agente puede preparar esos recursos y ejecutar el proceso.
+
+Pero todavía necesito entender qué está creando, cómo se conecta y cuánto cuesta. Si no puedo explicar la infraestructura, tampoco puedo evaluar si es segura, necesaria o excesiva.
+
+Automatizar un deploy sin comprenderlo solamente automatiza el riesgo.
+
+## 6. QA: verificar la calidad del sistema completo
+
+Testing y QA no son exactamente lo mismo.
+
+El testing pregunta: **¿la implementación cumple lo especificado?**
+
+QA pregunta: **¿el producto tiene la calidad necesaria para operar en un contexto real?**
+
+<TestingQaDiagram />
+
+Después del despliegue aparecen condiciones que un entorno local no reproduce por completo: usuarios reales, datos inesperados, latencia, errores de integración, consumo de recursos, seguridad y costos.
+
+Por eso QA incluye revisar comportamiento, monitoreo, logs, alertas, rendimiento y experiencia de uso.
+
+Si QA encuentra un problema, el ciclo no termina con un parche improvisado. La información vuelve a planificación o diseño, se actualiza la especificación y comienza una nueva iteración.
+
+## La IA acelera el circuito; el criterio lo gobierna
+
+El cambio importante no es que ahora podamos generar más código.
+
+Es que una sola persona puede coordinar tareas que antes estaban distribuidas entre varias funciones: documentación, implementación, revisión, pruebas, infraestructura y monitoreo.
+
+Eso permite avanzar más rápido y trabajar sobre varios frentes. También aumenta la cantidad de decisiones que hay que supervisar.
+
+Mi función ya no se concentra en escribir cada línea. Se concentra en mantener alineados el problema, la especificación, la arquitectura y el resultado.
+
+La IA puede participar en todas las fases. No debería ser la autoridad final de ninguna.
+
+La regla que uso es simple:
+
+**No delego una etapa que no puedo revisar.**
+
+Porque el valor del desarrollador no está solamente en producir código. Está en convertir una necesidad ambigua en un sistema que resuelva algo, pueda probarse y siga funcionando cuando llegue a producción.
+
+## Cierre
+
+Las herramientas van a cambiar. Los modelos también.
+
+El proceso permanece:
+
+Planificar para entender.
+
+Diseñar para decidir.
+
+Programar para construir.
+
+Testear para comprobar.
+
+Desplegar para entregar.
+
+Hacer QA para aprender y volver a empezar.
+
+¿En qué etapa de tu flujo todavía estás confiando más en la herramienta que en el proceso?

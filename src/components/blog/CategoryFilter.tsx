@@ -182,7 +182,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                           "bg-blue-500/10 text-blue-400 border-blue-500/20"
                         }`}
                       >
-                        {post.category}
+                        {post.displayCategory ?? post.category}
                       </span>
                       <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-text-tertiary/60">
                         Nº {String(post.issue).padStart(2, "0")}
