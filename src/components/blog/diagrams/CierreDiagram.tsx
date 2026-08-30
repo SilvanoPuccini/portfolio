@@ -6,39 +6,36 @@ const phases = [
   {
     name: "Planificación",
     abbr: "PLAN.",
-    spec: "Spec Principal 70%",
-    items: [
-      "ecommerce [1/40]",
-      "opus5-gpt5.6sol",
-      "Specs markdown [70%]",
-      "spec: crea la auth...",
-    ],
+    width: 190,
+    items: ["Spec Principal 70%", "ecommerce [1/40]", "Specs [70%]", "spec: crea la auth..."],
   },
   {
     name: "Implementación",
     abbr: "IMPL.",
-    spec: "Claude Code",
-    items: ["TDD", "TEST", "DRIVEN", "DEVELOPEMENT"],
+    width: 250,
+    items: ["CLAUDE CODE", "TDD", "TEST", "DRIVEN", "DEVELOPMENT"],
   },
   {
     name: "Testing",
     abbr: "TEST",
-    spec: "Frameworks",
-    items: ["TEST", "DRIVEN"],
+    width: 220,
+    items: ["Frameworks", "TEST", "DRIVEN"],
   },
   {
     name: "Despliegue",
     abbr: "DEPLOY",
-    spec: "CLI Skills",
-    items: ["Monitoring"],
+    width: 180,
+    items: ["CLI Skills"],
   },
   {
     name: "QA",
     abbr: "QA",
-    spec: "Monitoring",
-    items: ["Feedback → Planificación"],
+    width: 130,
+    items: ["Monitoring"],
   },
 ];
+
+const centerItems = ["TDD", "TEST", "DRIVEN", "DEVELOPMENT"];
 
 export function CierreDiagram() {
   const id = useId().replaceAll(":", "");
@@ -53,71 +50,60 @@ export function CierreDiagram() {
           background: linear-gradient(180deg, #0A0E14 0%, #0D1117 100%);
           border: 1px solid #1F2937;
           border-radius: var(--radius-surface, 16px);
-          padding: 24px 20px;
+          padding: 28px 20px 16px;
           margin: 2rem 0;
           font-family: var(--font-body, system-ui, sans-serif);
           color: #FFFFFF;
+          overflow-x: auto;
         }
-        .cierre-top {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-        .cierre-top-card {
-          background: #111820;
-          border: 1px dashed #2DD4BF;
-          border-radius: 10px;
-          padding: 14px 16px;
-        }
-        .cierre-top-card h4 {
+        .cierre-title {
           font-family: var(--font-mono, monospace);
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 700;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: #2DD4BF;
-          margin: 0 0 8px 0;
+          text-align: center;
+          margin: 0 0 22px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #1F2937;
+          white-space: nowrap;
         }
-        .cierre-top-card p {
-          font-family: var(--font-mono, monospace);
-          font-size: 11px;
-          color: #9CA3AF;
-          margin: 0;
-          line-height: 1.6;
-        }
-        .cierre-flow {
+        .cierre-track {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           gap: 0;
-          flex-wrap: wrap;
-          margin-bottom: 16px;
+          position: relative;
+          min-width: 900px;
         }
-        .cierre-phase-wrap {
+        .cierre-phase-col {
           display: flex;
+          flex-direction: column;
           align-items: center;
+          flex-shrink: 0;
+          position: relative;
         }
-        .cierre-phase {
+        .cierre-phase-box {
           background: #111820;
           border: 1px solid #1F2937;
           border-radius: 10px;
-          padding: 14px 12px;
-          min-width: 100px;
+          padding: 14px 10px 10px;
           text-align: center;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          transition: border-color 0.25s ease, box-shadow 0.25s ease;
           cursor: default;
         }
-        .cierre-phase:hover {
+        .cierre-phase-box:hover {
           border-color: #2DD4BF;
-          box-shadow: 0 0 16px rgba(45, 212, 191, 0.12);
+          box-shadow: 0 0 20px rgba(45, 212, 191, 0.14);
         }
         .cierre-phase-name {
           font-family: var(--font-mono, monospace);
           font-size: 13px;
           font-weight: 700;
           color: #FFFFFF;
-          margin-bottom: 4px;
+          margin-bottom: 2px;
+          white-space: nowrap;
         }
         .cierre-phase-abbr {
           font-family: var(--font-mono, monospace);
@@ -125,49 +111,118 @@ export function CierreDiagram() {
           letter-spacing: 0.12em;
           color: #6B7280;
           text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+        .cierre-phase-items {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 3px 5px;
+          border-top: 1px solid #1F2937;
+          padding-top: 8px;
+        }
+        .cierre-item {
+          font-family: var(--font-mono, monospace);
+          font-size: 9px;
+          color: #9CA3AF;
+          line-height: 1.5;
+          white-space: nowrap;
+        }
+        .cierre-item-spec {
+          font-size: 8px;
+          color: #6B7280;
         }
         .cierre-arrow {
           color: #2DD4BF;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 300;
           margin: 0 4px;
-          opacity: 0.6;
+          opacity: 0.5;
           user-select: none;
+          flex-shrink: 0;
+          align-self: center;
+          padding-top: 14px;
         }
-        .cierre-tools {
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-        .cierre-tools-col {
+        .cierre-overlay {
+          position: absolute;
+          z-index: 2;
           background: #0F1620;
-          border: 1px solid #1F2937;
+          border: 1px dashed #2DD4BF;
           border-radius: 8px;
-          padding: 10px 8px;
-          text-align: center;
+          padding: 9px 12px;
+          box-shadow: 0 0 24px rgba(45, 212, 191, 0.08);
+          transition: border-color 0.25s ease;
+          top: -38px;
         }
-        .cierre-tools-label {
+        .cierre-overlay:hover {
+          border-color: #5EEAD4;
+        }
+        .cierre-overlay h4 {
           font-family: var(--font-mono, monospace);
-          font-size: 9px;
-          letter-spacing: 0.08em;
-          color: #2DD4BF;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
-          margin-bottom: 6px;
+          color: #2DD4BF;
+          margin: 0 0 5px 0;
         }
-        .cierre-tool-item {
+        .cierre-overlay p {
           font-family: var(--font-mono, monospace);
           font-size: 10px;
           color: #9CA3AF;
-          line-height: 1.7;
           margin: 0;
+          line-height: 1.5;
+        }
+        .cierre-connector {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 18px;
+          padding-top: 12px;
+          border-top: 1px dashed #1F2937;
+        }
+        .cierre-connector-label {
+          font-family: var(--font-mono, monospace);
+          font-size: 9px;
+          letter-spacing: 0.1em;
+          color: #6B7280;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+        }
+        .cierre-connector-flow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .cierre-connector-arrow {
+          color: #2DD4BF;
+          font-size: 16px;
+          opacity: 0.6;
+          user-select: none;
+        }
+        .cierre-connector-item {
+          font-family: var(--font-mono, monospace);
+          font-size: 10px;
+          font-weight: 600;
+          color: #FFFFFF;
+          background: #111820;
+          border: 1px solid #1F2937;
+          border-radius: 6px;
+          padding: 5px 10px;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cierre-connector-item:hover {
+          border-color: #2DD4BF;
+          box-shadow: 0 0 10px rgba(45, 212, 191, 0.12);
         }
         .cierre-feedback {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          margin-bottom: 16px;
+          margin-top: 10px;
           font-family: var(--font-mono, monospace);
           font-size: 11px;
           color: #2DD4BF;
@@ -176,83 +231,166 @@ export function CierreDiagram() {
         .cierre-feedback svg {
           flex-shrink: 0;
         }
-        @media (max-width: 768px) {
-          .cierre-top {
-            grid-template-columns: 1fr;
-          }
-          .cierre-flow {
-            gap: 0;
-          }
-          .cierre-phase {
-            min-width: 60px;
-            padding: 10px 6px;
-          }
-          .cierre-phase-name {
-            font-size: 10px;
+        @media (max-width: 1100px) {
+          .cierre-track {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            min-width: unset;
           }
           .cierre-arrow {
-            font-size: 14px;
+            display: none;
           }
-          .cierre-tools {
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
+          .cierre-overlay {
+            position: static;
+            margin-bottom: 8px;
+            width: auto;
           }
-          .cierre-tools-col {
-            padding: 8px 4px;
-          }
-          .cierre-tool-item {
-            font-size: 8px;
+          .cierre-phase-box {
+            min-width: 140px;
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          .cierre-phase {
+          .cierre-phase-box,
+          .cierre-connector-item,
+          .cierre-overlay {
             transition: none;
           }
         }
       `}</style>
 
-      {/* Top concept cards */}
-      <div className="cierre-top">
-        <div className="cierre-top-card">
+      <h3 id={`${id}-title`}>Pipeline y Arquitectura de Agentes IA</h3>
+
+      <div className="cierre-track" role="list" aria-label="Pipeline de desarrollo">
+
+        {/* Especificaciones */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: 170 }}>
+            <div className="cierre-phase-name">Especificaciones</div>
+            <div className="cierre-phase-abbr">INPUT</div>
+            <div className="cierre-phase-items">
+              <span className="cierre-item cierre-item-spec">Spec Principal 70%</span>
+              <span className="cierre-item cierre-item-spec">ecommerce [1/40]</span>
+              <span className="cierre-item cierre-item-spec">Specs [70%]</span>
+              <span className="cierre-item cierre-item-spec">spec: crea auth...</span>
+            </div>
+          </div>
+        </div>
+
+        <span className="cierre-arrow" aria-hidden="true">→</span>
+
+        {/* Planificación */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: phases[0].width }}>
+            <div className="cierre-phase-name">{phases[0].name}</div>
+            <div className="cierre-phase-abbr">{phases[0].abbr}</div>
+            <div className="cierre-phase-items">
+              {phases[0].items.map((item) => (
+                <span key={item} className="cierre-item">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <span className="cierre-arrow" aria-hidden="true">→</span>
+
+        {/* Implementación */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: phases[1].width }}>
+            <div className="cierre-phase-name">{phases[1].name}</div>
+            <div className="cierre-phase-abbr">{phases[1].abbr}</div>
+            <div className="cierre-phase-items">
+              {phases[1].items.map((item) => (
+                <span key={item} className="cierre-item">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Testing Adversarial overlay between Implementación y Testing */}
+        <div className="cierre-overlay" aria-label="Testing Adversarial">
           <h4>Testing Adversarial</h4>
           <p>Claude 2-3 GPT · 2-3 agents</p>
         </div>
-        <div className="cierre-top-card">
+
+        <span className="cierre-arrow" aria-hidden="true">→</span>
+
+        {/* Testing */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: phases[2].width }}>
+            <div className="cierre-phase-name">{phases[2].name}</div>
+            <div className="cierre-phase-abbr">{phases[2].abbr}</div>
+            <div className="cierre-phase-items">
+              {phases[2].items.map((item) => (
+                <span key={item} className="cierre-item">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <span className="cierre-arrow" aria-hidden="true">→</span>
+
+        {/* Despliegue */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: phases[3].width }}>
+            <div className="cierre-phase-name">{phases[3].name}</div>
+            <div className="cierre-phase-abbr">{phases[3].abbr}</div>
+            <div className="cierre-phase-items">
+              {phases[3].items.map((item) => (
+                <span key={item} className="cierre-item">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Design System overlay above Despliegue */}
+        <div className="cierre-overlay" style={{ top: -38 }} aria-label="Design System">
           <h4>Design System</h4>
           <p>Contenedor · Redes y seg. · CI/CD / Budget</p>
         </div>
-      </div>
 
-      {/* Phase flow */}
-      <div className="cierre-flow" role="list" aria-label="Ciclo de desarrollo">
-        {phases.map((phase, index) => (
-          <div key={phase.name} className="cierre-phase-wrap" role="listitem">
-            <div className="cierre-phase" aria-label={phase.name}>
-              <div className="cierre-phase-name">{phase.name}</div>
-              <div className="cierre-phase-abbr">{phase.abbr}</div>
+        <span className="cierre-arrow" aria-hidden="true">→</span>
+
+        {/* QA */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: phases[4].width }}>
+            <div className="cierre-phase-name">{phases[4].name}</div>
+            <div className="cierre-phase-abbr">{phases[4].abbr}</div>
+            <div className="cierre-phase-items">
+              {phases[4].items.map((item) => (
+                <span key={item} className="cierre-item">{item}</span>
+              ))}
             </div>
-            {index < phases.length - 1 && (
-              <span className="cierre-arrow" aria-hidden="true">→</span>
-            )}
           </div>
-        ))}
+        </div>
+
+        <span className="cierre-arrow" aria-hidden="true">→</span>
+
+        {/* Monitoring */}
+        <div className="cierre-phase-col" role="listitem">
+          <div className="cierre-phase-box" style={{ width: 100 }}>
+            <div className="cierre-phase-name">Monitoring</div>
+          </div>
+        </div>
       </div>
 
-      {/* Tools per phase */}
-      <div className="cierre-tools" aria-label="Herramientas por fase">
-        {phases.map((phase) => (
-          <div key={phase.name} className="cierre-tools-col">
-            <div className="cierre-tools-label">{phase.spec}</div>
-            {phase.items.map((item) => (
-              <p key={item} className="cierre-tool-item">{item}</p>
-            ))}
-          </div>
-        ))}
+      {/* Center connector: TDD / TEST / DRIVEN / DEVELOPMENT with bidirectional arrows */}
+      <div className="cierre-connector" aria-label="Flujo bidireccional de metodologías">
+        <div className="cierre-connector-label">Flujo ida y vuelta</div>
+        <div className="cierre-connector-flow">
+          <span className="cierre-connector-item">CLAUDE CODE</span>
+          <span className="cierre-connector-arrow" aria-hidden="true">⟷</span>
+          {centerItems.map((item) => (
+            <span key={item} className="cierre-connector-item">{item}</span>
+          ))}
+          <span className="cierre-connector-arrow" aria-hidden="true">⟷</span>
+          <span className="cierre-connector-item">FRAMEWORKS</span>
+        </div>
       </div>
 
       {/* Feedback loop: QA → Planificación */}
       <div className="cierre-feedback" aria-label="Bucle de retroalimentación">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M8 14V8" stroke="#2DD4BF" strokeWidth="1.5" strokeLinecap="round"/>
           <path d="M4 10L8 6L12 10" stroke="#2DD4BF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
