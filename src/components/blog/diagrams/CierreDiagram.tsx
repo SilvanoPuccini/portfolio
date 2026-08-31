@@ -5,13 +5,13 @@ const PIPELINE_IMAGE =
 
 export function CierreDiagram() {
   return (
-    <figure className="not-prose relative left-1/2 my-10 w-[min(96rem,calc(100vw-2rem))] max-w-none -translate-x-1/2 overflow-hidden rounded-2xl border border-[rgb(var(--outline-ghost)/0.18)] bg-[rgb(var(--surface-dim)/0.9)] p-1 shadow-[var(--shadow-ambient)] sm:p-1.5 md:w-[min(89rem,calc(100vw-9rem))]">
+    <figure className="not-prose relative left-1/2 my-10 w-[min(96rem,calc(100vw-2rem))] max-w-none -translate-x-1/2 overflow-hidden rounded-2xl border border-[rgb(var(--outline-ghost)/0.18)] bg-[rgb(var(--surface-dim)/0.9)] p-1 shadow-[var(--shadow-ambient)] sm:p-1.5 md:w-[min(76rem,calc(100vw-12rem))]">
       <Image
         src={PIPELINE_IMAGE}
         alt="Pipeline de entrega continua asistido por agentes de IA, desde planificación hasta QA y retroalimentación"
         width={1920}
         height={1180}
-        sizes="(min-width: 1536px) 1424px, (min-width: 768px) calc(100vw - 144px), calc(100vw - 32px)"
+        sizes="(min-width: 1408px) 1216px, (min-width: 768px) calc(100vw - 192px), calc(100vw - 32px)"
         className="block h-auto w-full rounded-xl object-contain"
       />
       <figcaption className="sr-only">
