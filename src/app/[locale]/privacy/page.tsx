@@ -45,7 +45,7 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
             {isEs ? "Política de Privacidad" : "Privacy Policy"}
           </h1>
           <p className="mt-4 font-mono text-[11px] text-text-tertiary">
-            {isEs ? "Última actualización: abril 2026" : "Last updated: April 2026"}
+            {isEs ? "Última actualización: agosto 2026" : "Last updated: August 2026"}
           </p>
         </header>
 
@@ -68,8 +68,8 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
             </h2>
             <p className="mb-4">
               {isEs
-                ? "Este sitio recopila únicamente los datos que vos proporcionás de forma voluntaria:"
-                : "This site only collects data you voluntarily provide:"}
+                ? "Este sitio procesa los datos que vos proporcionás y datos técnicos anónimos necesarios para medir la utilidad de los artículos:"
+                : "This site processes data you provide and anonymous technical data needed to measure article usefulness:"}
             </p>
             <ul className="space-y-2 pl-4">
               <li className="flex gap-2">
@@ -78,6 +78,14 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
                   {isEs
                     ? "Formulario de contacto: nombre, email, asunto y mensaje. Procesado por Formspree."
                     : "Contact form: name, email, subject and message. Processed by Formspree."}
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-primary/60" />
+                <span>
+                  {isEs
+                    ? "Engagement del blog: vistas únicas diarias, reacciones (me gusta/no me gusta) e intenciones de compartir, asociadas al artículo y a un identificador anónimo."
+                    : "Blog engagement: daily unique views, reactions (like/dislike), and share intents, associated with the article and an anonymous identifier."}
                 </span>
               </li>
               <li className="flex gap-2">
@@ -97,8 +105,8 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
             </h2>
             <p>
               {isEs
-                ? "Los datos del formulario de contacto se usan exclusivamente para responder tu consulta. El email del newsletter se usa para enviarte actualizaciones del blog (El Radar). No se usan para publicidad, ni se venden o comparten con terceros."
-                : "Contact form data is used solely to reply to your inquiry. Newsletter email is used to send you blog updates (El Radar). It is not used for advertising, and is not sold or shared with third parties."}
+                ? "Los datos del formulario de contacto se usan exclusivamente para responder tu consulta. El email del newsletter se usa para enviarte actualizaciones del blog (El Radar). Las métricas agregadas del blog se usan para entender el alcance y la utilidad del contenido. Estos datos no se usan para publicidad, ni se venden o comparten con terceros con fines publicitarios."
+                : "Contact form data is used solely to reply to your inquiry. Newsletter email is used to send you blog updates (El Radar). Aggregate blog metrics are used to understand content reach and usefulness. This data is not used for advertising, sold, or shared with third parties for advertising purposes."}
             </p>
           </section>
 
@@ -108,8 +116,8 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
             </h2>
             <p>
               {isEs
-                ? "El sitio no utiliza cookies de rastreo ni analítica de terceros. Se puede usar una cookie de sesión técnica para la preferencia de tema (claro/oscuro), que no contiene información personal y se almacena solo en tu navegador."
-                : "The site does not use tracking cookies or third-party analytics. A technical session cookie may be used for theme preference (light/dark), which contains no personal information and is stored only in your browser."}
+                ? "El sitio no usa cookies publicitarias ni analítica de terceros. Usa una cookie propia HttpOnly con un identificador aleatorio y opaco para recordar tu reacción y deduplicar vistas e intenciones de compartir. El identificador se conserva hasta un año, no contiene datos personales directos y se guarda transformado mediante un hash antes de persistirse. No se almacenan tu IP, email ni navegador como identidad de engagement. Los eventos agregados se conservan mientras esta función esté activa o hasta que dejen de ser necesarios."
+                : "The site does not use advertising cookies or third-party analytics. It uses a first-party HttpOnly cookie with a random opaque identifier to remember your reaction and deduplicate views and share intents. The identifier is retained for up to one year, contains no direct personal data, and is transformed with a hash before persistence. Your IP address, email, and browser are not stored as engagement identity. Aggregate events are retained while this feature remains active or until they are no longer needed."}
             </p>
           </section>
 

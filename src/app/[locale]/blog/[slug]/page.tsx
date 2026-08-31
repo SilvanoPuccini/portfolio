@@ -11,6 +11,7 @@ import { RadarBadge } from "@/components/blog/RadarBadge";
 import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { generatePageMetadata } from "@/lib/metadata";
+import { PostEngagement } from "@/components/blog/PostEngagement";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
 
@@ -183,6 +184,8 @@ export default async function BlogPostPage({
 
         {/* Resto del contenido MDX */}
         <MDXContent source={restContent} />
+
+        <PostEngagement slug={post.slug} title={post.title} locale={currentLocale} />
 
         {/* Cierre — logo El Radar centrado */}
         <div className="mt-20 flex justify-center">

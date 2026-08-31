@@ -12,6 +12,7 @@ const NAV = [
   { href: '/admin/messages', label: 'Mensajes' },
   { href: '/admin/content', label: 'Contenido' },
   { href: '/admin/distribuciones', label: 'Distribuciones' },
+  { href: '/admin/engagement', label: 'Engagement' },
   { href: '/admin/debug', label: 'Debug IA' },
   { href: '/admin/config', label: 'Config' },
 ];
