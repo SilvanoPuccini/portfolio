@@ -10,8 +10,24 @@ export interface PostPublication {
   pre_approved_at: string | null;
   published_at: string | null;
   notified_at: string | null;
+  notify_attempts: number;
+  notify_error: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Transiciones válidas: no se puede saltear la preaprobación. */
+const ALLOWED_TRANSITIONS: Record<PostPublicationStatus, PostPublicationStatus[]> = {
+  planificado: ['preaprobado'],
+  preaprobado: ['planificado', 'publicado'],
+  publicado: ['preaprobado'],
+};
+
+export function isValidTransition(
+  from: PostPublicationStatus,
+  to: PostPublicationStatus,
+): boolean {
+  return from === to || ALLOWED_TRANSITIONS[from].includes(to);
 }
 
 export interface CreatePostPublicationRequest {

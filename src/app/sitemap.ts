@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllBlogPosts } from '@/lib/mdx';
-import { getPostVisibilityMap, isVisible } from '@/lib/post-publications/visibility';
+import { getVisibilityIndex, isPostVisible } from '@/lib/post-publications/visibility';
 
 // Consulta post_publications (Supabase) para filtrar por visibilidad — eso
 // solo puede resolverse en request time, no en build time (el CI de build
@@ -46,8 +46,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
   );
 
-  const visibilityMap = await getPostVisibilityMap();
-  const posts = getAllBlogPosts().filter((post) => isVisible(visibilityMap.get(post.slug)));
+  const visibility = await getVisibilityIndex();
+  const posts = getAllBlogPosts().filter((post) => isPostVisible(post, visibility));
 
   const blogEntries: MetadataRoute.Sitemap = posts.flatMap((post) =>
     LOCALES.map((locale) => ({

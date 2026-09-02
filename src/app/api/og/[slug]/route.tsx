@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getBlogPostBySlug } from '@/lib/mdx';
+import { getVisibilityIndex, isPostVisible } from '@/lib/post-publications/visibility';
 
 export const runtime = 'nodejs';
 
@@ -16,6 +17,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const post = await getBlogPostBySlug(slug);
 
   if (!post) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  // La imagen lleva el título: un post oculto no puede filtrarlo por acá.
+  const visibility = await getVisibilityIndex();
+  if (!isPostVisible(post, visibility)) {
     return new Response('Not found', { status: 404 });
   }
 

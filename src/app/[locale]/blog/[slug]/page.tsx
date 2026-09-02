@@ -13,7 +13,7 @@ import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { generatePageMetadata } from "@/lib/metadata";
 import { PostEngagement } from "@/components/blog/PostEngagement";
-import { getPostVisibilityMap, isVisible } from "@/lib/post-publications/visibility";
+import { getVisibilityIndex, isPostVisible } from "@/lib/post-publications/visibility";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
 
@@ -27,8 +27,8 @@ export async function generateMetadata({
 
   if (!post) return { title: "Post no encontrado" };
 
-  const visibilityMap = await getPostVisibilityMap();
-  const visible = isVisible(visibilityMap.get(slug));
+  const visibility = await getVisibilityIndex();
+  const visible = isPostVisible(post, visibility);
 
   if (!visible) {
     return {
@@ -77,17 +77,19 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
-  const visibilityMap = await getPostVisibilityMap();
-  const visibility = visibilityMap.get(slug);
+  const visibility = await getVisibilityIndex();
 
-  if (!isVisible(visibility)) {
-    return <ComingSoonPost title={post.title} scheduledAt={visibility!.scheduledAt} locale={currentLocale} />;
+  if (!isPostVisible(post, visibility)) {
+    const scheduledAt = visibility.states.get(slug)?.scheduledAt ?? `${post.date}T10:00:00-03:00`;
+    return <ComingSoonPost title={post.title} scheduledAt={scheduledAt} locale={currentLocale} />;
   }
 
   const allPosts = getAllBlogPosts()
-    .filter((p) => isVisible(visibilityMap.get(p.slug)))
+    .filter((p) => isPostVisible(p, visibility))
     .sort((a, b) => a.issue - b.issue);
-  const totalPosts = allPosts.length;
+  // El número de edición es absoluto (Nº 09 es siempre Nº 09), así que el
+  // total no puede ser solo la cuenta de visibles: daría "Nº 09 de 07".
+  const totalPosts = Math.max(post.issue, ...allPosts.map((p) => p.issue), allPosts.length);
   const currentIndex = allPosts.findIndex((p) => p.slug === slug);
   const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
   const nextPost = currentIndex < totalPosts - 1 ? allPosts[currentIndex + 1] : null;

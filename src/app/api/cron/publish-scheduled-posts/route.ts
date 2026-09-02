@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized, isCronAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { sendPostNewsletter } from '@/lib/newsletter/send-post-newsletter';
+import { publishPost, type PublishOutcome } from '@/lib/post-publications/publish';
 
 export const dynamic = 'force-dynamic';
 
-interface PublishOutcome {
-  post_slug: string;
-  notified: boolean;
-  notify_error?: string;
-}
-
 /**
- * Corre cada domingo (Vercel Cron) y también admite invocación manual con
- * ADMIN_API_KEY. Publica todo lo que esté "preaprobado" con scheduled_at ya
- * cumplida — nunca lo que sigue en "planificado", que es justo la señal de
- * que ese post no llegó a tiempo a la revisión.
+ * Corre cada hora (Vercel Cron) y también admite invocación manual con
+ * ADMIN_API_KEY. Hace dos cosas:
+ *
+ * 1. Publica lo que esté "preaprobado" con scheduled_at ya cumplida. Nunca
+ *    lo que sigue en "planificado" — eso es justamente la señal de que ese
+ *    post no llegó a tiempo a la revisión.
+ * 2. Reintenta el newsletter de lo ya publicado que nunca llegó a mandarse
+ *    (Resend caído, por ejemplo). Sin esto, un fallo de envío quedaba muerto.
+ *
+ * Toda la lógica de publicación vive en publishPost: mismo camino que el
+ * botón del admin, con compare-and-swap e idempotencia por notified_at.
  */
 export async function GET(req: NextRequest) {
   if (!isCronAuthorized(req) && !isAuthorized(req)) {
@@ -25,48 +26,52 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin();
   const nowIso = new Date().toISOString();
 
-  const { data: due, error } = await db
+  // published_at null = nunca salió. Un post que se publicó y después se
+  // ocultó a mano conserva su published_at, así que el cron no lo revive.
+  const { data: due, error: dueError } = await db
     .from('post_publications')
-    .select('post_slug, notify_subscribers')
+    .select('post_slug')
     .eq('status', 'preaprobado')
+    .is('published_at', null)
     .lte('scheduled_at', nowIso);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (dueError) {
+    return NextResponse.json({ error: dueError.message }, { status: 500 });
   }
+
+  const { data: pendingNotify, error: pendingError } = await db
+    .from('post_publications')
+    .select('post_slug')
+    .eq('status', 'publicado')
+    .eq('notify_subscribers', true)
+    .is('notified_at', null);
+
+  if (pendingError) {
+    return NextResponse.json({ error: pendingError.message }, { status: 500 });
+  }
+
+  const slugs = [
+    ...new Set([
+      ...(due ?? []).map((r) => r.post_slug as string),
+      ...(pendingNotify ?? []).map((r) => r.post_slug as string),
+    ]),
+  ];
 
   const outcomes: PublishOutcome[] = [];
-
-  for (const row of due ?? []) {
-    const publishedAt = new Date().toISOString();
-    const { error: updateError } = await db
-      .from('post_publications')
-      .update({ status: 'publicado', published_at: publishedAt, updated_at: publishedAt })
-      .eq('post_slug', row.post_slug);
-
-    if (updateError) {
-      outcomes.push({ post_slug: row.post_slug, notified: false, notify_error: updateError.message });
-      continue;
-    }
-
-    if (!row.notify_subscribers) {
-      outcomes.push({ post_slug: row.post_slug, notified: false });
-      continue;
-    }
-
-    const result = await sendPostNewsletter(row.post_slug);
-    if (!result.ok) {
-      outcomes.push({ post_slug: row.post_slug, notified: false, notify_error: result.error });
-      continue;
-    }
-
-    await db
-      .from('post_publications')
-      .update({ notified_at: new Date().toISOString() })
-      .eq('post_slug', row.post_slug);
-
-    outcomes.push({ post_slug: row.post_slug, notified: true });
+  for (const slug of slugs) {
+    outcomes.push(await publishPost(slug));
   }
 
-  return NextResponse.json({ published: outcomes.length, outcomes });
+  const failures = outcomes.filter((o) => !o.ok);
+  if (failures.length > 0) {
+    console.error('[cron/publish] fallos:', JSON.stringify(failures));
+  }
+
+  return NextResponse.json({
+    checked: slugs.length,
+    published: outcomes.filter((o) => o.ok && !o.alreadyPublished).length,
+    notified: outcomes.filter((o) => o.ok && o.notified).length,
+    failed: failures.length,
+    outcomes,
+  });
 }
