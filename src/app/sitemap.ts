@@ -2,6 +2,11 @@ import type { MetadataRoute } from 'next';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { getPostVisibilityMap, isVisible } from '@/lib/post-publications/visibility';
 
+// Consulta post_publications (Supabase) para filtrar por visibilidad — eso
+// solo puede resolverse en request time, no en build time (el CI de build
+// no tiene, ni necesita, las credenciales de producción).
+export const dynamic = 'force-dynamic';
+
 const BASE_URL = 'https://silvanopuccini.dev';
 const LOCALES = ['es', 'en'] as const;
 
