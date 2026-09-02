@@ -62,3 +62,15 @@ export function isAuthorized(req: NextRequest): boolean {
   if (!cookie) return false;
   return verifySessionToken(cookie, sessionSecret);
 }
+
+/**
+ * Verifica el header que Vercel Cron agrega automáticamente
+ * (`Authorization: Bearer $CRON_SECRET`) en cada invocación programada.
+ */
+export function isCronAuthorized(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  const bearer = req.headers.get('authorization');
+  if (!secret || !bearer) return false;
+  const provided = bearer.replace(/^Bearer\s+/, '');
+  return safeCompare(provided, secret);
+}

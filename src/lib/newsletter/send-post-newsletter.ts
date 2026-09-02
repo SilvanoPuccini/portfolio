@@ -1,0 +1,244 @@
+import { Resend } from 'resend';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { getAllBlogPosts } from '@/lib/mdx';
+import { CATEGORY_COLOR } from '@/lib/resend';
+import { generateUnsubToken } from '@/lib/unsub-token';
+
+const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
+
+export type SendPostNewsletterResult =
+  | { ok: true; sent: number }
+  | { ok: false; error: string; status: number };
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return `${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function buildEmail(opts: {
+  title: string;
+  excerpt: string;
+  category: string;
+  issue: string;
+  keyword: string;
+  readingTime: string;
+  date: string;
+  postUrl: string;
+  unsubUrl: string;
+}): string {
+  const cat = CATEGORY_COLOR[opts.category] ?? CATEGORY_COLOR['Producto'];
+
+  // Escape user-derived content to prevent HTML injection
+  const e = {
+    title: escapeHtml(opts.title),
+    excerpt: escapeHtml(opts.excerpt),
+    category: escapeHtml(opts.category),
+    issue: escapeHtml(opts.issue),
+    keyword: escapeHtml(opts.keyword),
+    readingTime: escapeHtml(opts.readingTime),
+    date: escapeHtml(opts.date),
+  };
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>El Radar</title>
+</head>
+<body style="margin:0;padding:40px 16px;background:#050810;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
+
+  <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+
+    <!-- Header — logo El Radar -->
+    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
+      <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
+        <g opacity="0.3">
+          <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
+          <circle cx="110" cy="55" r="44" stroke="#00d4d4" stroke-width="0.5"/>
+          <circle cx="110" cy="55" r="66" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
+          <circle cx="110" cy="55" r="90" stroke="#00d4d4" stroke-width="0.375"/>
+          <line x1="110" y1="55" x2="173" y2="9" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
+          <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
+        </g>
+      </svg>
+      <div style="position:relative;z-index:1;">
+        <!-- est. 2026 con líneas cortas -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+          <tr>
+            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          </tr>
+        </table>
+        <!-- El Radar en una sola línea — tabla para compatibilidad mobile -->
+        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
+          <tr>
+            <td style="vertical-align:bottom;padding-bottom:2px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+            </td>
+            <td style="vertical-align:bottom;padding-left:5px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+            </td>
+          </tr>
+        </table>
+        <!-- tagline sin líneas -->
+        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
+          arquitectura · código · producto
+        </div>
+        <!-- Silvano Puccini en cyan -->
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+          Silvano Puccini · Full Stack Dev
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div style="padding:40px 32px;">
+
+      <!-- Eyebrow: línea 1 en una línea, keyword en línea 2 -->
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 8px;text-align:center;line-height:1.6;">
+        <span style="color:#94a3b8;">El Radar</span>
+        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
+        <span style="color:#00d4d4;">Nueva nota · Nº ${e.issue}</span>
+      </p>
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 40px;text-align:center;">
+        <span style="color:${cat.text};">${e.keyword.toUpperCase()}</span>
+      </p>
+
+      <!-- Card del post -->
+      <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
+
+        <!-- Card header: categoría + número -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
+          <tr>
+            <td>
+              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:4px 12px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">
+                ${e.category}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#8c909f;letter-spacing:0.14em;text-transform:uppercase;">
+                Nº ${e.issue}
+              </span>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Card body -->
+        <div style="padding:32px 24px 28px;">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">
+            ${e.title}
+          </h2>
+          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 28px;border-left:2px solid ${cat.text};padding-left:14px;">
+            ${e.excerpt}
+          </p>
+
+          <!-- Meta + CTA en misma fila -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">
+            <tr>
+              <td style="vertical-align:middle;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8c909f;letter-spacing:0.06em;">
+                  ${e.readingTime} · ${e.date}
+                </span>
+              </td>
+              <td style="text-align:right;vertical-align:middle;">
+                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#00d4d4;text-decoration:none;letter-spacing:0.04em;">
+                  Leer más →
+                </a>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:24px 32px;text-align:center;">
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar.</p>
+      <a href="${opts.unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
+    </div>
+
+  </div>
+</body>
+</html>`;
+}
+
+/**
+ * Sends the "new post" newsletter to all active subscribers and records it
+ * in newsletters_sent. Shared by the manual /api/notify endpoint and the
+ * Sunday publish cron, so both paths behave identically.
+ */
+export async function sendPostNewsletter(slug: string): Promise<SendPostNewsletterResult> {
+  const allPosts = getAllBlogPosts();
+  const post = allPosts.find((p) => p.slug === slug);
+
+  if (!post) {
+    return { ok: false, error: `Post "${slug}" no encontrado.`, status: 404 };
+  }
+
+  const issueNum = String(post.issue).padStart(2, '0');
+  const issueLabel = `Nueva nota · Nº ${issueNum}`;
+  const postUrl = `${SITE_URL}/es/blog/${slug}`;
+
+  const { data: subscribers, error: dbError } = await getSupabaseAdmin()
+    .from('subscribers')
+    .select('email')
+    .eq('status', 'active');
+
+  if (dbError) {
+    console.error('[sendPostNewsletter] Supabase error:', dbError);
+    return { ok: false, error: 'Error al obtener suscriptores.', status: 500 };
+  }
+
+  if (!subscribers || subscribers.length === 0) {
+    return { ok: true, sent: 0 };
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const emails = subscribers.map((s) => ({
+    from: 'Silvano Puccini <hola@silvanopuccini.dev>',
+    to: s.email,
+    subject: `El Radar · ${issueLabel} — ${post.title}`,
+    html: buildEmail({
+      title: post.title,
+      excerpt: post.excerpt ?? '',
+      category: post.category,
+      issue: issueNum,
+      keyword: post.keyword ?? post.category,
+      readingTime: post.readingTime ?? '5 min',
+      date: formatDate(post.date),
+      postUrl,
+      unsubUrl: (() => {
+        const { token, exp } = generateUnsubToken(s.email);
+        return `${SITE_URL}/unsubscribe?email=${encodeURIComponent(s.email)}&token=${token}&exp=${exp}`;
+      })(),
+    }),
+  }));
+
+  const { error: sendError } = await resend.batch.send(emails);
+
+  if (sendError) {
+    console.error('[sendPostNewsletter] Resend batch error:', sendError);
+    return { ok: false, error: 'Error al enviar emails.', status: 500 };
+  }
+
+  await getSupabaseAdmin()
+    .from('newsletters_sent')
+    .insert({ title: post.title, slug, recipients_count: subscribers.length });
+
+  return { ok: true, sent: subscribers.length };
+}
