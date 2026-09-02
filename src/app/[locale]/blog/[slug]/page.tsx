@@ -8,10 +8,12 @@ import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import JsonLd from "@/components/JsonLd";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { RadarBadge } from "@/components/blog/RadarBadge";
+import { ComingSoonPost } from "@/components/blog/ComingSoonPost";
 import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { generatePageMetadata } from "@/lib/metadata";
 import { PostEngagement } from "@/components/blog/PostEngagement";
+import { getPostVisibilityMap, isVisible } from "@/lib/post-publications/visibility";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
 
@@ -24,6 +26,16 @@ export async function generateMetadata({
   const post = await getBlogPostBySlug(slug);
 
   if (!post) return { title: "Post no encontrado" };
+
+  const visibilityMap = await getPostVisibilityMap();
+  const visible = isVisible(visibilityMap.get(slug));
+
+  if (!visible) {
+    return {
+      title: `${post.title} | Silvano Puccini`,
+      robots: { index: false, follow: false },
+    };
+  }
 
   const title = `${post.title} | Silvano Puccini`;
 
@@ -65,7 +77,16 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
-  const allPosts = getAllBlogPosts().sort((a, b) => a.issue - b.issue);
+  const visibilityMap = await getPostVisibilityMap();
+  const visibility = visibilityMap.get(slug);
+
+  if (!isVisible(visibility)) {
+    return <ComingSoonPost title={post.title} scheduledAt={visibility!.scheduledAt} locale={currentLocale} />;
+  }
+
+  const allPosts = getAllBlogPosts()
+    .filter((p) => isVisible(visibilityMap.get(p.slug)))
+    .sort((a, b) => a.issue - b.issue);
   const totalPosts = allPosts.length;
   const currentIndex = allPosts.findIndex((p) => p.slug === slug);
   const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;

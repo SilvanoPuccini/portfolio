@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllBlogPosts } from '@/lib/mdx';
+import { getPostVisibilityMap, isVisible } from '@/lib/post-publications/visibility';
 
 const BASE_URL = 'https://silvanopuccini.dev';
 const LOCALES = ['es', 'en'] as const;
@@ -21,7 +22,7 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: '/contact', changeFrequency: 'monthly', priority: 0.8 },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.flatMap(
@@ -40,7 +41,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       })),
   );
 
-  const posts = getAllBlogPosts();
+  const visibilityMap = await getPostVisibilityMap();
+  const posts = getAllBlogPosts().filter((post) => isVisible(visibilityMap.get(post.slug)));
 
   const blogEntries: MetadataRoute.Sitemap = posts.flatMap((post) =>
     LOCALES.map((locale) => ({

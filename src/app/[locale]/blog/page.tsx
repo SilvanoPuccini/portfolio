@@ -4,6 +4,7 @@ import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";
 import { getAllBlogPosts } from "@/lib/mdx";
+import { getPostVisibilityMap, isVisible } from "@/lib/post-publications/visibility";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { PostCover } from "@/components/blog/PostCover";
@@ -38,7 +39,8 @@ export default async function BlogPage({
   const { locale } = await params;
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
-  const blogPosts = getAllBlogPosts();
+  const visibilityMap = await getPostVisibilityMap();
+  const blogPosts = getAllBlogPosts().filter((post) => isVisible(visibilityMap.get(post.slug)));
   const featuredPost = blogPosts.find(post => post.featured) || blogPosts[0];
 
   const pageCopy = {
