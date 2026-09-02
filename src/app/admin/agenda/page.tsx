@@ -90,7 +90,11 @@ export default function AgendaPage() {
           <div style={s.eyebrow}>El Radar</div>
           <h1 style={s.heading}>Agenda editorial</h1>
         </div>
-        <button style={s.btn} onClick={() => setShowNew(true)}>
+        <button
+          className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+          style={s.btn}
+          onClick={() => setShowNew(true)}
+        >
           + Nuevo post
         </button>
       </div>
@@ -114,13 +118,14 @@ export default function AgendaPage() {
         {statuses.map((st) => (
           <button
             key={st}
+            className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
             onClick={() => {
               setFilter(st);
               setPage(1);
             }}
             style={{
               ...s.btnGhost,
-              ...(filter === st ? { borderColor: '#00d4d4', color: '#00d4d4' } : {}),
+              ...(filter === st ? { borderColor: '#00d4d4', color: '#00d4d4', background: 'rgba(0,212,212,0.06)' } : {}),
             }}
           >
             {st === 'all' ? 'Todos' : STATUS_LABELS[st]}
@@ -147,7 +152,11 @@ export default function AgendaPage() {
             </thead>
             <tbody>
               {tableItems.map((item) => (
-                <tr key={item.post_slug} style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <tr
+                  key={item.post_slug}
+                  className="transition-colors hover:bg-white/[0.02]"
+                  style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
+                >
                   <td style={{ padding: '14px' }}>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>{item.raw_title}</div>
                     <div style={{ fontSize: 12, opacity: 0.5, fontFamily: 'monospace' }}>{item.post_slug}</div>
@@ -158,7 +167,11 @@ export default function AgendaPage() {
                   </td>
                   <td style={{ padding: '14px' }}>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <a href={`/admin/agenda/${item.post_slug}`} style={s.btnGhost}>
+                      <a
+                        href={`/admin/agenda/${item.post_slug}`}
+                        className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+                        style={s.btnGhost}
+                      >
                         Ver →
                       </a>
                       <StatusActions item={item} onChange={changeStatus} />

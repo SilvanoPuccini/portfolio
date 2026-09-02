@@ -65,13 +65,23 @@ export function AgendaCalendar({
   return (
     <div style={s.card}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <button style={s.btnGhost} onClick={() => setViewDate(new Date(year, month - 1, 1))} aria-label="Mes anterior">
+        <button
+          className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+          style={s.btnGhost}
+          onClick={() => setViewDate(new Date(year, month - 1, 1))}
+          aria-label="Mes anterior"
+        >
           ←
         </button>
         <h2 style={{ ...s.sectionTitle, margin: 0 }}>
           {MONTH_NAMES[month]} {year}
         </h2>
-        <button style={s.btnGhost} onClick={() => setViewDate(new Date(year, month + 1, 1))} aria-label="Mes siguiente">
+        <button
+          className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+          style={s.btnGhost}
+          onClick={() => setViewDate(new Date(year, month + 1, 1))}
+          aria-label="Mes siguiente"
+        >
           →
         </button>
       </div>
@@ -121,11 +131,14 @@ export function AgendaCalendar({
                   {day.getDate()}
                 </span>
 
-                {visibleItems.map((item) => (
+                {visibleItems.map((item) => {
+                  const isSelected = item.post_slug === selectedSlug;
+                  return (
                   <button
                     key={item.post_slug}
                     onClick={() => onSelect(item.post_slug)}
                     title={item.raw_title}
+                    className="transition-[filter,transform] hover:brightness-125 focus-visible:outline focus-visible:outline-2"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -134,12 +147,14 @@ export function AgendaCalendar({
                       textAlign: 'left',
                       padding: '3px 6px',
                       borderRadius: 5,
-                      border: item.post_slug === selectedSlug ? '1px solid currentColor' : 'none',
+                      border: `1px solid ${isSelected ? STATUS_DOT[item.status] : 'transparent'}`,
+                      outlineColor: STATUS_DOT[item.status],
                       cursor: 'pointer',
                       fontSize: 10.5,
                       lineHeight: 1.3,
-                      background: `${STATUS_DOT[item.status]}1a`,
+                      background: isSelected ? `${STATUS_DOT[item.status]}33` : `${STATUS_DOT[item.status]}1a`,
                       color: STATUS_DOT[item.status],
+                      fontWeight: isSelected ? 700 : 400,
                     }}
                   >
                     <span
@@ -155,7 +170,8 @@ export function AgendaCalendar({
                       {item.raw_title}
                     </span>
                   </button>
-                ))}
+                  );
+                })}
 
                 {overflow > 0 && (
                   <span style={{ fontSize: 10, opacity: 0.5, paddingLeft: 6 }}>+{overflow} más</span>

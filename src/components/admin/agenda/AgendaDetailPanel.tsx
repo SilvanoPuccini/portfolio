@@ -78,7 +78,12 @@ export function AgendaDetailPanel({
       <div style={s.card}>
         <p style={s.eyebrow}>Detalle</p>
         {!selected ? (
-          <p style={s.hint}>Elegí un día con post en el calendario para ver el detalle acá.</p>
+          <div style={{ padding: '18px 0', textAlign: 'center' }}>
+            <div style={{ fontSize: 24, opacity: 0.25, marginBottom: 8 }}>◇</div>
+            <p style={{ ...s.hint, marginTop: 0 }}>
+              Elegí un día con post en el calendario para ver el detalle acá.
+            </p>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ fontWeight: 600 }}>{selected.raw_title}</div>
@@ -89,7 +94,11 @@ export function AgendaDetailPanel({
               {selected.pre_approved_at && <span>Preaprobado: {fmt(selected.pre_approved_at)}</span>}
               {selected.published_at && <span>Publicado: {fmt(selected.published_at)}</span>}
             </div>
-            <a href={`/admin/agenda/${selected.post_slug}`} style={{ ...s.btnGhost, textAlign: 'center' }}>
+            <a
+              href={`/admin/agenda/${selected.post_slug}`}
+              className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+              style={{ ...s.btnGhost, textAlign: 'center' }}
+            >
               Ver post completo →
             </a>
             <StatusActions item={selected} onChange={onChangeStatus} />
