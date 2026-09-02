@@ -4,7 +4,8 @@ import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";
 import { getAllBlogPosts } from "@/lib/mdx";
-import { getPostVisibilityMap, isVisible } from "@/lib/post-publications/visibility";
+import { getPostVisibilityMap, isVisible, getNextScheduledPost } from "@/lib/post-publications/visibility";
+import { NextIssueTeaser } from "@/components/blog/NextIssueTeaser";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { PostCover } from "@/components/blog/PostCover";
@@ -42,6 +43,7 @@ export default async function BlogPage({
   const visibilityMap = await getPostVisibilityMap();
   const blogPosts = getAllBlogPosts().filter((post) => isVisible(visibilityMap.get(post.slug)));
   const featuredPost = blogPosts.find(post => post.featured) || blogPosts[0];
+  const nextIssue = await getNextScheduledPost();
 
   const pageCopy = {
     es: {
@@ -176,6 +178,12 @@ export default async function BlogPage({
               </Link>
             </div>
           </div>
+        </section>
+      )}
+
+      {nextIssue && (
+        <section className="site-container pb-6 sm:pb-8">
+          <NextIssueTeaser post={nextIssue} locale={currentLocale} />
         </section>
       )}
 
