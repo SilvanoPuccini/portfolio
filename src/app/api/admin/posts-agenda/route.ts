@@ -8,7 +8,8 @@ import type {
 
 export const dynamic = 'force-dynamic';
 
-const PER_PAGE = 20;
+const DEFAULT_PER_PAGE = 20;
+const MAX_PER_PAGE = 200;
 const VALID_STATUSES: PostPublicationStatus[] = ['planificado', 'preaprobado', 'publicado'];
 
 export async function GET(req: NextRequest) {
@@ -19,14 +20,18 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
-  const offset = (page - 1) * PER_PAGE;
+  const perPage = Math.min(
+    MAX_PER_PAGE,
+    Math.max(1, Number(searchParams.get('per_page') ?? DEFAULT_PER_PAGE)),
+  );
+  const offset = (page - 1) * perPage;
 
   const db = getSupabaseAdmin();
   let query = db
     .from('post_publications')
     .select('*', { count: 'exact' })
     .order('scheduled_at', { ascending: true })
-    .range(offset, offset + PER_PAGE - 1);
+    .range(offset, offset + perPage - 1);
 
   if (status && VALID_STATUSES.includes(status as PostPublicationStatus)) {
     query = query.eq('status', status);
@@ -35,7 +40,7 @@ export async function GET(req: NextRequest) {
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ items: data, total: count ?? 0, page, per_page: PER_PAGE });
+  return NextResponse.json({ items: data, total: count ?? 0, page, per_page: perPage });
 }
 
 export async function POST(req: NextRequest) {

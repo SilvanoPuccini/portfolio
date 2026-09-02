@@ -51,7 +51,16 @@ export async function PATCH(
     if (key in body) updates[key] = (body as Record<string, unknown>)[key];
   }
 
-  if (body.status === 'preaprobado') updates.pre_approved_at = new Date().toISOString();
+  // Timestamps reflejan el estado real, incluso al retroceder — nunca queda
+  // un pre_approved_at/published_at fantasma de un estado que ya no es actual.
+  if (body.status === 'planificado') {
+    updates.pre_approved_at = null;
+    updates.published_at = null;
+  }
+  if (body.status === 'preaprobado') {
+    updates.pre_approved_at = new Date().toISOString();
+    updates.published_at = null;
+  }
   if (body.status === 'publicado') updates.published_at = new Date().toISOString();
 
   if (Object.keys(updates).length === 0) {

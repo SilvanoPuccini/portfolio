@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
 
@@ -15,6 +15,7 @@ const MONTH_NAMES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 const WEEKDAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MAX_VISIBLE_PER_DAY = 2;
 
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -36,23 +37,16 @@ function buildMonthGrid(year: number, month: number): (Date | null)[][] {
   return weeks;
 }
 
-export function AgendaCalendar({ refreshKey }: { refreshKey: number }) {
-  const [items, setItems] = useState<PostPublication[]>([]);
+export function AgendaCalendar({
+  items,
+  selectedSlug,
+  onSelect,
+}: {
+  items: PostPublication[];
+  selectedSlug: string | null;
+  onSelect: (slug: string) => void;
+}) {
   const [viewDate, setViewDate] = useState(() => new Date());
-  const [selected, setSelected] = useState<PostPublication | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/admin/posts-agenda?page=1')
-      .then((r) => r.json())
-      .then((json: { items?: PostPublication[] }) => {
-        if (!cancelled) setItems(json.items ?? []);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey]);
 
   const byDay = useMemo(() => {
     const map = new Map<string, PostPublication[]>();
@@ -69,50 +63,35 @@ export function AgendaCalendar({ refreshKey }: { refreshKey: number }) {
   const todayKey = dayKey(new Date());
 
   return (
-    <div style={{ ...s.card, marginBottom: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <button
-          style={s.btnGhost}
-          onClick={() => setViewDate(new Date(year, month - 1, 1))}
-          aria-label="Mes anterior"
-        >
+    <div style={s.card}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <button style={s.btnGhost} onClick={() => setViewDate(new Date(year, month - 1, 1))} aria-label="Mes anterior">
           ←
         </button>
         <h2 style={{ ...s.sectionTitle, margin: 0 }}>
           {MONTH_NAMES[month]} {year}
         </h2>
-        <button
-          style={s.btnGhost}
-          onClick={() => setViewDate(new Date(year, month + 1, 1))}
-          aria-label="Mes siguiente"
-        >
+        <button style={s.btnGhost} onClick={() => setViewDate(new Date(year, month + 1, 1))} aria-label="Mes siguiente">
           →
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 6 }}>
         {WEEKDAY_LABELS.map((label) => (
-          <div
-            key={label}
-            style={{
-              textAlign: 'center',
-              fontSize: 11,
-              fontFamily: 'monospace',
-              opacity: 0.5,
-              padding: '4px 0',
-            }}
-          >
+          <div key={label} style={{ textAlign: 'center', fontSize: 11, fontFamily: 'monospace', opacity: 0.45, padding: '4px 0' }}>
             {label}
           </div>
         ))}
       </div>
 
       {weeks.map((week, wi) => (
-        <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 }}>
+        <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 6 }}>
           {week.map((day, di) => {
-            if (!day) return <div key={di} style={{ minHeight: 64 }} />;
+            if (!day) return <div key={di} style={{ minHeight: 96 }} />;
             const key = dayKey(day);
             const dayItems = byDay.get(key) ?? [];
+            const visibleItems = dayItems.slice(0, MAX_VISIBLE_PER_DAY);
+            const overflow = dayItems.length - visibleItems.length;
             const isToday = key === todayKey;
             const isSunday = day.getDay() === 0;
 
@@ -120,71 +99,72 @@ export function AgendaCalendar({ refreshKey }: { refreshKey: number }) {
               <div
                 key={di}
                 style={{
-                  minHeight: 64,
-                  borderRadius: 6,
-                  padding: 6,
+                  minHeight: 96,
+                  borderRadius: 8,
+                  padding: 8,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
                   border: isToday ? '1px solid #00d4d4' : '1px solid rgba(255,255,255,0.06)',
-                  background: isSunday ? 'rgba(0,212,212,0.03)' : 'transparent',
+                  background: isSunday ? 'rgba(0,212,212,0.04)' : 'transparent',
                 }}
               >
-                <div style={{ fontSize: 11, fontFamily: 'monospace', opacity: isToday ? 1 : 0.5, color: isToday ? '#00d4d4' : undefined }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    opacity: isToday ? 1 : 0.45,
+                    color: isToday ? '#00d4d4' : undefined,
+                    fontWeight: isToday ? 700 : 400,
+                  }}
+                >
                   {day.getDate()}
-                </div>
-                {dayItems.map((item) => (
+                </span>
+
+                {visibleItems.map((item) => (
                   <button
                     key={item.post_slug}
-                    onClick={() => setSelected(item)}
+                    onClick={() => onSelect(item.post_slug)}
                     title={item.raw_title}
                     style={{
-                      display: 'block',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
                       width: '100%',
                       textAlign: 'left',
-                      marginTop: 4,
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      border: 'none',
+                      padding: '3px 6px',
+                      borderRadius: 5,
+                      border: item.post_slug === selectedSlug ? '1px solid currentColor' : 'none',
                       cursor: 'pointer',
-                      fontSize: 10,
-                      lineHeight: 1.4,
+                      fontSize: 10.5,
+                      lineHeight: 1.3,
                       background: `${STATUS_DOT[item.status]}1a`,
                       color: STATUS_DOT[item.status],
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {item.raw_title}
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
+                        background: 'currentColor',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.raw_title}
+                    </span>
                   </button>
                 ))}
+
+                {overflow > 0 && (
+                  <span style={{ fontSize: 10, opacity: 0.5, paddingLeft: 6 }}>+{overflow} más</span>
+                )}
               </div>
             );
           })}
         </div>
       ))}
-
-      {selected && (
-        <div
-          style={{
-            marginTop: 16,
-            padding: 12,
-            borderRadius: 8,
-            border: '1px solid rgba(255,255,255,0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 600 }}>{selected.raw_title}</div>
-            <div style={{ fontSize: 12, opacity: 0.6, fontFamily: 'monospace' }}>{selected.post_slug}</div>
-          </div>
-          <a href={`/admin/agenda/${selected.post_slug}`} style={s.btnGhost}>
-            Ver post →
-          </a>
-        </div>
-      )}
     </div>
   );
 }

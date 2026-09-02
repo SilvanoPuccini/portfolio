@@ -6,13 +6,8 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { verifySessionToken } from '@/lib/admin-auth';
 import { MDXContent } from '@/components/blog/MDXContent';
 import { PostCover } from '@/components/blog/PostCover';
-import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
-
-const STATUS_LABELS: Record<PostPublicationStatus, string> = {
-  planificado: 'Planificado',
-  preaprobado: 'Preaprobado',
-  publicado: 'Publicado',
-};
+import { STATUS_LABELS } from '@/components/admin/agenda/StatusBadge';
+import type { PostPublication } from '@/lib/post-publications/types';
 
 async function requireAdminSession() {
   const sessionSecret = process.env.ADMIN_SESSION_SECRET;
