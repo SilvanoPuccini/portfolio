@@ -1,0 +1,195 @@
+---
+title: 'Mi stack no es una lista de tecnologías. Es una arquitectura de decisiones'
+date: '2026-09-06'
+category: 'Criterio'
+displayCategory: 'Criterio'
+excerpt: 'React, Next.js, Django, Go o PostgreSQL no compiten en una tabla universal. Cada tecnología resuelve una parte del sistema y, al mismo tiempo, introduce nuevas decisiones sobre datos, equipo, despliegue y mantenimiento.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+keyword: 'arquitectura'
+ogImage: '/blog/mi-stack-arquitectura-de-decisiones/hero.png'
+---
+
+React, Next.js, Django, Go o PostgreSQL no compiten en una tabla universal. Cada tecnología resuelve una parte del sistema y, al mismo tiempo, introduce nuevas decisiones sobre datos, equipo, despliegue y mantenimiento.
+
+Durante mucho tiempo pensé que definir un stack era responder una pregunta:
+
+**¿Con qué tecnologías voy a construir este proyecto?**
+
+Hoy empiezo por otra:
+
+**¿Qué decisiones necesita sostener este sistema cuando deje de ser un proyecto y empiece a tener usuarios?**
+
+El cambio parece pequeño, pero modifica todo.
+
+Cuando el stack se elige primero, el problema termina adaptándose a las herramientas. Cuando el problema se entiende primero, cada tecnología entra con una responsabilidad concreta.
+
+Por eso mi stack no es React, Next.js, Django, TypeScript y PostgreSQL escritos uno al lado del otro.
+
+Es una arquitectura de decisiones.
+
+## Estudiar más tecnologías no me dio una respuesta universal
+
+Durante mi formación trabajé con React, React con TypeScript, Vue, Angular, Astro y Go. Después profundicé en herramientas como Next.js, Django y PostgreSQL.
+
+Al principio, cada nueva tecnología parecía venir a reemplazar a la anterior.
+
+Con el tiempo entendí algo diferente: la mayoría no elimina la complejidad. La mueve.
+
+Un framework puede simplificar el enrutamiento, pero agregar decisiones de renderizado y caché.
+
+Una SPA puede separar muy bien el frontend del backend, pero necesita resolver por otro lado el SEO, la autenticación, el contrato de la API y el despliegue de dos aplicaciones.
+
+Un framework backend puede acelerar autenticación, permisos, formularios y administración, pero también exige comprender su estructura y respetar sus convenciones.
+
+Un servicio escrito en Go puede ser pequeño, rápido y fácil de distribuir, pero no convierte automáticamente cualquier sistema en una arquitectura mejor.
+
+La pregunta dejó de ser cuál herramienta es superior.
+
+La pregunta pasó a ser **dónde quiero asumir la complejidad y quién podrá mantenerla después**.
+
+## Las cinco decisiones que tomo antes de elegir el stack
+
+<figure>
+  <img src="/blog/mi-stack-arquitectura-de-decisiones/grafico-cinco-decisiones.png" alt="Cinco decisiones anteriores al stack: producto, lógica, datos, equipo y operación." loading="lazy" />
+  <figcaption>La tecnología entra después de definir qué debe sostener el sistema.</figcaption>
+</figure>
+
+### 1. ¿Cómo llega el usuario al producto?
+
+No es lo mismo una aplicación interna que un sitio cuyo contenido necesita ser encontrado, compartido e indexado.
+
+Si el contenido público, el SEO, los metadatos y la primera carga tienen un peso importante, Next.js puede integrar esas necesidades dentro de la misma arquitectura de React.
+
+Si estoy construyendo un panel interno o una aplicación que consume una API independiente, React con Vite puede ofrecer una base más directa y una separación muy clara entre frontend y backend.
+
+No elijo uno porque sea "más profesional". Elijo según la forma en la que el usuario entra, navega y vuelve al producto.
+
+### 2. ¿Dónde vive la lógica de negocio?
+
+Una interfaz puede verse terminada y todavía no existir un sistema detrás.
+
+Precios, permisos, estados, validaciones, auditoría, reglas comerciales y procesos no deberían depender de lo que el navegador decida mostrar.
+
+Cuando el producto tiene mucha lógica relacional, usuarios, roles, operaciones administrativas y reglas que deben evolucionar sin improvisación, Django suele darme una estructura muy productiva.
+
+No solamente por Python. También por todo lo que permite resolver alrededor del núcleo del negocio: modelos, migraciones, autenticación, permisos, administración y pruebas.
+
+Go entra en otra clase de decisión. Lo considero cuando un servicio necesita concurrencia, procesos de red, ejecución eficiente o una pieza pequeña con límites muy definidos.
+
+No reemplazo Django por Go para hacer el mismo sistema de otra manera. Los uso cuando el problema cambia.
+
+### 3. ¿Qué garantías necesitan los datos?
+
+La base de datos no es un depósito al final del diagrama.
+
+Es la capa que debe conservar la verdad del sistema incluso cuando una petición falla, un usuario repite una operación o dos procesos intentan modificar el mismo dato.
+
+PostgreSQL suele ser mi punto de partida porque priorizo integridad, relaciones, transacciones y capacidad de evolución.
+
+Pero elegir PostgreSQL no resuelve el modelado.
+
+Todavía tengo que decidir qué relaciones existen, qué restricciones pertenecen a la base, qué cambios requieren migraciones, qué información debe auditarse y cómo recuperar el sistema si algo sale mal.
+
+La tecnología aporta garantías. El diseño decide cómo utilizarlas.
+
+### 4. ¿Quién va a mantener el sistema?
+
+Un stack también es una decisión sobre personas.
+
+Una solución puede ser técnicamente elegante y, al mismo tiempo, muy difícil de comprender para el equipo que debe operarla.
+
+Por eso evalúo:
+
+- cuánto contexto necesita una persona para modificar una funcionalidad;
+- cuántos lenguajes y herramientas debe dominar;
+- qué convenciones son visibles y cuáles dependen de conocimiento implícito;
+- cómo se prueban los cambios;
+- y qué tan fácil es detectar dónde ocurrió un error.
+
+Agregar una tecnología debería reducir un riesgo o incorporar una capacidad. Si solamente duplica responsabilidades, sobra.
+
+### 5. ¿Cómo va a llegar a producción?
+
+El stack no termina cuando el código funciona en mi computadora.
+
+También define cómo se construye, se configura, se despliega, se monitorea y se recupera el sistema.
+
+Una aplicación estática construida con Vite puede publicarse como archivos optimizados. Una aplicación Next.js puede necesitar un servidor Node.js, un contenedor o una exportación estática, según las funciones utilizadas. Django necesita su entorno de ejecución, migraciones, archivos estáticos, configuración segura y un servidor adecuado. Un servicio en Go puede distribuirse como un binario, pero igual necesita configuración, observabilidad y una estrategia de despliegue.
+
+La operación no aparece al final. Empieza a condicionarme desde la primera decisión.
+
+## Mi arquitectura de referencia
+
+No tengo una combinación obligatoria para todos los proyectos. Sí tengo una arquitectura de referencia desde la cual empiezo a evaluar.
+
+| Necesidad dominante | Primera opción que evalúo | Decisión que todavía debo resolver |
+|---|---|---|
+| Contenido público, SEO y renderizado híbrido | Next.js con TypeScript | Caché, ejecución en servidor y plataforma de despliegue |
+| Aplicación interna o frontend desacoplado | React con Vite y TypeScript | Contrato de API, autenticación y publicación del frontend |
+| Reglas de negocio, usuarios, permisos y administración | Django | Límites del dominio, API, tareas y estrategia de despliegue |
+| Servicios concurrentes o procesos de red bien delimitados | Go | Contratos, observabilidad y necesidad real de separar el servicio |
+| Datos relacionales y consistencia | PostgreSQL | Modelado, restricciones, migraciones, índices y recuperación |
+
+Esta tabla no selecciona el stack por mí.
+
+Me obliga a explicar por qué cada pieza está ahí.
+
+## El stack correcto también depende de lo que todavía no existe
+
+Una decisión técnica no debería responder solamente al estado actual del proyecto.
+
+También tiene que considerar el siguiente cambio probable.
+
+¿El sitio puede convertirse en una aplicación con usuarios?
+
+¿El panel interno puede necesitar permisos más complejos?
+
+¿La API puede ser consumida por una aplicación móvil?
+
+¿El volumen esperado justifica separar un servicio o todavía conviene mantener un sistema más simple?
+
+Diseñar para el futuro no significa construir hoy todo lo que quizá necesitemos mañana.
+
+Significa evitar decisiones que bloqueen la evolución más probable.
+
+No empiezo con microservicios por si el producto crece. Primero busco límites claros dentro de una arquitectura que pueda entender, probar y desplegar.
+
+Si el crecimiento demuestra que una parte necesita independencia, entonces la separo con evidencia.
+
+## Lo que aprendí al dejar de defender herramientas
+
+Antes asociaba el conocimiento técnico con poder decir qué framework era mejor.
+
+Hoy lo asocio con poder explicar:
+
+- qué problema resuelve;
+- qué complejidad introduce;
+- qué dependencia genera;
+- cómo se prueba;
+- cómo se despliega;
+- cuánto cuesta operarlo;
+- y qué tendría que ocurrir para reemplazarlo.
+
+Un stack no se vuelve serio por tener más tecnologías.
+
+Se vuelve serio cuando cada capa tiene una función, sus límites están definidos y el equipo puede revisar el circuito completo.
+
+Mi stack actual refleja lo que aprendí construyendo con distintas herramientas, pero no es una identidad que tenga que defender.
+
+Si el problema cambia, el stack también puede cambiar.
+
+La regla es la misma que uso para mi entorno de desarrollo y para los agentes de IA:
+
+**si duplica, sobra; si agrega una capacidad verificable, se queda.**
+
+La próxima semana voy a bajar esta idea a una comparación concreta:
+
+**Next.js, React con Vite o Angular: qué cambia realmente cuando elegimos uno para construir un producto.**
+
+No para encontrar un ganador universal, sino para reconocer qué decisión estamos tomando en cada caso.
+
+¿Qué tecnología de tu stack está ahí por una decisión concreta y cuál sigue ahí solamente por costumbre?
+
+Este tipo de criterio —cómo se forma, cuándo falla, cuándo escala— es exactamente lo que analizo cada semana en El Radar.
