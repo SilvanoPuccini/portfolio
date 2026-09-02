@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { AgendaCalendar } from '@/components/admin/agenda/AgendaCalendar';
 import { slugifyTitle } from '@/lib/post-publications/types';
 import type {
   PostPublication,
@@ -178,6 +179,10 @@ export default function AgendaPage() {
 
       <AgendaSummary refreshKey={summaryKey} />
 
+      <AgendaCalendar refreshKey={summaryKey} />
+
+      <h2 style={{ ...s.sectionTitle, marginBottom: 12 }}>Todos los posts</h2>
+
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {statuses.map((st) => (
           <button
@@ -228,7 +233,10 @@ export default function AgendaPage() {
                   <td style={{ padding: '10px 12px' }}>
                     <StatusBadge status={item.status} />
                   </td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td style={{ padding: '10px 12px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <a href={`/admin/agenda/${item.post_slug}`} style={s.btnGhost}>
+                      Ver →
+                    </a>
                     {item.status === 'planificado' && (
                       <button
                         style={s.btnGhost}
