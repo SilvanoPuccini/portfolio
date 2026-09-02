@@ -52,6 +52,68 @@ function fmt(iso: string) {
 
 const PER_PAGE = 20;
 
+function AgendaSummary({ refreshKey }: { refreshKey: number }) {
+  const [next, setNext] = useState<PostPublication | null | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/posts-agenda?page=1')
+      .then((r) => r.json())
+      .then((json: { items?: PostPublication[] }) => {
+        if (cancelled) return;
+        const now = Date.now();
+        const upcoming = (json.items ?? []).find(
+          (item) => new Date(item.scheduled_at).getTime() >= now && item.status !== 'publicado',
+        );
+        setNext(upcoming ?? null);
+      })
+      .catch(() => !cancelled && setNext(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
+  if (next === undefined) return null;
+  if (next === null) {
+    return (
+      <div style={{ ...s.card, marginBottom: 16 }}>
+        <p style={s.hint}>No hay ningún post con fecha programada a futuro en la agenda.</p>
+      </div>
+    );
+  }
+
+  const scheduledAt = new Date(next.scheduled_at);
+  const daysLeft = Math.ceil((scheduledAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const atRisk = next.status === 'planificado' && daysLeft <= 3;
+
+  return (
+    <div
+      style={{
+        ...s.card,
+        marginBottom: 16,
+        borderColor: atRisk ? '#f87171' : undefined,
+        background: atRisk ? 'rgba(248,113,113,0.06)' : undefined,
+      }}
+    >
+      <p style={s.eyebrow}>Próximo en la agenda</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+        <span style={{ fontWeight: 600, fontSize: 15 }}>{next.raw_title}</span>
+        <StatusBadge status={next.status} />
+        <span style={{ fontSize: 13, opacity: 0.7 }}>{fmt(next.scheduled_at)}</span>
+        <span style={{ fontSize: 13, opacity: 0.7 }}>
+          {daysLeft <= 0 ? 'hoy' : `en ${daysLeft} día${daysLeft === 1 ? '' : 's'}`}
+        </span>
+      </div>
+      {atRisk && (
+        <p style={{ ...s.errorText, marginTop: 10, marginBottom: 0 }}>
+          Faltan {daysLeft} día{daysLeft === 1 ? '' : 's'} y todavía está en planificado — sin
+          hardcodear ni revisar. No va a llegar a tiempo si no se avanza.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function AgendaPage() {
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [items, setItems] = useState<PostPublication[]>([]);
@@ -60,6 +122,7 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [summaryKey, setSummaryKey] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,6 +158,7 @@ export default function AgendaPage() {
       return;
     }
     load();
+    setSummaryKey((k) => k + 1);
   }
 
   const statuses: StatusFilter[] = ['all', 'planificado', 'preaprobado', 'publicado'];
@@ -111,6 +175,8 @@ export default function AgendaPage() {
           + Nuevo post
         </button>
       </div>
+
+      <AgendaSummary refreshKey={summaryKey} />
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {statuses.map((st) => (
@@ -205,7 +271,15 @@ export default function AgendaPage() {
         </div>
       )}
 
-      {showNew && <NewAgendaItemModal onClose={() => setShowNew(false)} onCreated={load} />}
+      {showNew && (
+        <NewAgendaItemModal
+          onClose={() => setShowNew(false)}
+          onCreated={() => {
+            load();
+            setSummaryKey((k) => k + 1);
+          }}
+        />
+      )}
     </div>
   );
 }
