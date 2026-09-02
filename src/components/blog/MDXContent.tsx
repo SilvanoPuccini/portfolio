@@ -15,12 +15,14 @@ import {
   ModelSwapDiagramBlock,
   VerificationDiagramBlock,
 } from './diagrams/EntornoDiagrams';
+import { FiveDecisionsDiagramBlock } from './diagrams/StackDecisionsDiagram';
 
 const mdxComponents = {
   DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
   DevelopmentCycleDiagram, TestingQaDiagram, CierreDiagram,
   StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
   PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
+  FiveDecisionsDiagramBlock,
 };
 
 const mdxOptions = {
