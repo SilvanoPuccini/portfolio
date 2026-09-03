@@ -2,16 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized, isCronAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { publishPost, type PublishOutcome } from '@/lib/post-publications/publish';
+import { publishCutoff } from '@/lib/post-publications/schedule';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Corre cada hora (Vercel Cron) y también admite invocación manual con
- * ADMIN_API_KEY. Hace dos cosas:
+ * Corre una vez por día a las 13:00 UTC — 10:00 en Argentina, que no tiene
+ * horario de verano, así que la hora local no se mueve en todo el año. El
+ * horario vive en vercel.json (`0 13 * * *`); si se cambia allá, cambiarlo
+ * también en el comentario de PUBLISH_WINDOW_MINUTES.
  *
- * 1. Publica lo que esté "preaprobado" con scheduled_at ya cumplida. Nunca
- *    lo que sigue en "planificado" — eso es justamente la señal de que ese
- *    post no llegó a tiempo a la revisión.
+ * También admite invocación manual con ADMIN_API_KEY. Hace dos cosas:
+ *
+ * 1. Publica lo que esté "preaprobado" y le toque salir. Nunca lo que sigue
+ *    en "planificado" — eso es justamente la señal de que ese post no llegó
+ *    a tiempo a la revisión.
  * 2. Reintenta el newsletter de lo ya publicado que nunca llegó a mandarse
  *    (Resend caído, por ejemplo). Sin esto, un fallo de envío quedaba muerto.
  *
@@ -24,7 +29,7 @@ export async function GET(req: NextRequest) {
   }
 
   const db = getSupabaseAdmin();
-  const nowIso = new Date().toISOString();
+  const cutoff = publishCutoff();
 
   // published_at null = nunca salió. Un post que se publicó y después se
   // ocultó a mano conserva su published_at, así que el cron no lo revive.
@@ -33,7 +38,7 @@ export async function GET(req: NextRequest) {
     .select('post_slug')
     .eq('status', 'preaprobado')
     .is('published_at', null)
-    .lte('scheduled_at', nowIso);
+    .lte('scheduled_at', cutoff);
 
   if (dueError) {
     return NextResponse.json({ error: dueError.message }, { status: 500 });
