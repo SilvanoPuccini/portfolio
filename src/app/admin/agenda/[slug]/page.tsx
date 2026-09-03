@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { verifySessionToken } from '@/lib/admin-auth';
 import { previewUrl } from '@/lib/post-publications/preview';
 import { STATUS_LABELS, STATUS_COLORS } from '@/components/admin/agenda/StatusBadge';
+import { RawContentPanel } from '@/components/admin/agenda/RawContentPanel';
 import type { PostPublication } from '@/lib/post-publications/types';
 
 async function requireAdminSession() {
@@ -148,50 +149,15 @@ export default async function AgendaPostDetailPage({
           </a>
         ) : (
           <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>
-            Todavía no existe el archivo .mdx de este post — solo hay texto en bruto en la agenda,
-            falta hardcodearlo y deployarlo.
+            {item?.raw_content?.trim()
+              ? 'Todavía no existe el archivo .mdx de este post: el texto está guardado en la agenda, falta hardcodearlo y deployarlo.'
+              : 'Todavía no existe el archivo .mdx de este post, y tampoco hay texto cargado en la agenda.'}
           </p>
         )}
       </div>
 
-      {item?.raw_content && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 20,
-            borderRadius: 10,
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: '#111827',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'monospace',
-              fontSize: 11,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: '#00d4d4',
-              margin: '0 0 12px',
-            }}
-          >
-            Texto en bruto guardado
-          </p>
-          <pre
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              fontSize: 13,
-              lineHeight: 1.7,
-              color: '#94a3b8',
-              margin: 0,
-              maxHeight: 460,
-              overflow: 'auto',
-            }}
-          >
-            {item.raw_content}
-          </pre>
-        </div>
-      )}
+      {item && <RawContentPanel item={item} />}
+
     </div>
   );
 }
