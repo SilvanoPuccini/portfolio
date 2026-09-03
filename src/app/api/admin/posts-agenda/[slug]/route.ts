@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { publishPost } from '@/lib/post-publications/publish';
-import { isValidTransition } from '@/lib/post-publications/types';
+import { isValidTransition, preApprovalBlockReason } from '@/lib/post-publications/types';
 import type {
   PostPublication,
   PostPublicationStatus,
@@ -112,6 +112,20 @@ export async function PATCH(
       // volver a publicarlo solo, y notified_at para no remandar el mail a
       // toda la lista. Ocultar algo publicado lo deja oculto hasta que vos
       // lo republiques a mano.
+    }
+  }
+
+  // Un post preaprobado es un post con texto revisado, así que la regla se
+  // valida contra lo que queda DESPUÉS de aplicar este PATCH: un mismo pedido
+  // puede preaprobar y vaciar el texto a la vez, o vaciarle el texto a algo
+  // que ya estaba preaprobado.
+  const nextStatus = body.status ?? current.status;
+  const nextContent = 'raw_content' in body ? body.raw_content : current.raw_content;
+
+  if (nextStatus !== 'planificado') {
+    const blocked = preApprovalBlockReason(nextContent);
+    if (blocked) {
+      return NextResponse.json({ error: blocked, reason: 'missing-content' }, { status: 400 });
     }
   }
 

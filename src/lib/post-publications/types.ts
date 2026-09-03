@@ -30,6 +30,24 @@ export function isValidTransition(
   return from === to || ALLOWED_TRANSITIONS[from].includes(to);
 }
 
+export function hasRawContent(raw: string | null | undefined): boolean {
+  return typeof raw === 'string' && raw.trim().length > 0;
+}
+
+/**
+ * Preaprobar significa "leí este texto y está listo". Sin texto cargado no hay
+ * nada que aprobar, y como publicar exige haber pasado por preaprobado, esta
+ * sola regla también impide que se publique un post vacío, tanto desde el
+ * botón como desde el cron del domingo.
+ *
+ * Devuelve el motivo del bloqueo, o null si la preaprobación es válida.
+ */
+export function preApprovalBlockReason(raw: string | null | undefined): string | null {
+  return hasRawContent(raw)
+    ? null
+    : 'Este post no tiene texto cargado todavía. Cargá el texto antes de preaprobarlo.';
+}
+
 /**
  * Fila tal como la devuelve el listado del admin. No trae `raw_content`
  * (el texto entero de cada post) porque la pantalla solo necesita saber si

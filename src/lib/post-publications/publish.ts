@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getBlogPostBySlug } from '@/lib/mdx';
 import { sendPostNewsletter } from '@/lib/newsletter/send-post-newsletter';
+import { hasRawContent } from './types';
 import type { PostPublication } from './types';
 
 export type PublishFailure =
@@ -55,10 +56,23 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
     };
   }
 
-  // 2. Compare-and-swap: solo un preaprobado pasa a publicado.
+  // 2. Compare-and-swap: solo un preaprobado con texto pasa a publicado.
   let alreadyPublished = existing.status === 'publicado';
 
   if (!alreadyPublished) {
+    // Preaprobar ya exige texto, así que este chequeo solo se dispara si la
+    // fila quedó sin contenido después de haberse preaprobado. Vale la pena:
+    // es la última barrera antes de mandarle el mail a toda la lista, y acá
+    // pasan tanto el botón como el cron.
+    if (!hasRawContent(existing.raw_content)) {
+      return {
+        ok: false,
+        slug,
+        reason: 'invalid-state',
+        detail: 'No se puede publicar un post sin texto cargado en la agenda',
+      };
+    }
+
     if (existing.status !== 'preaprobado') {
       return {
         ok: false,

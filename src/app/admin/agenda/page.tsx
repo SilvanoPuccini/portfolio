@@ -108,10 +108,14 @@ export default function AgendaPage() {
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
+      // El error va al banner de la página, no a un alert() del navegador:
+      // el confirm nativo ya se reemplazó, y un alert acá dejaría la mitad
+      // del circuito con el cartel gris del sistema operativo.
       const json = await res.json().catch(() => ({}));
-      alert(json.error ?? 'No se pudo cambiar el estado');
+      setError(json.error ?? 'No se pudo cambiar el estado');
       return;
     }
+    setError(null);
     loadAll();
   }
 

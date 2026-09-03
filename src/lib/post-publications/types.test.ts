@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isValidTransition, slugifyTitle } from './types';
+import { hasRawContent, isValidTransition, preApprovalBlockReason, slugifyTitle } from './types';
 
 describe('isValidTransition', () => {
   it('permite el camino normal hacia adelante', () => {
@@ -38,5 +38,31 @@ describe('slugifyTitle', () => {
 
   it('respeta el formato que exige la constraint de la tabla', () => {
     expect(slugifyTitle('Mi Stack — 2026!!')).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+  });
+});
+
+describe('preApprovalBlockReason', () => {
+  it('bloquea preaprobar un post sin texto cargado', () => {
+    expect(preApprovalBlockReason(null)).toMatch(/no tiene texto/);
+  });
+
+  it('trata el texto en blanco como si no hubiera texto', () => {
+    expect(preApprovalBlockReason('   \n\t  ')).toMatch(/no tiene texto/);
+  });
+
+  it('deja pasar un post con texto', () => {
+    expect(preApprovalBlockReason('El post del domingo')).toBeNull();
+  });
+});
+
+describe('hasRawContent', () => {
+  it.each([
+    [null, false],
+    [undefined, false],
+    ['', false],
+    ['  ', false],
+    ['texto', true],
+  ])('%p -> %p', (raw, expected) => {
+    expect(hasRawContent(raw as string | null | undefined)).toBe(expected);
   });
 });

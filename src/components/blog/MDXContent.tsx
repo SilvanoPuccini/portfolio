@@ -16,13 +16,14 @@ import {
   VerificationDiagramBlock,
 } from './diagrams/EntornoDiagrams';
 import { FiveDecisionsDiagramBlock, StackHeroBlock } from './diagrams/StackDecisionsDiagram';
+import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
   DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
   DevelopmentCycleDiagram, TestingQaDiagram, CierreDiagram,
   StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
   PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
-  FiveDecisionsDiagramBlock, StackHeroBlock,
+  FiveDecisionsDiagramBlock, StackHeroBlock, StackReferenceTable,
 };
 
 const mdxOptions = {
