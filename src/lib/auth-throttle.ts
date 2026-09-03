@@ -17,24 +17,17 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 const THROTTLE_ID = 'admin-login';
 
 /** Margen para que un tipeo mal no te bloquee: recién después frena. */
-const FREE_ATTEMPTS = 15;
+export const FREE_ATTEMPTS = 15;
 
 /** Primer bloqueo tras pasar el margen. Se duplica con cada fallo posterior. */
-const BASE_BLOCK_MS = 60_000;
+export const BASE_BLOCK_MS = 60_000;
 
 /** Techo del bloqueo: que un atacante no te deje afuera de tu propio admin. */
-const MAX_BLOCK_MS = 15 * 60_000;
+export const MAX_BLOCK_MS = 15 * 60_000;
 
 export interface ThrottleState {
   blocked: boolean;
   retryAfterSeconds: number;
-}
-
-/** Exportada para poder testear la curva sin tocar la base. */
-export function blockDuration(failures: number): number {
-  const over = failures - FREE_ATTEMPTS;
-  if (over <= 0) return 0;
-  return Math.min(BASE_BLOCK_MS * 2 ** (over - 1), MAX_BLOCK_MS);
 }
 
 /**
@@ -61,28 +54,29 @@ export async function isLoginBlocked(): Promise<ThrottleState> {
   return { blocked: true, retryAfterSeconds: Math.ceil(remainingMs / 1000) };
 }
 
-/** Suma un fallo y, si corresponde, extiende el bloqueo. */
+/**
+ * Suma un fallo y, si corresponde, extiende el bloqueo.
+ *
+ * El incremento ocurre entero dentro de Postgres (`record_login_failure`,
+ * migración 014). Hacerlo acá —leer el contador, sumar uno, escribirlo— tenía
+ * una ventana entre la lectura y la escritura, y una fuerza bruta no manda los
+ * intentos en fila sino en paralelo: cien requests simultáneos leían el mismo
+ * valor y escribían el mismo número, así que el contador subía uno solo y el
+ * freno no frenaba nada. La función SQL lo resuelve de forma atómica.
+ */
 export async function recordLoginFailure(): Promise<void> {
   const db = getSupabaseAdmin();
 
-  const { data } = await db
-    .from('auth_throttle')
-    .select('failures')
-    .eq('id', THROTTLE_ID)
-    .maybeSingle<{ failures: number }>();
+  const { error } = await db.rpc('record_login_failure', {
+    p_id: THROTTLE_ID,
+    p_free_attempts: FREE_ATTEMPTS,
+    p_base_block_ms: BASE_BLOCK_MS,
+    p_max_block_ms: MAX_BLOCK_MS,
+  });
 
-  const failures = (data?.failures ?? 0) + 1;
-  const blockMs = blockDuration(failures);
-
-  await db.from('auth_throttle').upsert(
-    {
-      id: THROTTLE_ID,
-      failures,
-      blocked_until: blockMs > 0 ? new Date(Date.now() + blockMs).toISOString() : null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'id' },
-  );
+  if (error) {
+    console.error('[auth-throttle] no se pudo registrar el fallo:', error.message);
+  }
 }
 
 /** Login correcto: se limpia la cuenta de fallos. */
