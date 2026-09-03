@@ -96,8 +96,19 @@ export function AgendaDetailPanel({
             </div>
             <a
               href={`/admin/agenda/${selected.post_slug}`}
-              className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-              style={{ ...s.btnGhost, textAlign: 'center' }}
+              className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+              style={{
+                display: 'block',
+                background: 'rgba(0,212,212,0.12)',
+                color: '#00d4d4',
+                border: '1px solid rgba(0,212,212,0.45)',
+                borderRadius: 8,
+                padding: '11px 16px',
+                fontWeight: 600,
+                fontSize: 13,
+                textAlign: 'center',
+                textDecoration: 'none',
+              }}
             >
               Ver post completo →
             </a>

@@ -141,13 +141,24 @@ export default function AgendaPage() {
         ) : tableItems.length === 0 ? (
           <div style={s.hint}>No hay posts en este estado todavía.</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          // tableLayout fixed + anchos: sin esto un título largo redistribuye
+          // todas las columnas y la tabla "baila" al cambiar de filtro.
+          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <thead>
-              <tr style={{ textAlign: 'left', fontSize: 12, opacity: 0.6 }}>
-                <th style={{ padding: '10px 14px' }}>Título</th>
-                <th style={{ padding: '10px 14px' }}>Programado</th>
-                <th style={{ padding: '10px 14px' }}>Estado</th>
-                <th style={{ padding: '10px 14px' }}>Acciones</th>
+              <tr
+                style={{
+                  textAlign: 'left',
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: '#64748b',
+                }}
+              >
+                <th style={{ padding: '10px 14px', fontWeight: 500 }}>Título</th>
+                <th style={{ padding: '10px 14px', fontWeight: 500, width: 150 }}>Programado</th>
+                <th style={{ padding: '10px 14px', fontWeight: 500, width: 120 }}>Estado</th>
+                <th style={{ padding: '10px 14px', fontWeight: 500, width: 300 }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -157,9 +168,36 @@ export default function AgendaPage() {
                   className="transition-colors hover:bg-white/[0.02]"
                   style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
                 >
-                  <td style={{ padding: '14px' }}>
-                    <div style={{ fontWeight: 600, marginBottom: 4 }}>{item.raw_title}</div>
-                    <div style={{ fontSize: 12, opacity: 0.5, fontFamily: 'monospace' }}>{item.post_slug}</div>
+                  <td style={{ padding: '14px', minWidth: 0 }}>
+                    <a
+                      href={`/admin/agenda/${item.post_slug}`}
+                      className="transition-colors hover:text-[#00d4d4]"
+                      style={{
+                        display: 'block',
+                        fontWeight: 600,
+                        marginBottom: 4,
+                        color: '#e2e8f0',
+                        textDecoration: 'none',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={item.raw_title}
+                    >
+                      {item.raw_title}
+                    </a>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        opacity: 0.5,
+                        fontFamily: 'monospace',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {item.post_slug}
+                    </div>
                   </td>
                   <td style={{ padding: '14px', fontSize: 13, whiteSpace: 'nowrap' }}>{fmt(item.scheduled_at)}</td>
                   <td style={{ padding: '14px' }}>
@@ -169,8 +207,18 @@ export default function AgendaPage() {
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                       <a
                         href={`/admin/agenda/${item.post_slug}`}
-                        className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-                        style={s.btnGhost}
+                        className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+                        style={{
+                          background: 'rgba(0,212,212,0.12)',
+                          color: '#00d4d4',
+                          border: '1px solid rgba(0,212,212,0.45)',
+                          borderRadius: 8,
+                          padding: '8px 16px',
+                          fontWeight: 600,
+                          fontSize: 12,
+                          textDecoration: 'none',
+                          whiteSpace: 'nowrap',
+                        }}
                       >
                         Ver →
                       </a>
