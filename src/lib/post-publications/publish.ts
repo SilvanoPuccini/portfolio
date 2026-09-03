@@ -94,16 +94,34 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
     return { ok: true, slug, notified: false, alreadyPublished };
   }
 
+  // Reservar el envío antes de mandarlo. notify_attempts hace de número de
+  // versión: si otra ejecución ya lo incrementó, esta no pisa nada y no
+  // manda. Sin esto, dos corridas simultáneas leen "nunca se envió" al mismo
+  // tiempo y le mandan el newsletter dos veces a toda la lista.
+  const attempts = existing.notify_attempts ?? 0;
+  const { data: claimed, error: claimError } = await db
+    .from('post_publications')
+    .update({ notify_attempts: attempts + 1, updated_at: new Date().toISOString() })
+    .eq('post_slug', slug)
+    .eq('notify_attempts', attempts)
+    .is('notified_at', null)
+    .select('post_slug');
+
+  if (claimError) {
+    return { ok: false, slug, reason: 'db-error', detail: claimError.message };
+  }
+
+  // 0 filas = otra ejecución se quedó con el envío. No es error.
+  if (!claimed || claimed.length === 0) {
+    return { ok: true, slug, notified: false, alreadyPublished };
+  }
+
   const result = await sendPostNewsletter(slug);
 
   if (!result.ok) {
     await db
       .from('post_publications')
-      .update({
-        notify_attempts: (existing.notify_attempts ?? 0) + 1,
-        notify_error: result.error,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ notify_error: result.error, updated_at: new Date().toISOString() })
       .eq('post_slug', slug);
 
     return { ok: false, slug, reason: 'notify-failed', detail: result.error };
@@ -113,7 +131,6 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
     .from('post_publications')
     .update({
       notified_at: new Date().toISOString(),
-      notify_attempts: (existing.notify_attempts ?? 0) + 1,
       notify_error: null,
       updated_at: new Date().toISOString(),
     })

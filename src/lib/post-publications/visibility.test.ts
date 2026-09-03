@@ -47,6 +47,16 @@ describe('isPostVisible', () => {
     it('sigue mostrando los posts viejos, no tumba el blog entero', () => {
       expect(isPostVisible({ slug: 'legado', date: PAST }, down)).toBe(true);
     });
+
+    it('mantiene oculto un post retenido con fecha pasada si conserva el último estado bueno', () => {
+      // El piso por fecha no alcanza acá: la fecha ya pasó pero el post sigue
+      // sin aprobar. Por eso el índice degradado reutiliza la última lectura.
+      const withCache = index(
+        [['retenido', { status: 'preaprobado', scheduledAt: `${PAST}T10:00:00-03:00` }]],
+        true,
+      );
+      expect(isPostVisible({ slug: 'retenido', date: PAST }, withCache)).toBe(false);
+    });
   });
 
   it('trata una fecha inválida como no publicable', () => {

@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { getBlogPostBySlug } from '@/lib/mdx';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { verifySessionToken } from '@/lib/admin-auth';
-import { MDXContent } from '@/components/blog/MDXContent';
-import { PostCover } from '@/components/blog/PostCover';
-import { STATUS_LABELS } from '@/components/admin/agenda/StatusBadge';
+import { previewUrl } from '@/lib/post-publications/preview';
+import { STATUS_LABELS, STATUS_COLORS } from '@/components/admin/agenda/StatusBadge';
 import type { PostPublication } from '@/lib/post-publications/types';
 
 async function requireAdminSession() {
@@ -27,7 +26,7 @@ function fmt(iso: string | null) {
   });
 }
 
-export default async function AgendaPostPreviewPage({
+export default async function AgendaPostDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -36,21 +35,29 @@ export default async function AgendaPostPreviewPage({
   const { slug } = await params;
 
   const db = getSupabaseAdmin();
-  const { data: agendaItem } = await db
+  const { data: item } = await db
     .from('post_publications')
     .select('*')
     .eq('post_slug', slug)
-    .single<PostPublication>();
+    .maybeSingle<PostPublication>();
 
   const post = await getBlogPostBySlug(slug);
 
-  if (!agendaItem && !post) notFound();
+  if (!item && !post) notFound();
+
+  const statusColor = item ? STATUS_COLORS[item.status] : null;
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div style={{ maxWidth: 760, margin: '0 auto' }}>
       <Link
         href="/admin/agenda"
-        style={{ fontSize: 12, fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.14em', opacity: 0.6 }}
+        style={{
+          fontSize: 12,
+          fontFamily: 'monospace',
+          textTransform: 'uppercase',
+          letterSpacing: '0.14em',
+          opacity: 0.6,
+        }}
       >
         ← Agenda
       </Link>
@@ -58,57 +65,131 @@ export default async function AgendaPostPreviewPage({
       <div
         style={{
           marginTop: 16,
-          marginBottom: 24,
-          padding: 16,
-          borderRadius: 8,
+          padding: 20,
+          borderRadius: 10,
           border: '1px solid rgba(255,255,255,0.08)',
+          background: '#111827',
           display: 'grid',
-          gap: 8,
+          gap: 14,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 600, fontSize: 16 }}>{agendaItem?.raw_title ?? post?.title ?? slug}</span>
-          {agendaItem && (
+          <span style={{ fontWeight: 600, fontSize: 17 }}>{item?.raw_title ?? post?.title ?? slug}</span>
+          {item && statusColor && (
             <span
               style={{
                 fontSize: 11,
                 padding: '3px 10px',
                 borderRadius: 20,
                 fontFamily: 'monospace',
-                background: 'rgba(0,212,212,0.1)',
-                color: '#00d4d4',
+                background: statusColor.bg,
+                color: statusColor.color,
               }}
             >
-              {STATUS_LABELS[agendaItem.status]}
+              {STATUS_LABELS[item.status]}
             </span>
           )}
         </div>
         <div style={{ fontSize: 12, fontFamily: 'monospace', opacity: 0.5 }}>{slug}</div>
 
-        {agendaItem && (
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 12, opacity: 0.7, marginTop: 8 }}>
-            <span>Programado: {fmt(agendaItem.scheduled_at)}</span>
-            <span>Preaprobado: {fmt(agendaItem.pre_approved_at)}</span>
-            <span>Publicado: {fmt(agendaItem.published_at)}</span>
-            <span>Newsletter enviado: {fmt(agendaItem.notified_at)}</span>
+        {item && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: 12,
+              fontSize: 12,
+              opacity: 0.7,
+            }}
+          >
+            <span>Programado: {fmt(item.scheduled_at)}</span>
+            <span>Preaprobado: {fmt(item.pre_approved_at)}</span>
+            <span>Publicado: {fmt(item.published_at)}</span>
+            <span>Newsletter: {fmt(item.notified_at)}</span>
           </div>
         )}
 
-        {!post && (
-          <p style={{ fontSize: 13, color: '#f87171', marginTop: 8 }}>
+        {item?.notify_error && (
+          <p
+            style={{
+              fontSize: 12,
+              color: '#f87171',
+              margin: 0,
+              padding: 10,
+              borderRadius: 8,
+              border: '1px solid rgba(248,113,113,0.3)',
+              background: 'rgba(248,113,113,0.06)',
+            }}
+          >
+            Último intento de envío falló ({item.notify_attempts}): {item.notify_error}. El cron lo
+            reintenta solo.
+          </p>
+        )}
+
+        {post ? (
+          <a
+            href={previewUrl(slug)}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: '#00d4d4',
+              color: '#0a0a14',
+              border: 'none',
+              borderRadius: 8,
+              padding: '12px 20px',
+              fontWeight: 700,
+              fontSize: 14,
+              textAlign: 'center',
+              textDecoration: 'none',
+            }}
+            className="transition-[filter] hover:brightness-110"
+          >
+            Ver el post como se va a publicar →
+          </a>
+        ) : (
+          <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>
             Todavía no existe el archivo .mdx de este post — solo hay texto en bruto en la agenda,
-            falta hardcodearlo.
+            falta hardcodearlo y deployarlo.
           </p>
         )}
       </div>
 
-      {post && (
-        <div style={{ background: '#0a0a14', borderRadius: 12, padding: '32px 40px', color: '#e2e8f0' }}>
-          <div className="mb-8 h-[220px] overflow-hidden rounded-sm">
-            <PostCover title={post.title} category={post.category} variant="featured" keyword={post.keyword} />
-          </div>
-          <h1 style={{ fontSize: 32, fontWeight: 600, marginBottom: 24 }}>{post.title}</h1>
-          <MDXContent source={post.content} />
+      {item?.raw_content && (
+        <div
+          style={{
+            marginTop: 20,
+            padding: 20,
+            borderRadius: 10,
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: '#111827',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: '#00d4d4',
+              margin: '0 0 12px',
+            }}
+          >
+            Texto en bruto guardado
+          </p>
+          <pre
+            style={{
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              fontSize: 13,
+              lineHeight: 1.7,
+              color: '#94a3b8',
+              margin: 0,
+              maxHeight: 460,
+              overflow: 'auto',
+            }}
+          >
+            {item.raw_content}
+          </pre>
         </div>
       )}
     </div>

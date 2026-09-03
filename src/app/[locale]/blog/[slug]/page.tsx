@@ -14,8 +14,10 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { generatePageMetadata } from "@/lib/metadata";
 import { PostEngagement } from "@/components/blog/PostEngagement";
 import { getVisibilityIndex, isPostVisible } from "@/lib/post-publications/visibility";
+import { hasAdminSession, PREVIEW_PARAM } from "@/lib/post-publications/preview";
 
 type LocaleParams = Promise<{ locale: string; slug: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateMetadata({
   params,
@@ -68,8 +70,10 @@ function formatDate(dateStr: string) {
 
 export default async function BlogPostPage({
   params,
+  searchParams,
 }: {
   params: LocaleParams;
+  searchParams: SearchParams;
 }) {
   const { slug, locale } = await params;
   const currentLocale: Locale = resolveLocale(locale);
@@ -78,8 +82,15 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const visibility = await getVisibilityIndex();
+  const visible = isPostVisible(post, visibility);
 
-  if (!isPostVisible(post, visibility)) {
+  // Vista previa: el post oculto se renderiza en su página real, con el
+  // layout y el tema reales, para que revisarlo sea idéntico a verlo
+  // publicado. Solo con sesión de admin — para cualquier otro sigue oculto.
+  const wantsPreview = (await searchParams)[PREVIEW_PARAM] !== undefined;
+  const isPreview = !visible && wantsPreview && (await hasAdminSession());
+
+  if (!visible && !isPreview) {
     const scheduledAt = visibility.states.get(slug)?.scheduledAt ?? `${post.date}T10:00:00-03:00`;
     return <ComingSoonPost title={post.title} scheduledAt={scheduledAt} locale={currentLocale} />;
   }
@@ -90,9 +101,18 @@ export default async function BlogPostPage({
   // El número de edición es absoluto (Nº 09 es siempre Nº 09), así que el
   // total no puede ser solo la cuenta de visibles: daría "Nº 09 de 07".
   const totalPosts = Math.max(post.issue, ...allPosts.map((p) => p.issue), allPosts.length);
+  // En preview el post todavía no está entre los visibles (currentIndex -1):
+  // el anterior es el último publicado y no hay siguiente.
   const currentIndex = allPosts.findIndex((p) => p.slug === slug);
-  const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
-  const nextPost = currentIndex < totalPosts - 1 ? allPosts[currentIndex + 1] : null;
+  const prevPost = isPreview
+    ? (allPosts[allPosts.length - 1] ?? null)
+    : currentIndex > 0
+      ? allPosts[currentIndex - 1]
+      : null;
+  const nextPost =
+    !isPreview && currentIndex >= 0 && currentIndex < allPosts.length - 1
+      ? allPosts[currentIndex + 1]
+      : null;
 
   const categoryColor =
     categoryColors[post.category] || "bg-blue-500/10 text-blue-400 border-blue-500/20";
@@ -118,6 +138,19 @@ export default async function BlogPostPage({
         }}
       />
       <ScrollToTop />
+      {isPreview && (
+        <div className="mx-auto mb-10 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-sm border border-amber-500/30 bg-amber-500/10 px-5 py-3">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-amber-400">
+            Vista previa — así se va a ver publicado. Todavía no es visible.
+          </p>
+          <Link
+            href={`/admin/agenda/${post.slug}`}
+            className="font-mono text-[11px] uppercase tracking-[0.14em] text-amber-400 underline underline-offset-4"
+          >
+            Volver a la agenda
+          </Link>
+        </div>
+      )}
       <div className="mx-auto max-w-3xl">
 
         {/* Navegación superior */}

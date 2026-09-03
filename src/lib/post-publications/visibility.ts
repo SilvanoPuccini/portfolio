@@ -24,6 +24,13 @@ function dateHasPassed(date: string): boolean {
 }
 
 /**
+ * Última lectura exitosa, viva mientras viva el proceso. Si Supabase falla
+ * se reutiliza en vez de asumir que no hay nada oculto: un post retenido
+ * con fecha ya pasada seguiría oculto igual.
+ */
+let lastGoodStates: Map<string, PostVisibilityState> | null = null;
+
+/**
  * Índice de visibilidad. Cacheado por request (React cache) para que
  * generateMetadata y el render de la página no consulten dos veces.
  */
@@ -35,18 +42,21 @@ export const getVisibilityIndex = cache(async (): Promise<VisibilityIndex> => {
 
   if (error || !data) {
     console.error('[visibility] no se pudo leer post_publications:', error?.message);
-    return { states: new Map(), degraded: true };
+    // Degradado: se conserva lo último que sí se pudo leer. Si nunca hubo
+    // lectura buena queda solo el piso por fecha, que es lo más restrictivo
+    // que se puede afirmar sin base de datos.
+    return { states: new Map(lastGoodStates ?? []), degraded: true };
   }
 
-  return {
-    states: new Map(
-      data.map((row) => [
-        row.post_slug as string,
-        { status: row.status as PostPublicationStatus, scheduledAt: row.scheduled_at as string },
-      ]),
-    ),
-    degraded: false,
-  };
+  const states = new Map(
+    data.map((row) => [
+      row.post_slug as string,
+      { status: row.status as PostPublicationStatus, scheduledAt: row.scheduled_at as string },
+    ]),
+  );
+  lastGoodStates = states;
+
+  return { states, degraded: false };
 });
 
 /**

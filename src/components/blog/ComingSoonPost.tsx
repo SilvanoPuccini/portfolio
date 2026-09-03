@@ -7,13 +7,14 @@ const COPY: Record<Locale, { back: string; eyebrow: string; heading: string; bod
     back: 'Blog',
     eyebrow: 'Próximamente',
     heading: 'Este número de El Radar todavía no salió.',
-    body: (date) => `Se publica el ${date}.`,
+    // Sin punto final: el formato de hora en es-AR ya termina en "a. m."
+    body: (date) => `Se publica el ${date}`,
   },
   en: {
     back: 'Blog',
     eyebrow: 'Coming soon',
     heading: 'This issue of El Radar hasn’t gone out yet.',
-    body: (date) => `Publishing on ${date}.`,
+    body: (date) => `Publishing on ${date}`,
   },
 };
 
