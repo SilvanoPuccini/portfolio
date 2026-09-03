@@ -1,3 +1,5 @@
+import { escapeHtml } from '@/lib/html-escape';
+
 type NewLeadData = {
   name: string;
   email: string;
@@ -7,6 +9,14 @@ type NewLeadData = {
 };
 
 export function newLeadHtml(lead: NewLeadData): string {
+  // Todo esto llega de un formulario público: se escapa antes de interpolar.
+  const e = {
+    name: escapeHtml(lead.name),
+    email: escapeHtml(lead.email),
+    service: escapeHtml(lead.service ?? '—'),
+    projectType: escapeHtml(lead.project_type ?? '—'),
+  };
+
   const submittedAt = new Date(lead.created_at).toLocaleString('es-AR', {
     day: '2-digit',
     month: 'short',
@@ -28,20 +38,20 @@ export function newLeadHtml(lead: NewLeadData): string {
     <div style="padding:28px 32px;">
       <p style="font-family:monospace;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 16px;">Nuevo lead recibido</p>
       <h1 style="font-size:20px;font-weight:700;color:#f0f0f0;margin:0 0 20px;">
-        ${lead.name}
+        ${e.name}
       </h1>
       <table style="width:100%;border-collapse:collapse;">
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:12px;color:#64748b;width:130px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Email</td>
-          <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:14px;color:#e2e8f0;">${lead.email}</td>
+          <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:14px;color:#e2e8f0;">${e.email}</td>
         </tr>
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:12px;color:#64748b;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Servicio</td>
-          <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:14px;color:#e2e8f0;">${lead.service ?? '—'}</td>
+          <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:14px;color:#e2e8f0;">${e.service}</td>
         </tr>
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:12px;color:#64748b;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Tipo</td>
-          <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:14px;color:#e2e8f0;">${lead.project_type ?? '—'}</td>
+          <td style="padding:10px 0;border-bottom:1px solid #1e293b;font-size:14px;color:#e2e8f0;">${e.projectType}</td>
         </tr>
         <tr>
           <td style="padding:10px 0;font-size:12px;color:#64748b;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Enviado</td>

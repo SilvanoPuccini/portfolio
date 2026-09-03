@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { generateUnsubToken } from '@/lib/unsub-token';
 
 // ─── CRM email wrapper ────────────────────────────────────────────────────────
 export async function sendCrmEmail(to: string, subject: string, html: string): Promise<void> {
@@ -96,7 +97,10 @@ export async function sendWelcomeEmail(email: string) {
     ? `El Radar <${process.env.RESEND_FROM_EMAIL}>`
     : 'El Radar <onboarding@resend.dev>';
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
-  const unsubUrl = `${SITE_URL}/unsubscribe?email=${encodeURIComponent(email)}`;
+  // La página de baja exige email + token + exp: sin firmar, este link
+  // devolvía "No encontramos ese email" a todo suscriptor nuevo que lo usara.
+  const { token, exp } = generateUnsubToken(email);
+  const unsubUrl = `${SITE_URL}/unsubscribe?email=${encodeURIComponent(email)}&token=${token}&exp=${exp}`;
 
   const html = `<!DOCTYPE html>
 <html lang="es">
