@@ -241,7 +241,7 @@ export default async function BlogPostPage({
         {/* Resto del contenido MDX */}
         <MDXContent source={restContent} />
 
-        <PostEngagement slug={post.slug} title={post.title} locale={currentLocale} />
+        <PostEngagement slug={post.slug} title={post.title} locale={currentLocale} isPreview={isPreview} />
 
         {/* Cierre — logo El Radar centrado */}
         <div className="mt-20 flex justify-center">

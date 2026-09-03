@@ -5,6 +5,13 @@ vi.mock('@/lib/mdx', () => ({
   getBlogPostBySlug: vi.fn().mockResolvedValue({ slug: 'test-post', title: 'Test post' }),
 }));
 
+// Registrar métricas exige que el post esté publicado. Por defecto lo está;
+// el caso contrario se prueba aparte.
+vi.mock('@/lib/post-publications/visibility', () => ({
+  getVisibilityIndex: vi.fn().mockResolvedValue({ states: new Map(), degraded: false }),
+  isPostVisible: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock('@/lib/supabase', () => ({
   getSupabaseAdmin: vi.fn(),
 }));
@@ -14,6 +21,7 @@ vi.mock('@/lib/rate-limit', () => ({
 }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { isPostVisible } from '@/lib/post-publications/visibility';
 import { GET, POST } from '@/app/api/blog/[slug]/engagement/route';
 
 type QueryOptions = {
@@ -72,6 +80,9 @@ function context(slug = 'test-post') {
 describe('/api/blog/[slug]/engagement', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Cada test arranca con el post publicado; el grupo de abajo lo baja a
+    // propósito y no debe filtrarse al resto.
+    vi.mocked(isPostVisible).mockReturnValue(true);
     process.env.ADMIN_SESSION_SECRET = 'test-session-secret-with-enough-entropy';
   });
 
@@ -156,5 +167,42 @@ describe('/api/blog/[slug]/engagement', () => {
     const response = await POST(makeRequest('POST', { action: 'reaction', reaction: 'love' }), context());
 
     expect(response.status).toBe(400);
+  });
+
+  describe('on a post that is not published yet', () => {
+    beforeEach(() => {
+      vi.mocked(isPostVisible).mockReturnValue(false);
+    });
+
+    it('records no view, so the admin preview does not inflate the stats', async () => {
+      const mock = makeSupabaseMock();
+      vi.mocked(getSupabaseAdmin).mockReturnValue(mock as never);
+
+      const response = await POST(makeRequest('POST', { action: 'view' }), context());
+
+      expect(response.status).toBe(404);
+      expect(mock.upsert).not.toHaveBeenCalled();
+    });
+
+    it('records no reaction either', async () => {
+      const mock = makeSupabaseMock();
+      vi.mocked(getSupabaseAdmin).mockReturnValue(mock as never);
+
+      const response = await POST(
+        makeRequest('POST', { action: 'reaction', reaction: 'like' }),
+        context(),
+      );
+
+      expect(response.status).toBe(404);
+      expect(mock.upsert).not.toHaveBeenCalled();
+    });
+
+    it('still answers the read, so the preview renders like the real page', async () => {
+      vi.mocked(getSupabaseAdmin).mockReturnValue(makeSupabaseMock({ likeCount: 4 }) as never);
+
+      const response = await GET(makeRequest(), context());
+
+      expect(response.status).toBe(200);
+    });
   });
 });

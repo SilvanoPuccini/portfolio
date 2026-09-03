@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBlogPostBySlug } from '@/lib/mdx';
+import type { BlogPost } from '@/types/blog';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { getVisibilityIndex, isPostVisible } from '@/lib/post-publications/visibility';
 import { rateLimit } from '@/lib/rate-limit';
 import {
   blogSlugSchema,
@@ -33,7 +35,7 @@ async function validateRequest(
   req: NextRequest,
   context: RouteContext,
   rateLimitCount: number,
-): Promise<{ slug: string; identity: EngagementIdentity } | NextResponse<ApiError>> {
+): Promise<{ slug: string; post: BlogPost; identity: EngagementIdentity } | NextResponse<ApiError>> {
   if (!rateLimit(`blog-engagement:${getIp(req)}`, rateLimitCount, 60_000)) {
     const response = errorResponse('RATE_LIMITED', 'Too many requests. Try again shortly.', 429);
     response.headers.set('Retry-After', '60');
@@ -55,7 +57,7 @@ async function validateRequest(
     return errorResponse('SERVICE_UNAVAILABLE', 'Engagement is temporarily unavailable.', 503);
   }
 
-  return { slug: parsedSlug.data, identity };
+  return { slug: parsedSlug.data, post, identity };
 }
 
 async function getPublicEngagement(slug: string, visitorHash: string): Promise<PublicEngagement> {
@@ -100,6 +102,15 @@ export async function GET(req: NextRequest, context: RouteContext): Promise<Next
 export async function POST(req: NextRequest, context: RouteContext): Promise<NextResponse> {
   const validated = await validateRequest(req, context, 30);
   if (validated instanceof NextResponse) return validated;
+
+  // Un post que todavía no salió no puede acumular métricas: cada vez que se
+  // abre el preview de un preaprobado se sumaba una vista real y las
+  // estadísticas terminaban con visitas que ningún lector hizo. Solo se
+  // bloquea la escritura; el GET sigue respondiendo para que el preview se
+  // vea igual que el post publicado.
+  if (!isPostVisible(validated.post, await getVisibilityIndex())) {
+    return errorResponse('POST_NOT_PUBLISHED', 'Post is not published yet.', 404);
+  }
 
   let parsedBody: ReturnType<typeof engagementActionSchema.safeParse>;
   try {

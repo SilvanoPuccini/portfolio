@@ -5,7 +5,11 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [".next/**", "coverage/**", "playwright-report/**", "test-results/**", "dist/**", "docs/assets/**", "src/js/**", "vite.config.js", ".agents/**", "portfolio-promo/**"],
+    // public/ se sirve tal cual, sin pasar por el build: no es código nuestro
+    // ni se compila. Ahí vive pdf.worker.min.mjs, 1 MB de pdf.js minificado
+    // que ESLint tardaba una eternidad en analizar para escupir 1706 errores
+    // de un archivo de terceros que nadie va a editar.
+    ignores: [".next/**", "coverage/**", "playwright-report/**", "test-results/**", "dist/**", "docs/assets/**", "public/**", "src/js/**", "vite.config.js", ".agents/**", "portfolio-promo/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

@@ -8,6 +8,8 @@ type Props = {
   slug: string;
   title: string;
   locale: 'es' | 'en';
+  /** Vista de admin sobre un post que todavía no salió: no registra visita. */
+  isPreview?: boolean;
 };
 
 const copy = {
@@ -50,7 +52,7 @@ function optimisticState(
   };
 }
 
-export function PostEngagement({ slug, title, locale }: Props) {
+export function PostEngagement({ slug, title, locale, isPreview = false }: Props) {
   const labels = copy[locale];
   const [engagement, setEngagement] = useState<PublicEngagement>({ likeCount: 0, reaction: null });
   const [ready, setReady] = useState(false);
@@ -73,6 +75,10 @@ export function PostEngagement({ slug, title, locale }: Props) {
         if (!response.ok || !isPublicEngagement(data)) throw new Error('invalid engagement response');
         setEngagement(data);
         setReady(true);
+        // Mirar el post desde el admin antes de que salga no es una visita.
+        // El servidor rechaza igual la escritura de un post no publicado;
+        // esto evita el 404 en cada preview.
+        if (isPreview) return;
         await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -85,7 +91,7 @@ export function PostEngagement({ slug, title, locale }: Props) {
     }
 
     void loadAndRecordView();
-  }, [endpoint, labels.error]);
+  }, [endpoint, labels.error, isPreview]);
 
   async function updateReaction(selected: Reaction) {
     if (saving) return;
