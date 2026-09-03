@@ -55,7 +55,7 @@ La consecuencia: más trabajo inicial, pero cero dependencia de terceros para la
 
 ## El panel admin: por qué construirlo cuando Supabase Studio ya existe
 
-Esta es la decisión que más gente cuestionaría — y la que más me costó justificar mientras la construía.
+Esta es la decisión que más gente cuestionaría y la que más me costó justificar mientras la construía.
 
 Consideré tres opciones antes de decidir. Supabase Studio para gestionar datos directamente. Sanity como CMS headless con panel incluido. Y construirlo desde cero.
 
@@ -65,13 +65,13 @@ Sanity lo descarté por la misma razón en otra dirección: agrega demasiada abs
 
 La decisión fue construir el admin desde cero. Vive en `/admin`, tiene autenticación básica, lista de suscriptores, historial de newsletters y un generador de contenido con IA. Cualquiera que revise el repositorio ve rutas protegidas, components de layout reutilizables y lógica de negocio separada de la UI.
 
-¿Está sobreingenieriado para un portfolio personal? Sí. ¿Valió la pena? También. La consecuencia negativa fue tiempo — días que podrían haber ido a otra cosa. Eso también es un tradeoff real, y lo asumo.
+¿Está sobreingenieriado para un portfolio personal? Sí. ¿Valió la pena? También. La consecuencia negativa fue tiempo: días que podrían haber ido a otra cosa. Eso también es un tradeoff real, y lo asumo.
 
 ## react-pdf: lo que parece simple y no lo es
 
 La restricción era mostrar certificados embebidos en la página. El primer intento fue un `<iframe>` apuntando al PDF. Funciona en desktop, pero el scroll interno en mobile es incontrolable: el usuario hace scroll dentro del PDF y no puede salir.
 
-Migré a `react-pdf` v10. Funcionó, pero me llevó dos builds fallidos y más tiempo leyendo la documentación de `pdfjs-dist` de lo que esperaba. El problema no era la librería — era que en Vercel necesitás resolver tres cosas específicas o se rompe en build o en runtime:
+Migré a `react-pdf` v10. Funcionó, pero me llevó dos builds fallidos y más tiempo leyendo la documentación de `pdfjs-dist` de lo que esperaba. El problema no era la librería: era que en Vercel necesitás resolver tres cosas específicas o se rompe en build o en runtime:
 
 ```ts
 // next.config.ts
@@ -92,7 +92,7 @@ La **internacionalización** está a medias. Las rutas tienen el prefijo `[local
 
 El **admin no tiene roles ni multi-usuario**. Autenticación básica, nada más. Para un portfolio personal con un solo operador es suficiente. Si eso escala, habrá que repensarlo, pero ese momento no llegó.
 
-Cada una de estas cosas está sin terminar a propósito. La alternativa era tenerlas a medias — y eso es peor que no tenerlas.
+Cada una de estas cosas está sin terminar a propósito. La alternativa era tenerlas a medias y eso es peor que no tenerlas.
 
 ## Una tensión sin resolver
 
