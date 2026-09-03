@@ -1,8 +1,9 @@
 import { s } from '@/components/admin/AdminShell';
 import { StatusBadge } from './StatusBadge';
 import { StatusActions } from './StatusActions';
+import { ContentBadge } from './ContentBadge';
 import { fmt } from './format';
-import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
+import type { PostPublicationListItem, PostPublicationStatus } from '@/lib/post-publications/types';
 
 const TODAY_LABEL = new Date().toLocaleDateString('es-AR', {
   weekday: 'long',
@@ -10,7 +11,7 @@ const TODAY_LABEL = new Date().toLocaleDateString('es-AR', {
   month: 'long',
 });
 
-function findNext(items: PostPublication[]): PostPublication | null {
+function findNext(items: PostPublicationListItem[]): PostPublicationListItem | null {
   const now = Date.now();
   const upcoming = items
     .filter((item) => item.status !== 'publicado' && new Date(item.scheduled_at).getTime() >= now)
@@ -18,7 +19,7 @@ function findNext(items: PostPublication[]): PostPublication | null {
   return upcoming[0] ?? null;
 }
 
-function NextUpBlock({ item }: { item: PostPublication | null }) {
+function NextUpBlock({ item }: { item: PostPublicationListItem | null }) {
   if (!item) {
     return <p style={s.hint}>No hay ningún post con fecha futura en la agenda.</p>;
   }
@@ -57,7 +58,7 @@ export function AgendaDetailPanel({
   selectedSlug,
   onChangeStatus,
 }: {
-  items: PostPublication[];
+  items: PostPublicationListItem[];
   selectedSlug: string | null;
   onChangeStatus: (slug: string, status: PostPublicationStatus) => void;
 }) {
@@ -88,7 +89,10 @@ export function AgendaDetailPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ fontWeight: 600 }}>{selected.raw_title}</div>
             <div style={{ fontSize: 12, fontFamily: 'monospace', opacity: 0.5 }}>{selected.post_slug}</div>
-            <StatusBadge status={selected.status} />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <StatusBadge status={selected.status} />
+              <ContentBadge hasContent={selected.has_content} chars={selected.content_chars} />
+            </div>
             <div style={{ fontSize: 12, opacity: 0.65, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span>Programado: {fmt(selected.scheduled_at)}</span>
               {selected.pre_approved_at && <span>Preaprobado: {fmt(selected.pre_approved_at)}</span>}

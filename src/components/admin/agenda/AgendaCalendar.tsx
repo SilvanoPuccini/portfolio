@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import { STATUS_LABELS } from './StatusBadge';
-import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
+import type { PostPublicationListItem, PostPublicationStatus } from '@/lib/post-publications/types';
 
 const STATUS_DOT: Record<PostPublicationStatus, string> = {
   planificado: '#64748b',
@@ -57,14 +57,14 @@ export function AgendaCalendar({
   selectedSlug,
   onSelect,
 }: {
-  items: PostPublication[];
+  items: PostPublicationListItem[];
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
 }) {
   const [viewDate, setViewDate] = useState(() => new Date());
 
   const byDay = useMemo(() => {
-    const map = new Map<string, PostPublication[]>();
+    const map = new Map<string, PostPublicationListItem[]>();
     for (const item of items) {
       const key = dayKey(new Date(item.scheduled_at));
       map.set(key, [...(map.get(key) ?? []), item]);

@@ -40,7 +40,16 @@ export async function GET(req: NextRequest) {
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ items: data, total: count ?? 0, page, per_page: perPage });
+  // El listado no manda `raw_content`: es el texto entero de cada post, y
+  // viajaba al navegador solo para dibujar una fila. Lo que la pantalla
+  // necesita saber es si hay texto cargado y cuánto, no el texto en sí.
+  const items = (data ?? []).map(({ raw_content, ...row }) => ({
+    ...row,
+    has_content: Boolean(raw_content && raw_content.trim().length > 0),
+    content_chars: raw_content?.trim().length ?? 0,
+  }));
+
+  return NextResponse.json({ items, total: count ?? 0, page, per_page: perPage });
 }
 
 export async function POST(req: NextRequest) {

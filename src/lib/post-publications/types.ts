@@ -30,6 +30,16 @@ export function isValidTransition(
   return from === to || ALLOWED_TRANSITIONS[from].includes(to);
 }
 
+/**
+ * Fila tal como la devuelve el listado del admin. No trae `raw_content`
+ * (el texto entero de cada post) porque la pantalla solo necesita saber si
+ * hay texto cargado, no leerlo.
+ */
+export interface PostPublicationListItem extends Omit<PostPublication, 'raw_content'> {
+  has_content: boolean;
+  content_chars: number;
+}
+
 export interface CreatePostPublicationRequest {
   post_slug: string;
   raw_title: string;

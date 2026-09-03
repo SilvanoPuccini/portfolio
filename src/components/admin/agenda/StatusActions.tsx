@@ -1,5 +1,5 @@
 import { s } from '@/components/admin/AdminShell';
-import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
+import type { PostPublicationListItem, PostPublicationStatus } from '@/lib/post-publications/types';
 
 const primaryHover = 'transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]';
 const ghostHover = 'transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]';
@@ -9,7 +9,7 @@ export function StatusActions({
   item,
   onChange,
 }: {
-  item: PostPublication;
+  item: PostPublicationListItem;
   onChange: (slug: string, status: PostPublicationStatus) => void;
 }) {
   return (

@@ -1,70 +1,105 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import { AgendaCalendar } from '@/components/admin/agenda/AgendaCalendar';
 import { AgendaDetailPanel } from '@/components/admin/agenda/AgendaDetailPanel';
 import { StatusBadge, STATUS_LABELS } from '@/components/admin/agenda/StatusBadge';
 import { StatusActions } from '@/components/admin/agenda/StatusActions';
+import { ContentBadge } from '@/components/admin/agenda/ContentBadge';
 import { fmt } from '@/components/admin/agenda/format';
 import { slugifyTitle } from '@/lib/post-publications/types';
-import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
+import type { PostPublicationListItem, PostPublicationStatus } from '@/lib/post-publications/types';
 
 type StatusFilter = 'all' | PostPublicationStatus;
+type MonthFilter = 'all' | string; // 'YYYY-MM'
 
-const PER_PAGE = 20;
+/**
+ * La agenda entera son ~50 filas al año: se traen todas de una sola vez y el
+ * filtrado y la paginación se resuelven en memoria. Antes había un segundo
+ * fetch por página que podía mostrar una tabla desfasada del calendario.
+ */
+const PER_PAGE = 4;
 const ALL_ITEMS_PAGE_SIZE = 200;
 
+const MONTH_NAMES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+function monthKey(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthLabel(key: string): string {
+  const [year, month] = key.split('-');
+  return `${MONTH_NAMES[Number(month) - 1]} ${year}`;
+}
+
+/**
+ * Qué mes se está mirando, no qué número de página: "3 / 5" no dice nada,
+ * "Septiembre 2026" sí. Una página puede quedar a caballo entre dos meses,
+ * y entonces se nombran los dos.
+ */
+function rangeLabel(items: PostPublicationListItem[]): string {
+  if (items.length === 0) return '';
+  const first = monthKey(items[0].scheduled_at);
+  const last = monthKey(items[items.length - 1].scheduled_at);
+  return first === last ? monthLabel(first) : `${monthLabel(first)} – ${monthLabel(last)}`;
+}
+
 export default function AgendaPage() {
-  // Todos los items (sin filtro/paginar) — alimenta calendario y panel lateral.
-  const [allItems, setAllItems] = useState<PostPublication[]>([]);
+  const [allItems, setAllItems] = useState<PostPublicationListItem[]>([]);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
-  // Vista de tabla, con su propio filtro y paginación.
-  const [filter, setFilter] = useState<StatusFilter>('all');
-  const [tableItems, setTableItems] = useState<PostPublication[]>([]);
-  const [total, setTotal] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [monthFilter, setMonthFilter] = useState<MonthFilter>('all');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
 
   const loadAll = useCallback(async () => {
-    const res = await fetch(`/api/admin/posts-agenda?page=1&per_page=${ALL_ITEMS_PAGE_SIZE}`);
-    const json = await res.json();
-    if (res.ok) setAllItems(json.items ?? []);
-  }, []);
-
-  const loadTable = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ page: String(page) });
-      if (filter !== 'all') params.set('status', filter);
-      const res = await fetch(`/api/admin/posts-agenda?${params}`);
+      const res = await fetch(`/api/admin/posts-agenda?page=1&per_page=${ALL_ITEMS_PAGE_SIZE}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Error al cargar la agenda');
-      setTableItems(json.items ?? []);
-      setTotal(json.total ?? 0);
+      setAllItems(json.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar la agenda');
     } finally {
       setLoading(false);
     }
-  }, [filter, page]);
+  }, []);
 
   useEffect(() => {
     loadAll();
   }, [loadAll]);
 
-  useEffect(() => {
-    loadTable();
-  }, [loadTable]);
+  // Meses que realmente tienen posts: no tiene sentido ofrecer un mes vacío.
+  const months = useMemo(() => {
+    const set = new Set(allItems.map((item) => monthKey(item.scheduled_at)));
+    return [...set].sort();
+  }, [allItems]);
 
-  function refreshAll() {
-    loadAll();
-    loadTable();
-  }
+  const filtered = useMemo(
+    () =>
+      allItems
+        .filter((item) => statusFilter === 'all' || item.status === statusFilter)
+        .filter((item) => monthFilter === 'all' || monthKey(item.scheduled_at) === monthFilter)
+        .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()),
+    [allItems, statusFilter, monthFilter],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  // Clamp: si el filtro achica el resultado, la página 3 dejaría la tabla vacía.
+  const currentPage = Math.min(page, totalPages);
+  const rangeStart = (currentPage - 1) * PER_PAGE + 1;
+  const visible = filtered.slice(rangeStart - 1, currentPage * PER_PAGE);
+  const rangeEnd = rangeStart + visible.length - 1;
 
   async function changeStatus(slug: string, status: PostPublicationStatus) {
     const res = await fetch(`/api/admin/posts-agenda/${slug}`, {
@@ -77,11 +112,10 @@ export default function AgendaPage() {
       alert(json.error ?? 'No se pudo cambiar el estado');
       return;
     }
-    refreshAll();
+    loadAll();
   }
 
   const statuses: StatusFilter[] = ['all', 'planificado', 'preaprobado', 'publicado'];
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <div>
@@ -114,23 +148,46 @@ export default function AgendaPage() {
 
       <h2 style={{ ...s.sectionTitle, marginBottom: 16 }}>Todos los posts</h2>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {statuses.map((st) => (
-          <button
-            key={st}
-            className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
-            onClick={() => {
-              setFilter(st);
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {statuses.map((st) => (
+            <button
+              key={st}
+              className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+              onClick={() => {
+                setStatusFilter(st);
+                setPage(1);
+              }}
+              style={{
+                ...s.btnGhost,
+                ...(statusFilter === st
+                  ? { borderColor: '#00d4d4', color: '#00d4d4', background: 'rgba(0,212,212,0.06)' }
+                  : {}),
+              }}
+            >
+              {st === 'all' ? 'Todos' : STATUS_LABELS[st]}
+            </button>
+          ))}
+        </div>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#64748b' }}>
+          Mes
+          <select
+            value={monthFilter}
+            onChange={(e) => {
+              setMonthFilter(e.target.value);
               setPage(1);
             }}
-            style={{
-              ...s.btnGhost,
-              ...(filter === st ? { borderColor: '#00d4d4', color: '#00d4d4', background: 'rgba(0,212,212,0.06)' } : {}),
-            }}
+            style={{ ...s.btnGhost, cursor: 'pointer' }}
           >
-            {st === 'all' ? 'Todos' : STATUS_LABELS[st]}
-          </button>
-        ))}
+            <option value="all">Todos los meses</option>
+            {months.map((key) => (
+              <option key={key} value={key}>
+                {monthLabel(key)}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {error && <div style={s.errorText}>{error}</div>}
@@ -138,8 +195,8 @@ export default function AgendaPage() {
       <div style={s.card}>
         {loading ? (
           <div style={s.hint}>Cargando…</div>
-        ) : tableItems.length === 0 ? (
-          <div style={s.hint}>No hay posts en este estado todavía.</div>
+        ) : visible.length === 0 ? (
+          <div style={s.hint}>No hay posts con estos filtros.</div>
         ) : (
           // tableLayout fixed + anchos: sin esto un título largo redistribuye
           // todas las columnas y la tabla "baila" al cambiar de filtro.
@@ -162,7 +219,7 @@ export default function AgendaPage() {
               </tr>
             </thead>
             <tbody>
-              {tableItems.map((item) => (
+              {visible.map((item) => (
                 <tr
                   key={item.post_slug}
                   className="transition-colors hover:bg-white/[0.02]"
@@ -201,7 +258,10 @@ export default function AgendaPage() {
                   </td>
                   <td style={{ padding: '14px', fontSize: 13, whiteSpace: 'nowrap' }}>{fmt(item.scheduled_at)}</td>
                   <td style={{ padding: '14px' }}>
-                    <StatusBadge status={item.status} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                      <StatusBadge status={item.status} />
+                      <ContentBadge hasContent={item.has_content} chars={item.content_chars} />
+                    </div>
                   </td>
                   <td style={{ padding: '14px' }}>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -233,20 +293,41 @@ export default function AgendaPage() {
       </div>
 
       {totalPages > 1 && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'center' }}>
-          <button style={s.btnGhost} disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 12,
+            marginTop: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <button
+            className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] disabled:opacity-35"
+            style={s.btnGhost}
+            disabled={currentPage <= 1}
+            onClick={() => setPage(currentPage - 1)}
+          >
             ← Ant.
           </button>
-          <span style={s.hint}>
-            {page} / {totalPages}
-          </span>
-          <button style={s.btnGhost} disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+          <div style={{ textAlign: 'center', minWidth: 160 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>{rangeLabel(visible)}</div>
+            <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#64748b', marginTop: 2 }}>
+              {rangeStart}–{rangeEnd} de {filtered.length}
+            </div>
+          </div>
+          <button
+            className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4] disabled:opacity-35"
+            style={s.btnGhost}
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage(currentPage + 1)}
+          >
             Sig. →
           </button>
         </div>
       )}
 
-      {showNew && <NewAgendaItemModal onClose={() => setShowNew(false)} onCreated={refreshAll} />}
+      {showNew && <NewAgendaItemModal onClose={() => setShowNew(false)} onCreated={loadAll} />}
     </div>
   );
 }
