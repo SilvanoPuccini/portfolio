@@ -74,3 +74,18 @@ export function isCronAuthorized(req: NextRequest): boolean {
   const provided = bearer.replace(/^Bearer\s+/, '');
   return safeCompare(provided, secret);
 }
+
+/**
+ * Solo Bearer con ADMIN_API_KEY — deliberadamente NO acepta la cookie de
+ * sesión. Para endpoints que provocan efectos irreversibles (publicar un
+ * post, mandarle un mail a toda la lista) alcanzar la URL desde el navegador
+ * no puede ser suficiente: basta un prefetch, un escáner de links o abrirla
+ * por curiosidad estando logueado para dispararlos de verdad.
+ */
+export function isApiKeyAuthorized(req: NextRequest): boolean {
+  const apiKey = process.env.ADMIN_API_KEY;
+  const bearer = req.headers.get('authorization');
+  if (!apiKey || !bearer) return false;
+  const provided = bearer.replace(/^Bearer\s+/, '');
+  return safeCompare(provided, apiKey);
+}

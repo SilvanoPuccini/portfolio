@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthorized, isCronAuthorized } from '@/lib/admin-auth';
+import { isApiKeyAuthorized, isCronAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { publishPost, type PublishOutcome } from '@/lib/post-publications/publish';
 import { publishCutoff } from '@/lib/post-publications/schedule';
@@ -24,7 +24,10 @@ export const dynamic = 'force-dynamic';
  * botón del admin, con compare-and-swap e idempotencia por notified_at.
  */
 export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req) && !isAuthorized(req)) {
+  // Solo credencial por header: ni la cookie de sesión alcanza. Este endpoint
+  // publica y manda mail a toda la lista, así que abrir la URL en el navegador
+  // estando logueado no puede dispararlo.
+  if (!isCronAuthorized(req) && !isApiKeyAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
