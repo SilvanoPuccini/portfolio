@@ -24,7 +24,21 @@ export function createSessionToken(secret: string): string {
   return `${payload}:${sig}`;
 }
 
-/** Verify a signed session token */
+/**
+ * Verify a signed session token.
+ *
+ * No hay revocación: cerrar sesión borra la cookie del navegador, pero un
+ * token ya emitido sigue siendo válido hasta que expira (8h). Revocarlo de
+ * verdad exige consultar estado en cada request, lo que obliga a volver
+ * asíncrona a `isAuthorized` y tocar las 26 rutas del admin — y ahí un
+ * `if (!isAuthorized(req))` que quede sin `await` no falla al compilar:
+ * evalúa una Promise, siempre da falso, y deja la ruta abierta a cualquiera.
+ * Ese modo de fallo silencioso es peor que el riesgo que cubre.
+ *
+ * Para un admin de un solo usuario, con cookie httpOnly + secure + sameSite
+ * strict, la revocación inmediata ya existe por otra vía: rotar
+ * ADMIN_SESSION_SECRET en Vercel invalida todos los tokens al instante.
+ */
 export function verifySessionToken(token: string, secret: string): boolean {
   const parts = token.split(':');
   if (parts.length !== 3) return false;

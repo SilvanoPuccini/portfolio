@@ -47,12 +47,15 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers();
   const lang = headersList.get("x-locale") ?? "es";
+  // Lo pone el middleware. Sin él, la CSP bloquea este script y la página
+  // arrancaría con el tema equivocado hasta que hidrate.
+  const nonce = headersList.get("x-nonce") ?? undefined;
   return (
     <html lang={lang} suppressHydrationWarning>
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
       >
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

@@ -6,7 +6,10 @@ import { X } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Servido desde el propio dominio (lo copia `npm run copy:pdf-worker` antes de
+// cada build/dev). Traerlo de un CDN obligaba a permitirlo en la CSP, y ese
+// permiso alcanzaba para cargar cualquier paquete arbitrario desde ahí.
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
   stackName: string;

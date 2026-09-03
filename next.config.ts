@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 import withMdx from '@next/mdx';
 
+// La Content-Security-Policy NO vive acá: la arma el middleware, porque
+// necesita un nonce distinto en cada request. Un header estático obligaría a
+// 'unsafe-inline' para que funcionen los scripts propios de Next, y con
+// 'unsafe-inline' la política no impide nada.
 const securityHeaders = [
   // Previene clickjacking — la página no puede cargarse en un iframe
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -12,21 +16,6 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
   // Fuerza HTTPS por 2 años, incluye subdominios
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-  // Content Security Policy
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://unpkg.com",
-      "worker-src 'self' blob: https://unpkg.com",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://cdn.jsdelivr.net https://cdn.simpleicons.org https://res.cloudinary.com",
-      "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com",
-      "frame-src https://www.openstreetmap.org https://cal.com",
-      "frame-ancestors 'none'",
-    ].join('; '),
-  },
 ];
 
 const nextConfig: NextConfig = {

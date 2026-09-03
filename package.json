@@ -13,7 +13,10 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "copy:pdf-worker": "node -e \"require('fs').copyFileSync(require.resolve('pdfjs-dist/build/pdf.worker.min.mjs'),'public/pdf.worker.min.mjs')\"",
+    "prebuild": "npm run copy:pdf-worker",
+    "predev": "npm run copy:pdf-worker"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
