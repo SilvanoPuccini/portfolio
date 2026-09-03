@@ -18,6 +18,20 @@ const MONTH_NAMES = [
 const WEEKDAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MAX_VISIBLE_PER_DAY = 2;
 
+/**
+ * El domingo se lleva casi el triple de ancho que el resto.
+ *
+ * La agenda publica solo los domingos: repartir las siete columnas en partes
+ * iguales dejaba seis columnas vacías y un domingo tan angosto que el título
+ * no entraba, así que el día quedaba marcado pero sin decir qué post era.
+ */
+const SUNDAY_FIRST_COLUMNS = '2.8fr repeat(6, minmax(0, 1fr))';
+
+/** Hora de publicación, para leerla dentro de la celda del domingo. */
+function hourLabel(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
+
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
@@ -87,7 +101,7 @@ export function AgendaCalendar({
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, marginBottom: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: SUNDAY_FIRST_COLUMNS, gap: 6, marginBottom: 6 }}>
         {WEEKDAY_LABELS.map((label) => (
           <div key={label} style={{ textAlign: 'center', fontSize: 11, fontFamily: 'monospace', opacity: 0.45, padding: '4px 0' }}>
             {label}
@@ -96,7 +110,7 @@ export function AgendaCalendar({
       </div>
 
       {weeks.map((week, wi) => (
-        <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, marginBottom: 6 }}>
+        <div key={wi} style={{ display: 'grid', gridTemplateColumns: SUNDAY_FIRST_COLUMNS, gap: 6, marginBottom: 6 }}>
           {week.map((day, di) => {
             if (!day) return <div key={di} style={{ minHeight: 96 }} />;
             const key = dayKey(day);
@@ -110,7 +124,9 @@ export function AgendaCalendar({
               <div
                 key={di}
                 style={{
-                  minHeight: 96,
+                  // El domingo necesita más alto: es el único que muestra
+                  // título y hora adentro de la celda.
+                  minHeight: isSunday ? 104 : 96,
                   // minWidth 0: sin esto un chip con título largo no puede
                   // encoger y estira la columna, deformando todo el mes.
                   minWidth: 0,
@@ -136,12 +152,14 @@ export function AgendaCalendar({
                   {day.getDate()}
                 </span>
 
-                {/* A este ancho de celda un título no entra: truncado queda en
-                    "Mi …" y no informa nada. Se marca el día con una barra de
-                    color por estado — el título va en el tooltip y en el panel. */}
                 {visibleItems.map((item) => {
                   const isSelected = item.post_slug === selectedSlug;
                   const color = STATUS_DOT[item.status];
+
+                  // El domingo tiene ancho de sobra: se muestra el título y la
+                  // hora. Los demás días son columnas angostas donde un título
+                  // truncado queda en "Mi …" y no informa nada, así que ahí
+                  // solo va la barra de color y el título queda en el tooltip.
                   return (
                     <button
                       key={item.post_slug}
@@ -151,12 +169,14 @@ export function AgendaCalendar({
                       className="transition-[filter] hover:brightness-150 focus-visible:outline focus-visible:outline-2"
                       style={{
                         display: 'flex',
-                        alignItems: 'center',
+                        flexDirection: isSunday ? 'column' : 'row',
+                        alignItems: isSunday ? 'stretch' : 'center',
                         justifyContent: 'center',
-                        gap: 5,
+                        gap: isSunday ? 3 : 5,
                         width: '100%',
                         minWidth: 0,
-                        padding: isSelected ? '5px 4px' : '4px',
+                        textAlign: 'left',
+                        padding: isSunday ? '6px 8px' : isSelected ? '5px 4px' : '4px',
                         borderRadius: 5,
                         border: `1px solid ${isSelected ? color : 'transparent'}`,
                         outlineColor: color,
@@ -165,22 +185,67 @@ export function AgendaCalendar({
                         color,
                       }}
                     >
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          background: 'currentColor',
-                          flexShrink: 0,
-                        }}
-                      />
-                      <span style={{ height: 3, flex: 1, borderRadius: 2, background: 'currentColor', opacity: 0.55 }} />
+                      {isSunday ? (
+                        <>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              lineHeight: 1.35,
+                              fontWeight: isSelected ? 700 : 600,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {item.raw_title}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontFamily: 'monospace',
+                              opacity: 0.75,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 5,
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 5,
+                                height: 5,
+                                borderRadius: '50%',
+                                background: 'currentColor',
+                                flexShrink: 0,
+                              }}
+                            />
+                            {hourLabel(item.scheduled_at)} · {STATUS_LABELS[item.status]}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              background: 'currentColor',
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span
+                            style={{ height: 3, flex: 1, borderRadius: 2, background: 'currentColor', opacity: 0.55 }}
+                          />
+                        </>
+                      )}
                     </button>
                   );
                 })}
 
                 {overflow > 0 && (
-                  <span style={{ fontSize: 10, opacity: 0.5, textAlign: 'center' }}>+{overflow}</span>
+                  <span style={{ fontSize: 10, opacity: 0.5, textAlign: isSunday ? 'left' : 'center' }}>
+                    +{overflow} más
+                  </span>
                 )}
               </div>
             );

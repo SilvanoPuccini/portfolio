@@ -16,7 +16,7 @@ async function requireAdminSession() {
 }
 
 function fmt(iso: string | null) {
-  if (!iso) return '—';
+  if (!iso) return 'sin fecha';
   return new Date(iso).toLocaleString('es-AR', {
     day: '2-digit',
     month: '2-digit',

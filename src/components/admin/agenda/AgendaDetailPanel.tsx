@@ -44,7 +44,7 @@ function NextUpBlock({ item }: { item: PostPublication | null }) {
       </div>
       {atRisk && (
         <p style={{ fontSize: 12, color: '#f87171', margin: 0 }}>
-          Faltan {daysLeft} día{daysLeft === 1 ? '' : 's'} y sigue en planificado — no va a llegar
+          Faltan {daysLeft} día{daysLeft === 1 ? '' : 's'} y sigue en planificado. No va a llegar
           a tiempo si no se avanza.
         </p>
       )}
