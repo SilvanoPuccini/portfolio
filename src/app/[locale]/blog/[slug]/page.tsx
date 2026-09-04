@@ -255,7 +255,7 @@ export default async function BlogPostPage({
 
           <div className="relative">
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-primary mb-3">Newsletter</p>
-            <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
+            <h3 className="section-title-sm">
               ¡No te pierdas! Mantenete cerca del radar.
             </h3>
             <p className="mt-3 max-w-md text-sm leading-7 text-text-secondary">

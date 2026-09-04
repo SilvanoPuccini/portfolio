@@ -351,7 +351,7 @@ export default async function AboutPage({
         <div className="site-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-start">
           <div className="space-y-6">
             <div className="max-w-3xl space-y-5">
-              <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl lg:text-[3rem] lg:leading-[1.02]">
+              <h2 className="section-title">
                 {labels.philosophy.eyebrow}
               </h2>
             </div>
@@ -369,7 +369,7 @@ export default async function AboutPage({
             <article className="no-line-stack rounded-[var(--radius-soft)] bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.78),rgb(var(--surface)/0.92))] px-6 py-7 sm:px-7">
               <div>
                 <p className="technical-label">{labels.philosophy.strategyEyebrow}</p>
-                <h3 className="mt-4 text-2xl text-text-primary sm:text-3xl">{labels.philosophy.strategyTitle}</h3>
+                <h3 className="mt-4 section-title-sm">{labels.philosophy.strategyTitle}</h3>
                 <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">{labels.philosophy.strategyBody}</p>
               </div>
             </article>
@@ -388,7 +388,7 @@ export default async function AboutPage({
         <div className="site-container grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-start">
           <div>
             <div className="max-w-3xl space-y-5">
-              <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.professionalContext.eyebrow}</h2>
+              <h2 className="section-title">{labels.professionalContext.eyebrow}</h2>
             </div>
 
             <div className="mt-8 max-w-3xl space-y-4 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
@@ -399,7 +399,7 @@ export default async function AboutPage({
           </div>
 
           <aside className="rounded-[var(--radius-soft)] bg-[rgb(var(--background)/0.18)] px-6 py-7 shadow-[0_18px_40px_rgba(2,8,23,0.08)] sm:px-7 sm:py-8">
-            <h2 className="text-2xl font-semibold text-text-primary sm:text-3xl">{labels.trajectory.eyebrow}</h2>
+            <h2 className="section-title-sm">{labels.trajectory.eyebrow}</h2>
 
             <div className="mt-8 space-y-5">
               {trajectoryItems.map((item) => (
@@ -417,7 +417,7 @@ export default async function AboutPage({
       <section className="bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.18),rgb(var(--surface)/0.06))] py-12 sm:py-14 lg:py-16">
         <div className="site-container">
           <div className="max-w-3xl space-y-5">
-            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.experienceSection.eyebrow}</h2>
+            <h2 className="section-title">{labels.experienceSection.eyebrow}</h2>
           </div>
 
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
@@ -439,7 +439,7 @@ export default async function AboutPage({
       <section className="bg-[linear-gradient(180deg,rgb(var(--surface)/0.12),rgb(var(--surface-dim)/0.2))] py-12 sm:py-14 lg:py-16">
         <div className="site-container">
           <div className="max-w-3xl space-y-5">
-            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.educationSection.eyebrow}</h2>
+            <h2 className="section-title">{labels.educationSection.eyebrow}</h2>
           </div>
 
           <div className="mt-8 grid gap-5 xl:grid-cols-2">
@@ -464,7 +464,7 @@ export default async function AboutPage({
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)] xl:items-start">
             <div className="max-w-3xl space-y-5">
               <p className="technical-label">{labels.vision.eyebrow}</p>
-              <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.vision.title}</h2>
+              <h2 className="section-title">{labels.vision.title}</h2>
 
               <div className="space-y-4 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
                 <p>{labels.vision.leadIn}</p>
@@ -488,7 +488,7 @@ export default async function AboutPage({
             </div>
 
             <article className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface-elevated)/0.48)] px-5 py-6 sm:px-6">
-              <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl xl:text-3xl">{labels.strengths.eyebrow}</h2>
+              <h2 className="section-title">{labels.strengths.eyebrow}</h2>
 
               <ul className="mt-5 space-y-3 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8 xl:text-base xl:leading-7">
                 {labels.strengths.items.map((item) => (
@@ -515,7 +515,7 @@ export default async function AboutPage({
         <div className="site-container relative">
           <div className="max-w-4xl rounded-[var(--radius-surface)] border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.88),rgb(var(--surface)/0.66))] px-6 py-7 shadow-[0_18px_40px_rgba(2,8,23,0.08)] sm:px-8 sm:py-8 lg:px-10 lg:py-10">
             <div className="max-w-3xl space-y-5">
-              <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.closing.title}</h2>
+              <h2 className="section-title">{labels.closing.title}</h2>
               <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{labels.closing.description}</p>
 
               <div className="flex flex-col gap-4 pt-3 sm:flex-row sm:flex-wrap">

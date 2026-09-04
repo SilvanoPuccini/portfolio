@@ -189,7 +189,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                       </span>
                     </div>
 
-                    <h3 className="mt-4 text-xl font-semibold leading-tight text-text-primary sm:text-2xl">
+                    <h3 className="mt-4 card-title">
                       <Link
                         href={`/${currentLocale}/blog/${post.slug}`}
                         className="hover:underline hover:text-brand-primary transition-colors duration-150"

@@ -51,7 +51,7 @@ export default function ServiceCard({
       <div className="relative no-line-stack">
         <div>
           <p className="technical-label">{eyebrow}</p>
-          <h3 className={cn("mt-4 font-semibold text-text-primary", isFeature ? "max-w-3xl text-3xl sm:text-4xl" : "text-2xl")}>{title}</h3>
+          <h3 className={cn("mt-4 font-semibold text-text-primary", isFeature ? "max-w-3xl section-title-sm" : "card-title")}>{title}</h3>
           <p className={cn("mt-4 text-text-secondary", isFeature ? "max-w-2xl text-base leading-7 sm:text-lg sm:leading-8" : "text-sm leading-6 sm:text-base sm:leading-7")}>{description}</p>
         </div>
 

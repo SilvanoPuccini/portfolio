@@ -106,7 +106,7 @@ export function StackSection({ groups, eyebrow, description, closing }: Props) {
     <section className="bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.12),rgb(var(--surface)/0.08))] py-12 sm:py-14 lg:py-16">
       <div className="site-container">
         <div className="max-w-3xl space-y-5">
-          <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{eyebrow}</h2>
+          <h2 className="section-title">{eyebrow}</h2>
           <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{description}</p>
         </div>
 

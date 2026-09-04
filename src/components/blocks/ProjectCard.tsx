@@ -1,3 +1,4 @@
+import Spotlight from "@/components/site/Spotlight";
 import Image from "next/image";
 import { Github, Globe } from "lucide-react";
 import CTACluster from "@/components/site/CTACluster";
@@ -86,6 +87,7 @@ export default function ProjectCard({
   );
 
   return (
+    <Spotlight className="rounded-[var(--radius-soft)] h-full">
     <article
       className={cn(
         "surface-panel overflow-hidden",
@@ -204,5 +206,6 @@ export default function ProjectCard({
         </div>
       </div>
     </article>
+    </Spotlight>
   );
 }

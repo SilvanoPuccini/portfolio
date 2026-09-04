@@ -147,7 +147,7 @@ export default async function BlogPage({
                 {featuredPost.category}
               </span>
 
-              <h2 className="mt-5 text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-[2.2rem]">
+              <h2 className="mt-5 section-title">
                 <Link
                   href={`/${currentLocale}/blog/${featuredPost.slug}`}
                   className="hover:underline hover:text-brand-primary transition-colors duration-150"
@@ -199,7 +199,7 @@ export default async function BlogPage({
         {/* Encabezado de sección */}
         <div className="mb-10 sm:mb-12">
           <p className="technical-label mb-4">{pc.continueTitle}</p>
-          <h2 className="text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
+          <h2 className="section-title">
             {pc.continueHeading}
           </h2>
         </div>
@@ -214,7 +214,7 @@ export default async function BlogPage({
 
             <div className="relative">
               <p className="technical-label">El Radar</p>
-              <h3 className="mt-5 text-3xl font-semibold text-text-primary sm:text-4xl">
+              <h3 className="mt-5 section-title">
                 {pc.subscribeHeading}
               </h3>
               <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">

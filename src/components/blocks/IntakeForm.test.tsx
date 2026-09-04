@@ -137,8 +137,22 @@ describe("IntakeForm — service prop", () => {
     vi.unstubAllGlobals();
   });
 
+  /** Contacto (paso 0) -> negocio (paso 1) -> preguntas de servicio (paso 2). */
+  async function fillContactAndAdvance() {
+    fireEvent.change(screen.getByPlaceholderText(/Tu nombre completo|Your full name/i), {
+      target: { value: "Test Lead" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/tu@email\.com|you@email\.com/i), {
+      target: { value: "lead@example.com" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Siguiente|Next/i }));
+    });
+  }
+
   async function advanceToStep2() {
-    // Step 1: fill required fields and advance
+    await fillContactAndAdvance();
+    // Paso 1 — contexto de negocio (ahora opcional, se completa igual).
     fireEvent.change(screen.getByPlaceholderText(/Ej: Vendo ropa|E\.g\. I sell/i), {
       target: { value: "Test business" },
     });
@@ -146,7 +160,6 @@ describe("IntakeForm — service prop", () => {
       screen.getByPlaceholderText(/Ej: Quiero|E\.g\. I want/i),
       { target: { value: "Test problem" } }
     );
-    // Select a chip in s1_current (first chip)
     const chips = screen.getAllByRole("button");
     const paperChip = chips.find((b) => b.textContent === "Papel" || b.textContent === "Paper");
     if (paperChip) fireEvent.click(paperChip);
@@ -216,7 +229,18 @@ describe("IntakeForm — hash-based service detection", () => {
 
     render(<IntakeForm locale="en" />);
 
-    // Advance to step 2
+    // Paso 0 — contacto (lo único obligatorio).
+    fireEvent.change(screen.getByPlaceholderText(/Your full name/i), {
+      target: { value: "Test Lead" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/you@email\.com/i), {
+      target: { value: "lead@example.com" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Next/i }));
+    });
+
+    // Paso 1 — contexto de negocio.
     fireEvent.change(screen.getByPlaceholderText(/E\.g\. I sell/i), {
       target: { value: "Test business" },
     });

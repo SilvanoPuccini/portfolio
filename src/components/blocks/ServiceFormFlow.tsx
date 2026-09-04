@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 import IntakeForm, { type ServiceSlug } from "@/components/blocks/IntakeForm";
+import Spotlight from "@/components/site/Spotlight";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
@@ -17,13 +18,15 @@ export type ServiceCardData = {
   description: string;
   details: ServiceDetail[];
   references: string[];
+  price: string;
+  timeline: string;
   cta: string;
   slug: ServiceSlug;
 };
 
 const ICONS = [Code2, Cpu, ShieldCheck];
 
-const VALID_SLUGS: ServiceSlug[] = ["full-stack-builds", "automation-ai", "product-ux-engineering"];
+const VALID_SLUGS: ServiceSlug[] = ["web-presence", "full-stack-builds", "automation-ai", "product-ux-engineering"];
 
 const backLabels = {
   es: "Volver a servicios",
@@ -31,18 +34,23 @@ const backLabels = {
 } as const;
 
 const serviceIdentity: Record<ServiceSlug, { number: string; es: string; en: string }> = {
-  "full-stack-builds": {
+  "web-presence": {
     number: "01",
+    es: "Sitio web profesional",
+    en: "Professional website",
+  },
+  "full-stack-builds": {
+    number: "02",
     es: "Desarrollo web a medida",
     en: "Custom web development",
   },
   "automation-ai": {
-    number: "02",
+    number: "03",
     es: "Automatización con IA",
     en: "AI automation",
   },
   "product-ux-engineering": {
-    number: "03",
+    number: "04",
     es: "Auditoría técnica",
     en: "Technical audit",
   },
@@ -76,38 +84,55 @@ function FullWidthServiceCard({
   const Icon = ICONS[index] ?? Code2;
 
   return (
+    <Spotlight className="rounded-[var(--radius-soft)]">
     <article
       id={`service-${index + 1}`}
       className="surface-panel no-line-stack overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]"
     >
-      <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-        {/* Header: Number + Icon */}
-        <div className="flex items-center justify-between border-b border-outline-ghost/10 pb-5">
-          <span
-            className="font-display text-[3.5rem] leading-none tracking-[-0.04em] text-brand-primary/25 sm:text-[4.5rem]"
-            aria-hidden="true"
-          >
-            {card.number}
-          </span>
-          <Icon className="h-6 w-6 text-brand-primary/40" aria-hidden="true" />
-        </div>
-
-        {/* Content */}
-        <div className="mt-7 lg:grid lg:grid-cols-[1fr_minmax(20rem,0.45fr)] lg:gap-12">
-          {/* Left: text */}
+      <div className="px-6 py-7 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
+        <div className="lg:grid lg:grid-cols-[1fr_minmax(17rem,0.4fr)] lg:gap-10">
+          {/* Columna principal: identidad, promesa y el momento de compra */}
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
-              {card.subtitle}
-            </p>
-            <h3 className="mt-2 text-3xl font-semibold text-text-primary sm:text-4xl">
+            {/* Eyebrow: el número acompaña, no domina */}
+            <div className="flex items-center gap-3">
+              <span
+                className="font-mono text-[11px] tracking-[0.18em] text-text-tertiary"
+                aria-hidden="true"
+              >
+                {card.number}
+              </span>
+              <Icon className="h-4 w-4 shrink-0 text-text-tertiary" aria-hidden="true" />
+              <p className="section-eyebrow">{card.subtitle}</p>
+            </div>
+
+            <h3 className="mt-3 card-title">
               {card.title}
             </h3>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-text-secondary">
               {card.description}
             </p>
 
-            {/* References as chips */}
-            <div className="mt-6 flex flex-wrap gap-2">
+            {/* Precio + CTA juntos: el momento de decidir no se parte en dos */}
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4 border-t border-outline-ghost/10 pt-5">
+              <div>
+                <p className="card-title">
+                  {card.price}
+                </p>
+                <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-secondary">
+                  {card.timeline}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onSelect}
+                className="button-primary inline-flex items-center justify-center gap-2.5 sm:min-w-[13rem]"
+              >
+                <span>{card.cta}</span>
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
               {card.references.map((ref) => (
                 <span
                   key={ref}
@@ -119,42 +144,21 @@ function FullWidthServiceCard({
             </div>
           </div>
 
-          {/* Right: details + CTA */}
-          <div className="mt-8 lg:mt-0">
-            <div className="grid gap-3">
-              {card.details.map((detail) => (
-                <div
-                  key={detail.label}
-                  className="rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-5 py-4"
-                >
-                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary">
-                    {detail.label}
-                  </p>
-                  <p
-                    className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.04em]"
-                    style={{ color: "rgb(var(--brand-primary))" }}
-                  >
-                    {detail.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={onSelect}
-                className="button-primary inline-flex w-full items-center justify-center gap-2.5 sm:w-auto sm:min-w-[14rem]"
-              >
-                <span>{card.cta}</span>
-                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
+          {/* Columna de apoyo: lista de definición, no cuatro cajas compitiendo */}
+          <dl className="mt-7 divide-y divide-outline-ghost/10 border-t border-outline-ghost/10 lg:mt-0 lg:border-t-0">
+            {card.details.map((detail) => (
+              <div key={detail.label} className="py-3 first:lg:pt-0">
+                <dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-secondary">
+                  {detail.label}
+                </dt>
+                <dd className="mt-1 text-sm leading-6 text-text-primary">{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
     </article>
+    </Spotlight>
   );
 }
 
@@ -249,7 +253,7 @@ export default function ServiceFormFlow({
                 >
                   {serviceIdentity[activeService].number}
                 </span>
-                <h3 className="text-2xl font-semibold text-text-primary sm:text-3xl">
+                <h3 className="card-title">
                   {serviceIdentity[activeService][resolvedLocale]}
                 </h3>
               </div>

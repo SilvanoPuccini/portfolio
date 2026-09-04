@@ -38,23 +38,23 @@ const home: HomeContent = {
   },
   narrative: {
     es: [
-      "Actualmente curso 3º año de TUDAI y completé el Máster en Desarrollo Web Full Stack de Conquer Blocks.",
-      "Mi stack principal reúne React, TypeScript, Next.js, Python, Django, Node.js, PostgreSQL y Supabase.",
-      "Vengo de más de diez años en gestión comercial, coordinación y atención al cliente, por eso diseño y desarrollo con visión de negocio además de código.",
+      "Trabajo con negocios que hoy operan con planillas, papel y mensajes sueltos, y necesitan un sistema que ordene todo en un solo lugar.",
+      "Entrego el proyecto desplegado y funcionando, con panel de administración, capacitación de uso y 30 días de soporte incluido.",
+      "Vengo de más de diez años en gestión comercial: antes de escribir código entiendo el negocio, porque el problema real casi nunca es el que te dicen primero.",
     ],
     en: [
-      "I am currently in the 3rd year of TUDAI and completed the Full Stack Web Development master's program at Conquer Blocks.",
-      "My core stack includes React, TypeScript, Next.js, Python, Django, Node.js, PostgreSQL, and Supabase.",
-      "I bring over ten years of commercial management, coordination, and customer-facing experience, so I design and build with business context as well as code quality.",
+      "I work with businesses still running on spreadsheets, paper and scattered messages, that need one system to hold it all together.",
+      "I hand over the project deployed and running, with an admin panel, hands-on training and 30 days of support included.",
+      "I come from ten-plus years in commercial management: I understand the business before writing code, because the real problem is rarely the one you hear first.",
     ],
   },
   ctas: {
     es: [
-      { label: "Solicitar un servicio", href: "/services" },
+      { label: "Ver servicios y precios", href: "/services" },
       { label: "Ver proyectos", href: "/projects" },
     ],
     en: [
-      { label: "Request a service", href: "/services" },
+      { label: "See services and pricing", href: "/services" },
       { label: "View projects", href: "/projects" },
     ],
   },
@@ -219,6 +219,26 @@ const about: AboutContent = {
 
 const services: ServiceItem[] = [
   {
+    slug: "web-presence",
+    subtitle: {
+      es: "Que te encuentren y te escriban",
+      en: "Get found and get contacted",
+    },
+    title: {
+      es: "Sitio web profesional",
+      en: "Professional website",
+    },
+    description: {
+      es: "Sitio rápido y adaptado a celular, con formulario de contacto que te llega al mail y tu negocio visible en Google. Desde USD 450, online en 1 a 2 semanas.",
+      en: "A fast, mobile-ready site with a contact form that reaches your inbox and your business visible on Google. From USD 450, live in 1 to 2 weeks.",
+    },
+    proofPoints: {
+      es: ["Adaptado a celular", "Formulario de contacto", "Listo para Google"],
+      en: ["Mobile-ready", "Contact form", "Google-ready"],
+    },
+    sourceUrls: ["https://silvanopuccini.dev"],
+  },
+  {
     slug: "full-stack-builds",
     subtitle: {
       es: "La estructura digital de tu negocio",
@@ -309,8 +329,8 @@ const blog: BlogContent = {
     en: "I tell you what I learned building real products.",
   },
   emptyState: {
-    es: "Contenido editorial temporal. Reemplazar por artículos reales validados en próximas iteraciones.",
-    en: "Temporary editorial content. Replace with validated real articles in upcoming iterations.",
+    es: "Todavía no hay artículos publicados en esta sección.",
+    en: "No articles published in this section yet.",
   },
   featuredLabel: {
     es: "Artículo destacado",
@@ -342,8 +362,8 @@ const blog: BlogContent = {
       en: "Subscribe",
     },
     helper: {
-      es: "CTA provisional: hoy la suscripción se canaliza vía email directo hasta integrar backend específico.",
-      en: "Temporary CTA: subscriptions are routed through direct email until a dedicated backend is integrated.",
+      es: "Un correo por mes. Podés darte de baja cuando quieras.",
+      en: "One email per month. Unsubscribe anytime.",
     },
   },
   sourceUrls: ["docs/assets/stitch/blog_silvano_puccini_v2/code.html"],
@@ -355,16 +375,16 @@ const contact: ContactContent = {
     en: "Contact",
   },
   title: {
-    es: "Disponible para construir productos reales",
-    en: "I’m available to collaborate remotely.",
+    es: "Contame qué necesita tu negocio",
+    en: "Tell me what your business needs",
   },
   intro: {
-    es: "Si estás desarrollando una plataforma, sistema o solución con impacto, podemos trabajar juntos para llevarlo a producción con claridad técnica.",
+    es: "Contame en dos líneas qué problema tenés y te digo si puedo resolverlo, cuánto sale y en cuánto tiempo. Si no es para mí, te lo digo también.",
     en: "If you’re building a product, a platform, or an automation workflow with impact, let’s talk.",
   },
   availability: {
-    es: "Disponibilidad inmediata · remoto",
-    en: "Immediate availability · remote",
+    es: "Respondo en 24 h · Trabajo remoto con toda LATAM y España",
+    en: "I reply within 24 h · Remote work across LATAM and Spain",
   },
   primaryCtas: {
     es: [
@@ -399,8 +419,8 @@ export const siteContent: SiteContent = {
     defaultLocale: "es",
     location: "Pucón, Chile",
     availability: {
-      es: "Disponible para colaborar",
-      en: "Available for collaboration",
+      es: "Tomando proyectos nuevos",
+      en: "Taking on new projects",
     },
     email: "silvano.jm.puccini@gmail.com",
     phone: "+54 9 249 4309584",

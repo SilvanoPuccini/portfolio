@@ -19,7 +19,7 @@ export default function CapabilityMatrix({
     <article className="surface-panel no-line-stack px-6 py-7 sm:px-7">
       <div>
         <p className="technical-label">{eyebrow}</p>
-        <h3 className="mt-4 text-3xl text-text-primary sm:text-4xl">{title}</h3>
+        <h3 className="mt-4 section-title-sm">{title}</h3>
         <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{intro}</p>
       </div>
 

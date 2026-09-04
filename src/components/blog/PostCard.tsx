@@ -38,7 +38,7 @@ export function PostCard({ slug, title, date, category, excerpt, readingTime, lo
       </div>
 
       <div className="mt-6 flex flex-1 flex-col">
-        <h3 className="text-2xl font-semibold text-text-primary">
+        <h3 className="card-title">
           <Link href={`/${locale}/blog/${slug}`} className="hover:underline">
             {title}
           </Link>

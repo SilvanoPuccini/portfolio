@@ -41,7 +41,7 @@ export default async function PrivacyPage({ params }: { params: LocaleParams }) 
           <p className="technical-label mb-4">
             {isEs ? "Legal" : "Legal"}
           </p>
-          <h1 className="text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+          <h1 className="section-title">
             {isEs ? "Política de Privacidad" : "Privacy Policy"}
           </h1>
           <p className="mt-4 font-mono text-[11px] text-text-tertiary">

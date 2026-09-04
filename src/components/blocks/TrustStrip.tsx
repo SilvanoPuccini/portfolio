@@ -1,108 +1,104 @@
-import type { Locale } from "@/lib/i18n";
+"use client";
+
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+
+/**
+ * Franja de evidencia.
+ *
+ * Reemplaza al bloque anterior de seis tarjetas de texto: aquellas enunciaban
+ * atributos ("stack enfocado en producto") en vez de mostrar hechos, ocupaban
+ * cerca de 700 px y nadie las leía. Un número verificable pesa más que una
+ * declaración, y se escanea en un segundo.
+ */
 
 const copy = {
   es: {
-    eyebrow: "Credibilidad",
-    title: "Evidencia de ejecución real",
-    description:
-      "Sin claims inflados. Solo proyectos, decisiones técnicas y resultados en producción.",
-    cards: [
-      {
-        eyebrow: "Experiencia",
-        title: "Experiencia en negocio real",
-        body: "Más de una década en contextos comerciales y ejecución full stack orientada a resolver problemas concretos.",
-      },
-      {
-        eyebrow: "Stack",
-        title: "Stack enfocado en producto",
-        body: "React · Next.js · TypeScript · Node.js · Python · Django. Arquitecturas pensadas para escalar, no solo para prototipos.",
-      },
-      {
-        eyebrow: "Proyectos",
-        title: "Proyectos en producción",
-        body: "Casos publicados con decisiones técnicas visibles, foco en performance y lectura clara del resultado.",
-      },
-      {
-        eyebrow: "Servicios",
-        title: "Servicios concretos",
-        body: "Desarrollo de producto, automatización y arquitectura de sistemas. Sin paquetes genéricos, cada compromiso es específico al problema.",
-      },
-      {
-        eyebrow: "Blog",
-        title: "Criterio técnico documentado",
-        body: "Artículos sobre decisiones de arquitectura, patrones y aprendizajes de proyectos reales. El razonamiento detrás del código.",
-      },
-      {
-        eyebrow: "Contacto",
-        title: "Contacto directo",
-        body: "Canal directo para conversar sobre plataformas, producto o automatización sin vueltas innecesarias.",
-      },
+    eyebrow: "Evidencia",
+    title: "Números, no promesas.",
+    intro:
+      "Todo lo que sigue se puede verificar entrando a los proyectos o pidiendo el presupuesto.",
+    stats: [
+      { value: "6", label: "aplicaciones desplegadas y online" },
+      { value: "10+", label: "años en gestión comercial" },
+      { value: "4", label: "servicios con precio cerrado" },
+      { value: "24 h", label: "para responder tu consulta" },
     ],
+    cta: "Ver servicios y precios",
+    href: "/es/services",
   },
   en: {
-    eyebrow: "Credibility",
-    title: "Concrete signals, not promises.",
-    description:
-      "Experience, stack, and published work that support the profile with visible evidence.",
-    cards: [
-      {
-        eyebrow: "Experience",
-        title: "Experience in real business",
-        body: "Background across commercial environments and full stack execution, focused on impact and solving concrete problems.",
-      },
-      {
-        eyebrow: "Stack",
-        title: "Product-focused stack",
-        body: "React · Next.js · TypeScript · Node.js · Python · Django. Architectures designed to scale, not just to prototype.",
-      },
-      {
-        eyebrow: "Projects",
-        title: "Production projects",
-        body: "Systems designed, built, and taken into real environments, with a focus on performance and usability.",
-      },
-      {
-        eyebrow: "Services",
-        title: "Concrete services",
-        body: "Product development, automation, and system architecture. No generic packages — each engagement is scoped to the actual problem.",
-      },
-      {
-        eyebrow: "Blog",
-        title: "Documented technical thinking",
-        body: "Articles on architecture decisions, patterns, and lessons from real projects. The reasoning behind the code.",
-      },
-      {
-        eyebrow: "Contact",
-        title: "Direct contact",
-        body: "Available to collaborate on projects, platforms, and automation with real impact.",
-      },
+    eyebrow: "Evidence",
+    title: "Numbers, not promises.",
+    intro: "Everything below can be verified by opening the projects or asking for a quote.",
+    stats: [
+      { value: "6", label: "applications deployed and online" },
+      { value: "10+", label: "years in commercial management" },
+      { value: "4", label: "services with fixed pricing" },
+      { value: "24 h", label: "to answer your enquiry" },
     ],
+    cta: "See services and pricing",
+    href: "/en/services",
   },
 } as const;
 
-export default function TrustStrip({ locale }: { locale: Locale }) {
-  const labels = copy[locale];
+export default function TrustStrip({ locale }: { locale: string }) {
+  const reduce = useReducedMotion();
+  const t = locale === "en" ? copy.en : copy.es;
 
   return (
-    <section className="bg-[linear-gradient(180deg,rgb(var(--surface)/0.18),rgb(var(--surface-dim)/0.26))] py-10 sm:py-12 lg:py-14">
-      <div className="site-container">
-        <div className="max-w-3xl space-y-5">
-          <p className="technical-label">{labels.eyebrow}</p>
-          <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.title}</h2>
-          <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{labels.description}</p>
+    <section className="relative overflow-hidden border-y border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.22),rgb(var(--surface)/0.10))]">
+      <div className="mx-auto max-w-[80rem] section-rhythm px-6 sm:px-8">
+        <div className="lg:flex lg:items-end lg:justify-between lg:gap-12">
+          <div className="max-w-xl">
+            <p className="section-eyebrow">
+              {t.eyebrow}
+            </p>
+            <h2 className="mt-4 section-title">
+              {t.title}
+            </h2>
+            <p className="mt-5 section-lede">{t.intro}</p>
+          </div>
+
+          <div className="mt-7 lg:mt-0 lg:shrink-0">
+            <Link href={t.href} className="button-primary inline-flex items-center gap-2.5">
+              <span>{t.cta}</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {labels.cards.map((card, index) => (
-              <article
-                key={`${card.eyebrow}-${card.title}`}
-                className={`surface-subpanel px-5 py-5 sm:px-6 sm:py-6 ${index % 2 === 0 ? "bg-[rgb(var(--background)/0.14)]" : "bg-[rgb(var(--background)/0.1)]"}`}
-              >
-              <p className="technical-label">{card.eyebrow}</p>
-              <h3 className="mt-3 text-xl font-semibold text-text-primary">{card.title}</h3>
-              <p className="mt-3 text-base leading-7 text-text-primary">{card.body}</p>
-            </article>
+        <dl className="mt-11 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+          {t.stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className="border-t border-outline-ghost/15 pt-5"
+              {...(reduce
+                ? {}
+                : {
+                    initial: { opacity: 0, y: 14 },
+                    whileInView: { opacity: 1, y: 0 },
+                    viewport: { once: true, amount: 0.5 },
+                    transition: {
+                      duration: 0.45,
+                      delay: i * 0.07,
+                      ease: [0.22, 1, 0.36, 1] as const,
+                    },
+                  })}
+            >
+              <dt className="sr-only">{stat.label}</dt>
+              <dd>
+                <span className="block text-4xl font-semibold tracking-[-0.03em] text-text-primary sm:text-5xl">
+                  {stat.value}
+                </span>
+                <span className="mt-2 block text-sm leading-6 text-text-secondary">
+                  {stat.label}
+                </span>
+              </dd>
+            </motion.div>
           ))}
-        </div>
+        </dl>
       </div>
     </section>
   );

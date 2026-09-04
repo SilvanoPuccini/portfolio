@@ -329,7 +329,7 @@ export default async function ProjectsPage({
                   {leadProject.year} · {leadProject.category} · {leadProject.status}
                 </p>
                 <p className="technical-label mt-4">{labels.lead.eyebrow}</p>
-                <h2 className="mt-3 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-text-primary sm:text-[2.3rem] lg:text-[2.45rem]">
+                <h2 className="mt-3 section-title">
                   {leadProject.name}
                 </h2>
                 <div className="mt-4 space-y-3 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
@@ -412,7 +412,7 @@ export default async function ProjectsPage({
       >
         <article className="no-line-stack space-y-8">
           <div className="max-w-3xl space-y-4">
-            <h2 className="text-[2rem] leading-[1.02] font-semibold tracking-editorial text-text-primary sm:text-[2.35rem] lg:text-[2.7rem]">
+            <h2 className="section-title">
               {labels.editorial.title}
             </h2>
 

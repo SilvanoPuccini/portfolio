@@ -18,7 +18,7 @@ export default function SpecSheet({
     <aside className="surface-panel no-line-stack px-6 py-6 sm:px-7 sm:py-7">
       <div>
         <p className="technical-label">{eyebrow}</p>
-        <h3 className="mt-4 text-2xl font-semibold text-text-primary">{title}</h3>
+        <h3 className="mt-4 card-title">{title}</h3>
       </div>
 
       <div className="space-y-4">

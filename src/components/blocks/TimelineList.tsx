@@ -17,7 +17,7 @@ export default function TimelineList({
     <article className="surface-panel px-6 py-7 sm:px-7">
       <div>
         <p className="technical-label">{eyebrow}</p>
-        <h3 className="mt-4 text-2xl text-text-primary sm:text-3xl">{title}</h3>
+        <h3 className="mt-4 section-title-sm">{title}</h3>
       </div>
 
       <div className="mt-6 space-y-5">

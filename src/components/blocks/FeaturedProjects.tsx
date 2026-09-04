@@ -58,7 +58,7 @@ export default function FeaturedProjects({
         <div className="mb-10 max-w-3xl space-y-5">
           <p className="technical-label">{labels.eyebrow}</p>
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl lg:text-[3.2rem] lg:leading-[1.02]">
+            <h2 className="section-title">
               {labels.title}
             </h2>
             <p className="max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
@@ -99,7 +99,7 @@ export default function FeaturedProjects({
                         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                           {mainProject.year} · {mainProject.category} · {mainProject.status}
                         </p>
-                        <h3 className="mt-3 text-2xl font-semibold text-text-primary sm:text-[2rem] lg:text-[2.2rem]">
+                        <h3 className="mt-3 card-title">
                           {mainProject.name}
                         </h3>
                         <p className="mt-3 max-w-3xl text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
@@ -124,7 +124,7 @@ export default function FeaturedProjects({
                           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                             {mainProject.year} · {mainProject.category} · {mainProject.status}
                           </p>
-                          <h3 className="mt-3 text-2xl font-semibold text-text-primary sm:text-[2rem] lg:text-[2.2rem]">
+                          <h3 className="mt-3 card-title">
                             {mainProject.name}
                           </h3>
                           <p className="mt-3 max-w-3xl text-base leading-7 text-text-primary sm:text-[1.05rem] sm:leading-8">
@@ -208,7 +208,7 @@ export default function FeaturedProjects({
                     <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                       {mainProject.year} · {mainProject.category} · {mainProject.status}
                     </p>
-                    <h3 className="mt-2.5 text-2xl font-semibold text-text-primary sm:mt-3 sm:text-[2rem]">{mainProject.name}</h3>
+                    <h3 className="mt-2.5 card-title sm:mt-3">{mainProject.name}</h3>
                     <p className="mt-3.5 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
                       {mainProject.summary}
                     </p>
@@ -291,7 +291,7 @@ export default function FeaturedProjects({
                       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                         {project.year} · {project.category} · {project.status}
                       </p>
-                      <h3 className="text-2xl font-semibold text-text-primary">{project.name}</h3>
+                      <h3 className="card-title">{project.name}</h3>
                       <p className="text-sm leading-6 text-text-secondary sm:text-base">{project.summary}</p>
                     </div>
 

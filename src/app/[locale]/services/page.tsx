@@ -27,9 +27,9 @@ const copy = {
       secondaryCta: "Conocé el método",
     },
     metrics: [
-      { value: "10+", label: "años en negocio" },
-      { value: "8", label: "proyectos en producción" },
-      { value: "3", label: "industrias diferentes" },
+      { value: "10+", label: "años en gestión comercial" },
+      { value: "6", label: "aplicaciones desplegadas y online" },
+      { value: "24 h", label: "para responderte" },
       { value: "30 días", label: "de soporte incluido" },
     ],
     services: {
@@ -38,36 +38,57 @@ const copy = {
       cards: [
         {
           number: "01",
-          subtitle: "La estructura digital de tu negocio",
-          title: "Desarrollo web a medida",
+          subtitle: "Que te encuentren y te escriban",
+          title: "Sitio web profesional",
           description:
-            "Construcción end-to-end: frontend, backend, datos, autenticación y deploy. Proyectos que funcionan en producción desde el día uno.",
+            "Sitio de una o varias páginas, rápido y adaptado a celular, con formulario que te llega al mail y tu negocio visible en Google. Dominio y hosting configurados.",
           details: [
-            { label: "Frontend", value: "Next.js / React / TypeScript" },
-            { label: "Backend", value: "Node.js / Django / Python / APIs" },
-            { label: "Data", value: "PostgreSQL / Supabase / flujos" },
+            { label: "Incluye", value: "Diseño, textos y formulario" },
+            { label: "Entrega", value: "Online, con dominio propio" },
+            { label: "Después", value: "30 días de soporte incluido" },
           ],
-          references: ["FerrelonStock", "Aktivar", "PayTrack"],
-          cta: "Consultar presupuesto",
-          slug: "full-stack-builds" as const,
+          references: ["Adaptado a celular", "Formulario de contacto", "Listo para Google"],
+          price: "Desde USD 450",
+          timeline: "1 a 2 semanas",
+          cta: "Pedir presupuesto",
+          slug: "web-presence" as const,
         },
         {
           number: "02",
-          subtitle: "Los procesos que corren sin vos",
-          title: "Automatización con IA",
+          subtitle: "Dejá de operar con Excel y WhatsApp",
+          title: "Sistema de gestión a medida",
           description:
-            "Flujos que reemplazan trabajo manual repetitivo. Clasificación, extracción, validación y pipelines auditables, con humano en el loop cuando importa.",
+            "Aplicación web con usuarios y roles, base de datos, panel de administración y reportes. Turnos, stock, clientes, reservas o lo que tu operación necesite, en un solo lugar.",
           details: [
-            { label: "Procesos", value: "Clasificación / extracción / validación" },
-            { label: "Tooling", value: "Pipelines / agentes / dashboards" },
-            { label: "Objetivo", value: "Velocidad con trazabilidad" },
+            { label: "Incluye", value: "Panel de admin, roles y reportes" },
+            { label: "Entrega", value: "Desplegado, con dominio y capacitación" },
+            { label: "Después", value: "30 días de soporte incluido" },
           ],
-          references: ["FacturIA 2.0", "PayTrack", "MCP / agentes IA"],
+          references: ["Gestión de stock", "Reservas y turnos", "Panel de clientes"],
+          price: "Desde USD 1.200",
+          timeline: "3 a 6 semanas",
+          cta: "Pedir presupuesto",
+          slug: "full-stack-builds" as const,
+        },
+        {
+          number: "03",
+          subtitle: "Lo repetitivo, resuelto",
+          title: "Automatización de reportes y documentos",
+          description:
+            "Lectura automática de PDFs y planillas, generación de reportes y envío programado por email. Los mismos datos, sin la carga manual de todos los días.",
+          details: [
+            { label: "Entrada", value: "PDFs, planillas, correos" },
+            { label: "Salida", value: "Reporte listo y enviado solo" },
+            { label: "Control", value: "Revisión humana donde importa" },
+          ],
+          references: ["Lectura de PDFs", "Reportes programados", "Envío automático"],
+          price: "Desde USD 350",
+          timeline: "1 a 2 semanas",
           cta: "Consultar factibilidad",
           slug: "automation-ai" as const,
         },
         {
-          number: "03",
+          number: "04",
           subtitle: "Claridad antes de invertir",
           title: "Auditoría técnica",
           description:
@@ -77,7 +98,9 @@ const copy = {
             { label: "Producto", value: "UX / narrativa / prioridades" },
             { label: "Salida", value: "Diagnóstico + roadmap" },
           ],
-          references: ["Roadmaps técnicos", "Auditoría 360", "Negocio + ejecución"],
+          references: ["Arquitectura", "Performance", "Deuda técnica"],
+          price: "USD 250 — precio fijo",
+          timeline: "5 días hábiles",
           cta: "Solicitar auditoría",
           slug: "product-ux-engineering" as const,
         },
@@ -120,7 +143,7 @@ const copy = {
       ],
     },
     approach: {
-      eyebrow: "Proceso",
+      eyebrow: "Cómo trabajo",
       title: "Orientado a claridad, viabilidad técnica y resultado.",
       description:
         "La metodología nace de dos capas: experiencia comercial para entender contexto, y práctica de desarrollo para construir soluciones estables.",
@@ -170,9 +193,9 @@ const copy = {
       secondaryCta: "See the method",
     },
     metrics: [
-      { value: "10+", label: "years in business" },
-      { value: "8", label: "projects in production" },
-      { value: "3", label: "different industries" },
+      { value: "10+", label: "years in commercial management" },
+      { value: "6", label: "applications deployed and online" },
+      { value: "24 h", label: "to get back to you" },
       { value: "30 days", label: "of support included" },
     ],
     services: {
@@ -181,8 +204,25 @@ const copy = {
       cards: [
         {
           number: "01",
-          subtitle: "The digital backbone of your business",
-          title: "Custom web development",
+          subtitle: "Get found and get contacted",
+          title: "Professional website",
+          description:
+            "A one-page or multi-page site, fast and mobile-ready, with a contact form that reaches your inbox and your business visible on Google. Domain and hosting configured.",
+          details: [
+            { label: "Includes", value: "Design, copy and contact form" },
+            { label: "Delivery", value: "Live, on your own domain" },
+            { label: "After", value: "30 days of support included" },
+          ],
+          references: ["Mobile-ready", "Contact form", "Google-ready"],
+          price: "From USD 450",
+          timeline: "1 to 2 weeks",
+          cta: "Request a quote",
+          slug: "web-presence" as const,
+        },
+        {
+          number: "02",
+          subtitle: "Stop running on spreadsheets and chat",
+          title: "Custom management system",
           description:
             "End-to-end build: frontend, backend, data, auth, and deploy. Projects that work in production from day one.",
           details: [
@@ -190,14 +230,16 @@ const copy = {
             { label: "Backend", value: "Node.js / Django / Python / APIs" },
             { label: "Data", value: "PostgreSQL / Supabase / pipelines" },
           ],
-          references: ["FerrelonStock", "Aktivar", "PayTrack"],
+          references: ["Stock management", "Bookings and scheduling", "Client panel"],
+          price: "From USD 1,200",
+          timeline: "3 to 6 weeks",
           cta: "Request a quote",
           slug: "full-stack-builds" as const,
         },
         {
-          number: "02",
-          subtitle: "Processes that run without you",
-          title: "AI automation",
+          number: "03",
+          subtitle: "Repetitive work, handled",
+          title: "Report and document automation",
           description:
             "Flows that replace repetitive manual work. Classification, extraction, validation, and auditable pipelines, with a human in the loop when it matters.",
           details: [
@@ -205,12 +247,14 @@ const copy = {
             { label: "Tooling", value: "Pipelines / agents / dashboards" },
             { label: "Goal", value: "Speed with traceability" },
           ],
-          references: ["FacturIA 2.0", "PayTrack", "MCP / AI agents"],
+          references: ["PDF parsing", "Scheduled reports", "Automatic delivery"],
+          price: "From USD 350",
+          timeline: "1 to 2 weeks",
           cta: "Check feasibility",
           slug: "automation-ai" as const,
         },
         {
-          number: "03",
+          number: "04",
           subtitle: "Clarity before you invest",
           title: "Technical audit",
           description:
@@ -220,7 +264,9 @@ const copy = {
             { label: "Product", value: "UX / narrative / priorities" },
             { label: "Output", value: "Diagnosis + roadmap" },
           ],
-          references: ["Technical roadmaps", "360 audit", "Business + execution"],
+          references: ["Architecture", "Performance", "Technical debt"],
+          price: "USD 250 — fixed price",
+          timeline: "5 business days",
           cta: "Request an audit",
           slug: "product-ux-engineering" as const,
         },
@@ -263,7 +309,7 @@ const copy = {
       ],
     },
     approach: {
-      eyebrow: "Process",
+      eyebrow: "How I work",
       title: "Built for clarity, technical viability, and outcome.",
       description:
         "The method comes from two layers: commercial experience to understand context, and development practice to build stable solutions.",
@@ -346,6 +392,8 @@ export default async function ServicesPage({
     description: card.description,
     details: [...card.details],
     references: [...card.references],
+    price: card.price,
+    timeline: card.timeline,
     cta: card.cta,
     slug: card.slug,
   }));
@@ -420,47 +468,6 @@ export default async function ServicesPage({
 
       {/* ── HOW I WORK ── */}
       <div id="metodo" className="scroll-mt-24" />
-      <SectionShell
-        eyebrow={labels.howIWork.eyebrow}
-        title={labels.howIWork.title}
-        description={labels.howIWork.description}
-        sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.18),rgb(var(--surface)/0.12))]"
-        containerClassName="py-10 sm:py-12 lg:py-16"
-        surface="plain"
-      >
-        <div className="grid gap-5 md:grid-cols-2">
-          {labels.howIWork.pillars.map((pillar, index) => (
-            <article
-              key={pillar.title}
-              className="surface-panel no-line-stack group relative flex flex-col overflow-hidden border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-6 py-7 sm:px-7 sm:py-8"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <span
-                  className="font-display text-[2.8rem] leading-none tracking-[-0.04em] text-brand-primary/20"
-                  aria-hidden="true"
-                >
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-              </div>
-              <h3 className="mt-4 text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
-                {pillar.title}
-              </h3>
-              <p className="mt-3 flex-1 text-sm leading-6 text-text-secondary sm:text-base sm:leading-7">
-                {pillar.description}
-              </p>
-              <div className="mt-5 border-t border-outline-ghost/10 pt-4">
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
-                  {pillar.anchor}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-text-tertiary">
-                  {pillar.anchorDetail}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </SectionShell>
-
       {/* ── PROCESS ── */}
       <SectionShell
         sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.08),rgb(var(--surface-dim)/0.22))]"
@@ -470,7 +477,7 @@ export default async function ServicesPage({
         <div className="space-y-10 sm:space-y-12">
           <div className="max-w-3xl no-line-stack">
             <p className="technical-label">{labels.approach.eyebrow}</p>
-            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">
+            <h2 className="section-title">
               {labels.approach.title}
             </h2>
             <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
@@ -510,7 +517,7 @@ export default async function ServicesPage({
           <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-brand-secondary/8 blur-[80px]" />
 
           <div className="relative mx-auto max-w-2xl">
-            <h2 className="text-3xl font-semibold leading-tight tracking-tight text-text-primary sm:text-4xl">
+            <h2 className="section-title">
               {labels.closing.title}
             </h2>
             <p className="mt-5 text-base leading-7 text-text-secondary sm:text-lg">

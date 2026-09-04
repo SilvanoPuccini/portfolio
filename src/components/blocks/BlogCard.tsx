@@ -1,3 +1,4 @@
+import Spotlight from "@/components/site/Spotlight";
 import { cn } from "@/lib/utils";
 
 type BlogCardPost = {
@@ -45,6 +46,7 @@ export default function BlogCard({
   const isWide = variant === "wide" || post.layout === "wide";
 
   return (
+    <Spotlight className="rounded-[var(--radius-soft)] h-full">
     <article
       className={cn(
         "group overflow-hidden rounded-[var(--radius-soft)] bg-surface-elevated/92 shadow-ambient transition-all duration-300 hover:-translate-y-1 hover:bg-surface/95",
@@ -85,7 +87,7 @@ export default function BlogCard({
           </span>
         </div>
 
-        <h3 className={cn("text-white transition-colors group-hover:text-brand-primary", isWide ? "max-w-3xl text-3xl sm:text-4xl" : "text-2xl")}>
+        <h3 className={cn("text-white transition-colors group-hover:text-brand-primary", isWide ? "max-w-3xl section-title-sm" : "card-title")}>
           {post.title}
         </h3>
 
@@ -97,5 +99,6 @@ export default function BlogCard({
         </div>
       </div>
     </article>
+    </Spotlight>
   );
 }

@@ -281,8 +281,38 @@ p {
     @apply font-display text-5xl tracking-editorial text-text-primary sm:text-6xl lg:text-7xl;
   }
 
+  /* El acento se reserva para acciones (botones, enlaces, spotlight).
+     Cuando tiñe también cada etiqueta deja de jerarquizar nada. */
   .technical-label {
-    @apply font-mono text-xs uppercase tracking-[0.22em] text-brand-primary;
+    @apply font-mono text-[11px] uppercase tracking-[0.22em] text-text-secondary;
+  }
+
+  /* ---- Escala de sección: una sola para toda la web ---- */
+  .section-eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.22em] text-text-secondary;
+  }
+
+  .section-title {
+    @apply text-balance text-4xl font-semibold leading-[1.06] tracking-[-0.025em] text-text-primary sm:text-5xl lg:text-[3.25rem];
+  }
+
+  /* Titular subordinado dentro de una sección ya titulada. */
+  .section-title-sm {
+    @apply text-2xl font-semibold leading-[1.14] tracking-[-0.02em] text-text-primary sm:text-3xl;
+  }
+
+  /* Titular de tarjeta: el escalón más bajo de la jerarquía. */
+  .card-title {
+    @apply text-2xl font-semibold leading-[1.16] tracking-[-0.015em] text-text-primary sm:text-[1.75rem];
+  }
+
+  .section-lede {
+    @apply max-w-2xl text-lg leading-8 text-text-secondary;
+  }
+
+  /* Ritmo vertical único: el aire es lo que se lee como calidad. */
+  .section-rhythm {
+    @apply py-20 sm:py-24 lg:py-28;
   }
 
   .section-spacing {
@@ -379,4 +409,25 @@ figure[data-rehype-pretty-code-figure] pre code {
     background-image: theme("backgroundImage.texture");
     background-size: 24px 24px;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Grano de superficie                                                */
+/*  Un fondo oscuro plano se lee como "plantilla". Una capa de ruido    */
+/*  muy tenue le da materia sin introducir color ni costo de red: el    */
+/*  patrón es un SVG en línea, se pinta una sola vez y no intercepta    */
+/*  eventos. Se apaga si el usuario pidió menos movimiento.             */
+/* ------------------------------------------------------------------ */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { display: none; }
 }

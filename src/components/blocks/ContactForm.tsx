@@ -188,7 +188,7 @@ export default function ContactForm({
   return (
     <div className="surface-panel no-line-stack h-full border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-6 py-7 sm:px-7 sm:py-8 lg:px-8">
       <div>
-        <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{labels.title}</h2>
+        <h2 className="section-title">{labels.title}</h2>
       </div>
 
       <form className="relative space-y-6" onSubmit={handleSubmit} noValidate aria-busy={status === "submitting"}>

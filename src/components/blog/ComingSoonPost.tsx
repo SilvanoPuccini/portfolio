@@ -54,7 +54,7 @@ export function ComingSoonPost({
         {copy.eyebrow}
       </p>
 
-      <h1 className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
+      <h1 className="mt-4 max-w-xl section-title-sm">
         {title}
       </h1>
 

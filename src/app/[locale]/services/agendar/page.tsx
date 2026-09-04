@@ -150,7 +150,7 @@ export default async function AgendarPage({
           </div>
         ) : (
           <div className="surface-panel border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-8 py-14 text-center sm:px-16 sm:py-20">
-            <h2 className="text-2xl font-semibold text-text-primary sm:text-3xl">
+            <h2 className="section-title-sm">
               {labels.fallbackTitle}
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-text-secondary">

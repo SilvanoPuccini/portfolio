@@ -37,7 +37,7 @@ export default function ResumeDownload({
           <div className="no-line-stack max-w-3xl">
             <div>
               <p className="eyebrow">{eyebrow}</p>
-              <h2 className="mt-4 text-4xl text-text-primary sm:text-5xl">{title}</h2>
+              <h2 className="mt-4 section-title">{title}</h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
                 {description}
               </p>

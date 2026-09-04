@@ -38,7 +38,7 @@ export default async function LocaleHomePage({
   const featuredProjects = getFeaturedProjects(currentLocale);
   const contactSupportCopy =
     currentLocale === "es"
-      ? "Disponible para colaborar en productos digitales, plataformas web y automatización de procesos."
+      ? "Sistemas de gestión, sitios web y automatización de procesos para negocios que necesitan ordenarse."
       : "Available to collaborate on digital products, web platforms, and process automation.";
 
   return (
@@ -56,17 +56,17 @@ export default async function LocaleHomePage({
           ],
         }}
       />
-      <HeroEditorial content={content} />
+      <HeroEditorial content={content} locale={currentLocale} />
       <FeaturedProjects locale={currentLocale} projects={featuredProjects} showAllProjectsLink={false} condensedMain={true} />
       <TrustStrip locale={currentLocale} />
 
-      <section className="bg-[linear-gradient(180deg,rgba(var(--surface-dim),0.42),rgba(var(--surface),0.18))] py-10 sm:py-12 lg:py-14">
-        <div className="site-container">
-          <div className="max-w-3xl space-y-5">
-            <p className="technical-label">{content.contact.eyebrow}</p>
-            <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">{content.contact.title}</h2>
-            <p className="text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">{content.contact.intro}</p>
-            <div className="flex max-w-2xl flex-col items-start gap-4 pt-3">
+      <section className="bg-[linear-gradient(180deg,rgba(var(--surface-dim),0.42),rgba(var(--surface),0.18))]">
+        <div className="site-container section-rhythm">
+          <div className="max-w-3xl">
+            <p className="section-eyebrow">{content.contact.eyebrow}</p>
+            <h2 className="mt-4 section-title">{content.contact.title}</h2>
+            <p className="mt-5 section-lede">{content.contact.intro}</p>
+            <div className="mt-9 flex max-w-2xl flex-col items-start gap-4">
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
                 {content.contact.availability}
               </p>

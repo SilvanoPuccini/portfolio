@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 /* -------------------------------------------------------------------------- */
 
 export type ServiceSlug =
+  | "web-presence"
   | "full-stack-builds"
   | "automation-ai"
   | "product-ux-engineering";
@@ -39,26 +40,81 @@ type ServiceQuestionSet = {
 };
 
 export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSet> = {
+  "web-presence": {
+    stepTitle: { es: "Sobre tu sitio", en: "About your site" },
+    questions: [
+      {
+        key: "web_business",
+        label: { es: "¿A qué se dedica tu negocio?", en: "What does your business do?" },
+        type: "text",
+        required: false,
+        maxLength: 200,
+      },
+      {
+        key: "web_goal",
+        label: {
+          es: "¿Qué querés que haga la persona que entra al sitio?",
+          en: "What do you want a visitor to do on the site?",
+        },
+        type: "chip",
+        options: {
+          es: ["Que me escriba", "Que reserve un turno", "Que compre", "Que me conozca"],
+          en: ["Contact me", "Book an appointment", "Buy", "Get to know me"],
+        },
+        required: false,
+      },
+      {
+        key: "web_current",
+        label: { es: "¿Tenés algo hoy?", en: "Do you have anything today?" },
+        type: "chip",
+        options: {
+          es: ["Nada", "Solo redes sociales", "Un sitio viejo", "Un sitio que quiero rehacer"],
+          en: ["Nothing", "Social media only", "An old site", "A site I want to redo"],
+        },
+        required: false,
+      },
+      {
+        key: "web_brand",
+        label: { es: "¿Tenés logo y textos, o hay que crearlos?", en: "Do you have a logo and copy, or should we create them?" },
+        type: "chip",
+        options: {
+          es: ["Tengo todo", "Tengo el logo", "Hay que crear todo"],
+          en: ["I have everything", "I have the logo", "Everything needs creating"],
+        },
+        required: false,
+      },
+      {
+        key: "web_deadline",
+        label: { es: "¿Para cuándo lo necesitás?", en: "When do you need it by?" },
+        type: "chip",
+        options: {
+          es: ["Esta semana", "Este mes", "Sin apuro"],
+          en: ["This week", "This month", "No rush"],
+        },
+        required: false,
+      },
+    ],
+  },
   "full-stack-builds": {
     stepTitle: { es: "Sobre tu proyecto", en: "About your project" },
     questions: [
       {
         key: "fs_business",
-        label: { es: "A que se dedica tu negocio?", en: "What does your business do?" },
+        label: { es: "¿A qué se dedica tu negocio?", en: "What does your business do?" },
         type: "text",
         required: true,
         maxLength: 200,
       },
       {
         key: "fs_vision",
-        label: { es: "Que necesitas que este producto haga por tus clientes?", en: "What do you need this product to do for your customers?" },
+        label: { es: "¿Qué necesitás que este producto haga por tus clientes?", en: "What do you need this product to do for your customers?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "fs_current_state",
-        label: { es: "Tenes algo construido hoy o arrancas de cero?", en: "Do you have something built today or starting from scratch?" },
+        label: { es: "¿Tenés algo construido hoy o arrancás de cero?", en: "Do you have something built today or starting from scratch?" },
         type: "chip",
         options: {
           es: ["Nada", "Landing", "Sitio basico", "Sistema completo"],
@@ -68,14 +124,14 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "fs_success",
-        label: { es: "Como se veria el exito 3 meses despues del lanzamiento?", en: "What would success look like 3 months after launch?" },
+        label: { es: "¿Cómo se vería el éxito 3 meses después del lanzamiento?", en: "What would success look like 3 months after launch?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "fs_brand_materials",
-        label: { es: "Tenes materiales de marca (logo, colores, contenido)?", en: "Do you have brand materials (logo, colors, content)?" },
+        label: { es: "¿Tenés materiales de marca (logo, colores, contenido)?", en: "Do you have brand materials (logo, colors, content)?" },
         type: "chip",
         options: {
           es: ["Si, todo", "Algunas cosas", "Nada todavia"],
@@ -85,7 +141,7 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "fs_timeline",
-        label: { es: "Cual es tu timeline ideal?", en: "What is your ideal timeline?" },
+        label: { es: "¿Cuál es tu plazo ideal?", en: "What is your ideal timeline?" },
         type: "chip",
         options: {
           es: ["Lo antes posible", "1 mes", "2-3 meses", "Sin apuro"],
@@ -100,14 +156,14 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
     questions: [
       {
         key: "ai_pain_task",
-        label: { es: "Que tarea manual te consume mas tiempo en el dia a dia?", en: "What manual task takes the most time in your day-to-day?" },
+        label: { es: "¿Qué tarea manual te consume más tiempo en el día a día?", en: "What manual task takes the most time in your day-to-day?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "ai_handling",
-        label: { es: "Como lo manejas hoy?", en: "How are you handling it today?" },
+        label: { es: "¿Cómo lo manejás hoy?", en: "How are you handling it today?" },
         type: "chip",
         options: {
           es: ["Manualmente", "Excel / Sheets", "Software existente", "Mezcla de todo"],
@@ -117,7 +173,7 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "ai_people",
-        label: { es: "Cuantas personas participan en este proceso?", en: "How many people are involved in this process?" },
+        label: { es: "¿Cuántas personas participan en este proceso?", en: "How many people are involved in this process?" },
         type: "chip",
         options: {
           es: ["Solo yo", "2-5", "6-15", "15+"],
@@ -127,20 +183,20 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "ai_impact",
-        label: { es: "Que cambiaria si esto estuviera automatizado?", en: "What would change if this were automated?" },
+        label: { es: "¿Qué cambiaría si esto estuviera automatizado?", en: "What would change if this were automated?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "ai_data",
-        label: { es: "Tenes datos o documentos que necesitan procesamiento?", en: "Do you have data or documents that need processing?" },
+        label: { es: "¿Tenés datos o documentos que necesitan procesamiento?", en: "Do you have data or documents that need processing?" },
         type: "toggle",
         required: true,
       },
       {
         key: "ai_urgency",
-        label: { es: "Que tan urgente es esto?", en: "How urgent is this?" },
+        label: { es: "¿Qué tan urgente es esto?", en: "How urgent is this?" },
         type: "chip",
         options: {
           es: ["Critico", "Importante", "Seria bueno tenerlo", "Solo explorando"],
@@ -155,14 +211,14 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
     questions: [
       {
         key: "audit_product",
-        label: { es: "Que producto o sistema necesita revision?", en: "What product or system needs review?" },
+        label: { es: "¿Qué producto o sistema necesita revisión?", en: "What product or system needs review?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "audit_concern",
-        label: { es: "Cual es la principal preocupacion ahora?", en: "What is the main concern right now?" },
+        label: { es: "¿Cuál es la principal preocupación ahora?", en: "What is the main concern right now?" },
         type: "chip",
         options: {
           es: ["Es lento", "Se rompe seguido", "Dificil de mantener", "Seguridad", "No estoy seguro"],
@@ -172,7 +228,7 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "audit_team",
-        label: { es: "Hay un equipo de desarrollo manteniendolo?", en: "Is there a development team maintaining it?" },
+        label: { es: "¿Hay un equipo de desarrollo manteniéndolo?", en: "Is there a development team maintaining it?" },
         type: "chip",
         options: {
           es: ["Solo yo", "Equipo chico", "Equipo completo", "Nadie ahora"],
@@ -182,14 +238,14 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "audit_trigger",
-        label: { es: "Que disparo la busqueda de ayuda?", en: "What triggered looking for help?" },
+        label: { es: "¿Qué disparó la búsqueda de ayuda?", en: "What triggered looking for help?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "audit_outcome",
-        label: { es: "Cual seria el resultado ideal?", en: "What would the ideal outcome be?" },
+        label: { es: "¿Cuál sería el resultado ideal?", en: "What would the ideal outcome be?" },
         type: "chip",
         options: {
           es: ["Diagnostico claro", "Fixes puntuales", "Roadmap completo", "Segunda opinion"],
@@ -204,21 +260,21 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
     questions: [
       {
         key: "fs_business",
-        label: { es: "A que se dedica tu negocio?", en: "What does your business do?" },
+        label: { es: "¿A qué se dedica tu negocio?", en: "What does your business do?" },
         type: "text",
         required: true,
         maxLength: 200,
       },
       {
         key: "fs_vision",
-        label: { es: "Que necesitas que este producto haga por tus clientes?", en: "What do you need this product to do for your customers?" },
+        label: { es: "¿Qué necesitás que este producto haga por tus clientes?", en: "What do you need this product to do for your customers?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "fs_current_state",
-        label: { es: "Tenes algo construido hoy o arrancas de cero?", en: "Do you have something built today or starting from scratch?" },
+        label: { es: "¿Tenés algo construido hoy o arrancás de cero?", en: "Do you have something built today or starting from scratch?" },
         type: "chip",
         options: {
           es: ["Nada", "Landing", "Sitio basico", "Sistema completo"],
@@ -228,14 +284,14 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "fs_success",
-        label: { es: "Como se veria el exito 3 meses despues del lanzamiento?", en: "What would success look like 3 months after launch?" },
+        label: { es: "¿Cómo se vería el éxito 3 meses después del lanzamiento?", en: "What would success look like 3 months after launch?" },
         type: "textarea",
         required: true,
         maxLength: 500,
       },
       {
         key: "fs_brand_materials",
-        label: { es: "Tenes materiales de marca (logo, colores, contenido)?", en: "Do you have brand materials (logo, colors, content)?" },
+        label: { es: "¿Tenés materiales de marca (logo, colores, contenido)?", en: "Do you have brand materials (logo, colors, content)?" },
         type: "chip",
         options: {
           es: ["Si, todo", "Algunas cosas", "Nada todavia"],
@@ -245,7 +301,7 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
       },
       {
         key: "fs_timeline",
-        label: { es: "Cual es tu timeline ideal?", en: "What is your ideal timeline?" },
+        label: { es: "¿Cuál es tu plazo ideal?", en: "What is your ideal timeline?" },
         type: "chip",
         options: {
           es: ["Lo antes posible", "1 mes", "2-3 meses", "Sin apuro"],
@@ -264,37 +320,37 @@ export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSe
 const labels = {
   es: {
     steps: [
-      "Sobre tu negocio",
-      "Que vamos a construir",
-      "Detalles practicos",
       "Tus datos",
+      "Sobre tu negocio",
+      "Qué vamos a construir",
+      "Detalles prácticos",
     ],
     // Step 1
-    s1_business_q: "Como describirias tu negocio en una oracion?",
+    s1_business_q: "¿Cómo describirías tu negocio en una oración?",
     s1_business_ph: "Ej: Vendo ropa deportiva online y en local",
-    s1_problem_q: "Que te gustaria que tu negocio pueda hacer y hoy no puede?",
+    s1_problem_q: "¿Qué te gustaría que tu negocio pueda hacer y hoy no puede?",
     s1_problem_ph: "Ej: Quiero que mis clientes compren online y les llegue a domicilio",
-    s1_current_q: "Como manejas eso hoy?",
+    s1_current_q: "¿Cómo manejás eso hoy?",
     s1_current_opts: ["Papel", "Excel", "WhatsApp", "Sistema existente"],
     // Step 3
-    s3_brand_q: "Tenes logo y marca, o hay que crearlos?",
+    s3_brand_q: "¿Tenés logo y marca, o hay que crearlos?",
     s3_brand_yes: "Ya tengo",
     s3_brand_no: "Hay que crear",
-    s3_content_q: "Tenes los textos e imagenes, o hay que generarlos?",
+    s3_content_q: "¿Tenés los textos e imágenes, o hay que generarlos?",
     s3_content_yes: "Ya tengo",
     s3_content_no: "Hay que generar",
-    s3_budget_q: "Que presupuesto tenes en mente?",
+    s3_budget_q: "¿Qué presupuesto tenés en mente?",
     s3_budget_opts: ["< $300", "$300 - $800", "$800 - $2000", "> $2000", "No definido"],
-    s3_timeline_q: "Para cuando lo necesitas?",
+    s3_timeline_q: "¿Para cuándo lo necesitás?",
     s3_timeline_opts: ["Lo antes posible", "1 mes", "2-3 meses", "Sin apuro"],
-    s3_call_q: "Zoom o WhatsApp para la llamada?",
+    s3_call_q: "¿Zoom o WhatsApp para la llamada?",
     s3_call_opts: ["Zoom", "WhatsApp"],
     // Step 4
     s4_name_q: "Nombre",
     s4_name_ph: "Tu nombre completo",
     s4_email_q: "Email",
     s4_email_ph: "tu@email.com",
-    s4_phone_q: "Telefono (opcional)",
+    s4_phone_q: "Teléfono (opcional)",
     s4_phone_ph: "+54 9 11 1234-5678",
     // Buttons
     next: "Siguiente",
@@ -303,11 +359,13 @@ const labels = {
     submitting: "Enviando...",
     // Validation
     required: "Este campo es requerido.",
-    requiredSelect: "Selecciona una opcion.",
+    requiredSelect: "Seleccioná una opción.",
     invalidEmail: "Email invalido.",
     // Success
-    successTitle: "Recibimos tu informacion",
-    successMessage: "Te vamos a contactar pronto para agendar la llamada de diagnostico.",
+    successTitle: "Recibimos tu información",
+    successMessage: "Te vamos a contactar pronto para agendar la llamada de diagnóstico.",
+    submitNow: "Enviar y seguir después",
+    optionalNote: "Todo lo que sigue es opcional: cuanto más nos cuentes, más precisa es la propuesta.",
     successCta: "Agendar ahora",
     // Errors
     submitError: "Algo salio mal. Intenta de nuevo.",
@@ -317,10 +375,10 @@ const labels = {
   },
   en: {
     steps: [
+      "Your info",
       "About your business",
       "What are we building",
       "Practical details",
-      "Your info",
     ],
     // Step 1
     s1_business_q: "How would you describe your business in one sentence?",
@@ -361,6 +419,8 @@ const labels = {
     // Success
     successTitle: "We received your information",
     successMessage: "We will reach out soon to schedule the diagnostic call.",
+    submitNow: "Send and finish later",
+    optionalNote: "Everything below is optional: the more you share, the more precise the proposal.",
     successCta: "Schedule now",
     // Errors
     submitError: "Something went wrong. Please try again.",
@@ -905,6 +965,7 @@ function Step4({
 /* -------------------------------------------------------------------------- */
 
 const VALID_SERVICE_SLUGS: ServiceSlug[] = [
+  "web-presence",
   "full-stack-builds",
   "automation-ai",
   "product-ux-engineering",
@@ -982,14 +1043,19 @@ export default function IntakeForm({
   function validateStep(stepIndex: number): boolean {
     const e: Record<string, string> = {};
 
+    // Paso 0 — contacto: lo único obligatorio. Capturamos el lead antes de
+    // pedir nada más, para no perderlo si abandona el resto del formulario.
     if (stepIndex === 0) {
-      if (!data.que_construir.trim()) e.que_construir = l.required;
-      if (!data.problema.trim()) e.problema = l.required;
-      if (!data.current_situation) e.current_situation = l.requiredSelect;
+      if (!data.nombre.trim()) e.nombre = l.required;
+      if (!data.email.trim()) {
+        e.email = l.required;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        e.email = l.invalidEmail;
+      }
     }
 
-    if (stepIndex === 1) {
-      // Validate against active question set
+    // Pasos 1 a 3 — contexto del proyecto: todos opcionales.
+    if (stepIndex === 99) {
       for (const q of questionSet.questions) {
         if (!q.required) continue;
 
@@ -1023,22 +1089,6 @@ export default function IntakeForm({
       }
     }
 
-    if (stepIndex === 2) {
-      if (data.tiene_marca === null) e.tiene_marca = l.requiredSelect;
-      if (data.tiene_contenido === null) e.tiene_contenido = l.requiredSelect;
-      if (!data.presupuesto_rango) e.presupuesto_rango = l.requiredSelect;
-      if (!data.plazo) e.plazo = l.requiredSelect;
-      if (!data.canal_llamada) e.canal_llamada = l.requiredSelect;
-    }
-
-    if (stepIndex === 3) {
-      if (!data.nombre.trim()) e.nombre = l.required;
-      if (!data.email.trim()) {
-        e.email = l.required;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-        e.email = l.invalidEmail;
-      }
-    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -1055,7 +1105,7 @@ export default function IntakeForm({
   }
 
   async function handleSubmit() {
-    if (!validateStep(3)) return;
+    if (!validateStep(0)) return;
 
     setStatus("submitting");
 
@@ -1128,7 +1178,7 @@ export default function IntakeForm({
   // Compute step title — Step 2 title adapts to active service
   const stepTitles = [...l.steps] as string[];
   if (activeService) {
-    stepTitles[1] = questionSet.stepTitle[resolvedLocale];
+    stepTitles[2] = questionSet.stepTitle[resolvedLocale];
   }
 
   // Success state
@@ -1141,7 +1191,7 @@ export default function IntakeForm({
     return (
       <div className="surface-panel border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-6 py-10 text-center sm:px-10 sm:py-14">
         <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-400" />
-        <h3 className="mt-4 text-2xl font-semibold text-text-primary">{l.successTitle}</h3>
+        <h3 className="mt-4 card-title">{l.successTitle}</h3>
         <p className="mx-auto mt-3 max-w-md text-base leading-7 text-text-secondary">
           {l.successMessage}
         </p>
@@ -1166,9 +1216,14 @@ export default function IntakeForm({
       </div>
 
       {/* Step title */}
-      <h3 className="mb-6 text-2xl font-semibold text-text-primary sm:text-3xl">
+      <h3 className="mb-6 card-title">
         {stepTitles[step]}
       </h3>
+
+      {/* Aviso de opcionalidad: a partir del paso 1 nada es obligatorio */}
+      {step > 0 && (
+        <p className="mb-6 text-sm leading-6 text-text-tertiary">{l.optionalNote}</p>
+      )}
 
       {/* Step content */}
       <form
@@ -1179,8 +1234,9 @@ export default function IntakeForm({
         }}
         noValidate
       >
-        {step === 0 && <Step1 data={data} l={l} errors={errors} onChange={updateField} />}
-        {step === 1 && (
+        {step === 0 && <Step4 data={data} l={l} errors={errors} onChange={updateField} />}
+        {step === 1 && <Step1 data={data} l={l} errors={errors} onChange={updateField} />}
+        {step === 2 && (
           <ServiceStep2
             locale={resolvedLocale}
             questionSet={questionSet}
@@ -1191,8 +1247,7 @@ export default function IntakeForm({
             noLabel={l.no}
           />
         )}
-        {step === 2 && <Step3 data={data} l={l} errors={errors} onChange={updateField} />}
-        {step === 3 && <Step4 data={data} l={l} errors={errors} onChange={updateField} />}
+        {step === 3 && <Step3 data={data} l={l} errors={errors} onChange={updateField} />}
 
         {/* Error message for submit failures */}
         {errors.submit && (
@@ -1217,13 +1272,25 @@ export default function IntakeForm({
           )}
 
           {step < 3 ? (
-            <button
-              type="submit"
-              className="button-primary inline-flex items-center gap-2"
-            >
-              <span>{l.next}</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-3">
+              {step > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void handleSubmit()}
+                  disabled={status === "submitting"}
+                  className="button-secondary inline-flex items-center gap-2"
+                >
+                  <span>{l.submitNow}</span>
+                </button>
+              )}
+              <button
+                type="submit"
+                className="button-primary inline-flex items-center gap-2"
+              >
+                <span>{l.next}</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           ) : (
             <button
               type="submit"
