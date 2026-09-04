@@ -79,7 +79,7 @@ export default function FeaturedProjects({
         </div>
 
         <div className="grid gap-5">
-          <article className="surface-panel overflow-hidden">
+          <article id={mainProject.slug} className="surface-panel scroll-mt-28 overflow-hidden">
             {isFerrerlonMainProject ? (
               <>
                 <div className="project-media-hover project-media-hover-contained relative aspect-[16/10] overflow-hidden bg-surface-dim sm:aspect-[16/9] lg:aspect-[16/8.4]">
@@ -266,7 +266,8 @@ export default function FeaturedProjects({
               {secondaryProjects.map((project) => (
                 <article
                   key={project.slug}
-                  className="surface-panel flex h-full flex-col overflow-hidden"
+                  id={project.slug}
+                  className="surface-panel flex h-full flex-col overflow-hidden scroll-mt-28"
                 >
                   <div
                     className={

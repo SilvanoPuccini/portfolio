@@ -33,9 +33,9 @@ const SHOWCASE = [
 
 /** Posición de cada captura en la pila, según su distancia al frente. */
 const SLOTS = [
-  { x: 0, y: 0, scale: 1, opacity: 1, zIndex: 30 },
-  { x: "9%", y: -26, scale: 0.94, opacity: 0.55, zIndex: 20 },
-  { x: "17%", y: -48, scale: 0.88, opacity: 0.3, zIndex: 10 },
+  { x: "0%", y: "10%", rotate: 0, scale: 1, opacity: 1, zIndex: 30 },
+  { x: "26%", y: "-4%", rotate: 4, scale: 0.87, opacity: 0.78, zIndex: 20 },
+  { x: "44%", y: "-19%", rotate: 8, scale: 0.76, opacity: 0.5, zIndex: 10 },
 ];
 
 const proof = {
@@ -96,7 +96,7 @@ export default function HeroEditorial({
         }}
       />
 
-      <div className="relative mx-auto grid max-w-[80rem] gap-14 px-6 pb-20 pt-16 sm:px-8 lg:grid-cols-[1fr_minmax(0,0.92fr)] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
+      <div className="site-container relative grid gap-14 pb-20 pt-16 lg:grid-cols-[1fr_minmax(0,0.9fr)] lg:items-center lg:gap-14 lg:pb-28 lg:pt-24">
         {/* ---------------- Columna de mensaje ---------------- */}
         <div>
           {/* Identidad: la cara de quien responde. Vender servicios es vender confianza. */}
@@ -194,23 +194,17 @@ export default function HeroEditorial({
                   key={shot.src}
                   type="button"
                   onClick={() => {
-                    if (!isFront) {
-                      pick(i);
-                      return;
-                    }
-                    document
-                      .getElementById("proyectos")
-                      ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+                    const target =
+                      document.getElementById(shot.slug) ??
+                      document.getElementById("proyectos");
+                    target?.scrollIntoView({
+                      behavior: reduce ? "auto" : "smooth",
+                      block: "start",
+                    });
                   }}
-                  aria-label={
-                    isFront
-                      ? locale === "en"
-                        ? "Go to the projects section"
-                        : "Ir a la sección de proyectos"
-                      : `${locale === "en" ? "Bring to front" : "Traer al frente"}: ${shot.name}`
-                  }
+                  aria-label={`${locale === "en" ? "Go to" : "Ir a"} ${shot.name}`}
                   aria-current={isFront || undefined}
-                  className={`absolute bottom-0 left-0 w-[83%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
+                  className={`absolute bottom-0 left-0 w-[66%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
                     "cursor-pointer"
                   }`}
                   animate={reduce ? undefined : slot}
