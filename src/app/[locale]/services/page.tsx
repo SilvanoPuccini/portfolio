@@ -33,6 +33,8 @@ const copy = {
       { value: "30 días", label: "de soporte incluido" },
     ],
     services: {
+      pricingNote:
+        "Los precios son de referencia y marcan el punto de partida de cada servicio. El presupuesto final depende del alcance que definamos juntos en la llamada, y queda por escrito antes de empezar.",
       eyebrow: "Cobertura real",
       title: "Tres servicios. Cada uno con proyectos que lo respaldan.",
       cards: [
@@ -99,8 +101,8 @@ const copy = {
             { label: "Salida", value: "Diagnóstico + roadmap" },
           ],
           references: ["Arquitectura", "Performance", "Deuda técnica"],
-          price: "USD 250 — precio fijo",
-          timeline: "5 días hábiles",
+          price: "Desde USD 250",
+          timeline: "5 días hábiles · alcance acordado",
           cta: "Solicitar auditoría",
           slug: "product-ux-engineering" as const,
         },
@@ -199,6 +201,8 @@ const copy = {
       { value: "30 days", label: "of support included" },
     ],
     services: {
+      pricingNote:
+        "Prices are indicative and mark the starting point for each service. The final quote depends on the scope we define together on the call, and is put in writing before any work begins.",
       eyebrow: "Real coverage",
       title: "Three services. Each backed by real projects.",
       cards: [
@@ -265,8 +269,8 @@ const copy = {
             { label: "Output", value: "Diagnosis + roadmap" },
           ],
           references: ["Architecture", "Performance", "Technical debt"],
-          price: "USD 250 — fixed price",
-          timeline: "5 business days",
+          price: "From USD 250",
+          timeline: "5 business days · agreed scope",
           cta: "Request an audit",
           slug: "product-ux-engineering" as const,
         },
@@ -464,6 +468,13 @@ export default async function ServicesPage({
         surface="plain"
       >
         <ServiceFormFlow locale={currentLocale} cards={serviceCards} />
+
+        {/* Aviso de alcance: fija que los precios son punto de partida y que el
+            presupuesto se cierra por escrito. Protege legalmente y ademas
+            califica al lead antes de la llamada. */}
+        <p className="mt-10 max-w-3xl border-t border-outline-ghost/10 pt-6 text-sm leading-6 text-text-secondary">
+          {labels.services.pricingNote}
+        </p>
       </SectionShell>
 
       {/* ── HOW I WORK ── */}

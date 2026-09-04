@@ -3,6 +3,7 @@
 import Image from "next/image";
 import fotoPerfil from "@/assets/images/foto_perfil_ok01.png";
 import Link from "next/link";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { getSiteContent } from "@/content/site";
 
@@ -10,9 +11,31 @@ type SiteContentView = ReturnType<typeof getSiteContent>;
 
 /** Capturas reales de producto: son la prueba más rápida de calidad que tenemos. */
 const SHOWCASE = [
-  { src: "/projects/pediacore.png", alt: "PediaCore — plataforma de gestión para consultorios" },
-  { src: "/projects/my-marketing-agency.png", alt: "My Marketing Agency — panel de operación" },
-  { src: "/projects/ferrelonstock.png", alt: "FerrelonStock — e-commerce y gestión de inventario" },
+  {
+    src: "/projects/pediacore.png",
+    name: "PediaCore",
+    alt: "PediaCore — plataforma de gestión para consultorios",
+    slug: "pediacore",
+  },
+  {
+    src: "/projects/my-marketing-agency.png",
+    name: "My Marketing Agency",
+    alt: "My Marketing Agency — panel de operación",
+    slug: "my-marketing-agency",
+  },
+  {
+    src: "/projects/ferrelonstock.png",
+    name: "FerrelonStock",
+    alt: "FerrelonStock — e-commerce y gestión de inventario",
+    slug: "ferrelonstock",
+  },
+];
+
+/** Posición de cada captura en la pila, según su distancia al frente. */
+const SLOTS = [
+  { x: 0, y: 0, scale: 1, opacity: 1, zIndex: 30 },
+  { x: "9%", y: -26, scale: 0.94, opacity: 0.55, zIndex: 20 },
+  { x: "17%", y: -48, scale: 0.88, opacity: 0.3, zIndex: 10 },
 ];
 
 const proof = {
@@ -28,6 +51,7 @@ export default function HeroEditorial({
   locale?: string;
 }) {
   const reduce = useReducedMotion();
+  const [front, setFront] = useState(0);
   const points = locale === "en" ? proof.en : proof.es;
 
   const [primary, secondary] = content.home.ctas;
@@ -124,7 +148,7 @@ export default function HeroEditorial({
           </motion.ul>
         </div>
 
-        {/* ---------------- Composición de producto ---------------- */}
+        {/* ---------------- Pila de proyectos, rotable ---------------- */}
         <motion.div
           {...(reduce
             ? {}
@@ -134,44 +158,78 @@ export default function HeroEditorial({
                 transition: { duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const },
               })}
           className="relative mx-auto w-full max-w-[34rem] lg:max-w-none"
-          aria-label={locale === "en" ? "Recent work" : "Trabajo reciente"}
         >
-          <div className="relative aspect-[4/3.2]">
-            {/* Secundaria: asoma detrás para dar profundidad, nunca compite. */}
-            <motion.figure
-              className="absolute right-0 top-0 h-[62%] w-[72%] overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/12 bg-surface-dim opacity-70 shadow-[0_18px_44px_-22px_rgba(0,0,0,0.8)]"
-              {...(reduce ? {} : { whileHover: { y: -6, opacity: 0.9, transition: { duration: 0.3 } } })}
-            >
-              <Image
-                src={SHOWCASE[1].src}
-                alt={SHOWCASE[1].alt}
-                fill
-                sizes="(max-width: 1024px) 60vw, 30vw"
-                className="object-cover object-left-top"
-              />
-            </motion.figure>
+          <div className="relative aspect-[4/3.35]">
+            {SHOWCASE.map((shot, i) => {
+              // Distancia al frente: define en qué ranura de la pila cae.
+              const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
+              const slot = SLOTS[depth];
+              const isFront = depth === 0;
 
-            {/* Principal: encuadrada como ventana de navegador, legible y entera. */}
-            <motion.figure
-              className="absolute bottom-0 left-0 w-[88%] overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)]"
-              {...(reduce ? {} : { whileHover: { y: -8, transition: { duration: 0.3 } } })}
+              return (
+                <motion.button
+                  key={shot.src}
+                  type="button"
+                  onClick={() => (isFront ? undefined : setFront(i))}
+                  aria-label={
+                    isFront
+                      ? `${shot.name}: ${locale === "en" ? "shown in front" : "en primer plano"}`
+                      : `${locale === "en" ? "Bring to front" : "Traer al frente"}: ${shot.name}`
+                  }
+                  aria-current={isFront || undefined}
+                  className={`absolute bottom-0 left-0 w-[83%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
+                    isFront ? "cursor-default" : "cursor-pointer"
+                  }`}
+                  animate={reduce ? undefined : slot}
+                  style={reduce ? { zIndex: slot.zIndex, opacity: slot.opacity } : { zIndex: slot.zIndex }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className="flex items-center gap-1.5 border-b border-outline-ghost/12 bg-[rgb(var(--background)/0.5)] px-3.5 py-2.5">
+                    <span className="h-2 w-2 rounded-full bg-text-tertiary/35" />
+                    <span className="h-2 w-2 rounded-full bg-text-tertiary/25" />
+                    <span className="h-2 w-2 rounded-full bg-text-tertiary/20" />
+                    <span className="ml-2 truncate font-mono text-[10px] uppercase tracking-[0.16em] text-text-secondary">
+                      {shot.name}
+                    </span>
+                  </div>
+                  <div className="relative aspect-[16/10.5]">
+                    <Image
+                      src={shot.src}
+                      alt={shot.alt}
+                      fill
+                      sizes="(max-width: 1024px) 83vw, 38vw"
+                      className="object-cover object-left-top"
+                      priority={i === 0}
+                    />
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Control explícito: la pila no se descubre sola si nadie la toca. */}
+          <div className="mt-6 flex items-center justify-between gap-4">
+            <Link
+              href={`/${locale}/projects#${SHOWCASE[front].slug}`}
+              className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary hover:underline"
             >
-              <div className="flex items-center gap-1.5 border-b border-outline-ghost/12 bg-[rgb(var(--background)/0.5)] px-3.5 py-2.5">
-                <span className="h-2 w-2 rounded-full bg-text-tertiary/35" />
-                <span className="h-2 w-2 rounded-full bg-text-tertiary/25" />
-                <span className="h-2 w-2 rounded-full bg-text-tertiary/20" />
-              </div>
-              <div className="relative aspect-[16/10]">
-                <Image
-                  src={SHOWCASE[0].src}
-                  alt={SHOWCASE[0].alt}
-                  fill
-                  sizes="(max-width: 1024px) 88vw, 40vw"
-                  className="object-cover object-top"
-                  priority
+              {locale === "en" ? "View project" : "Ver el proyecto"} →
+            </Link>
+
+            <div className="flex items-center gap-2">
+              {SHOWCASE.map((shot, i) => (
+                <button
+                  key={shot.src}
+                  type="button"
+                  onClick={() => setFront(i)}
+                  aria-label={`${locale === "en" ? "Show" : "Mostrar"} ${shot.name}`}
+                  aria-current={i === front || undefined}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === front ? "w-7 bg-brand-primary" : "w-3 bg-outline-ghost/40 hover:bg-outline-ghost/70"
+                  }`}
                 />
-              </div>
-            </motion.figure>
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>
