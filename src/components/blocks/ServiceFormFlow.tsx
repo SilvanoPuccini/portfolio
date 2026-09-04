@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Code2, Cpu, ShieldCheck } from "lucide-react";
 import IntakeForm, { type ServiceSlug } from "@/components/blocks/IntakeForm";
-import Spotlight from "@/components/site/Spotlight";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
@@ -84,7 +83,6 @@ function FullWidthServiceCard({
   const Icon = ICONS[index] ?? Code2;
 
   return (
-    <Spotlight className="rounded-[var(--radius-soft)]">
     <article
       id={`service-${index + 1}`}
       className="surface-panel no-line-stack overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.78))]"
@@ -158,7 +156,6 @@ function FullWidthServiceCard({
         </div>
       </div>
     </article>
-    </Spotlight>
   );
 }
 
@@ -214,8 +211,14 @@ export default function ServiceFormFlow({
     return () => window.removeEventListener("hashchange", activateFromHash);
   }, [handleSelect]);
 
-  // Scroll to form container after transition
+  // Scroll al formulario despues de una seleccion real. El primer render se
+  // salta a proposito: si no, la pagina se auto-desplazaba ~1.100 px al cargar.
+  const hasSelected = useRef(false);
   useEffect(() => {
+    if (!hasSelected.current) {
+      hasSelected.current = true;
+      return;
+    }
     if (!isTransitioning && containerRef.current) {
       containerRef.current.scrollIntoView?.({ behavior: "smooth", block: "start" });
     }

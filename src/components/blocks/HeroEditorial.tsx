@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import fotoPerfil from "@/assets/images/foto_perfil_ok01.png";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -33,9 +32,9 @@ const SHOWCASE = [
 
 /** Posición de cada captura en la pila, según su distancia al frente. */
 const SLOTS = [
-  { x: "0%", y: "10%", rotate: 0, scale: 1, opacity: 1, zIndex: 30 },
-  { x: "26%", y: "-4%", rotate: 4, scale: 0.87, opacity: 0.78, zIndex: 20 },
-  { x: "44%", y: "-19%", rotate: 8, scale: 0.76, opacity: 0.5, zIndex: 10 },
+  { x: "0%", y: "14%", rotate: -3, scale: 1, opacity: 1, zIndex: 30 },
+  { x: "31%", y: "-9%", rotate: 3, scale: 0.88, opacity: 0.8, zIndex: 20 },
+  { x: "55%", y: "9%", rotate: 9, scale: 0.78, opacity: 0.52, zIndex: 10 },
 ];
 
 const proof = {
@@ -96,34 +95,13 @@ export default function HeroEditorial({
         }}
       />
 
-      <div className="site-container relative grid gap-14 pb-20 pt-16 lg:grid-cols-[1fr_minmax(0,0.9fr)] lg:items-center lg:gap-14 lg:pb-28 lg:pt-24">
+      <div className="site-container relative grid gap-12 pb-16 pt-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center lg:gap-12 lg:pb-20 lg:pt-8">
         {/* ---------------- Columna de mensaje ---------------- */}
         <div>
-          {/* Identidad: la cara de quien responde. Vender servicios es vender confianza. */}
-          <motion.div {...rise(0)} className="flex items-center gap-4">
-            <Image
-              src={fotoPerfil}
-              alt=""
-              width={72}
-              height={72}
-              className="h-16 w-16 rounded-full border border-outline-ghost/25 object-cover sm:h-[4.5rem] sm:w-[4.5rem]"
-              placeholder="blur"
-              priority
-            />
-            <div>
-              <p className="text-xl font-semibold leading-tight tracking-[-0.015em] text-text-primary sm:text-2xl">
-                {content.home.title}
-              </p>
-              <p className="mt-1 section-eyebrow">
-                {locale === "en" ? "Full stack developer" : "Desarrollador full stack"}
-              </p>
-            </div>
-          </motion.div>
-
           {/* La promesa ocupa el lugar del nombre: quien llega desde LinkedIn ya sabe quién sos. */}
           <motion.h1
             {...rise(0.08)}
-            className="mt-8 text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]"
+            className="text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]"
           >
             {content.home.subtitle}
           </motion.h1>
@@ -176,13 +154,13 @@ export default function HeroEditorial({
                 animate: { opacity: 1, scale: 1 },
                 transition: { duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const },
               })}
-          className="relative mx-auto w-full max-w-[34rem] lg:max-w-none"
+          className="relative mx-auto w-full max-w-[38rem] lg:max-w-none"
           onMouseEnter={() => setHeld(true)}
           onMouseLeave={() => setHeld(false)}
           onFocusCapture={() => setHeld(true)}
           onBlurCapture={() => setHeld(false)}
         >
-          <div className="relative aspect-[4/3.35]">
+          <div className="relative aspect-[4/3.5]">
             {SHOWCASE.map((shot, i) => {
               // Distancia al frente: define en qué ranura de la pila cae.
               const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
@@ -204,7 +182,7 @@ export default function HeroEditorial({
                   }}
                   aria-label={`${locale === "en" ? "Go to" : "Ir a"} ${shot.name}`}
                   aria-current={isFront || undefined}
-                  className={`absolute bottom-0 left-0 w-[66%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
+                  className={`absolute bottom-0 left-0 w-[72%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
                     "cursor-pointer"
                   }`}
                   animate={reduce ? undefined : slot}
