@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import fotoPerfil from "@/assets/images/foto_perfil_ok01.png";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { getSiteContent } from "@/content/site";
@@ -56,20 +57,21 @@ export default function HeroEditorial({
         {/* ---------------- Columna de mensaje ---------------- */}
         <div>
           {/* Identidad: la cara de quien responde. Vender servicios es vender confianza. */}
-          <motion.div {...rise(0)} className="flex items-center gap-3">
+          <motion.div {...rise(0)} className="flex items-center gap-4">
             <Image
-              src="/avatar.png"
+              src={fotoPerfil}
               alt=""
-              width={44}
-              height={44}
-              className="h-11 w-11 rounded-full border border-outline-ghost/20 object-cover"
+              width={72}
+              height={72}
+              className="h-16 w-16 rounded-full border border-outline-ghost/25 object-cover sm:h-[4.5rem] sm:w-[4.5rem]"
+              placeholder="blur"
               priority
             />
             <div>
-              <p className="text-sm font-semibold leading-tight text-text-primary">
+              <p className="text-xl font-semibold leading-tight tracking-[-0.015em] text-text-primary sm:text-2xl">
                 {content.home.title}
               </p>
-              <p className="section-eyebrow">
+              <p className="mt-1 section-eyebrow">
                 {locale === "en" ? "Full stack developer" : "Desarrollador full stack"}
               </p>
             </div>
