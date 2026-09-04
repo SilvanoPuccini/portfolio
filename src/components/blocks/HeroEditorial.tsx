@@ -3,7 +3,8 @@
 import Image from "next/image";
 import fotoPerfil from "@/assets/images/foto_perfil_ok01.png";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { getSiteContent } from "@/content/site";
 
@@ -50,8 +51,28 @@ export default function HeroEditorial({
   content: SiteContentView;
   locale?: string;
 }) {
+  const router = useRouter();
   const reduce = useReducedMotion();
   const [front, setFront] = useState(0);
+  // La rotación se congela mientras el puntero está encima o el foco está
+  // dentro, para que nadie pierda la tarjeta que estaba mirando.
+  const [held, setHeld] = useState(false);
+  const resumeAt = useRef(0);
+
+  /** Selección manual: fija la tarjeta y pausa el giro un rato. */
+  const pick = useCallback((i: number) => {
+    setFront(i);
+    resumeAt.current = Date.now() + 12000;
+  }, []);
+
+  useEffect(() => {
+    if (reduce || held) return;
+    const id = window.setInterval(() => {
+      if (Date.now() < resumeAt.current) return;
+      setFront((f) => (f + 1) % SHOWCASE.length);
+    }, 5200);
+    return () => window.clearInterval(id);
+  }, [reduce, held]);
   const points = locale === "en" ? proof.en : proof.es;
 
   const [primary, secondary] = content.home.ctas;
@@ -158,6 +179,10 @@ export default function HeroEditorial({
                 transition: { duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const },
               })}
           className="relative mx-auto w-full max-w-[34rem] lg:max-w-none"
+          onMouseEnter={() => setHeld(true)}
+          onMouseLeave={() => setHeld(false)}
+          onFocusCapture={() => setHeld(true)}
+          onBlurCapture={() => setHeld(false)}
         >
           <div className="relative aspect-[4/3.35]">
             {SHOWCASE.map((shot, i) => {
@@ -170,15 +195,21 @@ export default function HeroEditorial({
                 <motion.button
                   key={shot.src}
                   type="button"
-                  onClick={() => (isFront ? undefined : setFront(i))}
+                  onClick={() => {
+                    if (!isFront) {
+                      pick(i);
+                      return;
+                    }
+                    router.push(`/${locale}/projects#${shot.slug}`);
+                  }}
                   aria-label={
                     isFront
-                      ? `${shot.name}: ${locale === "en" ? "shown in front" : "en primer plano"}`
+                      ? `${locale === "en" ? "Open project" : "Ver el proyecto"}: ${shot.name}`
                       : `${locale === "en" ? "Bring to front" : "Traer al frente"}: ${shot.name}`
                   }
                   aria-current={isFront || undefined}
                   className={`absolute bottom-0 left-0 w-[83%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
-                    isFront ? "cursor-default" : "cursor-pointer"
+                    "cursor-pointer"
                   }`}
                   animate={reduce ? undefined : slot}
                   style={reduce ? { zIndex: slot.zIndex, opacity: slot.opacity } : { zIndex: slot.zIndex }}
@@ -221,7 +252,7 @@ export default function HeroEditorial({
                 <button
                   key={shot.src}
                   type="button"
-                  onClick={() => setFront(i)}
+                  onClick={() => pick(i)}
                   aria-label={`${locale === "en" ? "Show" : "Mostrar"} ${shot.name}`}
                   aria-current={i === front || undefined}
                   className={`h-1.5 rounded-full transition-all duration-300 ${

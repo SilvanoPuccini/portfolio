@@ -39,6 +39,21 @@ type ServiceQuestionSet = {
   questions: ServiceQuestion[];
 };
 
+/**
+ * Rango de presupuesto sugerido por servicio.
+ *
+ * Se deriva del precio de partida publicado en el catálogo: "web-presence"
+ * arranca en USD 450, "full-stack-builds" en 1.200, "automation-ai" en 350 y
+ * la auditoría en 250. Precargarlo evita que el campo llegue vacío al CRM sin
+ * sumarle una pregunta más al formulario; el visitante puede cambiarlo.
+ */
+export const suggestedBudget: Record<ServiceSlug, string> = {
+  "web-presence": "$300 - $800",
+  "full-stack-builds": "$800 - $2000",
+  "automation-ai": "$300 - $800",
+  "product-ux-engineering": "< $300",
+};
+
 export const serviceQuestions: Record<ServiceSlug | "default", ServiceQuestionSet> = {
   "web-presence": {
     stepTitle: { es: "Sobre tu sitio", en: "About your site" },
@@ -1016,6 +1031,17 @@ export default function IntakeForm({
     window.addEventListener("hashchange", readHash);
     return () => window.removeEventListener("hashchange", readHash);
   }, []);
+
+  // Precarga del presupuesto según el servicio activo. Solo rellena si el
+  // visitante todavía no eligió: nunca pisa una decisión suya.
+  useEffect(() => {
+    if (!activeService) return;
+    setData((prev) =>
+      prev.presupuesto_rango
+        ? prev
+        : { ...prev, presupuesto_rango: suggestedBudget[activeService] },
+    );
+  }, [activeService]);
 
   const questionSet = serviceQuestions[activeService ?? "default"];
 
