@@ -3,7 +3,6 @@
 import Image from "next/image";
 import fotoPerfil from "@/assets/images/foto_perfil_ok01.png";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { getSiteContent } from "@/content/site";
@@ -51,7 +50,6 @@ export default function HeroEditorial({
   content: SiteContentView;
   locale?: string;
 }) {
-  const router = useRouter();
   const reduce = useReducedMotion();
   const [front, setFront] = useState(0);
   // La rotación se congela mientras el puntero está encima o el foco está
@@ -200,11 +198,15 @@ export default function HeroEditorial({
                       pick(i);
                       return;
                     }
-                    router.push(`/${locale}/projects#${shot.slug}`);
+                    document
+                      .getElementById("proyectos")
+                      ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
                   }}
                   aria-label={
                     isFront
-                      ? `${locale === "en" ? "Open project" : "Ver el proyecto"}: ${shot.name}`
+                      ? locale === "en"
+                        ? "Go to the projects section"
+                        : "Ir a la sección de proyectos"
                       : `${locale === "en" ? "Bring to front" : "Traer al frente"}: ${shot.name}`
                   }
                   aria-current={isFront || undefined}
@@ -219,9 +221,6 @@ export default function HeroEditorial({
                     <span className="h-2 w-2 rounded-full bg-text-tertiary/35" />
                     <span className="h-2 w-2 rounded-full bg-text-tertiary/25" />
                     <span className="h-2 w-2 rounded-full bg-text-tertiary/20" />
-                    <span className="ml-2 truncate font-mono text-[10px] uppercase tracking-[0.16em] text-text-secondary">
-                      {shot.name}
-                    </span>
                   </div>
                   <div className="relative aspect-[16/10.5]">
                     <Image
@@ -238,15 +237,9 @@ export default function HeroEditorial({
             })}
           </div>
 
-          {/* Control explícito: la pila no se descubre sola si nadie la toca. */}
-          <div className="mt-6 flex items-center justify-between gap-4">
-            <Link
-              href={`/${locale}/projects#${SHOWCASE[front].slug}`}
-              className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary hover:underline"
-            >
-              {locale === "en" ? "View project" : "Ver el proyecto"} →
-            </Link>
-
+          {/* Control del carrusel. Sin texto ni nombres: el hero muestra, la
+              sección de proyectos explica. */}
+          <div className="mt-6 flex items-center justify-end">
             <div className="flex items-center gap-2">
               {SHOWCASE.map((shot, i) => (
                 <button

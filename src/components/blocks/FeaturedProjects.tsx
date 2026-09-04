@@ -53,7 +53,10 @@ export default function FeaturedProjects({
   }
 
   return (
-    <section className="bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.18),rgb(var(--surface)/0.1))] py-10 sm:py-12 lg:py-14">
+    <section
+      id="proyectos"
+      className="scroll-mt-24 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.18),rgb(var(--surface)/0.1))] py-10 sm:py-12 lg:py-14"
+    >
       <div className="site-container">
         <div className="mb-10 max-w-3xl space-y-5">
           <p className="technical-label">{labels.eyebrow}</p>
