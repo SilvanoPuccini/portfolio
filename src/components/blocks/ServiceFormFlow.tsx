@@ -211,13 +211,19 @@ export default function ServiceFormFlow({
     return () => window.removeEventListener("hashchange", activateFromHash);
   }, [handleSelect]);
 
-  // Scroll al formulario despues de una seleccion real. El primer render se
-  // salta a proposito: si no, la pagina se auto-desplazaba ~1.100 px al cargar.
+  // Scroll al formulario despues de una seleccion real.
+  //
+  // El primer render se salta a proposito: sin esto la pagina se auto-
+  // desplazaba ~1.100 px al entrar desde el nav, saltandose el h1 y rompiendo
+  // la linea del resto del sitio. La excepcion es llegar con un hash que pide
+  // el formulario (#intake o #service-...): ahi el salto es lo que el visitante
+  // pidio al apretar el boton.
   const hasSelected = useRef(false);
   useEffect(() => {
     if (!hasSelected.current) {
       hasSelected.current = true;
-      return;
+      const pedidoExplicito = /^#(intake|service-)/.test(window.location.hash);
+      if (!pedidoExplicito) return;
     }
     if (!isTransitioning && containerRef.current) {
       containerRef.current.scrollIntoView?.({ behavior: "smooth", block: "start" });
