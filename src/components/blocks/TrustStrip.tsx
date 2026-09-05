@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import { ArrowRight } from "lucide-react";
 
 /**
@@ -44,7 +44,6 @@ const copy = {
 } as const;
 
 export default function TrustStrip({ locale }: { locale: string }) {
-  const reduce = useReducedMotion();
   const t = locale === "en" ? copy.en : copy.es;
 
   return (
@@ -71,21 +70,10 @@ export default function TrustStrip({ locale }: { locale: string }) {
 
         <dl className="mt-11 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
           {t.stats.map((stat, i) => (
-            <motion.div
+            <Reveal
               key={stat.label}
+              delay={i * STAGGER}
               className="border-t border-outline-ghost/15 pt-5"
-              {...(reduce
-                ? {}
-                : {
-                    initial: { opacity: 0, y: 14 },
-                    whileInView: { opacity: 1, y: 0 },
-                    viewport: { once: true, amount: 0.5 },
-                    transition: {
-                      duration: 0.45,
-                      delay: i * 0.07,
-                      ease: [0.22, 1, 0.36, 1] as const,
-                    },
-                  })}
             >
               <dt className="sr-only">{stat.label}</dt>
               <dd>
@@ -96,7 +84,7 @@ export default function TrustStrip({ locale }: { locale: string }) {
                   {stat.label}
                 </span>
               </dd>
-            </motion.div>
+            </Reveal>
           ))}
         </dl>
       </div>

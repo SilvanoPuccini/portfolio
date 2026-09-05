@@ -1,3 +1,4 @@
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Globe } from "lucide-react";
@@ -59,14 +60,18 @@ export default function FeaturedProjects({
     >
       <div className="site-container">
         <div className="mb-10 max-w-3xl space-y-5">
-          <p className="technical-label">{labels.eyebrow}</p>
+          <Reveal as="p" className="technical-label">
+            {labels.eyebrow}
+          </Reveal>
           <div className="space-y-4">
-            <h2 className="section-title">
-              {labels.title}
-            </h2>
-            <p className="max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-              {labels.description}
-            </p>
+            <Reveal delay={STAGGER}>
+              <h2 className="section-title">{labels.title}</h2>
+            </Reveal>
+            <Reveal delay={STAGGER * 2}>
+              <p className="max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
+                {labels.description}
+              </p>
+            </Reveal>
           </div>
           {showAllProjectsLink && (
             <Link

@@ -431,3 +431,17 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   body::after { display: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Motion accesible                                                    */
+/*  Quien pidio menos movimiento ve el contenido directamente. La regla */
+/*  va en CSS y no solo en JS porque durante la hidratacion el elemento  */
+/*  animado puede quedar en opacity 0 y dejar texto invisible.           */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

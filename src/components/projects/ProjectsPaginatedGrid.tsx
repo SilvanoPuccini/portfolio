@@ -104,6 +104,7 @@ export function ProjectsPaginatedGrid({ projects, labels, eyebrow, description }
           <div className="mt-10 flex items-center justify-center gap-1 sm:gap-2">
             <button
               onClick={() => page > 1 && changePage(page - 1)}
+              disabled={page === 1}
               className={`rounded-pill border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-all duration-200 sm:px-4 ${
                 page === 1
                   ? "cursor-not-allowed border-outline-ghost/10 bg-surface-dim/30 text-text-tertiary opacity-30"
@@ -135,6 +136,7 @@ export function ProjectsPaginatedGrid({ projects, labels, eyebrow, description }
 
             <button
               onClick={() => page < totalPages && changePage(page + 1)}
+              disabled={page === totalPages}
               className={`rounded-pill border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-all duration-200 sm:px-4 ${
                 page === totalPages
                   ? "cursor-not-allowed border-outline-ghost/10 bg-surface-dim/30 text-text-tertiary opacity-30"

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 
 export default function SectionShell({
   eyebrow,
@@ -35,9 +36,21 @@ export default function SectionShell({
         >
           {eyebrow || title || description ? (
             <div className="mb-12 max-w-3xl">
-              {eyebrow ? <p className="section-eyebrow">{eyebrow}</p> : null}
-              {title ? <h2 className="mt-4 section-title">{title}</h2> : null}
-              {description ? <div className="mt-5 section-lede">{description}</div> : null}
+              {eyebrow ? (
+                <Reveal as="p" className="section-eyebrow">
+                  {eyebrow}
+                </Reveal>
+              ) : null}
+              {title ? (
+                <Reveal delay={STAGGER} className="mt-4">
+                  <h2 className="section-title">{title}</h2>
+                </Reveal>
+              ) : null}
+              {description ? (
+                <Reveal delay={STAGGER * 2} className="mt-5 section-lede">
+                  {description}
+                </Reveal>
+              ) : null}
             </div>
           ) : null}
 

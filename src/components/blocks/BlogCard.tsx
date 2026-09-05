@@ -1,3 +1,4 @@
+import Reveal from "@/components/site/Reveal";
 import { cn } from "@/lib/utils";
 
 type BlogCardPost = {
@@ -45,6 +46,7 @@ export default function BlogCard({
   const isWide = variant === "wide" || post.layout === "wide";
 
   return (
+    <Reveal>
     <article
       className={cn(
         "group overflow-hidden rounded-[var(--radius-soft)] bg-surface-elevated/92 shadow-ambient transition-all duration-300 hover:-translate-y-1 hover:bg-surface/95",
@@ -97,5 +99,6 @@ export default function BlogCard({
         </div>
       </div>
     </article>
+    </Reveal>
   );
 }

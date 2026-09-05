@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import type { getSiteContent } from "@/content/site";
 
 type SiteContentView = ReturnType<typeof getSiteContent>;
@@ -91,14 +92,6 @@ export default function HeroEditorial({
 
   const [primary, secondary] = content.home.ctas;
 
-  const rise = (delay: number) =>
-    reduce
-      ? {}
-      : {
-          initial: { opacity: 0, y: 16 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] as const },
-        };
 
   return (
     <section className="relative -mt-28 overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.72),rgb(var(--background)/0.92))] pt-28 sm:-mt-[7.5rem] sm:pt-[7.5rem]">
@@ -110,21 +103,22 @@ export default function HeroEditorial({
         {/* ---------------- Columna de mensaje ---------------- */}
         <div className="order-1 lg:col-start-1 lg:row-start-1">
           {/* La promesa ocupa el lugar del nombre: quien llega desde LinkedIn ya sabe quién sos. */}
-          <motion.h1
-            {...rise(0.08)}
-            className="text-balance text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]"
-          >
-            {content.home.subtitle}
-          </motion.h1>
+          <Reveal mode="enter" delay={STAGGER}>
+            <h1 className="text-balance text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]">
+              {content.home.subtitle}
+            </h1>
+          </Reveal>
 
-          <motion.p
-            {...rise(0.16)}
+          <Reveal
+            mode="enter"
+            delay={STAGGER * 2}
+            as="p"
             className="mt-4 max-w-xl text-base leading-7 text-text-secondary sm:mt-5 sm:text-lg sm:leading-8"
           >
             {content.home.intro}
-          </motion.p>
+          </Reveal>
 
-          <motion.div {...rise(0.24)} className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-7">
+          <Reveal mode="enter" delay={STAGGER * 3} className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-6">
             {primary ? (
               <Link href={primary.href} className="button-primary flex-1 justify-center text-center sm:flex-none sm:min-w-[13.5rem]">
                 {primary.label}
@@ -135,7 +129,7 @@ export default function HeroEditorial({
                 {secondary.label}
               </Link>
             ) : null}
-          </motion.div>
+          </Reveal>
 
         </div>
 
@@ -154,7 +148,7 @@ export default function HeroEditorial({
           onFocusCapture={() => setHeld(true)}
           onBlurCapture={() => setHeld(false)}
         >
-          <div className="relative aspect-[4/2.9] lg:aspect-[4/2.18]">
+          <div className="relative aspect-[4/2.9] lg:aspect-[3.8/2.18]">
             {SHOWCASE.map((shot, i) => {
               // Distancia al frente: define en qué ranura de la pila cae.
               const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
@@ -226,9 +220,11 @@ export default function HeroEditorial({
         {/* Precio en la primera pantalla: filtra y da confianza antes del scroll.
             En telefono va DESPUES de las capturas: mostrar el trabajo pesa mas
             que la linea de precios, que igual se ve al bajar. */}
-        <motion.ul
-            {...rise(0.32)}
-            className="order-3 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-outline-ghost/10 pt-5 lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-0 lg:gap-x-6 lg:pt-5"
+        <Reveal
+            mode="enter"
+            delay={STAGGER * 4}
+            as="ul"
+            className="order-3 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-outline-ghost/10 pt-5 lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-0 lg:gap-x-6 lg:pt-4"
           >
             {points.map((point) => (
               <li
@@ -241,7 +237,7 @@ export default function HeroEditorial({
                 {point}
               </li>
             ))}
-          </motion.ul>
+          </Reveal>
       </div>
     </section>
   );
