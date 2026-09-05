@@ -47,7 +47,7 @@ const copy = {
     },
     grid: {
       eyebrow: "PROYECTOS SELECCIONADOS",
-      title: "Cuatro proyectos donde cada uno representa un enfoque distinto: performance, experiencia, producto y ejecución técnica.",
+      title: "Cada proyecto representa un enfoque distinto: performance, experiencia, producto y ejecución técnica.",
       ctaDemo: "Ver demo",
       ctaCode: "Código",
       cards: {
@@ -152,7 +152,7 @@ const copy = {
     },
     grid: {
       eyebrow: "SELECTED PROJECTS",
-      title: "Four projects where each one represents a different focus: performance, experience, product, and technical execution.",
+      title: "Each project represents a different focus: performance, experience, product, and technical execution.",
       ctaDemo: "View demo",
       ctaCode: "Code",
       cards: {

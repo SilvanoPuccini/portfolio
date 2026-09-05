@@ -563,4 +563,63 @@ export const projects: Project[] = [
       "https://github.com/SilvanoPuccini/FacturIA-2.0",
     ],
   },
+  {
+    slug: "staking-app",
+    name: "Staking Protocol · STK",
+    featured: false,
+    priority: false,
+    category: "web-app",
+    status: "live",
+    year: "2026",
+    headline: {
+      es: "Protocolo de staking en Ethereum, desplegado y verificado, con gobernanza por timelock.",
+      en: "Ethereum staking protocol, deployed and verified, governed by a timelock.",
+    },
+    summary: {
+      es: "Protocolo DeFi de ciclo completo: un token ERC-20 de suministro fijo y un contrato de staking estilo Synthetix con lockup de 30 días, recompensas por segundo y salida anticipada con penalidad. Vive en Ethereum Sepolia con el código verificado, así que cualquiera puede auditarlo en Etherscan.",
+      en: "A full-cycle DeFi protocol: a fixed-supply ERC-20 and a Synthetix-style staking contract with a 30-day lockup, per-second rewards and an early exit with penalty. It runs on Ethereum Sepolia with verified source, so anyone can audit it on Etherscan.",
+    },
+    challenge: {
+      es: "En un contrato que custodia fondos, un error no se parchea: el código es inmutable y la pérdida es real. El desafío no era que funcionara, sino demostrar que no se puede romper.",
+      en: "In a contract that holds funds, a bug cannot be patched: the code is immutable and the loss is real. The challenge was not making it work, but proving it cannot be broken.",
+    },
+    impact: {
+      es: [
+        "67 tests en verde y un invariante de solvencia que resiste 32.768 llamadas del fuzzer sin un solo revert.",
+        "Suite adversarial de once vectores de ataque: reentrancy, flash loans, inflación por donación y griefing.",
+        "Gobernanza por TimelockController: toda acción de owner es pública 48 horas antes de ejecutarse.",
+      ],
+      en: [
+        "67 tests green and a solvency invariant that survives 32,768 fuzzer calls without a single revert.",
+        "Adversarial suite covering eleven attack vectors: reentrancy, flash loans, donation inflation and griefing.",
+        "TimelockController governance: every owner action is public 48 hours before it can execute.",
+      ],
+    },
+    stack: [
+      "Solidity 0.8.36",
+      "Foundry",
+      "OpenZeppelin",
+      "React 19",
+      "wagmi",
+      "viem",
+      "TypeScript",
+    ],
+    links: {
+      demo: "https://staking-app.vercel.app",
+      repo: "https://github.com/SilvanoPuccini/staking-app",
+    },
+    media: {
+      cover: "/projects/staking-app.png",
+      alt: {
+        es: "Staking Protocol STK — dApp de staking sobre Ethereum Sepolia",
+        en: "Staking Protocol STK — staking dApp on Ethereum Sepolia",
+      },
+      assetStatus: "real",
+    },
+    sourceUrls: [
+      "https://github.com/SilvanoPuccini/staking-app",
+      "https://staking-app.vercel.app",
+      "https://sepolia.etherscan.io/address/0x5dd9d0B3189f0477392f0bA4B164823d5d030A65",
+    ],
+  },
 ];
