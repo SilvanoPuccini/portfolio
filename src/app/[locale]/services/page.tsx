@@ -535,7 +535,7 @@ export default async function ServicesPage({
               {labels.closing.description}
             </p>
 
-            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
               {labels.services.cards.map((card) => (
                 <a
                   key={card.slug}
