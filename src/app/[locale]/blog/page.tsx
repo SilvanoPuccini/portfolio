@@ -209,8 +209,8 @@ export default async function BlogPage({
         <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
 
           {/* Newsletter — col-span-6 */}
-          <Reveal>
-          <div className="surface-section relative flex flex-col justify-between overflow-hidden px-8 py-10 sm:px-10 sm:py-12 lg:col-span-6">
+          <Reveal className="lg:col-span-6">
+          <div className="surface-section relative flex h-full flex-col justify-between overflow-hidden px-8 py-10 sm:px-10 sm:py-12">
             <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-brand-secondary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-72 w-72 rounded-full bg-brand-primary/10 blur-3xl" />
 
@@ -231,8 +231,8 @@ export default async function BlogPage({
           <div className="flex flex-col gap-6 lg:col-span-6">
 
             {/* LinkedIn */}
-            <Reveal delay={STAGGER * 1}>
-            <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
+            <Reveal delay={STAGGER * 1} className="flex flex-1">
+            <div className="surface-section relative flex w-full flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-secondary/10 blur-3xl" />
 
               <div className="relative">
@@ -258,8 +258,8 @@ export default async function BlogPage({
             </Reveal>
 
             {/* Instagram */}
-            <Reveal delay={STAGGER * 2}>
-            <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
+            <Reveal delay={STAGGER * 2} className="flex flex-1">
+            <div className="surface-section relative flex w-full flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -bottom-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
 
               <div className="relative">

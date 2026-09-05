@@ -75,7 +75,7 @@ export default function Reveal({
     <Tag
       {...shared}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.25 }}
+      viewport={{ once: true, amount: 0.45, margin: "0px 0px -12% 0px" }}
       transition={{ duration: DUR_SCROLL, delay, ease: EASE }}
     >
       {children}

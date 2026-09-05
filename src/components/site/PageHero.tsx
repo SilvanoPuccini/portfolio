@@ -110,7 +110,11 @@ export default function PageHero({
             ) : null}
           </div>
 
-          {aside ? <aside className={cn("relative self-start", asideClassName)}>{aside}</aside> : null}
+          {aside ? (
+            <Reveal mode="enter" delay={STAGGER * 2} as="section" className={cn("relative self-start", asideClassName)}>
+              {aside}
+            </Reveal>
+          ) : null}
         </div>
       </div>
     </section>
