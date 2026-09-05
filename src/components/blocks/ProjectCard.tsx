@@ -52,7 +52,7 @@ export default function ProjectCard({
   const isFacturiaFeature = isFeature && project.slug === "facturia-2-0";
   const isFacturiaProject = project.slug === "facturia-2-0";
   const usesContainedMedia =
-    project.slug === "aktivar" || project.slug === "my-marketing-agency" || project.slug === "pediacore" || project.slug === "ferrestock" || project.slug === "facturia-2-0" || project.slug === "mindcode-academy";
+    project.slug === "aktivar" || project.slug === "my-marketing-agency" || project.slug === "pediacore" || project.slug === "ferrestock" || project.slug === "facturia-2-0" || project.slug === "mindcode-academy" || project.slug === "staking-app";
   const mediaPanelClassName = cn(
     "relative overflow-hidden bg-surface-dim",
     isFacturiaFeature && "grid xl:grid-rows-[minmax(0,1fr)_auto]",
@@ -105,7 +105,7 @@ export default function ProjectCard({
               src={project.media.cover}
               alt={project.media.alt}
               fill
-              sizes={isFeature ? "(min-width: 1280px) 55vw, 100vw" : "(min-width: 1024px) 33vw, 100vw"}
+              sizes={isFeature ? "(min-width: 1280px) 60vw, 100vw" : "(min-width: 1024px) 50vw, 100vw"}
               className={cn(
                 usesContainedMedia ? "object-contain object-center" : "object-cover",
                 isFacturiaProject && "scale-[1.16] sm:scale-[1.2] lg:scale-[1.24] object-[center_center]",

@@ -119,12 +119,12 @@ export default function HeroEditorial({
 
           <motion.p
             {...rise(0.16)}
-            className="mt-4 max-w-xl text-base leading-7 text-text-secondary sm:mt-6 sm:text-lg sm:leading-8"
+            className="mt-4 max-w-xl text-base leading-7 text-text-secondary sm:mt-5 sm:text-lg sm:leading-8"
           >
             {content.home.intro}
           </motion.p>
 
-          <motion.div {...rise(0.24)} className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-9">
+          <motion.div {...rise(0.24)} className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-7">
             {primary ? (
               <Link href={primary.href} className="button-primary flex-1 justify-center text-center sm:flex-none sm:min-w-[13.5rem]">
                 {primary.label}
@@ -154,7 +154,7 @@ export default function HeroEditorial({
           onFocusCapture={() => setHeld(true)}
           onBlurCapture={() => setHeld(false)}
         >
-          <div className="relative aspect-[4/2.9] lg:aspect-[4/2.1]">
+          <div className="relative aspect-[4/2.9] lg:aspect-[4/2.18]">
             {SHOWCASE.map((shot, i) => {
               // Distancia al frente: define en qué ranura de la pila cae.
               const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
@@ -228,7 +228,7 @@ export default function HeroEditorial({
             que la linea de precios, que igual se ve al bajar. */}
         <motion.ul
             {...rise(0.32)}
-            className="order-3 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-outline-ghost/10 pt-5 lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-0 lg:gap-x-6 lg:pt-6"
+            className="order-3 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-outline-ghost/10 pt-5 lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-0 lg:gap-x-6 lg:pt-5"
           >
             {points.map((point) => (
               <li
