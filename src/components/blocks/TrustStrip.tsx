@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal from "@/components/site/Reveal";
 import { ArrowRight } from "lucide-react";
 
 /**
@@ -69,7 +69,7 @@ export default function TrustStrip({ locale }: { locale: string }) {
         </div>
 
         <dl className="mt-11 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
-          {t.stats.map((stat, i) => (
+          {t.stats.map((stat) => (
             <Reveal
               key={stat.label}
               className="border-t border-outline-ghost/15 pt-5"

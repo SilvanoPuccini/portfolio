@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal from "@/components/site/Reveal";
 
 export default function SectionShell({
   eyebrow,

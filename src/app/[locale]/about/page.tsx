@@ -1,4 +1,4 @@
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal from "@/components/site/Reveal";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -403,7 +403,7 @@ export default async function AboutPage({
             <h2 className="section-title-sm">{labels.trajectory.eyebrow}</h2>
 
             <div className="mt-8 space-y-5">
-              {trajectoryItems.map((item, index) => (
+              {trajectoryItems.map((item) => (
                 <Reveal
                   key={`${item.label}-${item.title}`}
                   className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface)/0.28)] px-4 py-4"

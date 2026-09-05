@@ -1,4 +1,4 @@
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal from "@/components/site/Reveal";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -504,7 +504,7 @@ export default async function ServicesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {labels.approach.steps.map((step, i) => (
+            {labels.approach.steps.map((step) => (
               <Reveal
                 key={step.label}
                 as="article"

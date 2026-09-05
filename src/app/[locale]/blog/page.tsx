@@ -1,4 +1,4 @@
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal from "@/components/site/Reveal";
 import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";

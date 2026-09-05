@@ -1,4 +1,4 @@
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal from "@/components/site/Reveal";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Globe } from "lucide-react";
