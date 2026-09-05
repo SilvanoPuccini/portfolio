@@ -1,5 +1,6 @@
 "use client";
 
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import type { BlogPost } from "@/types/blog";
@@ -158,9 +159,11 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
             </p>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {paginated.map((post) => (
-                <article
+              {paginated.map((post, i) => (
+                <Reveal
                   key={post.slug}
+                  as="article"
+                  delay={i * STAGGER}
                   className="surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
                 >
                   <Link
@@ -220,7 +223,7 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                       </Link>
                     </div>
                   </div>
-                </article>
+                </Reveal>
               ))}
             </div>
           )}

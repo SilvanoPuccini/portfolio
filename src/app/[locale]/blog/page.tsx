@@ -1,3 +1,4 @@
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import { getSiteContent } from "@/content/site";
@@ -208,6 +209,7 @@ export default async function BlogPage({
         <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
 
           {/* Newsletter — col-span-6 */}
+          <Reveal>
           <div className="surface-section relative flex flex-col justify-between overflow-hidden px-8 py-10 sm:px-10 sm:py-12 lg:col-span-6">
             <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-brand-secondary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-12 h-72 w-72 rounded-full bg-brand-primary/10 blur-3xl" />
@@ -223,11 +225,13 @@ export default async function BlogPage({
               <SubscribeForm />
             </div>
           </div>
+          </Reveal>
 
           {/* Columna derecha: LinkedIn + Instagram apilados */}
           <div className="flex flex-col gap-6 lg:col-span-6">
 
             {/* LinkedIn */}
+            <Reveal delay={STAGGER * 1}>
             <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-secondary/10 blur-3xl" />
 
@@ -251,8 +255,10 @@ export default async function BlogPage({
                 {pc.linkedinCta}
               </a>
             </div>
+            </Reveal>
 
             {/* Instagram */}
+            <Reveal delay={STAGGER * 2}>
             <div className="surface-section relative flex flex-1 flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -bottom-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
 
@@ -276,6 +282,7 @@ export default async function BlogPage({
                 {pc.instagramCta}
               </a>
             </div>
+            </Reveal>
 
           </div>{/* fin columna derecha */}
         </div>{/* fin grid */}

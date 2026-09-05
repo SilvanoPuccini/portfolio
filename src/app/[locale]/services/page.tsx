@@ -1,3 +1,4 @@
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -444,7 +445,7 @@ export default async function ServicesPage({
         <div className="site-container py-8 sm:py-10">
           <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
             {labels.metrics.map((metric, i) => (
-              <div key={i} className="flex flex-col items-start">
+              <Reveal key={i} delay={i * STAGGER} className="flex flex-col items-start">
                 <span
                   className="text-3xl font-semibold leading-none sm:text-4xl"
                   style={{
@@ -457,7 +458,7 @@ export default async function ServicesPage({
                 <span className="mt-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
                   {metric.label}
                 </span>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -503,9 +504,11 @@ export default async function ServicesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {labels.approach.steps.map((step) => (
-              <article
+            {labels.approach.steps.map((step, i) => (
+              <Reveal
                 key={step.label}
+                as="article"
+                delay={i * STAGGER}
                 className="surface-panel no-line-stack h-full border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-5 py-6 sm:px-6"
               >
                 <div className="border-b border-outline-ghost/10 pb-4">
@@ -521,7 +524,7 @@ export default async function ServicesPage({
                     {step.detail}
                   </p>
                 </div>
-              </article>
+              </Reveal>
             ))}
           </div>
         </div>

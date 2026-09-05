@@ -138,9 +138,9 @@ export default function HeroEditorial({
           {...(reduce
             ? {}
             : {
-                initial: { opacity: 0, scale: 0.97 },
-                animate: { opacity: 1, scale: 1 },
-                transition: { duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const },
+                initial: { opacity: 0, y: 16 },
+                animate: { opacity: 1, y: 0 },
+                transition: { duration: 0.5, delay: STAGGER * 2, ease: [0.22, 1, 0.36, 1] as const },
               })}
           className="relative order-2 mx-auto w-full max-w-[38rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-none"
           onMouseEnter={() => setHeld(true)}

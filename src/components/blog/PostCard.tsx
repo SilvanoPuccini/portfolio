@@ -1,3 +1,4 @@
+import Reveal from "@/components/site/Reveal";
 import Link from 'next/link';
 
 interface PostCardProps {
@@ -23,6 +24,7 @@ export function PostCard({ slug, title, date, category, excerpt, readingTime, lo
   const categoryColor = categoryColors[category] || 'bg-blue-500/10 text-blue-400';
 
   return (
+    <Reveal>
     <article className="surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 px-5 py-6 sm:px-6 sm:py-7 bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]">
       <div className="border-b border-outline-ghost/10 pb-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -62,5 +64,6 @@ export function PostCard({ slug, title, date, category, excerpt, readingTime, lo
         </div>
       </div>
     </article>
+    </Reveal>
   );
 }

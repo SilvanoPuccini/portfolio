@@ -1,3 +1,4 @@
+import Reveal, { STAGGER } from "@/components/site/Reveal";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -402,12 +403,16 @@ export default async function AboutPage({
             <h2 className="section-title-sm">{labels.trajectory.eyebrow}</h2>
 
             <div className="mt-8 space-y-5">
-              {trajectoryItems.map((item) => (
-                <div key={`${item.label}-${item.title}`} className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface)/0.28)] px-4 py-4">
+              {trajectoryItems.map((item, index) => (
+                <Reveal
+                  key={`${item.label}-${item.title}`}
+                  delay={index * STAGGER}
+                  className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface)/0.28)] px-4 py-4"
+                >
                   <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.label}</p>
                   <p className="mt-2 text-sm font-medium leading-6 text-text-primary sm:text-base">{item.title}</p>
                   <p className="mt-2 text-sm leading-6 text-text-secondary">{item.detail}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </aside>
@@ -422,15 +427,17 @@ export default async function AboutPage({
 
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
             {experienceCards.map((item, index) => (
-              <article
+              <Reveal
                 key={`${item.title}-${item.context}`}
+                as="article"
+                delay={index * STAGGER}
                 className={`rounded-[var(--radius-soft)] px-5 py-6 sm:px-6 ${index === 1 ? "bg-[rgb(var(--surface-elevated)/0.68)]" : "bg-[rgb(var(--background)/0.12)]"}`}
               >
                 <p className="technical-label">{labels.experienceSection.eyebrow}</p>
                 <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.context}</p>
                 <h3 className="mt-3 text-xl font-semibold text-text-primary">{item.title}</h3>
                 <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">{item.detail}</p>
-              </article>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -444,8 +451,10 @@ export default async function AboutPage({
 
           <div className="mt-8 grid gap-5 xl:grid-cols-2">
             {content.about.education.map((item, index) => (
-              <article
+              <Reveal
                 key={`${item.title}-${item.institution}`}
+                as="article"
+                delay={index * STAGGER}
                 className={`rounded-[var(--radius-soft)] px-5 py-6 sm:px-6 ${index === 0 ? "bg-[rgb(var(--surface-elevated)/0.62)]" : "bg-[rgb(var(--background)/0.12)]"}`}
               >
                 <p className="technical-label">{labels.educationSection.eyebrow}</p>
@@ -453,7 +462,7 @@ export default async function AboutPage({
                 <h3 className="mt-3 text-xl font-semibold text-text-primary">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-text-tertiary">{item.period}</p>
                 <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">{item.detail}</p>
-              </article>
+              </Reveal>
             ))}
           </div>
         </div>
