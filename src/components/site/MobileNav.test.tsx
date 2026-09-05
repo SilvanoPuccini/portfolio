@@ -22,9 +22,11 @@ describe("MobileNav", () => {
 
     expect(links).toHaveLength(6);
     expect(nav).toHaveClass("grid");
-    expect(nav).toHaveClass("grid-cols-6");
+    // Dos filas de tres en telefono, una sola fila desde sm.
+    expect(nav).toHaveClass("grid-cols-3");
+    expect(nav).toHaveClass("sm:grid-cols-6");
     expect(nav).not.toHaveClass("flex-col");
-    expect(links[0]).toHaveTextContent("Home");
+    expect(links[0]).toHaveTextContent("Inicio");
     expect(links[3]).toHaveTextContent("Servicio");
 
     for (const link of links) {

@@ -31,10 +31,18 @@ const SHOWCASE = [
 ];
 
 /** Posición de cada captura en la pila, según su distancia al frente. */
-const SLOTS = [
+/** Abanico en arco: la primera baja, la del medio sube, la tercera vuelve a bajar. */
+const SLOTS_ANCHO = [
   { x: "0%", y: "14%", rotate: -3, scale: 1, opacity: 1, zIndex: 30 },
   { x: "31%", y: "-9%", rotate: 3, scale: 0.88, opacity: 0.8, zIndex: 20 },
   { x: "55%", y: "9%", rotate: 9, scale: 0.78, opacity: 0.52, zIndex: 10 },
+];
+
+/** Pila casi plana: en pantalla angosta la captura vale mas que el efecto. */
+const SLOTS_ANGOSTO = [
+  { x: "0%", y: "0%", rotate: 0, scale: 1, opacity: 1, zIndex: 30 },
+  { x: "7%", y: "-5%", rotate: 2, scale: 0.95, opacity: 0.65, zIndex: 20 },
+  { x: "13%", y: "-10%", rotate: 4, scale: 0.9, opacity: 0.4, zIndex: 10 },
 ];
 
 const proof = {
@@ -51,6 +59,15 @@ export default function HeroEditorial({
 }) {
   const reduce = useReducedMotion();
   const [front, setFront] = useState(0);
+  const [esAncho, setEsAncho] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const leer = () => setEsAncho(mq.matches);
+    leer();
+    mq.addEventListener("change", leer);
+    return () => mq.removeEventListener("change", leer);
+  }, []);
   // La rotación se congela mientras el puntero está encima o el foco está
   // dentro, para que nadie pierda la tarjeta que estaba mirando.
   const [held, setHeld] = useState(false);
@@ -95,54 +112,37 @@ export default function HeroEditorial({
         }}
       />
 
-      <div className="site-container relative grid gap-12 pb-16 pt-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center lg:gap-12 lg:pb-20 lg:pt-8">
+      <div className="site-container relative grid gap-8 pb-12 pt-4 sm:gap-12 sm:pb-16 sm:pt-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto] lg:items-center lg:gap-x-12 lg:gap-y-6 lg:pb-20 lg:pt-8">
         {/* ---------------- Columna de mensaje ---------------- */}
-        <div>
+        <div className="order-1 lg:col-start-1 lg:row-start-1">
           {/* La promesa ocupa el lugar del nombre: quien llega desde LinkedIn ya sabe quién sos. */}
           <motion.h1
             {...rise(0.08)}
-            className="text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]"
+            className="text-balance text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]"
           >
             {content.home.subtitle}
           </motion.h1>
 
           <motion.p
             {...rise(0.16)}
-            className="mt-6 section-lede"
+            className="mt-4 max-w-xl text-base leading-7 text-text-secondary sm:mt-6 sm:text-lg sm:leading-8"
           >
             {content.home.intro}
           </motion.p>
 
-          <motion.div {...rise(0.24)} className="mt-9 flex flex-wrap gap-3">
+          <motion.div {...rise(0.24)} className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-9">
             {primary ? (
-              <Link href={primary.href} className="button-primary sm:min-w-[13.5rem]">
+              <Link href={primary.href} className="button-primary flex-1 justify-center text-center sm:flex-none sm:min-w-[13.5rem]">
                 {primary.label}
               </Link>
             ) : null}
             {secondary ? (
-              <Link href={secondary.href} className="button-secondary sm:min-w-[13.5rem]">
+              <Link href={secondary.href} className="button-secondary flex-1 justify-center text-center sm:flex-none sm:min-w-[13.5rem]">
                 {secondary.label}
               </Link>
             ) : null}
           </motion.div>
 
-          {/* Precio en la primera pantalla: filtra y da confianza antes del scroll. */}
-          <motion.ul
-            {...rise(0.32)}
-            className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-outline-ghost/10 pt-6"
-          >
-            {points.map((point) => (
-              <li
-                key={point}
-                className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
-              >
-                <span aria-hidden="true" className="mr-2 text-brand-primary">
-                  ·
-                </span>
-                {point}
-              </li>
-            ))}
-          </motion.ul>
         </div>
 
         {/* ---------------- Pila de proyectos, rotable ---------------- */}
@@ -154,17 +154,17 @@ export default function HeroEditorial({
                 animate: { opacity: 1, scale: 1 },
                 transition: { duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const },
               })}
-          className="relative mx-auto w-full max-w-[38rem] lg:max-w-none"
+          className="relative order-2 mx-auto w-full max-w-[38rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-none"
           onMouseEnter={() => setHeld(true)}
           onMouseLeave={() => setHeld(false)}
           onFocusCapture={() => setHeld(true)}
           onBlurCapture={() => setHeld(false)}
         >
-          <div className="relative aspect-[4/3.5]">
+          <div className="relative aspect-[4/2.9] lg:aspect-[4/3.5]">
             {SHOWCASE.map((shot, i) => {
               // Distancia al frente: define en qué ranura de la pila cae.
               const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
-              const slot = SLOTS[depth];
+              const slot = (esAncho ? SLOTS_ANCHO : SLOTS_ANGOSTO)[depth];
               const isFront = depth === 0;
 
               return (
@@ -182,7 +182,7 @@ export default function HeroEditorial({
                   }}
                   aria-label={`${locale === "en" ? "Go to" : "Ir a"} ${shot.name}`}
                   aria-current={isFront || undefined}
-                  className={`absolute bottom-0 left-0 w-[72%] origin-bottom-left overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
+                  className={`absolute bottom-0 left-0 w-[88%] origin-bottom-left lg:w-[72%] overflow-hidden rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-surface-dim text-left shadow-[0_30px_70px_-26px_rgba(0,0,0,0.9)] ${
                     "cursor-pointer"
                   }`}
                   animate={reduce ? undefined : slot}
@@ -228,6 +228,26 @@ export default function HeroEditorial({
             </div>
           </div>
         </motion.div>
+
+        {/* Precio en la primera pantalla: filtra y da confianza antes del scroll.
+            En telefono va DESPUES de las capturas: mostrar el trabajo pesa mas
+            que la linea de precios, que igual se ve al bajar. */}
+        <motion.ul
+            {...rise(0.32)}
+            className="order-3 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-outline-ghost/10 pt-5 lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-0 lg:gap-x-6 lg:pt-6"
+          >
+            {points.map((point) => (
+              <li
+                key={point}
+                className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary"
+              >
+                <span aria-hidden="true" className="mr-2 text-brand-primary">
+                  ·
+                </span>
+                {point}
+              </li>
+            ))}
+          </motion.ul>
       </div>
     </section>
   );

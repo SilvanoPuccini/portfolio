@@ -17,7 +17,7 @@ const copy = {
 
 const compactLabels = {
   es: {
-    home: "Home",
+    home: "Inicio",
     about: "Sobre mí",
     projects: "Proyectos",
     services: "Servicios",
@@ -47,7 +47,7 @@ export default function MobileNav({ locale, open }: { locale: Locale; open: bool
   return (
     <nav
       id="mobile-nav-row"
-      className="grid grid-cols-6 items-center gap-1 border-t border-outline-ghost/10 pt-3"
+      className="grid grid-cols-3 items-center gap-x-1 gap-y-1.5 border-t border-outline-ghost/10 pt-3 sm:grid-cols-6"
       aria-label={labels.navigation}
     >
       {content.navigation.map((item) => {
