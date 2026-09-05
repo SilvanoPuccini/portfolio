@@ -177,8 +177,8 @@ const copy = {
       ],
     },
     closing: {
-      title: "Elegí el servicio que necesitás",
-      description: "Completá el formulario y agendamos una llamada de diagnóstico gratuita. Sin compromiso.",
+      title: "Contame el problema y te digo qué te conviene",
+      description: "Elegí por dónde empezar. Agendamos una llamada de diagnóstico gratuita: te digo si puedo resolverlo, cuánto sale y en cuánto tiempo. Si no es para mí, te lo digo también.",
     },
   },
   en: {
@@ -346,7 +346,7 @@ const copy = {
     },
     closing:
 {
-      title: "Choose the service you need",
+      title: "Tell me the problem and I'll tell you what fits",
       description: "Fill out the form and we'll schedule a free diagnostic call. No commitment.",
     },
   },
@@ -461,6 +461,7 @@ export default async function ServicesPage({
       {/* ── SERVICES (vertical stack with form flow) ── */}
       <div id="servicios" />
       <SectionShell
+        id="precios"
         eyebrow={labels.services.eyebrow}
         title={labels.services.title}
         sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.26))]"
@@ -535,15 +536,25 @@ export default async function ServicesPage({
               {labels.closing.description}
             </p>
 
-            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
+            <div className="mx-auto mt-10 grid max-w-3xl items-stretch gap-3 sm:grid-cols-2">
               {labels.services.cards.map((card) => (
                 <a
                   key={card.slug}
                   href={`#service-${card.slug}`}
-                  className="button-primary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+                  className="group flex h-full items-center justify-between gap-4 rounded-[var(--radius-soft)] border border-outline-ghost/15 bg-[rgb(var(--surface)/0.55)] px-5 py-4 text-left transition-colors hover:border-brand-primary/40 hover:bg-[rgb(var(--surface-elevated)/0.75)]"
                 >
-                  <span>{card.cta}</span>
-                  <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-base font-semibold leading-snug text-text-primary">
+                      {card.title}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary">
+                      {card.price} · {card.timeline}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    className="h-4 w-4 shrink-0 text-text-tertiary transition-colors group-hover:text-brand-primary"
+                    aria-hidden="true"
+                  />
                 </a>
               ))}
             </div>

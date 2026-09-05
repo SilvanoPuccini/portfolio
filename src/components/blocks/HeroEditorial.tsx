@@ -33,9 +33,9 @@ const SHOWCASE = [
 /** Posición de cada captura en la pila, según su distancia al frente. */
 /** Abanico en arco: la primera baja, la del medio sube, la tercera vuelve a bajar. */
 const SLOTS_ANCHO = [
-  { x: "0%", y: "14%", rotate: -3, scale: 1, opacity: 1, zIndex: 30 },
-  { x: "31%", y: "-9%", rotate: 3, scale: 0.88, opacity: 0.8, zIndex: 20 },
-  { x: "55%", y: "9%", rotate: 9, scale: 0.78, opacity: 0.52, zIndex: 10 },
+  { x: "6%", y: "0%", rotate: 0, scale: 1, opacity: 1, zIndex: 30 },
+  { x: "35%", y: "-13%", rotate: 4, scale: 0.87, opacity: 0.78, zIndex: 20 },
+  { x: "58%", y: "3%", rotate: 10, scale: 0.77, opacity: 0.5, zIndex: 10 },
 ];
 
 /** Pila casi plana: en pantalla angosta la captura vale mas que el efecto. */
@@ -76,7 +76,7 @@ export default function HeroEditorial({
   /** Selección manual: fija la tarjeta y pausa el giro un rato. */
   const pick = useCallback((i: number) => {
     setFront(i);
-    resumeAt.current = Date.now() + 12000;
+    resumeAt.current = Date.now() + 9000;
   }, []);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function HeroEditorial({
     const id = window.setInterval(() => {
       if (Date.now() < resumeAt.current) return;
       setFront((f) => (f + 1) % SHOWCASE.length);
-    }, 5200);
+    }, 3600);
     return () => window.clearInterval(id);
   }, [reduce, held]);
   const points = locale === "en" ? proof.en : proof.es;
@@ -112,7 +112,7 @@ export default function HeroEditorial({
         }}
       />
 
-      <div className="site-container relative grid gap-8 pb-12 pt-4 sm:gap-12 sm:pb-16 sm:pt-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto] lg:items-center lg:gap-x-12 lg:gap-y-6 lg:pb-20 lg:pt-8">
+      <div className="site-container relative grid gap-8 pb-12 pt-4 sm:gap-12 sm:pb-16 sm:pt-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-10 lg:gap-y-6 lg:pb-20 lg:pt-8">
         {/* ---------------- Columna de mensaje ---------------- */}
         <div className="order-1 lg:col-start-1 lg:row-start-1">
           {/* La promesa ocupa el lugar del nombre: quien llega desde LinkedIn ya sabe quién sos. */}
@@ -160,7 +160,7 @@ export default function HeroEditorial({
           onFocusCapture={() => setHeld(true)}
           onBlurCapture={() => setHeld(false)}
         >
-          <div className="relative aspect-[4/2.9] lg:aspect-[4/3.5]">
+          <div className="relative aspect-[4/2.9] lg:aspect-[4/2.75]">
             {SHOWCASE.map((shot, i) => {
               // Distancia al frente: define en qué ranura de la pila cae.
               const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
@@ -211,7 +211,7 @@ export default function HeroEditorial({
 
           {/* Control del carrusel. Sin texto ni nombres: el hero muestra, la
               sección de proyectos explica. */}
-          <div className="mt-6 flex items-center justify-end">
+          <div className="relative z-40 mt-8 flex items-center justify-end">
             <div className="flex items-center gap-2">
               {SHOWCASE.map((shot, i) => (
                 <button

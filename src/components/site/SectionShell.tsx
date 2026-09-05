@@ -24,7 +24,7 @@ export default function SectionShell({
   id?: string;
 }) {
   return (
-    <section id={id} className={sectionClassName}>
+    <section id={id} className={cn(id && "scroll-mt-28", sectionClassName)}>
       <div className={cn("site-container pb-10 sm:pb-12 lg:pb-14", containerClassName)}>
         <div
           className={cn(

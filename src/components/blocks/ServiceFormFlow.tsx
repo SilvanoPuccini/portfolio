@@ -218,13 +218,24 @@ export default function ServiceFormFlow({
   // la linea del resto del sitio. La excepcion es llegar con un hash que pide
   // el formulario (#intake o #service-...): ahi el salto es lo que el visitante
   // pidio al apretar el boton.
-  const hasSelected = useRef(false);
+  // Solo se desplaza cuando el servicio activo CAMBIA de verdad. Guardar un
+  // simple "ya monte" no alcanzaba: el efecto se vuelve a disparar cuando
+  // isTransitioning pasa a false, y en una navegacion de cliente hacia
+  // /services#precios eso robaba el salto del ancla y se pasaba 272 px.
+  const servicioPrevio = useRef<ServiceSlug | null | undefined>(undefined);
   useEffect(() => {
-    if (!hasSelected.current) {
-      hasSelected.current = true;
-      const pedidoExplicito = /^#(intake|service-)/.test(window.location.hash);
-      if (!pedidoExplicito) return;
+    const previo = servicioPrevio.current;
+    const primeraVez = previo === undefined;
+    servicioPrevio.current = activeService ?? null;
+
+    if (primeraVez) {
+      // Al entrar directo con un hash que pide el formulario, el salto es lo
+      // que el visitante pidio; con cualquier otro hash, no.
+      if (!/^#(intake|service-)/.test(window.location.hash)) return;
+    } else if (previo === (activeService ?? null)) {
+      return;
     }
+
     if (!isTransitioning && containerRef.current) {
       containerRef.current.scrollIntoView?.({ behavior: "smooth", block: "start" });
     }

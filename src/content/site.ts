@@ -50,11 +50,11 @@ const home: HomeContent = {
   },
   ctas: {
     es: [
-      { label: "Ver servicios y precios", href: "/services" },
+      { label: "Ver servicios y precios", href: "/services#precios" },
       { label: "Ver proyectos", href: "/projects" },
     ],
     en: [
-      { label: "See services and pricing", href: "/services" },
+      { label: "See services and pricing", href: "/services#precios" },
       { label: "View projects", href: "/projects" },
     ],
   },
@@ -388,7 +388,7 @@ const contact: ContactContent = {
   },
   primaryCtas: {
     es: [
-      { label: "Hablemos de tu proyecto", href: "/services#intake" },
+      { label: "Hablemos de tu proyecto", href: "/services#precios" },
       { label: "LinkedIn", href: "https://www.linkedin.com/in/silvano-puccini/" },
     ],
     en: [
