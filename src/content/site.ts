@@ -50,11 +50,11 @@ const home: HomeContent = {
   },
   ctas: {
     es: [
-      { label: "Ver servicios y precios", href: "/services#precios" },
+      { label: "Ver servicios y precios", href: "/services" },
       { label: "Ver proyectos", href: "/projects" },
     ],
     en: [
-      { label: "See services and pricing", href: "/services#precios" },
+      { label: "See services and pricing", href: "/services" },
       { label: "View projects", href: "/projects" },
     ],
   },

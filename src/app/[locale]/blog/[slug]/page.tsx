@@ -10,7 +10,6 @@ import { resolveLocale, type Locale } from "@/lib/i18n";
 import { RadarBadge } from "@/components/blog/RadarBadge";
 import { ComingSoonPost } from "@/components/blog/ComingSoonPost";
 import fotoColorImage from "@/assets/images/foto_perfil_sinfondo.png";
-import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { generatePageMetadata } from "@/lib/metadata";
 import { PostEngagement } from "@/components/blog/PostEngagement";
 import { getVisibilityIndex, isPostVisible } from "@/lib/post-publications/visibility";
@@ -137,7 +136,6 @@ export default async function BlogPostPage({
           publisher: { "@type": "Person", name: "Silvano Puccini" },
         }}
       />
-      <ScrollToTop />
       {isPreview && (
         <div className="mx-auto mb-10 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-sm border border-amber-500/30 bg-amber-500/10 px-5 py-3">
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-amber-400">

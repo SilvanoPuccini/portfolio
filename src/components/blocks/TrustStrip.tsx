@@ -26,7 +26,7 @@ const copy = {
       { value: "24 h", label: "para responder tu consulta" },
     ],
     cta: "Ver servicios y precios",
-    href: "/es/services",
+    href: "/es/services#precios",
   },
   en: {
     eyebrow: "Evidence",
@@ -39,7 +39,7 @@ const copy = {
       { value: "24 h", label: "to answer your enquiry" },
     ],
     cta: "See services and pricing",
-    href: "/en/services",
+    href: "/en/services#precios",
   },
 } as const;
 

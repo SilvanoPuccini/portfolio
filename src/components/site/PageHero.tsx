@@ -46,13 +46,13 @@ export default function PageHero({
 
       <div
         className={cn(
-          "relative mx-auto w-full max-w-[92rem] px-6 pb-14 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:px-12 lg:pb-20 lg:pt-16 xl:pt-[4.5rem]",
+          "relative mx-auto w-full max-w-[92rem] px-6 pb-12 pt-6 sm:px-8 sm:pb-14 sm:pt-8 lg:px-12 lg:pb-16 lg:pt-2 xl:pt-2",
           containerClassName,
         )}
       >
         <div
           className={cn(
-            "grid gap-10 lg:min-h-[30rem] lg:items-start xl:min-h-[32rem] xl:gap-16",
+            "grid gap-10 lg:min-h-[26rem] lg:items-start xl:min-h-[28rem] xl:gap-16",
             aside ? "lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.62fr)]" : "max-w-5xl xl:max-w-6xl",
             layoutClassName,
           )}

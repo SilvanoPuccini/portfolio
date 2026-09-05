@@ -1,3 +1,4 @@
+import { ScrollToTop } from "@/components/site/ScrollToTop";
 import type { PropsWithChildren } from "react";
 import Footer from "@/components/site/Footer";
 import Header from "@/components/site/Header";
@@ -13,6 +14,7 @@ export default function SiteShell({
         {locale === "es" ? "Saltar al contenido principal" : "Skip to main content"}
       </a>
       <Header locale={locale} />
+      <ScrollToTop />
       <main id="main-content" tabIndex={-1} className="pt-[10.75rem] sm:pt-[7.5rem]">
         {children}
       </main>

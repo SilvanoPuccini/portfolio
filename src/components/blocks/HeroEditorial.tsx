@@ -101,18 +101,12 @@ export default function HeroEditorial({
         };
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Luz ambiente: da profundidad sin competir con el contenido */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[68rem] -translate-x-1/2 rounded-full opacity-50 blur-[120px]"
-        style={{
-          background:
-            "radial-gradient(closest-side, rgb(var(--brand-primary) / 0.18), transparent 70%)",
-        }}
-      />
+    <section className="relative -mt-28 overflow-hidden bg-[linear-gradient(180deg,rgb(var(--surface-dim)/0.72),rgb(var(--background)/0.92))] pt-28 sm:-mt-[7.5rem] sm:pt-[7.5rem]">
+      {/* El mismo resplandor que usan las paginas internas, para que el primer
+          plano del home no se lea con otra paleta. */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgb(var(--brand-primary)/0.16),transparent_26%),radial-gradient(circle_at_82%_24%,rgb(var(--brand-secondary)/0.14),transparent_28%),linear-gradient(180deg,rgb(var(--surface-contrast)/0.18),transparent_34%)]" />
 
-      <div className="site-container relative grid gap-8 pb-12 pt-4 sm:gap-12 sm:pb-16 sm:pt-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-10 lg:gap-y-6 lg:pb-20 lg:pt-8">
+      <div className="site-container relative grid gap-8 pb-12 pt-4 sm:gap-12 sm:pb-16 sm:pt-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-10 lg:gap-y-6 lg:pb-20 lg:pt-14">
         {/* ---------------- Columna de mensaje ---------------- */}
         <div className="order-1 lg:col-start-1 lg:row-start-1">
           {/* La promesa ocupa el lugar del nombre: quien llega desde LinkedIn ya sabe quién sos. */}
@@ -160,7 +154,7 @@ export default function HeroEditorial({
           onFocusCapture={() => setHeld(true)}
           onBlurCapture={() => setHeld(false)}
         >
-          <div className="relative aspect-[4/2.9] lg:aspect-[4/2.75]">
+          <div className="relative aspect-[4/2.9] lg:aspect-[4/2.6]">
             {SHOWCASE.map((shot, i) => {
               // Distancia al frente: define en qué ranura de la pila cae.
               const depth = (i - front + SHOWCASE.length) % SHOWCASE.length;
