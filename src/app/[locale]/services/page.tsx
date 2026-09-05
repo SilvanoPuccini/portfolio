@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
@@ -36,7 +37,7 @@ const copy = {
       pricingNote:
         "Los precios son de referencia y marcan el punto de partida de cada servicio. El presupuesto final depende del alcance que definamos juntos en la llamada, y queda por escrito antes de empezar.",
       eyebrow: "Cobertura real",
-      title: "Tres servicios. Cada uno con proyectos que lo respaldan.",
+      title: "Cuatro servicios. Cada uno con proyectos que lo respaldan.",
       cards: [
         {
           number: "01",
@@ -178,7 +179,9 @@ const copy = {
     },
     closing: {
       title: "Contame el problema y te digo qué te conviene",
-      description: "Elegí por dónde empezar. Agendamos una llamada de diagnóstico gratuita: te digo si puedo resolverlo, cuánto sale y en cuánto tiempo. Si no es para mí, te lo digo también.",
+      description: "Elegí por dónde empezar, o escribime directo si todavía no sabés cuál te sirve.",
+      primaryCta: "Agendá tu llamada",
+      reassurance: "30 minutos · Sin costo · Sin compromiso",
     },
   },
   en: {
@@ -204,7 +207,7 @@ const copy = {
       pricingNote:
         "Prices are indicative and mark the starting point for each service. The final quote depends on the scope we define together on the call, and is put in writing before any work begins.",
       eyebrow: "Real coverage",
-      title: "Three services. Each backed by real projects.",
+      title: "Four services. Each backed by real projects.",
       cards: [
         {
           number: "01",
@@ -347,7 +350,9 @@ const copy = {
     closing:
 {
       title: "Tell me the problem and I'll tell you what fits",
-      description: "Fill out the form and we'll schedule a free diagnostic call. No commitment.",
+      description: "Pick where to start, or write to me directly if you're not sure which one fits.",
+      primaryCta: "Book your call",
+      reassurance: "30 minutes · Free · No commitment",
     },
   },
 } as const;
@@ -464,7 +469,7 @@ export default async function ServicesPage({
         id="precios"
         eyebrow={labels.services.eyebrow}
         title={labels.services.title}
-        sectionClassName="bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.26))]"
+        sectionClassName="scroll-mt-16 bg-[linear-gradient(180deg,rgb(var(--surface)/0.16),rgb(var(--surface-dim)/0.26))]"
         containerClassName="py-10 sm:py-12 lg:py-16"
         surface="plain"
       >
@@ -557,6 +562,19 @@ export default async function ServicesPage({
                   />
                 </a>
               ))}
+            </div>
+
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <Link
+                href={`/${currentLocale}/services/agendar`}
+                className="button-primary inline-flex items-center justify-center gap-2"
+              >
+                <span>{labels.closing.primaryCta}</span>
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+              </Link>
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary">
+                {labels.closing.reassurance}
+              </p>
             </div>
           </div>
         </div>
