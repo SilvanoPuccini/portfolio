@@ -42,12 +42,12 @@ export default function SectionShell({
                 </Reveal>
               ) : null}
               {title ? (
-                <Reveal delay={STAGGER} className="mt-4">
+                <Reveal className="mt-4">
                   <h2 className="section-title">{title}</h2>
                 </Reveal>
               ) : null}
               {description ? (
-                <Reveal delay={STAGGER * 2} className="mt-5 section-lede">
+                <Reveal className="mt-5 section-lede">
                   {description}
                 </Reveal>
               ) : null}

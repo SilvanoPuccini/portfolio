@@ -445,7 +445,7 @@ export default async function ServicesPage({
         <div className="site-container py-8 sm:py-10">
           <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
             {labels.metrics.map((metric, i) => (
-              <Reveal key={i} delay={i * STAGGER} className="flex flex-col items-start">
+              <Reveal key={i} className="flex flex-col items-start">
                 <span
                   className="text-3xl font-semibold leading-none sm:text-4xl"
                   style={{
@@ -508,7 +508,6 @@ export default async function ServicesPage({
               <Reveal
                 key={step.label}
                 as="article"
-                delay={i * STAGGER}
                 className="surface-panel no-line-stack h-full border border-outline-ghost/10 bg-[rgb(var(--background)/0.1)] px-5 py-6 sm:px-6"
               >
                 <div className="border-b border-outline-ghost/10 pb-4">

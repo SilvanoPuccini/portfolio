@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal, { RevealGroup, STAGGER } from "@/components/site/Reveal";
 import type { getSiteContent } from "@/content/site";
 
 type SiteContentView = ReturnType<typeof getSiteContent>;
@@ -101,9 +101,9 @@ export default function HeroEditorial({
 
       <div className="site-container relative grid gap-8 pb-12 pt-4 sm:gap-12 sm:pb-16 sm:pt-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-10 lg:gap-y-6 lg:pb-20 lg:pt-2">
         {/* ---------------- Columna de mensaje ---------------- */}
-        <div className="order-1 lg:col-start-1 lg:row-start-1">
+        <RevealGroup className="order-1 lg:col-start-1 lg:row-start-1">
           {/* La promesa ocupa el lugar del nombre: quien llega desde LinkedIn ya sabe quién sos. */}
-          <Reveal mode="enter" delay={STAGGER}>
+          <Reveal mode="enter">
             <h1 className="text-balance text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-text-primary sm:text-5xl lg:text-[3.4rem]">
               {content.home.subtitle}
             </h1>
@@ -111,14 +111,13 @@ export default function HeroEditorial({
 
           <Reveal
             mode="enter"
-            delay={STAGGER * 2}
             as="p"
             className="mt-4 max-w-xl text-base leading-7 text-text-secondary sm:mt-5 sm:text-lg sm:leading-8"
           >
             {content.home.intro}
           </Reveal>
 
-          <Reveal mode="enter" delay={STAGGER * 3} className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-6">
+          <Reveal mode="enter" className="mt-6 flex flex-nowrap gap-2.5 sm:flex-wrap sm:gap-3 sm:mt-6">
             {primary ? (
               <Link href={primary.href} className="button-primary flex-1 justify-center text-center sm:flex-none sm:min-w-[13.5rem]">
                 {primary.label}
@@ -131,7 +130,7 @@ export default function HeroEditorial({
             ) : null}
           </Reveal>
 
-        </div>
+        </RevealGroup>
 
         {/* ---------------- Pila de proyectos, rotable ---------------- */}
         <motion.div
@@ -222,7 +221,6 @@ export default function HeroEditorial({
             que la linea de precios, que igual se ve al bajar. */}
         <Reveal
             mode="enter"
-            delay={STAGGER * 4}
             as="ul"
             className="order-3 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-outline-ghost/10 pt-5 lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-0 lg:gap-x-6 lg:pt-4"
           >

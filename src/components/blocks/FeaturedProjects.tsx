@@ -64,10 +64,10 @@ export default function FeaturedProjects({
             {labels.eyebrow}
           </Reveal>
           <div className="space-y-4">
-            <Reveal delay={STAGGER}>
+            <Reveal>
               <h2 className="section-title">{labels.title}</h2>
             </Reveal>
-            <Reveal delay={STAGGER * 2}>
+            <Reveal>
               <p className="max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
                 {labels.description}
               </p>

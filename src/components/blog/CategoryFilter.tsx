@@ -163,7 +163,6 @@ export function CategoryFilter({ posts, featuredSlug, currentLocale, eyebrow }: 
                 <Reveal
                   key={post.slug}
                   as="article"
-                  delay={i * STAGGER}
                   className="surface-panel no-line-stack flex h-full flex-col overflow-hidden border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface)/0.72),rgb(var(--surface-dim)/0.88))]"
                 >
                   <Link

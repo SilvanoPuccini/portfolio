@@ -231,7 +231,7 @@ export default async function BlogPage({
           <div className="flex flex-col gap-6 lg:col-span-6">
 
             {/* LinkedIn */}
-            <Reveal delay={STAGGER * 1} className="flex flex-1">
+            <Reveal className="flex flex-1">
             <div className="surface-section relative flex w-full flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-secondary/10 blur-3xl" />
 
@@ -258,7 +258,7 @@ export default async function BlogPage({
             </Reveal>
 
             {/* Instagram */}
-            <Reveal delay={STAGGER * 2} className="flex flex-1">
+            <Reveal className="flex flex-1">
             <div className="surface-section relative flex w-full flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
               <div className="pointer-events-none absolute -right-12 -bottom-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
 

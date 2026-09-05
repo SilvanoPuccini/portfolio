@@ -72,7 +72,6 @@ export default function TrustStrip({ locale }: { locale: string }) {
           {t.stats.map((stat, i) => (
             <Reveal
               key={stat.label}
-              delay={i * STAGGER}
               className="border-t border-outline-ghost/15 pt-5"
             >
               <dt className="sr-only">{stat.label}</dt>

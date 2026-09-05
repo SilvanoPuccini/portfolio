@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import Reveal, { STAGGER } from "@/components/site/Reveal";
+import Reveal, { RevealGroup } from "@/components/site/Reveal";
 
 export default function PageHero({
   eyebrow,
@@ -59,13 +59,13 @@ export default function PageHero({
           )}
         >
           <div className={cn("max-w-5xl xl:max-w-6xl", contentClassName)}>
-            <div className={cn("space-y-5 sm:space-y-6", bodyClassName)}>
+            <RevealGroup className={cn("space-y-5 sm:space-y-6", bodyClassName)}>
               {eyebrow ? (
                 <Reveal mode="enter" as="p" className="eyebrow">
                   {eyebrow}
                 </Reveal>
               ) : null}
-              <Reveal mode="enter" delay={STAGGER}>
+              <Reveal mode="enter">
                 <h1
                   className={cn(
                     "font-display text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-text-primary text-balance sm:text-6xl lg:text-[4.5rem] xl:text-[5rem]",
@@ -79,7 +79,6 @@ export default function PageHero({
               {subtitle ? (
                 <Reveal
                   mode="enter"
-                  delay={STAGGER * 2}
                   className={cn(
                     "max-w-4xl text-2xl font-medium leading-[1.22] text-text-primary text-balance sm:text-3xl lg:text-[2.4rem]",
                     subtitleClassName,
@@ -92,7 +91,6 @@ export default function PageHero({
               {description ? (
                 <Reveal
                   mode="enter"
-                  delay={STAGGER * 3}
                   className={cn(
                     "max-w-4xl text-lg leading-8 text-text-secondary sm:text-xl sm:leading-9",
                     descriptionClassName,
@@ -101,17 +99,17 @@ export default function PageHero({
                   {description}
                 </Reveal>
               ) : null}
-            </div>
 
             {actions ? (
-              <Reveal mode="enter" delay={STAGGER * 4} className="mt-8 flex flex-col gap-4 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
+              <Reveal mode="enter" className="mt-8 flex flex-col gap-4 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
                 {actions}
               </Reveal>
             ) : null}
+            </RevealGroup>
           </div>
 
           {aside ? (
-            <Reveal mode="enter" delay={STAGGER * 2} as="section" className={cn("relative self-start", asideClassName)}>
+            <Reveal mode="enter" as="section" className={cn("relative self-start", asideClassName)}>
               {aside}
             </Reveal>
           ) : null}

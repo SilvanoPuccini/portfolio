@@ -406,7 +406,6 @@ export default async function AboutPage({
               {trajectoryItems.map((item, index) => (
                 <Reveal
                   key={`${item.label}-${item.title}`}
-                  delay={index * STAGGER}
                   className="rounded-[var(--radius-soft)] bg-[rgb(var(--surface)/0.28)] px-4 py-4"
                 >
                   <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">{item.label}</p>
@@ -430,7 +429,6 @@ export default async function AboutPage({
               <Reveal
                 key={`${item.title}-${item.context}`}
                 as="article"
-                delay={index * STAGGER}
                 className={`rounded-[var(--radius-soft)] px-5 py-6 sm:px-6 ${index === 1 ? "bg-[rgb(var(--surface-elevated)/0.68)]" : "bg-[rgb(var(--background)/0.12)]"}`}
               >
                 <p className="technical-label">{labels.experienceSection.eyebrow}</p>
@@ -454,7 +452,6 @@ export default async function AboutPage({
               <Reveal
                 key={`${item.title}-${item.institution}`}
                 as="article"
-                delay={index * STAGGER}
                 className={`rounded-[var(--radius-soft)] px-5 py-6 sm:px-6 ${index === 0 ? "bg-[rgb(var(--surface-elevated)/0.62)]" : "bg-[rgb(var(--background)/0.12)]"}`}
               >
                 <p className="technical-label">{labels.educationSection.eyebrow}</p>

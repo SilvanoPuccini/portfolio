@@ -1,20 +1,31 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
+
+/**
+ * Marca de "estoy dentro de una secuencia".
+ *
+ * Framer solo orquesta a un hijo si el hijo NO declara su propio `animate`:
+ * en cuanto lo declara se maneja solo y el staggerChildren del padre deja de
+ * aplicar. Por eso el hijo tiene que saber si esta dentro de un grupo.
+ */
+const EnGrupo = createContext(false);
 
 /**
  * Sistema de motion del sitio.
  *
  * Una sola curva, una sola distancia, una sola duración: lo que cambia es
- * CUÁNDO dispara, no cómo se ve. Esa es la regla que mantiene la coherencia
- * entre páginas.
+ * CUÁNDO dispara, no cómo se ve.
  *
- *   mode="enter"   Above the fold: entra al montar, escalonado.
- *                  Se usa en los titulares de portada, que ya están en pantalla.
+ *   <RevealGroup>  Secuencia. Sus hijos <Reveal> entran uno tras otro.
+ *   <Reveal>       Bloque suelto: entra al aparecer en pantalla.
  *
- *   mode="scroll"  Below the fold: entra al aparecer, una sola vez.
- *                  Se usa en secciones y tarjetas, que se descubren bajando.
+ * El escalonado lo gobierna el grupo con `staggerChildren`, no un retardo
+ * calculado en cada hijo. Con retardos manuales cada elemento medía el tiempo
+ * por su cuenta y varios terminaban disparando juntos: la portada del home
+ * cascadeaba y las internas aparecían de golpe. Delegar la secuencia al padre
+ * la vuelve determinista.
  *
  * Con `prefers-reduced-motion` no hay desplazamiento ni fundido: el contenido
  * se muestra directamente. Nada queda escondido esperando un observador.
@@ -24,61 +35,110 @@ import type { ReactNode } from "react";
 const EASE = [0.22, 1, 0.36, 1] as const;
 /** Distancia única: lo justo para que se note el asentamiento. */
 const RISE = 16;
-const DUR_ENTER = 0.5;
-const DUR_SCROLL = 0.45;
+const DURATION = 0.5;
 /** Escalonado entre hermanos. Más que esto se percibe como demora. */
 export const STAGGER = 0.08;
 
-export default function Reveal({
+type Tag = "div" | "section" | "li" | "ul" | "article" | "p";
+
+const itemVariants = {
+  hidden: { opacity: 0, y: RISE },
+  show: { opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } },
+};
+
+const groupVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: STAGGER } },
+};
+
+/**
+ * Contenedor de secuencia: sus hijos `Reveal` heredan el orden de entrada.
+ *
+ * `mode="enter"` arranca al montar (portadas, que ya están en pantalla);
+ * `mode="scroll"` espera a que el grupo entre en vista.
+ */
+export function RevealGroup({
   children,
-  mode = "scroll",
-  delay = 0,
+  mode = "enter",
   className,
   as = "div",
 }: {
   children: ReactNode;
   mode?: "enter" | "scroll";
-  delay?: number;
   className?: string;
-  as?: "div" | "section" | "li" | "ul" | "article" | "p";
+  as?: Tag;
 }) {
   const reduce = useReducedMotion();
-  const Tag = motion[as];
+  const Motion = motion[as];
 
   if (reduce) {
     const Plain = as;
     return <Plain className={className}>{children}</Plain>;
   }
 
-  const shared = {
-    initial: { opacity: 0, y: RISE },
-    className,
-    // Marca para que el CSS pueda neutralizar la animacion sin depender de JS:
-    // durante la hidratacion useReducedMotion todavia no resolvio y el elemento
-    // puede quedar en opacity 0 para quien pidio menos movimiento.
-    "data-reveal": "",
-  };
-
-  if (mode === "enter") {
-    return (
-      <Tag
-        {...shared}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: DUR_ENTER, delay, ease: EASE }}
+  return (
+    <EnGrupo.Provider value>
+      <Motion
+        className={className}
+        data-reveal=""
+        variants={groupVariants}
+        initial="hidden"
+        {...(mode === "enter"
+          ? { animate: "show" }
+          : { whileInView: "show", viewport: { once: true, amount: 0.35 } })}
       >
         {children}
-      </Tag>
-    );
+      </Motion>
+    </EnGrupo.Provider>
+  );
+}
+
+export default function Reveal({
+  children,
+  mode = "scroll",
+  className,
+  as = "div",
+}: {
+  children: ReactNode;
+  /** Ignorado dentro de un RevealGroup: ahí la secuencia la marca el padre. */
+  mode?: "enter" | "scroll";
+  className?: string;
+  as?: Tag;
+}) {
+  const reduce = useReducedMotion();
+  const enGrupo = useContext(EnGrupo);
+  const Motion = motion[as];
+
+  if (reduce) {
+    const Plain = as;
+    return <Plain className={className}>{children}</Plain>;
   }
 
+  // Dentro de un grupo el hijo solo aporta sus variantes: quien dispara y en
+  // que orden es el padre. Declarar initial/animate aca lo volveria autonomo.
+  const orquestacion = enGrupo
+    ? {}
+    : {
+        initial: "hidden" as const,
+        ...(mode === "enter"
+          ? { animate: "show" as const }
+          : {
+              whileInView: "show" as const,
+              viewport: { once: true, amount: 0.35 },
+            }),
+      };
+
   return (
-    <Tag
-      {...shared}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.45, margin: "0px 0px -12% 0px" }}
-      transition={{ duration: DUR_SCROLL, delay, ease: EASE }}
+    <Motion
+      className={className}
+      // Marca para que el CSS pueda neutralizar la animación sin depender de JS:
+      // durante la hidratación useReducedMotion todavía no resolvió y el
+      // elemento puede quedar en opacity 0 para quien pidió menos movimiento.
+      data-reveal=""
+      variants={itemVariants}
+      {...orquestacion}
     >
       {children}
-    </Tag>
+    </Motion>
   );
 }
