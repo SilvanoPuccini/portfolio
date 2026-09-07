@@ -36,6 +36,7 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
     .from('post_publications')
     .select('*')
     .eq('post_slug', slug)
+    .is('deleted_at', null)
     .maybeSingle<PostPublication>();
 
   if (readError) {
@@ -88,6 +89,7 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
       .update({ status: 'publicado', published_at: now, updated_at: now })
       .eq('post_slug', slug)
       .eq('status', 'preaprobado')
+      .is('deleted_at', null)
       .select('post_slug');
 
     if (swapError) {
@@ -119,6 +121,7 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
     .eq('post_slug', slug)
     .eq('notify_attempts', attempts)
     .is('notified_at', null)
+    .is('deleted_at', null)
     .select('post_slug');
 
   if (claimError) {
@@ -136,7 +139,8 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
     await db
       .from('post_publications')
       .update({ notify_error: result.error, updated_at: new Date().toISOString() })
-      .eq('post_slug', slug);
+      .eq('post_slug', slug)
+      .is('deleted_at', null);
 
     return { ok: false, slug, reason: 'notify-failed', detail: result.error };
   }
@@ -148,7 +152,8 @@ export async function publishPost(slug: string): Promise<PublishOutcome> {
       notify_error: null,
       updated_at: new Date().toISOString(),
     })
-    .eq('post_slug', slug);
+    .eq('post_slug', slug)
+    .is('deleted_at', null);
 
   return { ok: true, slug, notified: true, alreadyPublished };
 }

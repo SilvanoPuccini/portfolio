@@ -3,6 +3,7 @@ import { StatusBadge } from './StatusBadge';
 import { StatusActions } from './StatusActions';
 import { ContentBadge } from './ContentBadge';
 import { fmt } from './format';
+import { DeleteAgendaItemButton } from './DeleteAgendaItemButton';
 import type { PostPublicationListItem, PostPublicationStatus } from '@/lib/post-publications/types';
 
 const TODAY_LABEL = new Date().toLocaleDateString('es-AR', {
@@ -57,10 +58,12 @@ export function AgendaDetailPanel({
   items,
   selectedSlug,
   onChangeStatus,
+  onDeleted,
 }: {
   items: PostPublicationListItem[];
   selectedSlug: string | null;
   onChangeStatus: (slug: string, status: PostPublicationStatus) => void;
+  onDeleted: () => void | Promise<void>;
 }) {
   const selected = items.find((item) => item.post_slug === selectedSlug) ?? null;
 
@@ -117,6 +120,7 @@ export function AgendaDetailPanel({
               Ver post completo →
             </a>
             <StatusActions item={selected} onChange={onChangeStatus} />
+            <DeleteAgendaItemButton slug={selected.post_slug} title={selected.raw_title} onDeleted={onDeleted} />
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import type { PostPublicationStatus } from './types';
 export interface PostVisibilityState {
   status: PostPublicationStatus;
   scheduledAt: string;
+  deleted: boolean;
 }
 
 export interface VisibilityIndex {
@@ -38,7 +39,7 @@ export const getVisibilityIndex = cache(async (): Promise<VisibilityIndex> => {
   const db = getSupabaseAdmin();
   const { data, error } = await db
     .from('post_publications')
-    .select('post_slug, status, scheduled_at');
+    .select('post_slug, status, scheduled_at, deleted_at');
 
   if (error || !data) {
     console.error('[visibility] no se pudo leer post_publications:', error?.message);
@@ -51,7 +52,11 @@ export const getVisibilityIndex = cache(async (): Promise<VisibilityIndex> => {
   const states = new Map(
     data.map((row) => [
       row.post_slug as string,
-      { status: row.status as PostPublicationStatus, scheduledAt: row.scheduled_at as string },
+      {
+        status: row.status as PostPublicationStatus,
+        scheduledAt: row.scheduled_at as string,
+        deleted: row.deleted_at !== null,
+      },
     ]),
   );
   lastGoodStates = states;
@@ -77,7 +82,7 @@ export function isPostVisible(
   const state = index.states.get(post.slug);
 
   if (state) {
-    return state.status === 'publicado';
+    return !state.deleted && state.status === 'publicado';
   }
 
   return dateHasPassed(post.date);
@@ -101,6 +106,7 @@ export async function getNextScheduledPost(): Promise<NextScheduledPost | null> 
     .from('post_publications')
     .select('post_slug, raw_title, scheduled_at')
     .eq('status', 'preaprobado')
+    .is('deleted_at', null)
     .gte('scheduled_at', new Date().toISOString())
     .order('scheduled_at', { ascending: true })
     .limit(1)

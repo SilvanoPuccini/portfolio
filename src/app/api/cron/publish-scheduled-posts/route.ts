@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     .from('post_publications')
     .select('post_slug')
     .eq('status', 'preaprobado')
+    .is('deleted_at', null)
     .is('published_at', null)
     .lte('scheduled_at', cutoff);
 
@@ -51,6 +52,7 @@ export async function GET(req: NextRequest) {
     .from('post_publications')
     .select('post_slug')
     .eq('status', 'publicado')
+    .is('deleted_at', null)
     .eq('notify_subscribers', true)
     .is('notified_at', null);
 

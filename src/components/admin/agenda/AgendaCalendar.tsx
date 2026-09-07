@@ -56,12 +56,15 @@ export function AgendaCalendar({
   items,
   selectedSlug,
   onSelect,
+  onCreate,
 }: {
   items: PostPublicationListItem[];
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
+  onCreate: (scheduledAt: string) => void;
 }) {
   const [viewDate, setViewDate] = useState(() => new Date());
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(() => new Set());
 
   const byDay = useMemo(() => {
     const map = new Map<string, PostPublicationListItem[]>();
@@ -115,7 +118,8 @@ export function AgendaCalendar({
             if (!day) return <div key={di} style={{ minHeight: 96 }} />;
             const key = dayKey(day);
             const dayItems = byDay.get(key) ?? [];
-            const visibleItems = dayItems.slice(0, MAX_VISIBLE_PER_DAY);
+            const expanded = expandedDays.has(key);
+            const visibleItems = expanded ? dayItems : dayItems.slice(0, MAX_VISIBLE_PER_DAY);
             const overflow = dayItems.length - visibleItems.length;
             const isToday = key === todayKey;
             const isSunday = day.getDay() === 0;
@@ -138,8 +142,17 @@ export function AgendaCalendar({
                   gap: 4,
                   border: isToday ? '1px solid #00d4d4' : '1px solid rgba(255,255,255,0.06)',
                   background: isSunday ? 'rgba(0,212,212,0.04)' : 'transparent',
+                  position: 'relative',
                 }}
               >
+                <button
+                  type="button"
+                  aria-label={`Crear post el ${day.toLocaleDateString('es-AR')}`}
+                  title="Crear post en este día"
+                  onClick={() => onCreate(`${key}T10:00`)}
+                  className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+                  style={{ position: 'absolute', inset: 0, border: 0, borderRadius: 8, background: 'transparent', cursor: 'pointer' }}
+                />
                 <span
                   style={{
                     fontSize: 12,
@@ -147,6 +160,8 @@ export function AgendaCalendar({
                     opacity: isToday ? 1 : 0.45,
                     color: isToday ? '#00d4d4' : undefined,
                     fontWeight: isToday ? 700 : 400,
+                    pointerEvents: 'none',
+                    position: 'relative',
                   }}
                 >
                   {day.getDate()}
@@ -183,6 +198,7 @@ export function AgendaCalendar({
                         cursor: 'pointer',
                         background: isSelected ? `${color}38` : `${color}1f`,
                         color,
+                        position: 'relative',
                       }}
                     >
                       {isSunday ? (
@@ -243,9 +259,14 @@ export function AgendaCalendar({
                 })}
 
                 {overflow > 0 && (
-                  <span style={{ fontSize: 10, opacity: 0.5, textAlign: isSunday ? 'left' : 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedDays((current) => new Set(current).add(key))}
+                    aria-label={`Mostrar ${overflow} post${overflow === 1 ? '' : 's'} más del ${day.toLocaleDateString('es-AR')}`}
+                    style={{ ...s.btnGhost, position: 'relative', padding: '2px 4px', fontSize: 10, textAlign: isSunday ? 'left' : 'center' }}
+                  >
                     +{overflow} más
-                  </span>
+                  </button>
                 )}
               </div>
             );

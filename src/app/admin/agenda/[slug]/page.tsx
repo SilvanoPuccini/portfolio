@@ -40,6 +40,7 @@ export default async function AgendaPostDetailPage({
     .from('post_publications')
     .select('*')
     .eq('post_slug', slug)
+    .is('deleted_at', null)
     .maybeSingle<PostPublication>();
 
   const post = await getBlogPostBySlug(slug);

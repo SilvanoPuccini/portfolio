@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import { AgendaCalendar } from '@/components/admin/agenda/AgendaCalendar';
 import { AgendaDetailPanel } from '@/components/admin/agenda/AgendaDetailPanel';
+import { AgendaItemModal } from '@/components/admin/agenda/AgendaItemModal';
+import { DeleteAgendaItemButton } from '@/components/admin/agenda/DeleteAgendaItemButton';
 import { StatusBadge, STATUS_LABELS } from '@/components/admin/agenda/StatusBadge';
 import { StatusActions } from '@/components/admin/agenda/StatusActions';
 import { ContentBadge } from '@/components/admin/agenda/ContentBadge';
 import { fmt } from '@/components/admin/agenda/format';
-import { slugifyTitle } from '@/lib/post-publications/types';
 import type { PostPublicationListItem, PostPublicationStatus } from '@/lib/post-publications/types';
 
 type StatusFilter = 'all' | PostPublicationStatus;
@@ -58,7 +59,7 @@ export default function AgendaPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showNew, setShowNew] = useState(false);
+  const [newScheduledAt, setNewScheduledAt] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -131,7 +132,7 @@ export default function AgendaPage() {
         <button
           className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
           style={s.btn}
-          onClick={() => setShowNew(true)}
+          onClick={() => setNewScheduledAt('')}
         >
           + Nuevo post
         </button>
@@ -146,8 +147,21 @@ export default function AgendaPage() {
           alignItems: 'start',
         }}
       >
-        <AgendaCalendar items={allItems} selectedSlug={selectedSlug} onSelect={setSelectedSlug} />
-        <AgendaDetailPanel items={allItems} selectedSlug={selectedSlug} onChangeStatus={changeStatus} />
+        <AgendaCalendar
+          items={allItems}
+          selectedSlug={selectedSlug}
+          onSelect={setSelectedSlug}
+          onCreate={setNewScheduledAt}
+        />
+        <AgendaDetailPanel
+          items={allItems}
+          selectedSlug={selectedSlug}
+          onChangeStatus={changeStatus}
+          onDeleted={async () => {
+            setSelectedSlug(null);
+            await loadAll();
+          }}
+        />
       </div>
 
       <h2 style={{ ...s.sectionTitle, marginBottom: 16 }}>Todos los posts</h2>
@@ -287,6 +301,14 @@ export default function AgendaPage() {
                         Ver →
                       </a>
                       <StatusActions item={item} onChange={changeStatus} />
+                      <DeleteAgendaItemButton
+                        slug={item.post_slug}
+                        title={item.raw_title}
+                        onDeleted={async () => {
+                          if (selectedSlug === item.post_slug) setSelectedSlug(null);
+                          await loadAll();
+                        }}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -331,126 +353,13 @@ export default function AgendaPage() {
         </div>
       )}
 
-      {showNew && <NewAgendaItemModal onClose={() => setShowNew(false)} onCreated={loadAll} />}
-    </div>
-  );
-}
-
-function NewAgendaItemModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [content, setContent] = useState('');
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [notify, setNotify] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function handleTitleChange(value: string) {
-    setTitle(value);
-    if (!slugTouched) setSlug(slugifyTitle(value));
-  }
-
-  async function handleSubmit() {
-    if (!title || !slug || !scheduledAt) {
-      setError('Título, slug y fecha programada son obligatorios');
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/admin/posts-agenda', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          post_slug: slug,
-          raw_title: title,
-          raw_content: content || undefined,
-          scheduled_at: new Date(scheduledAt).toISOString(),
-          notify_subscribers: notify,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? 'No se pudo crear');
-      onCreated();
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50,
-      }}
-      onClick={onClose}
-    >
-      <div style={{ ...s.card, width: 560, maxWidth: '90vw' }} onClick={(e) => e.stopPropagation()}>
-        <h2 style={s.sectionTitle}>Nuevo post en agenda</h2>
-        <div style={s.form}>
-          <label style={s.label}>
-            Título
-            <input
-              style={s.input}
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Mi stack no es una lista de tecnologías..."
-            />
-          </label>
-          <label style={s.label}>
-            Slug
-            <input
-              style={s.input}
-              value={slug}
-              onChange={(e) => {
-                setSlug(e.target.value);
-                setSlugTouched(true);
-              }}
-            />
-          </label>
-          <label style={s.label}>
-            Texto en bruto (opcional, se puede completar después)
-            <textarea
-              style={{ ...s.input, minHeight: 140, fontFamily: 'inherit' }}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-          </label>
-          <label style={s.label}>
-            Programado para
-            <input
-              type="datetime-local"
-              style={s.input}
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-            />
-          </label>
-          <label style={{ ...s.label, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-            Mandar newsletter automático al publicar
-          </label>
-
-          {error && <div style={s.errorText}>{error}</div>}
-
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-            <button style={s.btnGhost} onClick={onClose} disabled={saving}>
-              Cancelar
-            </button>
-            <button style={s.btn} onClick={handleSubmit} disabled={saving}>
-              {saving ? 'Guardando…' : 'Guardar en agenda'}
-            </button>
-          </div>
-        </div>
-      </div>
+      {newScheduledAt !== null && (
+        <AgendaItemModal
+          initialScheduledAt={newScheduledAt}
+          onClose={() => setNewScheduledAt(null)}
+          onCreated={loadAll}
+        />
+      )}
     </div>
   );
 }

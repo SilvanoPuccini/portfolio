@@ -12,6 +12,7 @@ export interface PostPublication {
   notified_at: string | null;
   notify_attempts: number;
   notify_error: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -56,22 +57,6 @@ export function preApprovalBlockReason(raw: string | null | undefined): string |
 export interface PostPublicationListItem extends Omit<PostPublication, 'raw_content'> {
   has_content: boolean;
   content_chars: number;
-}
-
-export interface CreatePostPublicationRequest {
-  post_slug: string;
-  raw_title: string;
-  raw_content?: string;
-  scheduled_at: string;
-  notify_subscribers?: boolean;
-}
-
-export interface UpdatePostPublicationRequest {
-  raw_title?: string;
-  raw_content?: string;
-  scheduled_at?: string;
-  notify_subscribers?: boolean;
-  status?: PostPublicationStatus;
 }
 
 export function slugifyTitle(title: string): string {

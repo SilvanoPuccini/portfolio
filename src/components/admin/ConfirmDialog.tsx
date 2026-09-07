@@ -14,6 +14,8 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel = 'Cancelar',
   tone = 'primary',
+  loading = false,
+  error,
   onConfirm,
   onCancel,
 }: {
@@ -22,6 +24,8 @@ export function ConfirmDialog({
   confirmLabel: string;
   cancelLabel?: string;
   tone?: 'primary' | 'danger';
+  loading?: boolean;
+  error?: string | null;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -32,11 +36,11 @@ export function ConfirmDialog({
   useEffect(() => {
     confirmRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape' && !loading) onCancel();
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel]);
+  }, [loading, onCancel]);
 
   const confirmStyle =
     tone === 'danger'
@@ -56,7 +60,9 @@ export function ConfirmDialog({
         justifyContent: 'center',
         padding: 24,
       }}
-      onClick={onCancel}
+      onClick={() => {
+        if (!loading) onCancel();
+      }}
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -68,11 +74,13 @@ export function ConfirmDialog({
         <p style={{ ...s.eyebrow, marginBottom: 8 }}>Confirmar</p>
         <h2 style={{ ...s.heading, fontSize: 18, marginBottom: 8 }}>{title}</h2>
         <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.6, margin: '0 0 24px' }}>{message}</p>
+        {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <button
             className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
             onClick={onCancel}
             style={s.btnGhost}
+            disabled={loading}
           >
             {cancelLabel}
           </button>
@@ -80,7 +88,8 @@ export function ConfirmDialog({
             ref={confirmRef}
             className="transition-[filter] hover:brightness-110"
             onClick={onConfirm}
-            style={confirmStyle}
+            style={{ ...confirmStyle, ...(loading ? { opacity: 0.6, cursor: 'wait' } : {}) }}
+            disabled={loading}
           >
             {confirmLabel}
           </button>

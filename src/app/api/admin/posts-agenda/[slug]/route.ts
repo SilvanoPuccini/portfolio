@@ -2,17 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { publishPost } from '@/lib/post-publications/publish';
+import {
+  deletePostPublicationSchema,
+  postPublicationSlugSchema,
+  updatePostPublicationSchema,
+} from '@/lib/post-publications/schemas';
+import type { UpdatePostPublicationRequest } from '@/lib/post-publications/schemas';
 import { isValidTransition, preApprovalBlockReason } from '@/lib/post-publications/types';
 import type {
   PostPublication,
-  PostPublicationStatus,
-  UpdatePostPublicationRequest,
 } from '@/lib/post-publications/types';
 
 export const dynamic = 'force-dynamic';
 
 const EDITABLE_FIELDS = ['raw_title', 'raw_content', 'scheduled_at', 'notify_subscribers'] as const;
-const VALID_STATUSES: PostPublicationStatus[] = ['planificado', 'preaprobado', 'publicado'];
 
 export async function GET(
   req: NextRequest,
@@ -23,11 +26,15 @@ export async function GET(
   }
 
   const { slug } = await params;
+  if (!postPublicationSlugSchema.safeParse(slug).success) {
+    return NextResponse.json({ error: 'Slug inválido' }, { status: 400 });
+  }
   const db = getSupabaseAdmin();
   const { data, error } = await db
     .from('post_publications')
     .select('*')
     .eq('post_slug', slug)
+    .is('deleted_at', null)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -44,19 +51,28 @@ export async function PATCH(
   }
 
   const { slug } = await params;
-  const db = getSupabaseAdmin();
+  if (!postPublicationSlugSchema.safeParse(slug).success) {
+    return NextResponse.json({ error: 'Slug inválido' }, { status: 400 });
+  }
 
-  let body: UpdatePostPublicationRequest;
+  let input: unknown;
   try {
-    body = (await req.json()) as UpdatePostPublicationRequest;
+    input = await req.json();
   } catch {
     return NextResponse.json({ error: 'Body inválido' }, { status: 400 });
   }
+  const parsed = updatePostPublicationSchema.safeParse(input);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Body inválido' }, { status: 400 });
+  }
+  const body: UpdatePostPublicationRequest = parsed.data;
+  const db = getSupabaseAdmin();
 
   const { data: current, error: readError } = await db
     .from('post_publications')
     .select('*')
     .eq('post_slug', slug)
+    .is('deleted_at', null)
     .maybeSingle<PostPublication>();
 
   if (readError) return NextResponse.json({ error: readError.message }, { status: 500 });
@@ -76,6 +92,7 @@ export async function PATCH(
       .from('post_publications')
       .select('*')
       .eq('post_slug', slug)
+      .is('deleted_at', null)
       .single();
 
     return NextResponse.json({ item: published, notified: outcome.notified });
@@ -87,9 +104,6 @@ export async function PATCH(
   }
 
   if (body.status !== undefined) {
-    if (!VALID_STATUSES.includes(body.status)) {
-      return NextResponse.json({ error: `Estado inválido: ${body.status}` }, { status: 400 });
-    }
     if (!isValidTransition(current.status, body.status)) {
       return NextResponse.json(
         { error: `Transición inválida: ${current.status} → ${body.status}` },
@@ -138,6 +152,7 @@ export async function PATCH(
     .from('post_publications')
     .update(updates)
     .eq('post_slug', slug)
+    .is('deleted_at', null)
     .select('*')
     .single();
 
@@ -155,10 +170,22 @@ export async function DELETE(
   }
 
   const { slug } = await params;
+  const parsed = deletePostPublicationSchema.safeParse({ post_slug: slug });
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Slug inválido' }, { status: 400 });
+  }
   const db = getSupabaseAdmin();
-  const { error } = await db.from('post_publications').delete().eq('post_slug', slug);
+  const { data, error } = await db
+    .from('post_publications')
+    .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq('post_slug', parsed.data.post_slug)
+    .is('deleted_at', null)
+    .select('post_slug');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data || data.length === 0) {
+    return NextResponse.json({ error: 'No está en la agenda' }, { status: 404 });
+  }
 
   return NextResponse.json({ success: true });
 }

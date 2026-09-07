@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import type {
-  CreatePostPublicationRequest,
-  PostPublicationStatus,
-} from '@/lib/post-publications/types';
+import { createPostPublicationSchema } from '@/lib/post-publications/schemas';
+import type { PostPublicationStatus } from '@/lib/post-publications/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +28,7 @@ export async function GET(req: NextRequest) {
   let query = db
     .from('post_publications')
     .select('*', { count: 'exact' })
+    .is('deleted_at', null)
     .order('scheduled_at', { ascending: true })
     .range(offset, offset + perPage - 1);
 
@@ -57,19 +56,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: CreatePostPublicationRequest;
+  let input: unknown;
   try {
-    body = (await req.json()) as CreatePostPublicationRequest;
+    input = await req.json();
   } catch {
     return NextResponse.json({ error: 'Body inválido' }, { status: 400 });
   }
 
-  if (!body.post_slug || !body.raw_title || !body.scheduled_at) {
-    return NextResponse.json(
-      { error: 'post_slug, raw_title y scheduled_at son obligatorios' },
-      { status: 400 },
-    );
+  const parsed = createPostPublicationSchema.safeParse(input);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Body inválido' }, { status: 400 });
   }
+  const body = parsed.data;
 
   const db = getSupabaseAdmin();
   const { data, error } = await db

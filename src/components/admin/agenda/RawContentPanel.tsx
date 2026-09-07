@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
 import { StatusActions } from './StatusActions';
+import { DeleteAgendaItemButton } from './DeleteAgendaItemButton';
 import type {
   PostPublication,
   PostPublicationListItem,
@@ -42,6 +43,12 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
   const [editing, setEditing] = useState(!item.raw_content);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [title, setTitle] = useState(item.raw_title);
+  const [scheduledAt, setScheduledAt] = useState(() => {
+    const date = new Date(item.scheduled_at);
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return local.toISOString().slice(0, 16);
+  });
 
   const chars = content.trim().length;
 
@@ -88,6 +95,34 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
 
   return (
     <>
+      <div style={panel}>
+        <p style={eyebrow}>Datos del post</p>
+        <div style={s.form}>
+          <label style={s.label}>
+            Título
+            <input style={s.input} value={title} onChange={(event) => setTitle(event.target.value)} />
+          </label>
+          <label style={s.label}>
+            Programado para
+            <input
+              type="datetime-local"
+              style={s.input}
+              value={scheduledAt}
+              onChange={(event) => setScheduledAt(event.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="transition-[filter] hover:brightness-110"
+            style={{ ...s.btn, alignSelf: 'flex-start', ...(saving ? { opacity: 0.6, cursor: 'wait' } : {}) }}
+            disabled={saving || !title.trim() || !scheduledAt}
+            onClick={() => patch({ raw_title: title, scheduled_at: new Date(scheduledAt).toISOString() })}
+          >
+            {saving ? 'Guardando…' : 'Guardar fecha y título'}
+          </button>
+        </div>
+      </div>
+
       <div style={panel}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
           <p style={eyebrow}>Texto en bruto</p>
@@ -180,12 +215,15 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
           </>
         )}
 
-        {error && <p style={{ ...s.errorText, marginTop: 12 }}>{error}</p>}
+        {error && <p role="alert" style={{ ...s.errorText, marginTop: 12 }}>{error}</p>}
       </div>
 
       <div style={panel}>
         <p style={eyebrow}>Estado</p>
         <StatusActions item={listItem} onChange={changeStatus} />
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <DeleteAgendaItemButton slug={item.post_slug} title={title} />
+        </div>
       </div>
     </>
   );

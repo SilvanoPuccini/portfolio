@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { isPostVisible, type VisibilityIndex } from './visibility';
 
 function index(
-  entries: Array<[string, { status: 'planificado' | 'preaprobado' | 'publicado'; scheduledAt: string }]>,
+  entries: Array<[string, { status: 'planificado' | 'preaprobado' | 'publicado'; scheduledAt: string; deleted?: boolean }]>,
   degraded = false,
 ): VisibilityIndex {
-  return { states: new Map(entries), degraded };
+  return {
+    states: new Map(entries.map(([slug, state]) => [slug, { ...state, deleted: state.deleted ?? false }])),
+    degraded,
+  };
 }
 
 const PAST = '2020-01-01';
@@ -25,6 +28,11 @@ describe('isPostVisible', () => {
   it('oculta un planificado', () => {
     const i = index([['x', { status: 'planificado', scheduledAt: `${FUTURE}T10:00:00-03:00` }]]);
     expect(isPostVisible({ slug: 'x', date: FUTURE }, i)).toBe(false);
+  });
+
+  it('oculta un post eliminado aunque esté publicado y el MDX siga existiendo', () => {
+    const i = index([['x', { status: 'publicado', scheduledAt: `${PAST}T10:00:00-03:00`, deleted: true }]]);
+    expect(isPostVisible({ slug: 'x', date: PAST }, i)).toBe(false);
   });
 
   it('muestra un post legado: sin fila y con fecha pasada', () => {
