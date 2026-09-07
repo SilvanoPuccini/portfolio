@@ -1,0 +1,120 @@
+---
+title: 'Next.js, React con Vite o Angular: la herramienta correcta depende del problema'
+date: '2026-09-13'
+category: 'Criterio'
+displayCategory: 'Criterio'
+excerpt: 'Elegir frontend se parece a elegir entre tres respuestas correctas. La factura no llega el día que arrancás: llega seis meses después, cuando el proyecto necesita justo aquello que tu herramienta resuelve de la forma más cara.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+keyword: 'Next.js'
+ogImage: '/api/og/nextjs-vite-o-angular'
+---
+
+Elegir frontend se parece a elegir entre tres respuestas correctas. La factura no llega el día que arrancás: llega seis meses después, cuando el proyecto necesita justo aquello que tu herramienta resuelve de la forma más cara.
+
+La discusión casi siempre empieza mal. Alguien pregunta cuál es mejor y la respuesta llega en forma de lista de características, o peor, de benchmark aislado. Nadie pregunta primero qué tiene que hacer el producto.
+
+Y las tres opciones funcionan. Ese es el problema real. Podés construir el mismo producto con React sobre Vite, con Next.js o con Angular, y las tres versiones van a andar. Lo que cambia no es si funciona: es cuánto trabajo queda de tu lado, qué se vuelve difícil después y quién puede sostenerlo cuando el proyecto deja de ser tuyo solo.
+
+Este post no elige un ganador. Compara qué trae resuelto cada uno, qué te deja para resolver a vos, y en qué tipo de producto cada decisión se paga barata o cara.
+
+## Para quién sirve esto y desde dónde lo escribo
+
+Esto no aplica a un equipo de cincuenta personas con un design system propio y una plataforma interna que ya decidió por vos. Ahí la pregunta está respondida por la organización, no por vos.
+
+Aplica al que decide solo o con una persona más, sobre un producto que todavía no existe, sin nadie que le banque una migración a los ocho meses. Escribo desde ese lugar: proyectos donde la persona que elige la herramienta es también la que la mantiene.
+
+## Las cuatro cosas que estás comparando no están en el mismo nivel
+
+Antes de comparar hay que aclarar qué es cada cosa, porque la conversación se ensucia rápido.
+
+<FrontendLineupBlock />
+
+React es una biblioteca de interfaz. Te da componentes y estado, nada más. No trae enrutamiento, ni obtención de datos, ni build.
+
+Vite es una herramienta de desarrollo y empaquetado. Te da el servidor local, el recargado instantáneo y el bundle de producción. No te da una arquitectura de aplicación.
+
+Next.js es un framework construido sobre React. Además de la interfaz define rutas, estrategias de renderizado, caché y una capa de servidor propia.
+
+Angular es un framework completo con su propio lenguaje de plantillas, inyección de dependencias, organización en módulos y un CLI que genera piezas con una forma esperada.
+
+Entonces "React con Vite" no compite contra Next.js en igualdad de condiciones. Compite eligiendo dejar afuera lo que Next.js trae adentro, y asumir vos esas decisiones. Esa asimetría es toda la discusión.
+
+## Los seis criterios que miro antes de abrir una sola documentación
+
+<FrontendMatrixBlock />
+
+Los seis pesan distinto según el proyecto, y ninguna columna gana en todas. Pero hay un patrón que se repite: cuando el primer criterio y el último apuntan en la misma dirección, la decisión ya está casi tomada y el resto es confirmación.
+
+Vale una aclaración sobre la matriz. Las barras no son un puntaje. Indican cuánto trae resuelto cada opción en ese criterio, y traer mucho resuelto no siempre es bueno: es exactamente lo que te ata a una convención.
+
+## React con Vite: máxima libertad, cero barandas
+
+Lo que te da es velocidad de arranque. Un proyecto nuevo levanta en segundos, el recargado es instantáneo y no hay una capa de servidor que entender. Todo corre en el navegador, y esa simplicidad mental es real: cuando algo se rompe, hay un solo lugar donde pudo romperse.
+
+Lo que te deja a vos es la arquitectura entera. El enrutamiento lo elegís, la protección de rutas la escribís, la organización de carpetas la inventás. No hay CLI que te corrija ni convención que te frene.
+
+Esa libertad se cobra en un lugar específico, y no es el que uno espera. No se cobra en rendimiento: se cobra en el equipo. Con una sola persona, decidir todo es velocidad. Con dos, ya hay que acordar convenciones y sostenerlas por disciplina. Con cinco, aparecen tres formas distintas de hacer lo mismo dentro del mismo repositorio.
+
+Es la mejor opción cuando el producto vive detrás de un login, cuando el proyecto es de una o dos personas, y cuando el trabajo pesado no está en la interfaz sino en la lógica que la interfaz consume.
+
+Es la peor cuando alguien tiene que encontrar tu contenido en un buscador. Ahí vas a terminar reconstruyendo a mano lo que un framework ya integró.
+
+## Next.js: el servidor que no pediste pero que a veces necesitás
+
+Lo que te da es todo lo que hace falta para que un contenido exista hacia afuera. HTML armado en el servidor, rutas basadas en el sistema de archivos, vistas previas dinámicas por página, estrategias de caché y una capa de servidor donde poner lo que no puede vivir en el navegador.
+
+Cuando el producto necesita ser encontrado y compartido, esto deja de ser una preferencia técnica y pasa a ser un requisito. Una aplicación de una sola página obliga a resolver por afuera el HTML inicial, las etiquetas para compartir y el rastreo. Se puede. Pero cada pieza que reconstruís es una pieza que después mantenés.
+
+Lo que te cobra es un modelo mental partido. Tenés que saber en todo momento qué código corre en el servidor y cuál en el navegador. Cuando algo falla, la primera pregunta ya no es qué se rompió sino dónde se ejecutó. Es una capa de diagnóstico que con Vite simplemente no existe.
+
+Es la mejor opción para sitios públicos, catálogos, documentación y cualquier producto donde el contenido es parte del valor. Este mismo sitio, donde estás leyendo esto, existe por esa razón: un portfolio que no se indexa no cumple su función.
+
+Es la peor cuando todo el producto está detrás de una sesión y nadie va a compartir una URL. Ahí estás pagando una capa de servidor que nunca vas a usar.
+
+## Angular: la estructura que discutís al principio o sufrís al final
+
+Lo que te da es la decisión ya tomada. Inyección de dependencias, organización en módulos, plantillas con su propia sintaxis, y un CLI que genera componentes y servicios con una forma consistente. En Angular hay una manera esperada de hacer casi todo.
+
+Eso ataca directamente el punto donde React con Vite se rompe: la variedad. Si van a entrar y salir personas del proyecto durante años, tener una única forma correcta reduce la cantidad de decisiones malas que alguien puede tomar sin que nadie se entere.
+
+Lo que te cobra es tiempo por adelantado. La curva inicial es más larga y las convenciones se pagan aunque el proyecto sea chico. Un producto de dos pantallas con Angular es un producto de dos pantallas con mucha estructura alrededor.
+
+Es la mejor opción cuando la restricción principal es de equipo y no de producto: proyectos largos, con rotación, donde la consistencia vale más que la velocidad del primer mes.
+
+Es la peor para un prototipo o un producto que todavía está buscando su forma. Ahí la estructura que te protege también te frena.
+
+Acá hace falta una aclaración honesta: Angular está en mi formación, no en mi producción. Lo cursé, entiendo su modelo y puedo leerlo, pero no tengo un proyecto propio en producción hecho con Angular. Lo que escribo sobre él es evaluación, no experiencia, y prefiero decirlo antes que inventar una historia.
+
+## Tres tipos de producto, tres decisiones distintas
+
+<FrontendScenariosBlock />
+
+El mismo equipo puede elegir distinto en tres productos y acertar las tres veces. Eso no es incoherencia: es que la restricción cambió.
+
+Y hay un cuarto escenario que rompe la pregunta original. Cuando casi todo el valor está en reglas de negocio y la interfaz solo tiene que ser rápida y correcta, la mejor decisión de frontend puede ser no usar ninguno de los tres. Plantillas del lado del servidor con actualizaciones parciales resuelven muchísimo producto real con una sola aplicación desplegada. En un e-commerce que mantengo, el carrito se actualiza sin recargar la página y no hay una línea de React en el proyecto.
+
+Eso tiene su propio techo, claro. El día que esa interfaz necesite algo realmente complejo, no hay refactor: se reescribe la capa de presentación entera.
+
+## Lo que sacrifiqué en cada decisión
+
+Elegir React con Vite para una herramienta interna significó descartar Next.js aunque lo manejo mejor. Lo descarté porque sumaba una capa de servidor a una aplicación que no la necesita, y con ella un modelo de ejecución que solo iba a complicar el diagnóstico. Gané velocidad y perdí las barandas. Con una persona más en el proyecto, esa falta de barandas ya se notó.
+
+Elegir Next.js para un sitio público significó descartar la simplicidad de una aplicación de una sola página. La descarté porque sin HTML servido el contenido no cumple su función. Gané descubrimiento y acepté cargar para siempre con la pregunta de qué corre dónde.
+
+Descartar Angular en los dos casos fue una decisión de contexto, no de calidad. Lo descarté porque en proyectos de una o dos personas su mayor fortaleza, que es imponer una única forma correcta, todavía no tiene a quién proteger. Gané tiempo al principio y acepté sostener convenciones a mano.
+
+Ninguna de las opciones descartadas era la elección tonta. Eso es lo que convierte esto en una decisión y no en una respuesta.
+
+## Lo que todavía no sé
+
+Lo que no puedo responderme es dónde está exactamente el punto de cruce. Sé que con una persona la libertad de Vite es velocidad y que con veinte la estructura de Angular es supervivencia. No sé en qué número deja de compensar una y empieza a compensar la otra, y sospecho que ese número no es el mismo para todos los equipos ni para todos los productos. Lo único que tengo claro es que cuando te das cuenta, ya estás del otro lado.
+
+---
+
+Comparar frameworks por sus características es fácil y no decide nada. Compararlos por lo que dejan sin resolver, y por quién va a pagar eso seis meses después, es el trabajo que documento cada semana en El Radar.
+
+El Radar es donde publico las decisiones técnicas que tomo en proyectos reales, con el costo que tuvo cada una.
+
+Si querés recibirlo, suscribite acá abajo.

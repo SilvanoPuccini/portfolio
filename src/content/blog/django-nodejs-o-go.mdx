@@ -1,0 +1,123 @@
+---
+title: 'Django, Node.js o Go: elegir backend es elegir dónde pagar la complejidad'
+date: '2026-09-20'
+category: 'Criterio'
+displayCategory: 'Criterio'
+excerpt: 'Ningún backend elimina la complejidad de un sistema. La mueve de lugar. Lo que estás eligiendo no es cuál es más rápido, sino en qué parte del proyecto vas a estar peleando dentro de seis meses.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+keyword: 'Django'
+ogImage: '/api/og/django-nodejs-o-go'
+---
+
+Ningún backend elimina la complejidad de un sistema. La mueve de lugar. Lo que estás eligiendo no es cuál es más rápido, sino en qué parte del proyecto vas a estar peleando dentro de seis meses.
+
+La pregunta llega casi siempre en la peor forma posible: cuál es más rápido. Y siempre hay un benchmark que responde eso, siempre a favor de quien lo publicó, siempre midiendo una operación que tu producto no hace.
+
+El problema es que casi ningún proyecto se muere por milisegundos. Se muere porque las reglas de negocio quedaron desparramadas, porque nadie sabe qué pasa cuando falla un cobro, o porque hay tres servicios corriendo y una sola persona para mirarlos. Nada de eso lo resuelve el lenguaje.
+
+Este es el contrapunto del artículo anterior sobre frontend. Misma lógica, otra capa: qué trae resuelto cada opción, qué te deja para escribir a vos y en qué tipo de sistema cada decisión sale barata o cara.
+
+## Para quién sirve esto y desde dónde lo escribo
+
+Esto no aplica a una empresa con equipo de plataforma, presupuesto de infraestructura y gente de guardia. Ahí la elección viene condicionada por lo que ya opera la organización, y con razón.
+
+Aplica al que va a construir y además operar lo que construye. Si sos la persona que escribe el código y también la que se entera de que algo se cayó, la ecuación cambia entera.
+
+## Django, Node.js y Go tampoco están en el mismo nivel
+
+Igual que con el frontend, la comparación arranca torcida si no se aclara qué es cada cosa.
+
+<BackendLineupBlock />
+
+Django es un framework de aplicación en Python. Trae ORM, migraciones, autenticación, permisos, formularios y panel administrativo. Es la opción que más decisiones toma por vos.
+
+Node.js es un entorno de ejecución de JavaScript en el servidor. No te da nada de lo anterior: te da la capacidad de correr JavaScript fuera del navegador y un ecosistema enorme para armar el resto pieza por pieza, normalmente empezando por Express.
+
+Go es un lenguaje, no un framework. Trae concurrencia en el propio lenguaje, una biblioteca estándar fuerte y un binario único como resultado de la compilación. La capa de aplicación la escribís vos.
+
+Entonces cuando alguien compara "Django contra Node", está comparando un framework contra un ecosistema de piezas sueltas. Y cuando compara contra Go, está comparando decisiones ya tomadas contra decisiones por tomar. Eso no hace mejor a ninguno: define qué recibís hecho y qué armás.
+
+## Los seis criterios que uso
+
+| Criterio | La pregunta concreta |
+|---|---|
+| Dominio | ¿El valor está en reglas de negocio o en mover datos rápido? |
+| Velocidad de desarrollo | ¿Cuánto tarda en existir la primera versión usable? |
+| Tiempo real | ¿Alguien necesita ver un cambio sin recargar? |
+| Concurrencia | ¿Hay muchas operaciones simultáneas compitiendo por lo mismo? |
+| Equipo | ¿Quién lo mantiene y qué lenguaje ya conoce? |
+| Operación | ¿Cuántos procesos tengo que desplegar, monitorear y recuperar? |
+
+El sexto es el que más se subestima. Es el único que no se paga una vez, se paga todos los meses.
+
+## Django: el framework que ya decidió casi todo
+
+Lo que te da es un sistema con reglas funcionando en días, no en semanas. Autenticación, permisos, migraciones y panel administrativo vienen incluidos. Cuando el dominio es lo difícil, eso no es comodidad: es tiempo que se va directo al problema real.
+
+Es la mejor opción cuando el valor del sistema está en las reglas. Un catálogo con stock, un checkout, una historia clínica con permisos por rol, una facturación. En esos casos la pregunta difícil nunca es cuántos pedidos por segundo aguanta, sino qué pasa si el stock cambia mientras alguien tiene el producto en el carrito. Esa pregunta no se responde más rápido en otro lenguaje.
+
+Lo que te cobra son sus convenciones. Adoptás el ORM, la estructura de aplicaciones y su forma de pensar los modelos. Cuando algo no encaja bien con esa forma, la salida es escribir alrededor del framework, y ese código siempre se ve peor que el resto.
+
+Es la peor opción cuando el sistema es sobre todo tiempo real o cuando la carga simultánea es el problema central. Se puede resolver, pero estás peleando contra el diseño de la herramienta en lugar de apoyarte en él.
+
+## Node.js: un solo lenguaje en las dos puntas
+
+Lo que te da es continuidad. Si el frontend ya está escrito en TypeScript, seguir en TypeScript del lado del servidor elimina el costo de cambiar de contexto varias veces por día. No es un detalle estético: es tiempo real de trabajo.
+
+Además su modelo asíncrono encaja natural con lo que muchos backends modernos hacen la mayor parte del tiempo, que es orquestar. Llamar a un servicio, esperar, transformar, responder. Ahí Node no está peleando contra su naturaleza.
+
+Lo que te cobra es todo lo que Django te regala. ORM, validación, permisos, estructura de carpetas y convenciones las elegís y las sostenés vos. Empezás más rápido y a los seis meses tenés un conjunto de decisiones que nadie documentó.
+
+Es la mejor opción cuando el equipo ya vive en TypeScript y el backend es sobre todo integración: pasarelas de pago, servicios externos, webhooks, transformación de datos.
+
+Es la peor cuando el sistema es denso en reglas y permisos, y no hay nadie con tiempo para construir esa base a mano.
+
+Acá va una aclaración honesta: Node con Express está en mi stack y lo trabajé, pero no lo tengo en producción en un proyecto propio. Lo más cerca que estuve es TypeScript del lado del servidor en funciones de borde sobre Deno, que es el mismo lenguaje y no es el mismo entorno. Decir lo contrario sería vender una experiencia que no tengo.
+
+## Go: eficiencia a cambio de escribir más
+
+Lo que te da es previsibilidad bajo carga y un despliegue trivial. Compila a un binario único, sin entorno de ejecución que instalar al lado. La concurrencia está en el lenguaje, no en una biblioteca que agregaste.
+
+Lo que te cobra es velocidad de desarrollo. Casi nada del dominio viene hecho. Un panel administrativo que en Django existe el primer día, en Go lo escribís vos o no lo tenés.
+
+Es la mejor opción para un servicio acotado con un requisito medible: procesar muchas operaciones simultáneas, mantener un consumo de recursos bajo, o responder dentro de un límite de latencia que alguien va a verificar.
+
+La palabra clave es medible. Elegir Go por rendimiento sin un número que lo justifique es elegir por estética, y el costo lo vas a pagar en cada funcionalidad que escribas desde cero.
+
+Es la peor opción cuando el producto todavía está buscando su forma y las reglas cambian cada semana.
+
+Go tampoco está en mi producción. Lo estudié y entiendo su modelo, pero cuando tenga un proyecto propio corriendo con Go lo voy a escribir acá con el resultado real, bueno o malo.
+
+## Ninguno elimina la complejidad: la mueve
+
+<BackendComplexityBlock />
+
+Esta es la parte que los benchmarks no muestran. Cada opción te ahorra trabajo en una punta y te lo cobra en otra, y ese intercambio es la decisión completa.
+
+Hay una cuarta salida que conviene nombrar, porque cada vez es más común: no escribir backend. Delegar base de datos, autenticación, almacenamiento y tiempo real a un servicio administrado, y dejar solo la lógica propia en funciones. Cuando el equipo es chico y el tiempo es la restricción real, eso puede ser la decisión correcta.
+
+Tiene su propio costo, y no está en el código. Cuando el backend es un servicio, delegás también parte de tu diagnóstico. Hay fallas que no vas a encontrar leyendo tu repositorio, porque no están ahí. Me pasó: un problema de acceso a la organización de un servicio administrado, con el repositorio impecable y nada que revertir.
+
+## Lo que sacrifiqué en cada decisión
+
+Elegir Django para un sistema denso en reglas significó descartar un backend a medida donde cada pieza fuera exactamente la que quiero. Lo descarté porque ese control se paga en semanas antes de tener algo usable. Gané tiempo hacia el dominio y acepté escribir alrededor del framework cuando algo no encaja.
+
+Elegir separar la API del frontend en un sistema significó descartar el monolito con plantillas, que en otro proyecto me funcionó muy bien. Lo descarté porque la interfaz necesitaba interacciones que las plantillas vuelven trabajosas. Gané una interfaz que puede crecer y acepté cuatro piezas para operar en lugar de una.
+
+Delegar el backend a un servicio administrado en un tercer caso significó descartar exactamente lo que más practiqué. Lo descarté porque éramos dos personas y el tiempo real, la autenticación y el almacenamiento habrían sido el proyecto entero. Gané semanas y acepté que parte del diagnóstico vive en un panel ajeno.
+
+Las tres alternativas descartadas eran defendibles. Por eso fueron decisiones.
+
+## Lo que todavía no sé
+
+Lo que no sé es cuánto aguanta la cuarta opción cuando el producto crece. Delegar el backend es claramente correcto para arrancar de a dos, pero cada regla de negocio que queda repartida entre el cliente y una función suelta es una regla que no está en un solo lugar donde probarla. En un monolito sé exactamente dónde mirar cuando el dominio está mal. En el modelo delegado todavía no tengo esa certeza, y no sé si el día que la necesite voy a poder recuperarla sin reescribir.
+
+---
+
+Elegir backend por velocidad de ejecución es la comparación fácil y casi nunca es la que importa. Elegirlo por dónde vas a estar peleando el año que viene, y por cuántas piezas vas a tener que mirar vos solo, es la que documento cada semana en El Radar.
+
+El Radar es donde publico las decisiones técnicas que tomo en proyectos reales, con el costo que tuvo cada una.
+
+Si querés recibirlo, suscribite acá abajo.

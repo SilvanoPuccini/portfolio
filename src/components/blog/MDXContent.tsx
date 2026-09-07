@@ -16,6 +16,13 @@ import {
   VerificationDiagramBlock,
 } from './diagrams/EntornoDiagrams';
 import { FiveDecisionsDiagramBlock, StackHeroBlock } from './diagrams/StackDecisionsDiagram';
+import {
+  FrontendLineupBlock,
+  FrontendMatrixBlock,
+  FrontendScenariosBlock,
+} from './diagrams/FrontendStacksDiagrams';
+import { BackendLineupBlock, BackendComplexityBlock } from './diagrams/BackendStacksDiagrams';
+import { DeliveryStagesBlock, RollbackOptionsBlock } from './diagrams/DeliveryDiagrams';
 import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
@@ -24,6 +31,9 @@ const mdxComponents = {
   StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
   PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
   FiveDecisionsDiagramBlock, StackHeroBlock, StackReferenceTable,
+  FrontendLineupBlock, FrontendMatrixBlock, FrontendScenariosBlock,
+  BackendLineupBlock, BackendComplexityBlock,
+  DeliveryStagesBlock, RollbackOptionsBlock,
 };
 
 const mdxOptions = {

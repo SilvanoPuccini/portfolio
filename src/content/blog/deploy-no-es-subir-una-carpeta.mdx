@@ -1,0 +1,108 @@
+---
+title: 'Deploy no es subir una carpeta'
+date: '2026-09-27'
+category: 'Automatización'
+displayCategory: 'Automatización'
+excerpt: 'En local, si algo se rompe, lo arreglás y volvés a correr. En producción hay una versión anterior que funcionaba, datos que ya existen y gente adentro. Ahí "volver atrás" deja de ser una tecla y pasa a ser una decisión que conviene tener tomada antes.'
+featured: false
+linkedinCarousel: false
+readingTime: '7 min'
+keyword: 'deploy'
+ogImage: '/api/og/deploy-no-es-subir-una-carpeta'
+---
+
+En local, si algo se rompe, lo arreglás y volvés a correr. En producción hay una versión anterior que funcionaba, datos que ya existen y gente adentro. Ahí "volver atrás" deja de ser una tecla y pasa a ser una decisión que conviene tener tomada antes.
+
+El día que un proyecto sale a producción, la mayoría de la atención está puesta en que ande. Y anda. El deploy sale bien, la URL responde, se saca la captura.
+
+Lo que casi nunca se prepara es el segundo deploy. El que va encima de datos que ya existen, con una versión anterior que sí funcionaba y con alguien que en ese momento está usando el sistema. Ese es el que enseña qué era realmente entregar software.
+
+Los dos artículos anteriores fueron sobre elegir: frontend primero, backend después. Este es sobre lo que pasa cuando lo elegido tiene que salir de tu máquina y quedarse afuera.
+
+## Para quién sirve esto y desde dónde lo escribo
+
+Esto no aplica a un equipo con plataforma interna, entornos provistos y alguien de guardia. Ahí la mayor parte de lo que sigue ya viene resuelto y hasta prohibido de tocar.
+
+Aplica al que despliega lo que escribe y además atiende cuando se cae. Todo lo que sigue viene de operar sistemas en tres modelos distintos: una plataforma administrada, contenedores sobre un servidor propio, y estáticos con servicios administrados detrás.
+
+## Entregar son cuatro cosas, no una
+
+La palabra deploy tapa cuatro pasos que fallan por motivos diferentes y se arreglan de formas diferentes.
+
+<DeliveryStagesBlock />
+
+Confundirlos tiene un costo concreto: cuando algo se rompe, no sabés en cuál de los cuatro estás parado, y terminás cambiando código para arreglar un problema de configuración.
+
+Hay un ejemplo que lo muestra a simple vista. En un proyecto con archivos estáticos y archivos subidos por usuarios, los primeros se preparan durante el build y los sirve la aplicación; los segundos viven en un servicio externo y no dependen del build en absoluto. Son dos cosas que parecen la misma y se rompen en momentos distintos. Si el CSS no aparece, el problema está en el build. Si no se ve una foto cargada por alguien, el build no tiene nada que ver.
+
+## La configuración no es lo mismo que el secreto
+
+La restricción acá es simple: hay valores que cambian entre entornos y no todos tienen el mismo nivel de riesgo. La dirección de la base de datos cambia entre local y producción. La clave de una pasarela de pago también cambia, pero además no puede quedar registrada en ningún lado.
+
+La decisión que aplico en todos los proyectos es la misma: nada sensible entra al repositorio, ni siquiera en un archivo de ejemplo con el valor real puesto. La configuración se lee del entorno, y todo lo que sea una credencial vive del lado del servidor. Cualquier cosa que llegue al navegador es pública aunque esté minificada.
+
+Lo que se paga es fricción diaria. Cada vez que sumás una variable tenés que acordarte de agregarla en la plataforma, y no hay compilador que te avise. La aplicación arranca bien y falla más tarde, en la primera pantalla que necesitaba ese valor.
+
+## Los datos son la parte que no se revierte
+
+Este es el punto donde el deploy deja de parecerse a copiar archivos.
+
+El código de una versión anterior está en el repositorio y se puede volver a poner. Los datos no. Si una migración transformó una columna, deshacer el despliegue no deshace la transformación.
+
+Cuanto más sensible es el dominio, más pesa. En un sistema donde perder un dato no es una opción, cada cambio de esquema tiene que poder convivir con la versión anterior mientras dura la entrega, en lugar de ser un corte instantáneo.
+
+En la práctica eso significa agregar antes de quitar. Primero se suma la columna nueva y el código escribe en las dos. Recién cuando la versión vieja no está corriendo en ningún lado se elimina la anterior.
+
+Lo bueno es que durante la ventana en la que conviven las dos versiones, ninguna rompe a la otra. Lo que se paga es que una entrega que conceptualmente es un cambio termina siendo dos o tres despliegues separados, y hay que acordarse de terminar la secuencia. Un cambio que agrega sin su limpieza posterior no molesta a nadie, y por eso queda ahí meses.
+
+## Qué reviso antes de exponer la versión nueva
+
+La restricción real de un proyecto chico es que no hay nadie más que mire. No hay un revisor que atrape lo que se te pasó.
+
+La decisión fue apoyarme en pruebas automáticas para lo que ya sé que duele, no para cubrir todo. En un e-commerce eso son unas decenas de pruebas concentradas donde el negocio se rompe: stock, carrito, checkout. En un sistema clínico son cientos, y la enorme mayoría corre contra el backend, que es donde vive la lógica que no puede estar mal.
+
+Esa diferencia es deliberada. No es que uno esté mejor cubierto que el otro: son dos sistemas con superficies de riesgo distintas.
+
+Lo que se paga es que las pruebas te dicen que la lógica está bien, no que la entrega esté bien. Un test en verde no sabe que a la plataforma le falta una variable de entorno. Después de cada despliegue hay una revisión manual corta que sigue siendo manual: entrar, hacer la operación más cara del sistema y confirmar que responde.
+
+## Que la página abra no significa que funcione
+
+Que la página cargue prueba que un proceso está vivo. No prueba que el sistema haga su trabajo.
+
+Un sitio de venta puede mostrar el catálogo entero, impecable, con el cobro roto. El usuario ve todo bien y descubre el problema en el peor momento posible. Una API puede responder mientras el proceso que manda los correos está caído: las operaciones se guardan y las confirmaciones simplemente no salen. Nadie se entera hasta que alguien reclama.
+
+Son cuatro preguntas distintas: si la aplicación responde, si los errores se ven, si las tareas de fondo avanzan y si los eventos externos llegan. Una respuesta afirmativa a la primera no dice nada de las otras tres.
+
+Lo que se paga acá es que las señales existen pero no te buscan. Esa parte, la de que el sistema avise en lugar de esperar a que vos preguntes, es exactamente la que sigo teniendo pendiente.
+
+## Volver atrás son tres cosas distintas
+
+<RollbackOptionsBlock />
+
+Acá se concentra la mayor cantidad de confusión, y es la que más caro sale. Tratarlas como equivalentes lleva a la peor decisión posible: restaurar un backup para arreglar un problema que se resolvía revirtiendo el código, y perder en el camino operaciones legítimas.
+
+El fallo más útil que tuve no fue de código. Apareció un problema de acceso a un servicio administrado que estaba conectado desde otra plataforma. El repositorio estaba bien, el build estaba bien y no había nada que revertir, porque el problema no estaba en ninguna versión mía.
+
+La decisión ahí fue no tocar el código, que era la reacción instintiva. Se resolvió del lado del acceso. Lo que me dejó es la lección más cara de las tres: cuando delegás parte de tu sistema a un servicio, delegás también parte de tu diagnóstico.
+
+## Lo que sacrifiqué en cada decisión
+
+Elegir una plataforma administrada para un proyecto con una sola aplicación significó descartar la infraestructura manejada por mí, que me habría dado control total sobre el proceso y los recursos. La descarté porque para un proyecto de una persona ese control se paga todos los meses en atención. Gané una superficie mínima y acepté hacer las cosas como la plataforma las quiere.
+
+Elegir contenedores sobre un servidor propio en otro sistema significó descartar la plataforma que resuelve todo sola. La descarté porque hay procesos que necesitan comportarse igual en todos lados, y ahí el entorno reproducible deja de ser una preferencia. Gané previsibilidad y acepté administrar más piezas.
+
+Elegir servicios administrados en un tercer caso significó descartar escribir y desplegar un backend propio. Lo descarté porque el tiempo era la restricción real. Gané semanas y acepté que parte del diagnóstico vive en un panel que no controlo.
+
+## Lo que todavía no sé
+
+Lo que no tengo resuelto es el aviso. Sé revertir, sé qué migración fue riesgosa y sé dónde mirar en cada proyecto. Pero el que se entera primero de que algo se rompió sigo siendo yo, y solo si estoy mirando. Un sistema que se cae un domingo a la noche y me espera hasta el lunes está tan caído como uno que nadie monitorea. No sé en qué punto conviene invertir en que el sistema me busque, y sospecho que ese punto ya pasó.
+
+Lo que sí quedó claro después de tres modelos distintos es que la mitad de los problemas de entrega son problemas de entorno: algo que en mi máquina era de una manera y en el servidor era de otra. De eso se trata el próximo artículo.
+
+---
+
+Entregar es fácil el día del lanzamiento. Lo difícil empieza en el segundo despliegue, cuando ya hay datos adentro y una versión anterior que funcionaba. Ese tipo de decisión, y lo que cuesta cuando se toma tarde, es lo que documento cada semana en El Radar.
+
+El Radar es donde publico las decisiones técnicas que tomo en proyectos reales, con el costo que tuvo cada una.
+
+Si querés recibirlo, suscribite acá abajo.
