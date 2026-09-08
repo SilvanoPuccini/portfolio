@@ -116,7 +116,7 @@ export default function NewsletterPage() {
               {/* Header logo */}
               <div style={{ padding: '12px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <RadarBadge scale={0.72} />
+                  <RadarBadge scale={0.82} />
                 </div>
                 <p style={{ fontSize: 10, color: '#00d4d4', letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
                   Silvano Puccini · Full Stack Dev
