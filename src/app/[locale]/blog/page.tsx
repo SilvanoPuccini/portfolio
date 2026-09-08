@@ -10,7 +10,6 @@ import { NextIssueTeaser } from "@/components/blog/NextIssueTeaser";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { PostCover } from "@/components/blog/PostCover";
-import { RadarBadge } from "@/components/blog/RadarBadge";
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Linkedin } from "lucide-react";
@@ -116,29 +115,17 @@ export default async function BlogPage({
         description={
           <div className="space-y-6">
             <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
-            {/* Banner newsletter — full-bleed, se conserva el lado del teclado */}
-            <div className="relative left-1/2 !mt-10 aspect-[2084/755] w-screen max-w-none -translate-x-1/2 overflow-hidden sm:!mt-12 lg:aspect-auto lg:h-[440px] xl:h-[500px]">
-              <Image
-                src="/images/blog-newsletter-banner.png"
-                alt="El Radar — mi newsletter"
-                fill
-                sizes="100vw"
-                className="object-cover object-right"
-                priority
-              />
-              {/* Sombra para legibilidad del logo */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/55 via-transparent to-transparent" aria-hidden="true" />
-              {/* Logo pegado abajo a la izquierda, alineado y con aire */}
-              <div className="absolute bottom-5 left-6 w-[150px] text-center sm:bottom-6 sm:left-10 sm:w-[180px]">
-                <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.22em] text-white/80">
-                  {pc.newsletterLabel}
-                </p>
-                <div className="hidden justify-center overflow-visible sm:flex">
-                  <RadarBadge scale={0.5} className="shrink-0" />
-                </div>
-                <div className="flex justify-center overflow-visible sm:hidden">
-                  <RadarBadge scale={0.25} className="shrink-0" />
-                </div>
+            {/* Banner newsletter — estilo cuadro centrado, con aire a los costados */}
+            <div className="!mt-10 px-2 sm:!mt-12 sm:px-6">
+              <div className="relative mx-auto aspect-[2084/755] w-full max-w-5xl overflow-hidden rounded-sm lg:aspect-auto lg:h-[260px] xl:h-[300px]">
+                <Image
+                  src="/images/blog-newsletter-banner.png"
+                  alt="El Radar — mi newsletter"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 1024px"
+                  className="object-cover object-center"
+                  priority
+                />
               </div>
             </div>
           </div>
