@@ -157,10 +157,10 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
       <div className="flex items-center gap-4 sm:gap-8">
         <div className="shrink-0">
           <div className="hidden w-[140px] justify-center overflow-visible sm:flex">
-            <RadarBadge scale={0.5} />
+            <RadarBadge scale={0.5} className="shrink-0" />
           </div>
           <div className="flex w-[84px] justify-center overflow-visible sm:hidden">
-            <RadarBadge scale={0.3} />
+            <RadarBadge scale={0.3} className="shrink-0" />
           </div>
         </div>
         <p className="min-w-0 flex-1 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">

@@ -164,10 +164,10 @@ export default async function BlogPostPage({
 
         {/* Header editorial */}
         <header className="mb-12 sm:mb-16">
-          {/* Categoría + fecha — misma fila en mobile y desktop */}
-          <div className="mb-10 flex items-center justify-between gap-3">
+          {/* Categoría + Nº + fecha — misma fila en mobile y desktop */}
+          <div className="mb-3 flex items-center gap-3">
             {/* Categoría + reading time */}
-            <div className="flex min-w-0 items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex items-center gap-3">
                 <span
                   className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
@@ -181,10 +181,22 @@ export default async function BlogPostPage({
                 )}
               </div>
             </div>
+            {/* Nº — centrado en desktop, como estaba */}
+            <span className="hidden shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-text-secondary sm:block">
+              Nº {String(post.issue).padStart(2, "0")}
+            </span>
             {/* Fecha — misma fila, mobile y desktop */}
-            <time className="shrink-0 font-mono text-[11px] text-text-tertiary">
-              {formatDate(post.date)}
-            </time>
+            <div className="flex flex-1 justify-end">
+              <time className="shrink-0 font-mono text-[11px] text-text-tertiary">
+                {formatDate(post.date)}
+              </time>
+            </div>
+          </div>
+          {/* Nº — centrado abajo en mobile, como estaba */}
+          <div className="mb-10 flex justify-center sm:hidden">
+            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-text-secondary">
+              Nº {String(post.issue).padStart(2, "0")}
+            </span>
           </div>
 
           {/* Título grande */}
@@ -212,16 +224,13 @@ export default async function BlogPostPage({
                 </p>
               </div>
             </div>
-            <div className="flex shrink-0 flex-col items-center gap-1">
-              <div className="hidden w-[168px] justify-center overflow-visible sm:flex">
-                <RadarBadge scale={0.6} />
+            <div className="flex shrink-0 justify-center overflow-visible">
+              <div className="hidden w-[126px] justify-center overflow-visible sm:flex">
+                <RadarBadge scale={0.45} className="shrink-0" />
               </div>
-              <div className="flex w-[84px] justify-center overflow-visible sm:hidden">
-                <RadarBadge scale={0.3} />
+              <div className="flex w-[70px] justify-center overflow-visible sm:hidden">
+                <RadarBadge scale={0.25} className="shrink-0" />
               </div>
-              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-text-secondary">
-                Nº {String(post.issue).padStart(2, "0")}
-              </span>
             </div>
           </div>
         </header>
