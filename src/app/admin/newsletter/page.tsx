@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { RadarBadge } from '@/components/blog/RadarBadge';
 
 type Post = {
   slug: string; title: string; excerpt: string; date: string;
@@ -113,15 +114,10 @@ export default function NewsletterPage() {
             <div style={{ background: '#050810', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
 
               {/* Header logo */}
-              <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                <p style={{ fontFamily: 'monospace', fontSize: 8, color: '#8c909f', letterSpacing: '0.22em', textTransform: 'uppercase', margin: '0 0 6px' }}>est. 2026</p>
-                <p style={{ margin: '0 0 2px' }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.32em', textTransform: 'uppercase', marginRight: 4 }}>El</span>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Radar</span>
-                </p>
-                <p style={{ fontFamily: 'monospace', fontSize: 7, color: '#8c909f', letterSpacing: '0.2em', textTransform: 'uppercase', margin: '0 0 10px' }}>
-                  arquitectura · código · producto
-                </p>
+              <div style={{ padding: '12px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <RadarBadge scale={0.72} />
+                </div>
                 <p style={{ fontSize: 10, color: '#00d4d4', letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
                   Silvano Puccini · Full Stack Dev
                 </p>
