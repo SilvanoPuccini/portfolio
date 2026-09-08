@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
-import { RadarBadge } from '@/components/blog/RadarBadge';
 import type { PublicEngagement, Reaction } from '@/lib/blog-engagement';
 
 type Props = {
@@ -151,13 +150,12 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
   return (
     <section
       aria-label={labels.prompt}
-      className="mt-14 border-y border-outline-ghost/10 py-5"
+      className="mt-14 border-y border-outline-ghost/10 py-5 sm:flex sm:items-center sm:justify-between"
     >
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
-        <RadarBadge scale={0.46} />
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-          {labels.prompt}
-        </p>
+      <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary sm:mb-0">
+        {labels.prompt}
+      </p>
+      <div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -186,14 +184,14 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
             <span>{labels.share}</span>
           </button>
         </div>
+        <p
+          className="mt-2 min-h-4 text-right font-mono text-[11px] text-text-tertiary"
+          role="status"
+          aria-live="polite"
+        >
+          {status}
+        </p>
       </div>
-      <p
-        className="mt-2 min-h-4 text-right font-mono text-[11px] text-text-tertiary"
-        role="status"
-        aria-live="polite"
-      >
-        {status}
-      </p>
     </section>
   );
 }

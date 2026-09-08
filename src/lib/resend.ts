@@ -1,6 +1,5 @@
 import { Resend } from 'resend';
 import { generateUnsubToken } from '@/lib/unsub-token';
-import { EMAIL_RADAR_DIAL } from '@/lib/newsletter/radar-dial';
 
 // ─── CRM email wrapper ────────────────────────────────────────────────────────
 export async function sendCrmEmail(to: string, subject: string, html: string): Promise<void> {
@@ -119,7 +118,16 @@ export async function sendWelcomeEmail(email: string) {
 
     <!-- Header — logo El Radar -->
     <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
-      ${EMAIL_RADAR_DIAL}
+      <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
+        <g opacity="0.3">
+          <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
+          <circle cx="110" cy="55" r="44" stroke="#00d4d4" stroke-width="0.5"/>
+          <circle cx="110" cy="55" r="66" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
+          <circle cx="110" cy="55" r="90" stroke="#00d4d4" stroke-width="0.375"/>
+          <line x1="110" y1="55" x2="173" y2="9" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
+          <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
+        </g>
+      </svg>
       <div style="position:relative;z-index:1;">
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
           <tr>
