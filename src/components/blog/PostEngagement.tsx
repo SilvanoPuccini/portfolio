@@ -153,8 +153,8 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
       aria-label={labels.prompt}
       className="mt-14 rounded-sm border border-outline-ghost/10 px-5 py-5 sm:px-8"
     >
-      {/* Mobile: logo, pregunta y botones apilados. Desktop: todo en una sola línea */}
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
+      {/* Logo + pregunta en fila siempre. Solo los 3 botones se apilan en mobile */}
+      <div className="flex items-center justify-between gap-4 sm:gap-8">
         <div className="shrink-0">
           <div className="hidden w-[140px] justify-center overflow-visible sm:flex">
             <RadarBadge scale={0.5} className="shrink-0" />
@@ -163,11 +163,11 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
             <RadarBadge scale={0.3} className="shrink-0" />
           </div>
         </div>
-        <p className="text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary sm:min-w-0 sm:flex-1">
+        <p className="min-w-0 flex-1 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
           {labels.prompt}
         </p>
-        <div className="min-w-0 sm:shrink-0">
-          <div className="flex flex-col items-center gap-2 sm:flex-row sm:flex-nowrap sm:justify-end">
+        <div className="min-w-0 shrink-0">
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-end">
           <button
             type="button"
             aria-pressed={engagement.reaction === 'like'}
@@ -196,7 +196,7 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
           </button>
         </div>
           <p
-            className="mt-2 min-h-4 text-center font-mono text-[11px] text-text-tertiary sm:text-right"
+            className="mt-2 min-h-4 text-right font-mono text-[11px] text-text-tertiary"
             role="status"
             aria-live="polite"
           >
