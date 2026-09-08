@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { CATEGORY_COLOR } from '@/lib/resend';
-import { EMAIL_RADAR_BADGE } from '@/lib/newsletter/radar-dial';
+import { EMAIL_RADAR_DIAL } from '@/lib/newsletter/radar-dial';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
 const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
@@ -62,10 +62,36 @@ function buildEmail(opts: {
   <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
     <!-- Header — logo El Radar -->
-    <div style="padding:22px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">
-      ${EMAIL_RADAR_BADGE}
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.16em;text-transform:uppercase;margin-top:10px;">
-        Silvano Puccini · Full Stack Dev
+    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
+      ${EMAIL_RADAR_DIAL}
+      <div style="position:relative;z-index:1;">
+        <!-- est. 2026 con líneas cortas -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+          <tr>
+            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          </tr>
+        </table>
+        <!-- El Radar en una sola línea — tabla para compatibilidad mobile -->
+        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
+          <tr>
+            <td style="vertical-align:bottom;padding-bottom:2px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+            </td>
+            <td style="vertical-align:bottom;padding-left:5px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+            </td>
+          </tr>
+        </table>
+        <!-- tagline sin líneas -->
+        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
+          arquitectura · código · producto
+        </div>
+        <!-- Silvano Puccini en cyan -->
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+          Silvano Puccini · Full Stack Dev
+        </div>
       </div>
     </div>
 

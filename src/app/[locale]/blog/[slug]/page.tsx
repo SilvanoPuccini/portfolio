@@ -190,10 +190,11 @@ export default async function BlogPostPage({
             {post.title}
           </h1>
 
-          {/* Autor + identidad editorial */}
+          {/* Identidad editorial + autor */}
           <div className="mt-8 flex flex-col gap-5 border-t border-outline-ghost/15 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10">
+            <RadarBadge scale={0.52} />
+            <div className="flex items-center gap-4 sm:text-right">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10 sm:order-2">
                 <Image
                   src={fotoColorImage}
                   alt="Silvano Puccini"
@@ -210,7 +211,6 @@ export default async function BlogPostPage({
                 </p>
               </div>
             </div>
-            <RadarBadge scale={0.82} />
           </div>
         </header>
 

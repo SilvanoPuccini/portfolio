@@ -153,40 +153,38 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
       aria-label={labels.prompt}
       className="mt-14 border-y border-outline-ghost/10 py-5"
     >
-      <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-        <RadarBadge scale={0.68} />
-        <div className="min-w-0 flex-1">
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-            {labels.prompt}
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              aria-pressed={engagement.reaction === 'like'}
-              aria-label={`${labels.like}: ${engagement.likeCount}`}
-              disabled={!ready || saving}
-              onClick={() => void updateReaction('like')}
-              className={`${buttonClass} ${engagement.reaction === 'like' ? selectedClass : idleClass}`}
-            >
-              <ThumbsUp aria-hidden size={16} strokeWidth={1.8} />
-              <span>{labels.like}</span>
-              <span className="font-mono tabular-nums" aria-hidden>{engagement.likeCount}</span>
-            </button>
-            <button
-              type="button"
-              aria-pressed={engagement.reaction === 'dislike'}
-              disabled={!ready || saving}
-              onClick={() => void updateReaction('dislike')}
-              className={`${buttonClass} ${engagement.reaction === 'dislike' ? selectedClass : idleClass}`}
-            >
-              <ThumbsDown aria-hidden size={16} strokeWidth={1.8} />
-              <span>{labels.dislike}</span>
-            </button>
-            <button type="button" onClick={() => void recordShare()} className={`${buttonClass} ${idleClass}`}>
-              <Share2 aria-hidden size={16} strokeWidth={1.8} />
-              <span>{labels.share}</span>
-            </button>
-          </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
+        <RadarBadge scale={0.46} />
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+          {labels.prompt}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={engagement.reaction === 'like'}
+            aria-label={`${labels.like}: ${engagement.likeCount}`}
+            disabled={!ready || saving}
+            onClick={() => void updateReaction('like')}
+            className={`${buttonClass} ${engagement.reaction === 'like' ? selectedClass : idleClass}`}
+          >
+            <ThumbsUp aria-hidden size={16} strokeWidth={1.8} />
+            <span>{labels.like}</span>
+            <span className="font-mono tabular-nums" aria-hidden>{engagement.likeCount}</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={engagement.reaction === 'dislike'}
+            disabled={!ready || saving}
+            onClick={() => void updateReaction('dislike')}
+            className={`${buttonClass} ${engagement.reaction === 'dislike' ? selectedClass : idleClass}`}
+          >
+            <ThumbsDown aria-hidden size={16} strokeWidth={1.8} />
+            <span>{labels.dislike}</span>
+          </button>
+          <button type="button" onClick={() => void recordShare()} className={`${buttonClass} ${idleClass}`}>
+            <Share2 aria-hidden size={16} strokeWidth={1.8} />
+            <span>{labels.share}</span>
+          </button>
         </div>
       </div>
       <p
