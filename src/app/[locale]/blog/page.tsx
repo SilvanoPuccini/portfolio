@@ -116,27 +116,27 @@ export default async function BlogPage({
         description={
           <div className="space-y-6">
             <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
-            {/* Banner newsletter — imagen de punta a punta con el logo pegado abajo a la izquierda */}
-            <div className="relative !mt-10 h-60 w-full overflow-hidden rounded-sm sm:!mt-12 sm:h-80 lg:aspect-[2084/755] lg:h-auto">
+            {/* Banner newsletter — full-bleed, se conserva el lado del teclado */}
+            <div className="relative left-1/2 !mt-10 aspect-[2084/755] w-screen max-w-none -translate-x-1/2 overflow-hidden sm:!mt-12 lg:aspect-auto lg:h-[440px] xl:h-[500px]">
               <Image
                 src="/images/blog-newsletter-banner.png"
                 alt="El Radar — mi newsletter"
                 fill
                 sizes="100vw"
-                className="object-cover object-left sm:object-center"
+                className="object-cover object-right"
                 priority
               />
               {/* Sombra para legibilidad del logo */}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/55 via-transparent to-transparent" aria-hidden="true" />
-              {/* Logo pegado abajo a la izquierda, tamaño similar al celular de la foto */}
-              <div className="absolute bottom-3 left-3 sm:bottom-5 sm:left-6">
+              {/* Logo pegado abajo a la izquierda, alineado y con aire */}
+              <div className="absolute bottom-5 left-6 w-[150px] text-center sm:bottom-6 sm:left-10 sm:w-[180px]">
                 <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.22em] text-white/80">
                   {pc.newsletterLabel}
                 </p>
-                <div className="hidden w-[140px] justify-center overflow-visible sm:flex">
+                <div className="hidden justify-center overflow-visible sm:flex">
                   <RadarBadge scale={0.5} className="shrink-0" />
                 </div>
-                <div className="flex w-[70px] justify-center overflow-visible sm:hidden">
+                <div className="flex justify-center overflow-visible sm:hidden">
                   <RadarBadge scale={0.25} className="shrink-0" />
                 </div>
               </div>
