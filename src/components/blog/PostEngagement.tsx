@@ -153,12 +153,8 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
       aria-label={labels.prompt}
       className="mt-14 rounded-sm border border-outline-ghost/10 px-5 py-5 sm:px-8"
     >
-      {/* Pregunta — arriba, a lo largo de todo */}
-      <p className="text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-        {labels.prompt}
-      </p>
-      {/* Radar + botones — misma fila en mobile y desktop */}
-      <div className="mt-4 flex items-center justify-between gap-4">
+      {/* Mobile: logo, pregunta y botones apilados. Desktop: todo en una sola línea */}
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
         <div className="shrink-0">
           <div className="hidden w-[140px] justify-center overflow-visible sm:flex">
             <RadarBadge scale={0.5} className="shrink-0" />
@@ -167,8 +163,11 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
             <RadarBadge scale={0.3} className="shrink-0" />
           </div>
         </div>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center justify-end gap-2">
+        <p className="text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary sm:min-w-0 sm:flex-1">
+          {labels.prompt}
+        </p>
+        <div className="min-w-0 sm:shrink-0">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:flex-nowrap sm:justify-end">
           <button
             type="button"
             aria-pressed={engagement.reaction === 'like'}
@@ -197,7 +196,7 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
           </button>
         </div>
           <p
-            className="mt-2 min-h-4 text-right font-mono text-[11px] text-text-tertiary"
+            className="mt-2 min-h-4 text-center font-mono text-[11px] text-text-tertiary sm:text-right"
             role="status"
             aria-live="polite"
           >
