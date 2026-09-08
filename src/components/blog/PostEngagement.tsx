@@ -151,10 +151,14 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
   return (
     <section
       aria-label={labels.prompt}
-      className="mt-14 border-y border-outline-ghost/10 py-5"
+      className="mt-14 rounded-sm border border-outline-ghost/10 px-5 py-5 sm:px-8"
     >
-      {/* Radar + pregunta + botones — misma fila en mobile y desktop */}
-      <div className="flex items-center gap-4 sm:gap-8">
+      {/* Pregunta — arriba, a lo largo de todo */}
+      <p className="text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+        {labels.prompt}
+      </p>
+      {/* Radar + botones — misma fila en mobile y desktop */}
+      <div className="mt-4 flex items-center justify-between gap-4">
         <div className="shrink-0">
           <div className="hidden w-[140px] justify-center overflow-visible sm:flex">
             <RadarBadge scale={0.5} className="shrink-0" />
@@ -163,10 +167,7 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
             <RadarBadge scale={0.3} className="shrink-0" />
           </div>
         </div>
-        <p className="min-w-0 flex-1 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
-          {labels.prompt}
-        </p>
-        <div className="min-w-0 shrink-0">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
