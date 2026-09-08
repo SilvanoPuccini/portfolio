@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { RadarBadge } from '@/components/blog/RadarBadge';
 import type { PublicEngagement, Reaction } from '@/lib/blog-engagement';
 
 type Props = {
@@ -150,13 +151,23 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
   return (
     <section
       aria-label={labels.prompt}
-      className="mt-14 border-y border-outline-ghost/10 py-5 sm:flex sm:items-center sm:justify-between"
+      className="mt-14 border-y border-outline-ghost/10 py-5"
     >
-      <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary sm:mb-0">
-        {labels.prompt}
-      </p>
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
+      {/* Radar + pregunta + botones — misma fila en mobile y desktop */}
+      <div className="flex items-center gap-4 sm:gap-8">
+        <div className="shrink-0">
+          <div className="hidden w-[140px] justify-center overflow-visible sm:flex">
+            <RadarBadge scale={0.5} />
+          </div>
+          <div className="flex w-[84px] justify-center overflow-visible sm:hidden">
+            <RadarBadge scale={0.3} />
+          </div>
+        </div>
+        <p className="min-w-0 flex-1 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+          {labels.prompt}
+        </p>
+        <div className="min-w-0 shrink-0">
+          <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
             aria-pressed={engagement.reaction === 'like'}
@@ -184,13 +195,14 @@ export function PostEngagement({ slug, title, locale, isPreview = false }: Props
             <span>{labels.share}</span>
           </button>
         </div>
-        <p
-          className="mt-2 min-h-4 text-right font-mono text-[11px] text-text-tertiary"
-          role="status"
-          aria-live="polite"
-        >
-          {status}
-        </p>
+          <p
+            className="mt-2 min-h-4 text-right font-mono text-[11px] text-text-tertiary"
+            role="status"
+            aria-live="polite"
+          >
+            {status}
+          </p>
+        </div>
       </div>
     </section>
   );

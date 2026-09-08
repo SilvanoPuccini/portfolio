@@ -164,10 +164,10 @@ export default async function BlogPostPage({
 
         {/* Header editorial */}
         <header className="mb-12 sm:mb-16">
-          {/* Mobile: categoría+fecha arriba / badge abajo. Desktop: 3 columnas */}
-          <div className="mb-16 flex flex-col gap-3 sm:mb-10 sm:grid sm:grid-cols-3 sm:items-center">
-            {/* Categoría + reading time + fecha (mobile) */}
-            <div className="flex items-center justify-between sm:justify-start sm:gap-3">
+          {/* Categoría + fecha — misma fila en mobile y desktop */}
+          <div className="mb-10 flex items-center justify-between gap-3">
+            {/* Categoría + reading time */}
+            <div className="flex min-w-0 items-center gap-3">
               <div className="flex items-center gap-3">
                 <span
                   className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${categoryColor}`}
@@ -180,26 +180,11 @@ export default async function BlogPostPage({
                   </span>
                 )}
               </div>
-              {/* Fecha visible solo en mobile */}
-              <time className="font-mono text-[11px] text-text-tertiary sm:hidden">
-                {formatDate(post.date)}
-              </time>
             </div>
-
-            {/* RadarBadge — fila propia en mobile, columna central en desktop */}
-            <div className="flex flex-col items-center gap-1">
-              <RadarBadge scale={0.7} />
-              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-text-secondary">
-                Nº {String(post.issue).padStart(2, "0")}
-              </span>
-            </div>
-
-            {/* Fecha — oculta en mobile, visible en desktop */}
-            <div className="hidden sm:flex sm:justify-end">
-              <time className="font-mono text-[11px] text-text-tertiary">
-                {formatDate(post.date)}
-              </time>
-            </div>
+            {/* Fecha — misma fila, mobile y desktop */}
+            <time className="shrink-0 font-mono text-[11px] text-text-tertiary">
+              {formatDate(post.date)}
+            </time>
           </div>
 
           {/* Título grande */}
@@ -207,23 +192,36 @@ export default async function BlogPostPage({
             {post.title}
           </h1>
 
-          {/* Separador + autor */}
-          <div className="mt-8 flex items-center gap-4 border-t border-outline-ghost/15 pt-6">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10">
-              <Image
-                src={fotoColorImage}
-                alt="Silvano Puccini"
-                fill
-                className="object-cover object-top scale-[1.02]"
-              />
+          {/* Autor + radar — misma fila en mobile y desktop, el radar solo se achica */}
+          <div className="mt-8 flex items-center justify-between gap-3 border-t border-outline-ghost/15 pt-6">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[radial-gradient(circle_at_40%_35%,#2FD3C7_0%,#1E4F9A_50%,#0A2A5E_100%)] ring-1 ring-white/10">
+                <Image
+                  src={fotoColorImage}
+                  alt="Silvano Puccini"
+                  fill
+                  className="object-cover object-top scale-[1.02]"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Silvano Puccini
+                </p>
+                <p className="font-mono text-[11px] text-text-tertiary">
+                  Full Stack Engineer
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                Silvano Puccini
-              </p>
-              <p className="font-mono text-[11px] text-text-tertiary">
-                Full Stack Engineer
-              </p>
+            <div className="flex shrink-0 flex-col items-center gap-1">
+              <div className="hidden w-[168px] justify-center overflow-visible sm:flex">
+                <RadarBadge scale={0.6} />
+              </div>
+              <div className="flex w-[84px] justify-center overflow-visible sm:hidden">
+                <RadarBadge scale={0.3} />
+              </div>
+              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-text-secondary">
+                Nº {String(post.issue).padStart(2, "0")}
+              </span>
             </div>
           </div>
         </header>
@@ -240,11 +238,6 @@ export default async function BlogPostPage({
         <MDXContent source={restContent} />
 
         <PostEngagement slug={post.slug} title={post.title} locale={currentLocale} isPreview={isPreview} />
-
-        {/* Cierre — logo El Radar centrado */}
-        <div className="mt-20 flex justify-center">
-          <RadarBadge scale={0.8} />
-        </div>
 
         {/* CTA Newsletter */}
         <section className="group relative mt-20 overflow-hidden rounded-sm border border-outline-ghost/10 bg-[rgb(var(--surface-elevated))] px-8 py-10 sm:px-12 sm:py-12">
