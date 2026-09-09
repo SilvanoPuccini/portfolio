@@ -3,234 +3,115 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
-import { CopyButton } from '@/components/admin/CopyButton';
+import { ContentPanel } from '@/components/admin/ContentPanel';
+import { CopyIconButton, ConfirmIconButton, CrossIcon } from '@/components/admin/IconButton';
+import { c, tint } from '@/components/admin/tokens';
 import { StatusActions } from './StatusActions';
-import { DeleteAgendaItemButton } from './DeleteAgendaItemButton';
 import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
 
-const eyebrow: React.CSSProperties = {
-  fontFamily: 'monospace',
-  fontSize: 11,
-  letterSpacing: '0.18em',
-  textTransform: 'uppercase',
-  color: '#00d4d4',
-  margin: '0 0 12px',
+const card: React.CSSProperties = {
+  background: c.surface, border: `1px solid ${c.border}`, borderRadius: 12, padding: 16,
 };
-
-const panel: React.CSSProperties = {
-  marginTop: 20,
-  padding: 20,
-  borderRadius: 10,
-  border: '1px solid rgba(255,255,255,0.08)',
-  background: '#111827',
+const eyebrow: React.CSSProperties = {
+  margin: '0 0 10px', fontFamily: 'monospace', fontSize: 10,
+  letterSpacing: '0.18em', textTransform: 'uppercase', color: c.textDim,
 };
 
 /**
- * Texto en bruto del post: se lee, se edita y se guarda sin salir del detalle.
+ * Detalle de un post del blog: datos, texto y estado.
  *
- * La fila ya existe en la agenda con su slug y su fecha, así que acá solo se
- * carga el texto que falta. Los botones de estado están en el mismo panel a
- * propósito: preaprobar depende de que haya texto, y tenerlos separados
- * obligaba a volver al listado para ver si el botón se había habilitado.
+ * El texto se edita donde se lee y se guarda al salir del campo; el .md se
+ * arrastra sobre el mismo bloque. Los botones de estado están acá abajo a
+ * propósito, porque preaprobar depende de que haya texto.
  */
 export function RawContentPanel({ item }: { item: PostPublication }) {
   const router = useRouter();
   const [content, setContent] = useState(item.raw_content ?? '');
-  const [draft, setDraft] = useState(item.raw_content ?? '');
-  const [editing, setEditing] = useState(!item.raw_content);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState(item.raw_title);
   const [scheduledAt, setScheduledAt] = useState(() => {
     const date = new Date(item.scheduled_at);
-    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-    return local.toISOString().slice(0, 16);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
   });
-
-  const chars = content.trim().length;
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   async function patch(body: Record<string, unknown>): Promise<boolean> {
-    setSaving(true);
-    setError(null);
+    setSaving(true); setError('');
     try {
-      const res = await fetch(`/api/admin/posts-agenda/${item.post_slug}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+      const response = await fetch(`/api/admin/posts-agenda/${item.post_slug}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error ?? 'No se pudo guardar');
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(json.error ?? 'No se pudo guardar');
       router.refresh();
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'No se pudo guardar');
       return false;
-    } finally {
-      setSaving(false);
+    } finally { setSaving(false); }
+  }
+
+  async function remove() {
+    const response = await fetch(`/api/admin/posts-agenda/${encodeURIComponent(item.post_slug)}`, { method: 'DELETE' });
+    if (!response.ok) {
+      const json = await response.json().catch(() => ({}));
+      return setError(json.error ?? 'No se pudo eliminar');
     }
+    router.push('/admin/agenda');
+    router.refresh();
   }
 
-  async function save() {
-    if (await patch({ raw_content: draft })) {
-      setContent(draft);
-      setEditing(false);
-    }
-  }
-
-  function changeStatus(status: PostPublicationStatus) {
-    patch({ status });
-  }
-
-  return (
-    <>
-      <div style={panel}>
-        <p style={eyebrow}>Datos del post</p>
-        <div style={s.form}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-            <label style={{ ...s.label, flex: 1 }}>
-              Título
-              <input style={s.input} value={title} onChange={(event) => setTitle(event.target.value)} />
-            </label>
-            <CopyButton
-              text={title}
-              label="Copiar título"
-              ariaLabel="Copiar título"
-              className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-            />
-          </div>
-          <label style={s.label}>
-            Programado para
-            <input
-              type="datetime-local"
-              style={s.input}
-              value={scheduledAt}
-              onChange={(event) => setScheduledAt(event.target.value)}
-            />
+  return <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
+    <section style={card}>
+      <p style={eyebrow}>Datos del post</p>
+      <div style={{ display: 'grid', gap: 11 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+          <label style={{ ...s.label, flex: 1 }}>Título
+            <input style={s.input} value={title} onChange={(event) => setTitle(event.target.value)}
+              onBlur={() => { if (title !== item.raw_title && title.trim()) patch({ raw_title: title }); }} />
           </label>
-          <button
-            type="button"
-            className="transition-[filter] hover:brightness-110"
-            style={{ ...s.btn, alignSelf: 'flex-start', ...(saving ? { opacity: 0.6, cursor: 'wait' } : {}) }}
-            disabled={saving || !title.trim() || !scheduledAt}
-            onClick={() => patch({ raw_title: title, scheduled_at: new Date(scheduledAt).toISOString() })}
-          >
-            {saving ? 'Guardando…' : 'Guardar fecha y título'}
-          </button>
+          <CopyIconButton text={title} label="Copiar título" />
         </div>
+        <label style={s.label}>Programado para
+          <input type="datetime-local" style={s.input} value={scheduledAt}
+            onChange={(event) => setScheduledAt(event.target.value)}
+            onBlur={() => { if (scheduledAt) patch({ scheduled_at: new Date(scheduledAt).toISOString() }); }} />
+        </label>
+        <p style={{ margin: 0, fontSize: 11, color: c.textDim }}>Se guardan solos al salir del campo.</p>
       </div>
+    </section>
 
-      <div style={panel}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-          <p style={eyebrow}>Texto en bruto</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <CopyButton
-              text={editing ? draft : content}
-              label="Copiar texto"
-              ariaLabel="Copiar texto en bruto"
-              className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-            />
-            {!editing && (
-              <button
-                type="button"
-                className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-                style={s.btnGhost}
-                onClick={() => {
-                  setDraft(content);
-                  setEditing(true);
-                }}
-              >
-                Editar texto
-              </button>
-            )}
-          </div>
-        </div>
+    <ContentPanel title="Texto en bruto" value={content}
+      onSave={async (text) => {
+        const ok = await patch({ raw_content: text });
+        if (ok) setContent(text);
+        return ok;
+      }}
+      onAttachMarkdown={async (markdown) => {
+        const ok = await patch({ source_markdown: markdown });
+        if (ok) {
+          const response = await fetch(`/api/admin/posts-agenda/${item.post_slug}`);
+          const json = await response.json().catch(() => ({}));
+          setContent(json.item?.raw_content ?? '');
+        }
+        return ok;
+      }} />
 
-        {editing ? (
-          <>
-            <textarea
-              aria-label="Texto en bruto"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Pegá acá el texto del post. Se guarda en la agenda; el .mdx se sigue hardcodeando y deployando como siempre."
-              style={{
-                ...s.input,
-                width: '100%',
-                minHeight: 320,
-                fontFamily: 'inherit',
-                fontSize: 13,
-                lineHeight: 1.7,
-                resize: 'vertical',
-              }}
-            />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 12,
-                marginTop: 12,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span style={{ ...s.hint, marginTop: 0 }}>
-                {draft.trim().length.toLocaleString('es-AR')} caracteres
-              </span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {content && (
-                  <button
-                    className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-                    style={s.btnGhost}
-                    onClick={() => {
-                      setDraft(content);
-                      setEditing(false);
-                      setError(null);
-                    }}
-                    disabled={saving}
-                  >
-                    Cancelar
-                  </button>
-                )}
-                <button
-                  className="transition-[filter] hover:brightness-110"
-                  style={{ ...s.btn, ...(saving ? { opacity: 0.6, cursor: 'wait' } : {}) }}
-                  onClick={save}
-                  disabled={saving}
-                >
-                  {saving ? 'Guardando…' : 'Guardar texto'}
-                </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <pre
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                fontSize: 13,
-                lineHeight: 1.7,
-                color: '#94a3b8',
-                margin: 0,
-                maxHeight: 460,
-                overflow: 'auto',
-              }}
-            >
-              {content}
-            </pre>
-            <p style={{ ...s.hint, marginTop: 12 }}>{chars.toLocaleString('es-AR')} caracteres guardados</p>
-          </>
-        )}
-
-        {error && <p role="alert" style={{ ...s.errorText, marginTop: 12 }}>{error}</p>}
+    <section style={card}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <p style={{ ...eyebrow, margin: 0 }}>Estado</p>
+        <span style={{ marginLeft: 'auto' }}>
+          <ConfirmIconButton label="Eliminar de la agenda" question="¿Eliminar el post?" onConfirm={remove}>
+            <CrossIcon />
+          </ConfirmIconButton>
+        </span>
       </div>
-
-      <div style={panel}>
-        <p style={eyebrow}>Estado</p>
-        <StatusActions item={{ title, status: item.status, has_content: chars > 0 }} onChange={changeStatus} />
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <DeleteAgendaItemButton slug={item.post_slug} title={title} />
-        </div>
-      </div>
-    </>
-  );
+      <StatusActions
+        item={{ title, status: item.status, has_content: content.trim().length > 0 }}
+        onChange={(status: PostPublicationStatus) => patch({ status })}
+      />
+      {saving && <p style={{ margin: '10px 0 0', fontSize: 11, color: c.textDim }}>Guardando…</p>}
+      {error && <p role="alert" style={{ margin: '10px 0 0', padding: '9px 12px', borderRadius: 8, border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late, fontSize: 12 }}>{error}</p>}
+    </section>
+  </div>;
 }

@@ -1,23 +1,35 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { DaySheet } from './DaySheet';
 import { STATUS_LABELS } from './StatusBadge';
-import { c, dayKey, isoWeek, itemTone, tint, CHANNEL_LABEL, CHANNEL_SHORT } from '@/components/admin/tokens';
+import { c, dayKey, isoWeek, itemTone, tint, CHANNEL_LABEL } from '@/components/admin/tokens';
 import type { AgendaItem } from '@/lib/agenda/types';
 
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
 /**
- * Domingo primero a propósito: el ciclo editorial arranca con el post del blog
- * del domingo y sigue con LinkedIn el martes y el viernes. Con la semana
- * empezando el lunes, ese ciclo quedaba partido en dos filas.
+ * Domingo primero, y cada columna dice qué canal le toca.
+ *
+ * El ritmo editorial es: blog el domingo, LinkedIn el martes (D+2) y el viernes
+ * (D+5). Rotularlo en la cabecera evita el error de cargar en el día equivocado,
+ * y de paso explica el calendario a alguien que lo ve por primera vez.
  */
-const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const WEEKDAYS: { label: string; channel?: 'blog' | 'linkedin' }[] = [
+  { label: 'Domingo', channel: 'blog' },
+  { label: 'Lunes' },
+  { label: 'Martes', channel: 'linkedin' },
+  { label: 'Miércoles' },
+  { label: 'Jueves' },
+  { label: 'Viernes', channel: 'linkedin' },
+  { label: 'Sábado' },
+];
+
 const VISIBLE_PER_DAY = 2;
-const RAIL = 30;
 
 interface Cell { date: Date; inMonth: boolean }
 
-/** Semanas completas: los días del mes vecino se muestran atenuados, no en blanco. */
+/** Semanas completas: los días del mes vecino se atenúan, no se dejan en blanco. */
 function monthWeeks(year: number, month: number): Cell[][] {
   const lead = new Date(year, month, 1).getDay();
   const total = Math.ceil((lead + new Date(year, month + 1, 0).getDate()) / 7) * 7;
@@ -28,6 +40,45 @@ function monthWeeks(year: number, month: number): Cell[][] {
   return Array.from({ length: total / 7 }, (_, index) => cells.slice(index * 7, index * 7 + 7));
 }
 
+/** Chip de una pieza: el canal se lee con la palabra, no con una sigla. */
+function PieceChip({ item, selected, onClick }: {
+  item: AgendaItem;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const tone = itemTone(item);
+  const blog = item.channel === 'blog';
+  return <button type="button" onClick={onClick}
+    aria-label={`${item.title}, ${CHANNEL_LABEL[item.channel]}, ${STATUS_LABELS[item.status]}${item.is_ready ? '' : ', incompleta'}`}
+    className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+    style={{
+      position: 'relative', display: 'block', width: '100%', minWidth: 0,
+      textAlign: 'left', padding: '4px 6px', cursor: 'pointer', fontFamily: 'inherit',
+      // La forma dice el canal: el blog es un rectángulo recto, LinkedIn va
+      // redondeado. El color queda libre para hablar solo del estado.
+      borderRadius: blog ? 3 : 9,
+      border: `1px solid ${selected ? tone : tint(tone, '4d')}`,
+      borderLeft: `3px solid ${tone}`,
+      background: tint(tone, '1f'),
+    }}>
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 1 }}>
+      <span aria-hidden style={{
+        width: 5, height: 5, flexShrink: 0,
+        borderRadius: blog ? 0 : '50%', background: tone,
+      }} />
+      <span style={{ fontFamily: 'monospace', fontSize: 8.5, fontWeight: 700, letterSpacing: '0.08em', color: tone }}>
+        {blog ? 'BLOG' : 'LINKEDIN'}
+      </span>
+      {item.status === 'publicado' && <span aria-hidden style={{ marginLeft: 'auto', fontSize: 8, color: tone }}>✓</span>}
+      {!item.is_ready && item.status !== 'publicado' && <span aria-hidden title="Le falta material" style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 700, color: c.incomplete }}>!</span>}
+    </span>
+    <span title={item.title} style={{
+      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      overflow: 'hidden', color: c.text, fontSize: 11, lineHeight: 1.28,
+    }}>{item.title}</span>
+  </button>;
+}
+
 export function AgendaCalendar({ items, selectedId, onSelect, onCreate }: {
   items: AgendaItem[];
   selectedId: string | null;
@@ -36,6 +87,8 @@ export function AgendaCalendar({ items, selectedId, onSelect, onCreate }: {
 }) {
   const [viewDate, setViewDate] = useState(() => new Date());
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [daySheet, setDaySheet] = useState<Date | null>(null);
+
   const grouped = useMemo(() => {
     const map = new Map<string, AgendaItem[]>();
     for (const item of items) {
@@ -56,72 +109,81 @@ export function AgendaCalendar({ items, selectedId, onSelect, onCreate }: {
     return date.getFullYear() === year && date.getMonth() === month;
   }).length;
 
-  const navButton: React.CSSProperties = {
-    background: 'transparent', color: c.textSoft, border: `1px solid ${c.border}`,
-    borderRadius: 7, padding: '5px 11px', fontSize: 12, cursor: 'pointer', lineHeight: 1.4,
+  const nav: React.CSSProperties = {
+    minWidth: 32, height: 32, display: 'grid', placeItems: 'center',
+    background: 'transparent', border: `1px solid ${c.border}`, borderRadius: 8,
+    color: c.textSoft, cursor: 'pointer', padding: '0 10px', fontFamily: 'inherit', fontSize: 13,
   };
-  const gridColumns = `${RAIL}px repeat(7, minmax(0, 1fr))`;
 
   return <section style={{
-    background: c.surface, border: `1px solid ${c.border}`, borderRadius: 12,
-    padding: 16, display: 'flex', flexDirection: 'column', gap: 10,
+    background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14,
+    padding: 'clamp(12px, 1.6vw, 20px)', display: 'flex', flexDirection: 'column', gap: 12,
   }}>
-    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
-        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: c.text, letterSpacing: '-0.01em' }}>
+    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, minWidth: 0 }}>
+        <h2 style={{ margin: 0, fontSize: 'clamp(18px, 2.1vw, 24px)', fontWeight: 700, color: c.text, letterSpacing: '-0.02em' }}>
           {MONTH_NAMES[month]} <span style={{ color: c.textSoft, fontWeight: 500 }}>{year}</span>
         </h2>
         <span style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim, whiteSpace: 'nowrap' }}>
           {monthCount} {monthCount === 1 ? 'pieza' : 'piezas'}
         </span>
       </div>
-      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-        <button className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]" style={navButton}
-          onClick={() => setViewDate(new Date(year, month - 1, 1))} aria-label="Mes anterior">←</button>
-        <button className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]" style={navButton}
+      <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
+        <button type="button" style={nav} aria-label="Mes anterior"
+          className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+          onClick={() => setViewDate(new Date(year, month - 1, 1))}>←</button>
+        <button type="button" style={nav}
+          className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
           onClick={() => setViewDate(new Date())}>Hoy</button>
-        <button className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]" style={navButton}
-          onClick={() => setViewDate(new Date(year, month + 1, 1))} aria-label="Mes siguiente">→</button>
+        <button type="button" style={nav} aria-label="Mes siguiente"
+          className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+          onClick={() => setViewDate(new Date(year, month + 1, 1))}>→</button>
       </div>
     </header>
 
-    <div style={{ display: 'grid', gridTemplateColumns: gridColumns, gap: 5 }}>
-      <span aria-hidden style={{ fontSize: 9, fontFamily: 'monospace', color: c.textDim, textAlign: 'center' }}>SEM</span>
-      {WEEKDAYS.map((day) => <span key={day} style={{
-        textAlign: 'center', fontSize: 10, fontFamily: 'monospace',
-        letterSpacing: '0.1em', textTransform: 'uppercase', color: c.textDim,
-      }}>{day}</span>)}
+    {/* Cabecera con la convención: qué canal sale cada día. */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 'clamp(4px, .5vw, 8px)' }}>
+      {WEEKDAYS.map((day, index) => <div key={index} style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+        padding: '5px 2px', borderRadius: 7, minWidth: 0,
+        background: day.channel ? 'rgba(255,255,255,.03)' : 'transparent',
+      }}>
+        <span style={{ fontSize: 10, fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase', color: c.textSoft }}>
+          <span className="hidden sm:inline">{day.label}</span>
+          <span className="sm:hidden">{day.label.slice(0, 3)}</span>
+        </span>
+        {day.channel && <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 3,
+          fontFamily: 'monospace', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
+          color: c.textDim, whiteSpace: 'nowrap',
+        }}>
+          <span aria-hidden style={{
+            width: 5, height: 5, flexShrink: 0, background: 'currentColor',
+            borderRadius: day.channel === 'blog' ? 0 : '50%',
+          }} />
+          {day.channel === 'blog' ? 'BLOG' : 'LINKEDIN'}
+        </span>}
+      </div>)}
     </div>
 
     {/*
-      Alto repartido entre las semanas del mes: las filas son 1fr, así que la
-      grilla entra completa y no hay scroll ni horizontal ni vertical.
+      Alto repartido entre las semanas: las filas son 1fr, así que el mes entra
+      completo sin scroll y las celdas crecen con el ancho disponible.
     */}
     <div style={{
-      display: 'grid', gap: 5,
+      display: 'grid', gap: 'clamp(4px, .5vw, 8px)',
       gridTemplateRows: `repeat(${weeks.length}, minmax(0, 1fr))`,
-      height: `clamp(${weeks.length * 66}px, ${weeks.length * 8.6}vh, ${weeks.length * 100}px)`,
+      height: `clamp(${weeks.length * 96}px, ${weeks.length * 12.5}vh, ${weeks.length * 152}px)`,
     }}>
       {weeks.map((week) => {
-        // La semana se numera por su lunes: el domingo abre la fila, pero la
-        // semana ISO a la que pertenece el ciclo es la que empieza al día siguiente.
         const weekNumber = isoWeek(week[1].date);
         const isCurrentWeek = weekNumber === currentWeek && week[1].date.getFullYear() === today.getFullYear();
-        return <div key={weekNumber + week[0].date.toISOString()} style={{
-          display: 'grid', gridTemplateColumns: gridColumns, gap: 5, minHeight: 0,
+        return <div key={week[0].date.toISOString()} style={{
+          display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+          gap: 'clamp(4px, .5vw, 8px)', minHeight: 0,
           background: isCurrentWeek ? c.surfaceWeek : 'transparent',
-          borderRadius: 8,
-          boxShadow: isCurrentWeek ? `inset 3px 0 0 ${c.ready}` : 'none',
+          borderRadius: 10,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-            <span
-              title={isCurrentWeek ? `Semana ${weekNumber} · en curso` : `Semana ${weekNumber}`}
-              style={{
-                fontFamily: 'monospace', fontSize: 10, fontWeight: isCurrentWeek ? 700 : 400,
-                color: isCurrentWeek ? c.ready : c.textDim,
-              }}
-            >{weekNumber}</span>
-          </div>
           {week.map(({ date, inMonth }) => {
             const key = dayKey(date);
             const all = grouped.get(key) ?? [];
@@ -129,53 +191,44 @@ export function AgendaCalendar({ items, selectedId, onSelect, onCreate }: {
             const visible = isExpanded ? all : all.slice(0, VISIBLE_PER_DAY);
             const isToday = key === todayKey;
             return <div key={key} style={{
-              position: 'relative', display: 'flex', flexDirection: 'column', gap: 3,
-              minWidth: 0, minHeight: 0, padding: 4, borderRadius: 7,
-              border: isToday ? `1px solid ${c.ready}` : `1px solid ${c.borderSoft}`,
-              background: isToday ? tint(c.ready, '14') : inMonth ? 'transparent' : 'rgba(0,0,0,0.18)',
-              opacity: inMonth ? 1 : 0.45,
+              position: 'relative', display: 'flex', flexDirection: 'column',
+              minWidth: 0, minHeight: 0, padding: 6, borderRadius: 9,
+              border: isToday ? `1.5px solid ${c.ready}` : `1px solid ${inMonth ? c.borderSoft : 'transparent'}`,
+              background: isToday ? tint(c.ready, '12') : inMonth ? 'rgba(255,255,255,.012)' : 'transparent',
+              opacity: inMonth ? 1 : 0.4,
             }}>
-              {/* Los días del mes vecino se ven para no cortar la semana, pero no
-                  se puede crear en ellos: el mes que se está mirando es este. */}
-              {inMonth && <button type="button" aria-label={`Crear post el ${date.toLocaleDateString('es-AR')}`}
-                onClick={() => onCreate(`${key}T10:00`)}
-                style={{ position: 'absolute', inset: 0, border: 0, background: 'transparent', borderRadius: 7, cursor: 'pointer' }} />}
-              <span style={{
-                position: 'relative', pointerEvents: 'none', alignSelf: 'flex-start',
-                minWidth: 16, textAlign: 'center', borderRadius: 4,
-                fontSize: 10, fontFamily: 'monospace',
-                fontWeight: isToday ? 700 : 400,
-                padding: isToday ? '1px 4px' : '1px 0',
-                background: isToday ? c.ready : 'transparent',
-                color: isToday ? c.page : c.textDim,
-              }}>{date.getDate()}</span>
-              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0, overflowY: isExpanded ? 'auto' : 'hidden' }}>
-                {visible.map((item) => {
-                  const tone = itemTone(item);
-                  return <button key={item.id} type="button" onClick={() => onSelect(item.id)}
-                    aria-label={`${item.title}, ${CHANNEL_LABEL[item.channel]}, ${STATUS_LABELS[item.status]}${item.is_ready ? '' : ', incompleta'}`}
-                    className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 4, width: '100%', minWidth: 0,
-                      padding: '2px 4px', textAlign: 'left', borderRadius: 4, border: 0,
-                      borderLeft: `2px solid ${tone}`,
-                      outline: item.id === selectedId ? `1px solid ${tone}` : 'none',
-                      background: tint(tone),
-                      cursor: 'pointer',
-                    }}>
-                    <span style={{ flexShrink: 0, fontSize: 8, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.06em', color: tone }}>
-                      {CHANNEL_SHORT[item.channel]}
-                    </span>
-                    <span title={item.title} style={{ minWidth: 0, flex: 1, color: c.text, fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.title}
-                    </span>
-                    {item.status === 'publicado' && <span aria-hidden style={{ flexShrink: 0, fontSize: 8, color: tone }}>✓</span>}
-                  </button>;
-                })}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4, flexShrink: 0 }}>
+                <button type="button" onClick={() => setDaySheet(date)}
+                  aria-label={`Ver el ${date.toLocaleDateString('es-AR')}`}
+                  className="transition-colors hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+                  style={{
+                    minWidth: 20, padding: isToday ? '1px 6px' : '1px 2px', borderRadius: 5,
+                    border: 0, cursor: 'pointer', fontFamily: 'monospace',
+                    fontSize: 12, fontWeight: isToday ? 700 : 500,
+                    background: isToday ? c.ready : 'transparent',
+                    color: isToday ? c.page : c.textSoft,
+                  }}>{date.getDate()}</button>
+                {all.length > 0 && <span style={{ fontFamily: 'monospace', fontSize: 9, color: c.textDim }}>
+                  {all.length}
+                </span>}
+                {inMonth && <button type="button"
+                  aria-label={`Crear post el ${date.toLocaleDateString('es-AR')}`}
+                  onClick={() => onCreate(`${key}T10:00`)}
+                  className="transition-colors hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+                  style={{
+                    marginLeft: 'auto', width: 18, height: 18, display: 'grid', placeItems: 'center',
+                    border: 0, background: 'transparent', color: c.border,
+                    borderRadius: 4, cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0,
+                  }}>+</button>}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minHeight: 0, overflowY: isExpanded ? 'auto' : 'hidden' }}>
+                {visible.map((item) => <PieceChip key={item.id} item={item}
+                  selected={item.id === selectedId} onClick={() => onSelect(item.id)} />)}
                 {all.length > visible.length && <button type="button"
                   onClick={() => setExpanded((value) => new Set(value).add(key))}
                   className="transition-colors hover:text-[#00d4d4]"
-                  style={{ border: 0, background: 'transparent', color: c.textDim, fontSize: 9, fontFamily: 'monospace', textAlign: 'left', padding: '1px 4px', cursor: 'pointer' }}
+                  style={{ border: 0, background: 'transparent', color: c.textDim, fontSize: 10, fontFamily: 'monospace', textAlign: 'left', padding: '1px 4px', cursor: 'pointer' }}
                 >+{all.length - visible.length} más</button>}
               </div>
             </div>;
@@ -184,14 +237,26 @@ export function AgendaCalendar({ items, selectedId, onSelect, onCreate }: {
       })}
     </div>
 
-    <footer style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', fontSize: 10, fontFamily: 'monospace', color: c.textDim, paddingTop: 2 }}>
-      <span>BL blog · IN linkedin</span>
+    <footer style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', fontSize: 10, fontFamily: 'monospace', color: c.textDim }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+        <span aria-hidden style={{ width: 8, height: 8, background: c.textSoft }} />blog
+      </span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+        <span aria-hidden style={{ width: 8, height: 8, borderRadius: '50%', background: c.textSoft }} />linkedin
+      </span>
+      <span aria-hidden style={{ width: 1, height: 14, background: c.border }} />
       <Legend tone={c.planned} label="Planificado" />
       <Legend tone={c.ready} label="Listo" />
       <Legend tone={c.published} label="Publicado" />
       <Legend tone={c.incomplete} label="Falta material" />
       <Legend tone={c.late} label="Atrasado" />
     </footer>
+
+    {daySheet && <DaySheet date={daySheet}
+      items={grouped.get(dayKey(daySheet)) ?? []}
+      onClose={() => setDaySheet(null)}
+      onOpenPiece={(id) => { setDaySheet(null); onSelect(id); }}
+      onCreate={(scheduledAt) => { setDaySheet(null); onCreate(scheduledAt); }} />}
   </section>;
 }
 

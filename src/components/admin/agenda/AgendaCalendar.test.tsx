@@ -60,6 +60,36 @@ describe('AgendaCalendar', () => {
     expect(screen.getByRole('button', { name: /Post linkedin-one, LinkedIn, Planificado/ })).toBeInTheDocument();
   });
 
+  it('names the channel with a word, not an abbreviation', () => {
+    render(<AgendaCalendar items={[item('uno'), item('dos', 'linkedin')]} selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()} />);
+
+    expect(screen.getAllByText('BLOG').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('LINKEDIN').length).toBeGreaterThan(0);
+  });
+
+  it('labels which channel each weekday carries, so nothing lands on the wrong day', () => {
+    render(<AgendaCalendar items={[]} selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()} />);
+
+    // Domingo lleva el blog; martes y viernes, LinkedIn. Está rotulado en la
+    // cabecera para que no haya que saberlo de memoria.
+    expect(screen.getByText('Domingo')).toBeInTheDocument();
+    expect(screen.getByText('Martes')).toBeInTheDocument();
+    expect(screen.getByText('Viernes')).toBeInTheDocument();
+  });
+
+  it('opens the day with its pieces and closes without leaving the calendar', () => {
+    const onSelect = vi.fn();
+    render(<AgendaCalendar items={[item('del-dia')]} selectedId={null} onSelect={onSelect} onCreate={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver el 13/9/2026' }));
+    const sheet = screen.getByRole('dialog');
+    expect(sheet).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver y editar el texto' }));
+    expect(onSelect).toHaveBeenCalledWith('blog:del-dia');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  }, 10_000);
+
   it('marks a piece that still has no material so it reads apart from a ready one', () => {
     render(<AgendaCalendar
       items={[item('sin-material', 'linkedin'), item('completa', 'blog', { has_content: true, has_pdf: true, is_ready: true })]}
