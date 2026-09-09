@@ -28,6 +28,36 @@ describe('LinkedIn editorial API', () => {
     expect(getSupabaseAdmin).not.toHaveBeenCalled();
   });
 
+  it('refuses a piece with neither title nor Markdown before touching the database', async () => {
+    const response = await POST(request('POST', { slug: 'pieza', post_slug: 'articulo', slot: 'martes' }));
+    expect(response.status).toBe(400);
+    expect(getSupabaseAdmin).not.toHaveBeenCalled();
+  });
+
+  it('reserves a piece from just a title, leaving text and PDF for later', async () => {
+    const insertedRow = { slug: 'pieza', title: 'Pieza sin texto todavia', body: null };
+    const single = vi.fn().mockResolvedValue({ data: insertedRow, error: null });
+    const insert = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single }) });
+    const blog = vi.fn().mockResolvedValue({ data: { post_slug: 'articulo', scheduled_at: '2026-09-13T13:00:00.000Z' }, error: null });
+    const from = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ is: vi.fn().mockReturnValue({ maybeSingle: blog }) }) }),
+      insert,
+    });
+    vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);
+
+    const response = await POST(request('POST', {
+      slug: 'pieza', post_slug: 'articulo', slot: 'martes', title: 'Pieza sin texto todavia',
+    }));
+
+    expect(response.status).toBe(201);
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Pieza sin texto todavia',
+      body: null,
+      source_markdown: null,
+      source_filename: null,
+    }));
+  });
+
   it('does not allow skipping preapproval', async () => {
     const maybeSingle = vi.fn().mockResolvedValue({ data: { slug: 'test', status: 'planificado', body: 'Ready copy', pre_approved_at: null, published_at: null }, error: null });
     const is = vi.fn().mockReturnValue({ maybeSingle });

@@ -4,13 +4,28 @@ import { postPublicationSlugSchema } from '@/lib/post-publications/schemas';
 export const linkedinSlugSchema = postPublicationSlugSchema;
 export const linkedinStatusSchema = z.enum(['planificado', 'preaprobado', 'publicado']);
 
+/**
+ * El Markdown es opcional a propósito: una pieza se puede reservar en la agenda
+ * con solo el título mientras el texto todavía se está escribiendo. El texto y
+ * el PDF se cargan después, por separado, y es la transición de estado la que
+ * exige tenerlos a los dos.
+ */
 export const createLinkedInPostSchema = z.strictObject({
   slug: linkedinSlugSchema,
   post_slug: postPublicationSlugSchema,
   slot: z.enum(['martes', 'viernes']),
-  source_markdown: z.string().min(1).max(250_000),
-  source_filename: z.string().trim().min(1).max(200).regex(/^[^/\\]+\.md$/i, 'El archivo debe ser .md'),
-});
+  title: z.string().trim().min(1).max(300).optional(),
+  source_markdown: z.string().min(1).max(250_000).optional(),
+  source_filename: z.string().trim().min(1).max(200).regex(/^[^/\\]+\.md$/i, 'El archivo debe ser .md').optional(),
+})
+  .refine(
+    (value) => Boolean(value.source_markdown) === Boolean(value.source_filename),
+    'El Markdown importado necesita su nombre de archivo',
+  )
+  .refine(
+    (value) => Boolean(value.source_markdown) || Boolean(value.title),
+    'Poné un título o importá el Markdown',
+  );
 
 export const updateLinkedInPostSchema = z.strictObject({
   title: z.string().trim().min(1).max(300).optional(),

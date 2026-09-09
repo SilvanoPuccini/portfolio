@@ -44,20 +44,26 @@ export async function POST(req: NextRequest) {
   if (blogError) return NextResponse.json({ error: blogError.message }, { status: 500 });
   if (!blog) return NextResponse.json({ error: 'El post vinculado no existe en Agenda' }, { status: 400 });
 
-  const normalized = normalizeLinkedInMarkdown(parsed.data.source_markdown, parsed.data.source_filename);
-  if (!normalized.title || !normalized.body) {
+  // Se puede reservar la pieza con solo el título: el texto llega después, por
+  // su propia vía, y la validación de completitud vive en la transición de estado.
+  const normalized = parsed.data.source_markdown && parsed.data.source_filename
+    ? normalizeLinkedInMarkdown(parsed.data.source_markdown, parsed.data.source_filename)
+    : null;
+  if (normalized && (!normalized.title || !normalized.body)) {
     return NextResponse.json({ error: 'El Markdown necesita título y contenido legible' }, { status: 400 });
   }
+  const title = normalized?.title ?? parsed.data.title;
+  if (!title) return NextResponse.json({ error: 'Poné un título o importá el Markdown' }, { status: 400 });
 
   const { data, error } = await db.from('linkedin_posts').insert({
     slug: parsed.data.slug,
     post_slug: parsed.data.post_slug,
     slot: parsed.data.slot,
-    title: normalized.title,
-    body: normalized.body,
-    source_markdown: normalized.sourceMarkdown,
-    source_frontmatter: normalized.frontmatter,
-    source_filename: parsed.data.source_filename,
+    title,
+    body: normalized?.body ?? null,
+    source_markdown: normalized?.sourceMarkdown ?? null,
+    source_frontmatter: normalized?.frontmatter ?? {},
+    source_filename: parsed.data.source_filename ?? null,
     scheduled_at: defaultLinkedInSchedule(blog.scheduled_at, parsed.data.slot),
   }).select('*').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 409 });
