@@ -117,7 +117,7 @@ export default async function BlogPage({
             <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
             {/* Banner newsletter — estilo cuadro centrado, con aire a los costados */}
             <div className="!mt-10 px-2 sm:!mt-12 sm:px-6">
-              <div className="relative mx-auto aspect-[2084/755] w-full max-w-5xl overflow-hidden rounded-sm lg:aspect-auto lg:h-[260px] xl:h-[300px]">
+              <div className="relative mx-auto aspect-[2084/755] w-full max-w-6xl overflow-hidden rounded-sm lg:aspect-auto lg:h-[260px] xl:h-[300px]">
                 <Image
                   src="/images/blog-newsletter-banner.png"
                   alt="El Radar — mi newsletter"
