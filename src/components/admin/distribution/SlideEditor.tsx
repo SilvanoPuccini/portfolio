@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c, tint } from '@/components/admin/tokens';
 
 interface Slide {
   type: string;
@@ -174,8 +175,8 @@ export default function SlideEditor({
           disabled={regenerating}
           style={{
             ...s.btnGhost, fontSize: 12, padding: '8px 14px',
-            color: regenerating ? '#475569' : '#8B5CF6',
-            borderColor: regenerating ? '#1e293b' : '#8B5CF620',
+            color: regenerating ? c.textDim : c.ready,
+            borderColor: regenerating ? c.border : tint(c.ready, '40'),
             opacity: regenerating ? 0.6 : 1,
           }}
         >
@@ -184,8 +185,8 @@ export default function SlideEditor({
       </div>
 
       {/* Tipo del slide */}
-      <p style={{ fontFamily: 'monospace', fontSize: 11, color: '#334155', margin: 0 }}>
-        tipo: <span style={{ color: '#475569' }}>{slide.type}</span>
+      <p style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim, margin: 0 }}>
+        tipo: <span style={{ color: c.textSoft }}>{slide.type}</span>
         {' · '}slide {slideIndex + 1}
       </p>
     </div>

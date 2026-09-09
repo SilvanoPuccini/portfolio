@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { c } from '@/components/admin/tokens';
 
 const SLIDE_ANIM = `
   @keyframes slide-fade-in {
@@ -96,7 +97,7 @@ export default function CarouselPreview({
               boxSizing: 'border-box',
             }}>
               <p style={{
-                fontFamily: 'monospace', fontSize: 11, color: '#8B5CF6',
+                fontFamily: 'monospace', fontSize: 11, color: c.textSoft,
                 letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16,
               }}>
                 {slide?.type === 'hook' ? 'El Radar' : slide?.type === 'cta' ? 'En resumen' : `Punto ${activeIndex}`}
@@ -171,7 +172,7 @@ export default function CarouselPreview({
                 <div style={{
                   width: '100%', height: '100%', background: '#111118',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, color: '#475569', fontFamily: 'monospace',
+                  fontSize: 10, color: c.textDim, fontFamily: 'monospace',
                 }}>
                   {i + 1}
                 </div>
@@ -181,9 +182,9 @@ export default function CarouselPreview({
         </div>
 
         {/* Info slide tipo */}
-        <p style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', margin: 0 }}>
+        <p style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim, margin: 0 }}>
           {platform === 'linkedin' ? '💼' : '📸'} Slide {activeIndex + 1} — tipo:{' '}
-          <span style={{ color: '#8B5CF6' }}>{slides[activeIndex]?.type}</span>
+          <span style={{ color: c.textSoft }}>{slides[activeIndex]?.type}</span>
           {hasImage && (
             <> · <span
               style={{ color: '#00d4d4', cursor: 'pointer' }}

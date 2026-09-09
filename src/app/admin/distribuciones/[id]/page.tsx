@@ -3,26 +3,16 @@
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { s } from '@/components/admin/AdminShell';
-import { CopyButton } from '@/components/admin/CopyButton';
+import { CopyIconButton } from '@/components/admin/IconButton';
+import { StatusPill } from '@/components/admin/StatusPill';
+import { DISTRIBUTION_LABELS, DISTRIBUTION_TONE, DISTRIBUTION_EQUIVALENT } from '@/components/admin/distribution/status';
+import { c, tint } from '@/components/admin/tokens';
 import CarouselPreview from '@/components/admin/distribution/CarouselPreview';
 import SlideEditor from '@/components/admin/distribution/SlideEditor';
 import type { Distribution, DistributionStatus } from '@/lib/distribution/types';
 import { DistributionDetailSkeleton } from '@/components/admin/distribution/Skeleton';
 
 type Platform = 'linkedin' | 'instagram' | 'twitter';
-
-const STATUS_COLORS: Record<DistributionStatus, { bg: string; color: string }> = {
-  draft:     { bg: 'rgba(100,116,139,0.12)', color: '#64748b' },
-  approved:  { bg: 'rgba(0,212,212,0.1)',    color: '#00d4d4' },
-  published: { bg: 'rgba(74,222,128,0.1)',   color: '#4ade80' },
-  archived:  { bg: 'rgba(71,85,105,0.15)',   color: '#475569' },
-  error:     { bg: 'rgba(248,113,113,0.1)',  color: '#f87171' },
-};
-
-const STATUS_LABELS: Record<DistributionStatus, string> = {
-  draft: 'Borrador', approved: 'Aprobado', published: 'Publicado',
-  archived: 'Archivado', error: 'Error',
-};
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {
@@ -294,6 +284,17 @@ async function downloadZip(dist: Distribution) {
 
 // ── Página ────────────────────────────────────────────────────
 
+/** Ícono de copiar con su nombre al lado: en el panel de descargas hay varios. */
+function LabeledCopy({ text, label }: { text: string; label: string }) {
+  return <span style={{
+    display: 'inline-flex', alignItems: 'center', gap: 7,
+    padding: '4px 4px 4px 11px', borderRadius: 7, border: `1px solid ${c.border}`,
+  }}>
+    <span style={{ fontSize: 11, color: c.textSoft, whiteSpace: 'nowrap' }}>{label}</span>
+    <CopyIconButton text={text} label={`Copiar ${label}`} />
+  </span>;
+}
+
 export default function DistribucionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [dist, setDist] = useState<Distribution | null>(null);
@@ -395,7 +396,6 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
   const igContent = dist.instagram_content;
   const twContent = dist.twitter_content;
   const status = dist.status as DistributionStatus;
-  const { bg: statusBg, color: statusColor } = STATUS_COLORS[status];
 
   const currentSlides = platform === 'linkedin'
     ? (liContent?.slides ?? [])
@@ -411,16 +411,15 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div style={{ flex: 1, minWidth: 0, marginRight: 16 }}>
-          <Link href="/admin/distribuciones" style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', textDecoration: 'none' }}>
+          <Link href="/admin/distribuciones" style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim, textDecoration: 'none' }}>
             ← Distribuciones
           </Link>
           <h1 style={{ ...s.heading, fontSize: 22, margin: '6px 0 8px' }}>{dist.post_title}</h1>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, fontFamily: 'monospace', background: statusBg, color: statusColor }}>
-              {STATUS_LABELS[status]}
-            </span>
+            <StatusPill tone={DISTRIBUTION_TONE[status]} label={DISTRIBUTION_LABELS[status]}
+              title={DISTRIBUTION_EQUIVALENT[status] ? `Equivale a "${DISTRIBUTION_EQUIVALENT[status]}" en la agenda` : undefined} />
             {dist.ai_metadata && (
-              <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569' }}>
+              <span style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim }}>
                 {dist.ai_metadata.model} · {dist.ai_metadata.tokens_used.toLocaleString()} tokens · {fmt(dist.ai_metadata.generated_at)}
               </span>
             )}
@@ -432,7 +431,8 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
           <button
             onClick={handleRegenerateAll}
             disabled={regeneratingAll}
-            style={{ ...s.btnGhost, fontSize: 12, color: '#8B5CF6', borderColor: '#8B5CF620', opacity: regeneratingAll ? 0.5 : 1 }}
+            className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+            style={{ ...s.btnGhost, fontSize: 12, color: c.ready, borderColor: tint(c.ready, '40'), opacity: regeneratingAll ? 0.5 : 1 }}
           >
             {regeneratingAll ? 'Regenerando...' : '✦ Regenerar todo'}
           </button>
@@ -441,8 +441,8 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
             disabled={approving}
             style={{
               ...s.btn,
-              background: status === 'approved' ? '#1e293b' : '#00d4d4',
-              color: status === 'approved' ? '#64748b' : '#0a0a14',
+              background: status === 'approved' ? c.border : c.ready,
+              color: status === 'approved' ? c.textSoft : c.page,
               opacity: approving ? 0.6 : 1,
               fontSize: 12,
             }}
@@ -476,18 +476,28 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
       )}
 
       {/* Tabs plataforma */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #1e293b', paddingBottom: 0 }}>
-        {([['linkedin', '💼 LinkedIn'], ['instagram', '📸 Instagram'], ['twitter', '🐦 Twitter']] as [Platform, string][]).map(([p, label]) => (
+      <div role="tablist" aria-label="Plataforma" style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: `1px solid ${c.border}` }}>
+        {([['linkedin', 'LinkedIn'], ['instagram', 'Instagram'], ['twitter', 'X']] as [Platform, string][]).map(([p, label]) => (
           <button
             key={p}
+            role="tab"
+            aria-selected={platform === p}
             onClick={() => setPlatform(p)}
+            className="transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
             style={{
-              background: 'none', border: 'none', borderBottom: `2px solid ${platform === p ? '#00d4d4' : 'transparent'}`,
-              color: platform === p ? '#00d4d4' : '#475569',
-              padding: '10px 16px', fontSize: 13, fontWeight: platform === p ? 600 : 400,
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              background: 'none', border: 'none', fontFamily: 'inherit',
+              borderBottom: `2px solid ${platform === p ? c.ready : 'transparent'}`,
+              color: platform === p ? c.ready : c.textSoft,
+              padding: '10px 16px', fontSize: 13, fontWeight: platform === p ? 600 : 500,
               cursor: 'pointer', marginBottom: -1,
             }}
           >
+            {/* La forma acompaña al nombre, igual que en la agenda. */}
+            <span aria-hidden style={{
+              width: 6, height: 6, flexShrink: 0, background: 'currentColor',
+              borderRadius: p === 'twitter' ? 0 : '50%',
+            }} />
             {label}
           </button>
         ))}
@@ -495,7 +505,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
 
       {/* ── LinkedIn / Instagram ── */}
       {(platform === 'linkedin' || platform === 'instagram') && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" style={{ alignItems: 'start' }}>
           {/* Preview */}
           <div>
             {currentSlides.length > 0 ? (
@@ -508,7 +518,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
               />
             ) : (
               <div style={{ ...s.card, textAlign: 'center', padding: 32 }}>
-                <p style={{ color: '#475569', fontSize: 13 }}>Sin slides generados.</p>
+                <p style={{ color: c.textDim, fontSize: 13 }}>Sin slides generados.</p>
               </div>
             )}
           </div>
@@ -533,7 +543,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
               <div style={s.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <p style={s.eyebrow}>Caption del post</p>
-                  <CopyButton text={currentContent.caption} ariaLabel="Copiar caption del post" />
+                  <CopyIconButton text={currentContent.caption} label="Copiar caption del post" />
                 </div>
                 <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                   {currentContent.caption}
@@ -546,15 +556,16 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
               <div style={s.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <p style={s.eyebrow}>Hashtags</p>
-                  <CopyButton
+                  <CopyIconButton
                     text={currentContent.hashtags.map((h) => `#${h}`).join(' ')}
-                    ariaLabel="Copiar hashtags"
+                    label="Copiar los hashtags"
                   />
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {currentContent.hashtags.map((h) => (
                     <span key={h} style={{
-                      background: 'rgba(139,92,246,0.1)', color: '#8B5CF6',
+                      background: 'rgba(226,232,240,.07)', color: c.textSoft,
+                      border: `1px solid ${c.borderSoft}`,
                       borderRadius: 6, padding: '3px 10px', fontSize: 12,
                       fontFamily: 'monospace',
                     }}>
@@ -579,27 +590,26 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                 <div style={{ flex: 1 }}>
-                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', marginBottom: 8, display: 'block' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim, marginBottom: 8, display: 'block' }}>
                     [{i + 1}/{twContent.tweets.length}]
                   </span>
                   <p style={{ fontSize: 14, color: '#e2e8f0', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                     {tweet}
                   </p>
-                  <p style={{ fontFamily: 'monospace', fontSize: 11, color: tweet.length > 240 ? '#f87171' : '#334155', margin: '8px 0 0' }}>
+                  <p style={{ fontFamily: 'monospace', fontSize: 11, color: tweet.length > 240 ? c.late : c.textDim, margin: '8px 0 0' }}>
                     {tweet.length} chars
                   </p>
                 </div>
-                <CopyButton text={tweet} ariaLabel={`Copiar tweet ${i + 1}`} />
+                <CopyIconButton text={tweet} label={`Copiar tweet ${i + 1}`} />
               </div>
             </div>
           ))}
 
           {twContent?.tweets && twContent.tweets.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              <CopyButton
+              <CopyIconButton
                 text={twContent.tweets.join('\n\n───\n\n')}
-                label="Copiar hilo completo"
-                ariaLabel="Copiar hilo completo"
+                label="Copiar el hilo completo"
               />
             </div>
           )}
@@ -618,7 +628,8 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
           </button>
           <button
             onClick={() => downloadLinkedInPDF(dist)}
-            style={{ ...s.btn, background: '#8B5CF6', color: '#fff', fontSize: 12 }}
+            className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+            style={{ ...s.btnGhost, fontSize: 12 }}
           >
             ↓ PDF referencia (Canva)
           </button>
@@ -640,10 +651,12 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-          {liContent?.caption && <CopyButton text={liContent.caption} label="📋 Caption LinkedIn" />}
-          {igContent?.caption && <CopyButton text={igContent.caption} label="📋 Caption Instagram" />}
-          {liContent?.hashtags && <CopyButton text={liContent.hashtags.map((h) => `#${h}`).join(' ')} label="📋 Hashtags LinkedIn" />}
-          {twContent?.tweets && <CopyButton text={twContent.tweets.join('\n\n───\n\n')} label="📋 Hilo Twitter" />}
+          {/* Copiar es siempre el mismo ícono; lo que cambia es qué copia,
+              y eso lo dice el aria-label, no un cartel distinto por botón. */}
+          {liContent?.caption && <LabeledCopy text={liContent.caption} label="Caption LinkedIn" />}
+          {igContent?.caption && <LabeledCopy text={igContent.caption} label="Caption Instagram" />}
+          {liContent?.hashtags && <LabeledCopy text={liContent.hashtags.map((h) => `#${h}`).join(' ')} label="Hashtags LinkedIn" />}
+          {twContent?.tweets && <LabeledCopy text={twContent.tweets.join('\n\n───\n\n')} label="Hilo de X" />}
         </div>
       </div>
 
