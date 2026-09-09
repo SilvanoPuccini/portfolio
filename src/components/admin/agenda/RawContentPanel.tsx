@@ -6,11 +6,7 @@ import { s } from '@/components/admin/AdminShell';
 import { CopyButton } from '@/components/admin/CopyButton';
 import { StatusActions } from './StatusActions';
 import { DeleteAgendaItemButton } from './DeleteAgendaItemButton';
-import type {
-  PostPublication,
-  PostPublicationListItem,
-  PostPublicationStatus,
-} from '@/lib/post-publications/types';
+import type { PostPublication, PostPublicationStatus } from '@/lib/post-publications/types';
 
 const eyebrow: React.CSSProperties = {
   fontFamily: 'monospace',
@@ -53,15 +49,6 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
 
   const chars = content.trim().length;
 
-  // StatusActions trabaja con la fila del listado, que no trae el texto
-  // entero. Se arma acá desde el contenido en pantalla para que el botón
-  // reaccione apenas se guarda, sin esperar a que el servidor responda.
-  const listItem: PostPublicationListItem = {
-    ...item,
-    has_content: chars > 0,
-    content_chars: chars,
-  };
-
   async function patch(body: Record<string, unknown>): Promise<boolean> {
     setSaving(true);
     setError(null);
@@ -90,7 +77,7 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
     }
   }
 
-  function changeStatus(_slug: string, status: PostPublicationStatus) {
+  function changeStatus(status: PostPublicationStatus) {
     patch({ status });
   }
 
@@ -239,7 +226,7 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
 
       <div style={panel}>
         <p style={eyebrow}>Estado</p>
-        <StatusActions item={listItem} onChange={changeStatus} />
+        <StatusActions item={{ title, status: item.status, has_content: chars > 0 }} onChange={changeStatus} />
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <DeleteAgendaItemButton slug={item.post_slug} title={title} />
         </div>

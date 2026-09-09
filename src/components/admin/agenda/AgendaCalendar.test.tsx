@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgendaCalendar } from './AgendaCalendar';
 import type { AgendaItem } from '@/lib/agenda/types';
 
-function item(slug: string, channel: 'blog' | 'linkedin' = 'blog'): AgendaItem {
+function item(slug: string, channel: 'blog' | 'linkedin' = 'blog', overrides: Partial<AgendaItem> = {}): AgendaItem {
   return {
     id: `${channel}:${slug}`,
     channel,
@@ -16,6 +16,9 @@ function item(slug: string, channel: 'blog' | 'linkedin' = 'blog'): AgendaItem {
     published_at: null,
     has_content: false,
     content_chars: 0,
+    has_pdf: false,
+    is_ready: false,
+    ...overrides,
   };
 }
 
@@ -34,9 +37,9 @@ describe('AgendaCalendar', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: 'Post three, Blog, Planificado' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Post three, Blog, Planificado/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('+1 más'));
-    fireEvent.click(screen.getByRole('button', { name: 'Post three, Blog, Planificado' }));
+    fireEvent.click(screen.getByRole('button', { name: /Post three, Blog, Planificado/ }));
 
     expect(onSelect).toHaveBeenCalledWith('blog:three');
   }, 10_000);
@@ -54,6 +57,16 @@ describe('AgendaCalendar', () => {
 
   it('identifies channel, title and state for each calendar entry', () => {
     render(<AgendaCalendar items={[item('linkedin-one', 'linkedin')]} selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Post linkedin-one, LinkedIn, Planificado' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Post linkedin-one, LinkedIn, Planificado/ })).toBeInTheDocument();
+  });
+
+  it('marks a piece that still has no material so it reads apart from a ready one', () => {
+    render(<AgendaCalendar
+      items={[item('sin-material', 'linkedin'), item('completa', 'blog', { has_content: true, has_pdf: true, is_ready: true })]}
+      selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()}
+    />);
+
+    expect(screen.getByRole('button', { name: 'Post sin-material, LinkedIn, Planificado, incompleta' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Post completa, Blog, Planificado' })).toBeInTheDocument();
   });
 });

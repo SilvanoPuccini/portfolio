@@ -18,8 +18,16 @@ const NAV = [
   { href: '/admin/config', label: 'Config' },
 ];
 
+/**
+ * Rutas que necesitan más de 920px: el calendario de la agenda es una grilla de
+ * 7 columnas y, encajonado en el ancho por defecto, aparecía una barra de
+ * scroll horizontal en vez de verse el mes entero.
+ */
+const WIDE_ROUTES = ['/admin/agenda'];
+
 export default function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const maxWidth = WIDE_ROUTES.includes(pathname) ? 1360 : 920;
   const [authed, setAuthed] = useState(false);
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState('');
@@ -93,11 +101,11 @@ export default function AdminShell({ children }: { children: ReactNode }) {
     <div style={{ minHeight: '100vh', background: '#0a0a14' }}>
       {/* Nav */}
       <nav style={s.nav}>
-        <div style={s.navInner}>
+        <div style={{ ...s.navInner, maxWidth }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={s.navBrand}>El Radar</span>
             <span style={{ color: '#1e293b', fontSize: 14 }}>·</span>
-            <span style={{ color: '#475569', fontSize: 12, fontFamily: 'monospace' }}>admin</span>
+            <span style={{ color: '#8b9bb4', fontSize: 12, fontFamily: 'monospace' }}>admin</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {NAV.map((item) => (
@@ -116,7 +124,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       </nav>
 
       {/* Content */}
-      <main style={{ maxWidth: 920, margin: '0 auto', padding: '28px 24px' }}>
+      <main style={{ maxWidth, margin: '0 auto', padding: '28px 24px' }}>
         {children}
       </main>
 
@@ -154,6 +162,12 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Paleta del admin. `label` y `hint` usan #8b9bb4 (6.29:1 sobre la tarjeta):
+ * el #475569 anterior daba 2.34:1 y el #64748b 3.73:1, los dos por debajo del
+ * 4.5:1 que WCAG pide para texto chico. Los grises oscuros quedan para bordes.
+ * Ver src/components/admin/tokens.ts para la capa semántica completa.
+ */
 export const s: Record<string, React.CSSProperties> = {
   center: { minHeight: '100vh', background: '#0a0a14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: { background: '#111827', border: '1px solid #1e293b', borderRadius: 12, padding: 28, width: '100%' },
@@ -161,13 +175,13 @@ export const s: Record<string, React.CSSProperties> = {
   heading: { fontSize: 20, fontWeight: 700, color: '#ffffff', margin: 0 },
   sectionTitle: { fontSize: 15, fontWeight: 600, color: '#e2e8f0', margin: '4px 0 18px' },
   form: { display: 'flex', flexDirection: 'column' as const, gap: 12 },
-  label: { display: 'block', fontSize: 11, color: '#475569', marginBottom: 5, fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase' as const },
+  label: { display: 'block', fontSize: 11, color: '#8b9bb4', marginBottom: 5, fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase' as const },
   input: { background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: '10px 14px', color: '#e2e8f0', fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' as const, fontFamily: 'inherit' },
   btn: { background: '#00d4d4', color: '#0a0a14', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer' },
   btnGhost: { background: 'transparent', color: '#64748b', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 16px', fontWeight: 500, fontSize: 12, cursor: 'pointer' },
   successText: { color: '#4ade80', fontSize: 13, margin: 0 },
   errorText: { color: '#f87171', fontSize: 13, margin: 0 },
-  hint: { fontSize: 12, color: '#475569', marginTop: 4 },
+  hint: { fontSize: 12, color: '#8b9bb4', marginTop: 4 },
   divider: { height: 1, background: '#1e293b', margin: '8px 0' },
   nav: { background: '#0d1117', borderBottom: '1px solid #1e293b', position: 'sticky' as const, top: 0, zIndex: 50 },
   navInner: { maxWidth: 920, margin: '0 auto', padding: '0 24px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
