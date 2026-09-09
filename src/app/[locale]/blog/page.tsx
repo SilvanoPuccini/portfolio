@@ -110,14 +110,13 @@ export default async function BlogPage({
           </>
         }
         bodyClassName="space-y-7 sm:space-y-8"
-        containerClassName="pb-32 sm:pb-36 lg:pb-36"
         subtitle={<p>{content.blog.intro}</p>}
         description={
           <div className="space-y-6">
             <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
             {/* Banner newsletter — estilo cuadro centrado, con aire a los costados */}
             <div className="!mt-10 px-2 sm:!mt-12 sm:px-6">
-              <div className="relative mx-auto aspect-[2084/755] w-full max-w-6xl overflow-hidden rounded-sm lg:aspect-auto lg:h-[260px] xl:h-[300px]">
+              <div className="relative mx-auto aspect-[8/3] w-full max-w-6xl overflow-hidden rounded-sm lg:aspect-auto lg:h-[280px] xl:h-[320px]">
                 <Image
                   src="/images/blog-newsletter-banner.png"
                   alt="El Radar — mi newsletter"

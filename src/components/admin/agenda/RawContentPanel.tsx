@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
+import { CopyButton } from '@/components/admin/CopyButton';
 import { StatusActions } from './StatusActions';
 import { DeleteAgendaItemButton } from './DeleteAgendaItemButton';
 import type {
@@ -98,10 +99,18 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
       <div style={panel}>
         <p style={eyebrow}>Datos del post</p>
         <div style={s.form}>
-          <label style={s.label}>
-            Título
-            <input style={s.input} value={title} onChange={(event) => setTitle(event.target.value)} />
-          </label>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+            <label style={{ ...s.label, flex: 1 }}>
+              Título
+              <input style={s.input} value={title} onChange={(event) => setTitle(event.target.value)} />
+            </label>
+            <CopyButton
+              text={title}
+              label="Copiar título"
+              ariaLabel="Copiar título"
+              className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+            />
+          </div>
           <label style={s.label}>
             Programado para
             <input
@@ -126,23 +135,33 @@ export function RawContentPanel({ item }: { item: PostPublication }) {
       <div style={panel}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
           <p style={eyebrow}>Texto en bruto</p>
-          {!editing && (
-            <button
+          <div style={{ display: 'flex', gap: 8 }}>
+            <CopyButton
+              text={editing ? draft : content}
+              label="Copiar texto"
+              ariaLabel="Copiar texto en bruto"
               className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
-              style={s.btnGhost}
-              onClick={() => {
-                setDraft(content);
-                setEditing(true);
-              }}
-            >
-              Editar texto
-            </button>
-          )}
+            />
+            {!editing && (
+              <button
+                type="button"
+                className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]"
+                style={s.btnGhost}
+                onClick={() => {
+                  setDraft(content);
+                  setEditing(true);
+                }}
+              >
+                Editar texto
+              </button>
+            )}
+          </div>
         </div>
 
         {editing ? (
           <>
             <textarea
+              aria-label="Texto en bruto"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Pegá acá el texto del post. Se guarda en la agenda; el .mdx se sigue hardcodeando y deployando como siempre."

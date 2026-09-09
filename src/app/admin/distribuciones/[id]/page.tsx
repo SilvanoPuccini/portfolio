@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { s } from '@/components/admin/AdminShell';
+import { CopyButton } from '@/components/admin/CopyButton';
 import CarouselPreview from '@/components/admin/distribution/CarouselPreview';
 import SlideEditor from '@/components/admin/distribution/SlideEditor';
 import type { Distribution, DistributionStatus } from '@/lib/distribution/types';
@@ -22,20 +23,6 @@ const STATUS_LABELS: Record<DistributionStatus, string> = {
   draft: 'Borrador', approved: 'Aprobado', published: 'Publicado',
   archived: 'Archivado', error: 'Error',
 };
-
-function CopyButton({ text, label = 'Copiar' }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-  function copy() {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-  return (
-    <button onClick={copy} style={{ ...s.btnGhost, fontSize: 11, padding: '5px 12px' }}>
-      {copied ? '✓ Copiado' : label}
-    </button>
-  );
-}
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {
@@ -132,9 +119,9 @@ function downloadLinkedInPDF(dist: import('@/lib/distribution/types').Distributi
 
   const CSS = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    @page { size: 180mm 180mm; margin: 0; }
+    @page { size: 180mm 225mm; margin: 0; }
     body { background: #0f0f14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: #f0f0f0; }
-    .slide { width: 180mm; height: 180mm; padding: 12mm 13mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; background: #0f0f14; }
+    .slide { width: 180mm; height: 225mm; padding: 12mm 13mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; background: #0f0f14; }
     .top-bar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .tag { font-family: monospace; font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; color: #00d4d4; font-weight: 600; }
     .counter { font-family: monospace; font-size: 9pt; color: rgba(255,255,255,0.28); }
@@ -546,7 +533,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
               <div style={s.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <p style={s.eyebrow}>Caption del post</p>
-                  <CopyButton text={currentContent.caption} />
+                  <CopyButton text={currentContent.caption} ariaLabel="Copiar caption del post" />
                 </div>
                 <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                   {currentContent.caption}
@@ -559,7 +546,10 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
               <div style={s.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <p style={s.eyebrow}>Hashtags</p>
-                  <CopyButton text={currentContent.hashtags.map((h) => `#${h}`).join(' ')} />
+                  <CopyButton
+                    text={currentContent.hashtags.map((h) => `#${h}`).join(' ')}
+                    ariaLabel="Copiar hashtags"
+                  />
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {currentContent.hashtags.map((h) => (
@@ -599,7 +589,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
                     {tweet.length} chars
                   </p>
                 </div>
-                <CopyButton text={tweet} />
+                <CopyButton text={tweet} ariaLabel={`Copiar tweet ${i + 1}`} />
               </div>
             </div>
           ))}
@@ -609,6 +599,7 @@ export default function DistribucionDetailPage({ params }: { params: Promise<{ i
               <CopyButton
                 text={twContent.tweets.join('\n\n───\n\n')}
                 label="Copiar hilo completo"
+                ariaLabel="Copiar hilo completo"
               />
             </div>
           )}

@@ -26,10 +26,36 @@ const publication: PostPublication = {
 };
 
 describe('RawContentPanel', () => {
+  const writeText = vi.fn();
+
   beforeEach(() => {
     vi.restoreAllMocks();
     refresh.mockReset();
     push.mockReset();
+    writeText.mockReset();
+    writeText.mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+  });
+
+  it('copies the current edited title and raw text', async () => {
+    render(<RawContentPanel item={publication} />);
+
+    fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Edited title' } });
+    fireEvent.click(screen.getByLabelText('Copiar título'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar texto' }));
+    fireEvent.change(screen.getByLabelText('Texto en bruto'), {
+      target: { value: 'Edited full raw text' },
+    });
+    fireEvent.click(screen.getByLabelText('Copiar texto en bruto'));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenNthCalledWith(1, 'Edited title');
+      expect(writeText).toHaveBeenNthCalledWith(2, 'Edited full raw text');
+    });
   });
 
   it('patches title and schedule from the detail editor', async () => {

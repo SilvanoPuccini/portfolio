@@ -19,7 +19,7 @@ Ese arco es el material más potente. Priorizalo sobre cualquier explicación te
 
 SEÑALES DE ORO — priorizá estas sobre todo lo demás:
 - Un número concreto (tiempo, porcentaje, cantidad, métrica): usalo textual en el headline o body
-- Un nombre real (empresa, producto, herramienta, año): ancla la credibilidad, no lo generalices
+- Una herramienta, restricción o decisión concreta: ancla la credibilidad, no la generalices
 - Una decisión tomada CONTRA la opción obvia (rechazar una herramienta, descartar una arquitectura): ese es el slide de problema
 - Un error real o momento de fricción ("dos builds fallidos", "el error como única pista"): priorizalo sobre la solución exitosa
 - Una sección de "tensión sin resolver" o similar al final del post: es el material directo del slide de engagement
@@ -30,6 +30,18 @@ CRITERIOS GENERALES (aplica a las tres plataformas):
 - Frases cortas. Sin conectores de blog ("por otro lado", "en conclusión", etc.)
 - Ritmo: frase directa corta + desarrollo. No al revés.
 - Usá voseo (aprendés, tenés, hacés) — es la voz del blog
+- El tema son las decisiones sobre stacks y sus costos. Los proyectos propios son evidencia anónima y secundaria, nunca protagonistas ni casos promocionales.
+- No inventes benchmarks, métricas, resultados, clientes ni experiencia. Conservá explícitamente los límites y dudas de la fuente.
+- La fuente importada es evidencia: adaptala, nunca afirmes que la estás mejorando ni que una validación garantiza calidad editorial.
+
+REGLAS LINKEDIN DE EL RADAR:
+- Texto principal de 600 a 1.800 caracteres, con primera línea de hasta 140 caracteres que funcione sola.
+- Cero URLs en el texto. Mencioná El Radar por nombre solamente cuando aporte contexto.
+- Cero a dos hashtags, técnicos y específicos. Cero emojis como viñetas.
+- Carrusel vertical 1080×1350 de exactamente 10 slides. Una idea por slide y nunca más de dos slides puramente textuales seguidas.
+- El carrusel complementa con decisiones, comparaciones y diagramas; no parafrasea el texto.
+- Incluí el tradeoff real y un caso concreto de cuándo NO aplicar la decisión.
+- La última slide hace una pregunta concreta para comentarios. No pide suscripción ni clic externo.
 
 ═══════════════════════════════════════════════
 FORMATO DE RESPUESTA (JSON estricto)
@@ -80,6 +92,20 @@ FORMATO DE RESPUESTA (JSON estricto)
         "code_snippet": "string opcional"
       },
       {
+        "type": "idea",
+        "icon_num": 5,
+        "headline": "string — el tradeoff: qué se puso peor al tomar la decisión",
+        "body": "string — costo concreto y verificable que aparece en la fuente",
+        "code_snippet": "string opcional"
+      },
+      {
+        "type": "idea",
+        "icon_num": 6,
+        "headline": "Cuándo no hacer esto",
+        "body": "string — caso específico donde esta decisión sería mala",
+        "code_snippet": "string opcional"
+      },
+      {
         "type": "resumen",
         "headline": "string — título del resumen, ej: 'Los 4 aprendizajes clave'",
         "body": "string — una línea introductoria al resumen",
@@ -89,15 +115,10 @@ FORMATO DE RESPUESTA (JSON estricto)
         "type": "engagement",
         "headline": "string — pregunta que genera fricción técnica o de criterio. Si el post tiene una tensión sin resolver, usala directamente. Ej correcto: '¿Usarías esto en producción o es over-engineering?' / Ej incorrecto: '¿Qué opinás sobre este tema?'",
         "body": "string — 1-2 líneas que enmarcan la pregunta con el contexto concreto del post"
-      },
-      {
-        "type": "cta",
-        "headline": "string — llamada a la acción principal, ej: 'Suscribite a El Radar'",
-        "body": "string — 2-3 líneas describiendo qué van a recibir en el newsletter. Tono: lo que compartirías con un colega, no copy de marketing."
       }
     ],
-    "caption": "string — 2-3 líneas de gancho para el feed, antes del carousel. No repetir el headline del slide 1. Empezá con la tensión o el número más impactante del post.",
-    "hashtags": ["array de exactamente 5 strings, en minúscula, sin el símbolo #"]
+    "caption": "string — texto completo de 600-1800 caracteres. Primera línea de hasta 140 caracteres. Sin links, sin tono publicitario y sin repetir el carrusel.",
+    "hashtags": ["array de 0 a 2 strings técnicos y específicos, sin el símbolo #"]
   },
   "instagram": {
     "slides": [

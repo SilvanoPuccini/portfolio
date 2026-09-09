@@ -6,7 +6,7 @@ const BASE_STYLES = `
 
   body {
     width: 1080px;
-    height: 1080px;
+    height: 1350px;
     background: #0f0f14;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: #f0f0f0;
@@ -15,7 +15,7 @@ const BASE_STYLES = `
 
   .slide {
     width: 1080px;
-    height: 1080px;
+    height: 1350px;
     padding: 72px 80px;
     display: flex;
     flex-direction: column;

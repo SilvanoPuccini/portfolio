@@ -1,8 +1,9 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { getBlogPostBySlug } from '@/lib/blog';
 import { generateDistribution } from './ai/generate';
 import { renderAndUpload } from './renderer/render';
 import type { Distribution, DistributionStatus } from './types';
+import { resolveDistributionSource } from './sources';
+import type { DistributionSourceRef } from './sources';
 
 const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
 
@@ -44,18 +45,18 @@ async function saveVersion(distributionId: string, dist: Distribution) {
 
 // ── Crear distribución nueva ──────────────────────────────────
 
-export async function createDistribution(slug: string): Promise<string> {
+export async function createDistribution(sourceRef: DistributionSourceRef | string): Promise<string> {
   const db = getSupabaseAdmin();
 
-  const post = getBlogPostBySlug(slug);
-  if (!post) throw new Error(`Post no encontrado: ${slug}`);
+  const source = await resolveDistributionSource(sourceRef);
+  if (!source) throw new Error('La fuente no existe o no tiene contenido guardado');
 
   // Insertar registro vacío para tener el ID desde el principio
   const { data: row, error: insertError } = await db
     .from('distributions')
     .insert({
-      post_slug: slug,
-      post_title: post.title,
+      post_slug: source.storageKey,
+      post_title: source.title,
       status: 'draft' as DistributionStatus,
     })
     .select('id')
@@ -70,8 +71,8 @@ export async function createDistribution(slug: string): Promise<string> {
   try {
     await log(id, 'ai_generate', 'info', 'Iniciando generación con Gemini');
 
-    const mdxContent = `---\ntitle: ${post.title}\ncategory: ${post.category}\nexcerpt: ${post.excerpt}\n---\n\n${post.content}`;
-    const postUrl = `${SITE_URL}/es/blog/${slug}`;
+    const mdxContent = `---\ntitle: ${source.title}\n---\n\n${source.content}`;
+    const postUrl = source.url || SITE_URL;
 
     const { content, metadata } = await generateDistribution(mdxContent, postUrl);
 
@@ -163,13 +164,13 @@ export async function regenerateDistribution(
   // Guardar versión antes de modificar
   await saveVersion(id, existing as Distribution);
 
-  const post = getBlogPostBySlug(existing.post_slug);
-  if (!post) throw new Error(`Post no encontrado: ${existing.post_slug}`);
+  const source = await resolveDistributionSource(existing.post_slug);
+  if (!source) throw new Error(`Fuente no encontrada: ${existing.post_slug}`);
 
   await log(id, 'ai_generate', 'info', `Regenerando scope: ${scope}`, options);
 
-  const mdxContent = `---\ntitle: ${post.title}\ncategory: ${post.category}\nexcerpt: ${post.excerpt}\n---\n\n${post.content}`;
-  const postUrl = `${SITE_URL}/es/blog/${existing.post_slug}`;
+  const mdxContent = `---\ntitle: ${source.title}\n---\n\n${source.content}`;
+  const postUrl = source.url || SITE_URL;
 
   const { content, metadata } = await generateDistribution(mdxContent, postUrl);
 

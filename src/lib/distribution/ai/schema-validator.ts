@@ -10,7 +10,7 @@ const LinkedInSlideSchema = z.object({
   tag: z.string().optional(),
   subtitle: z.string().optional(),
   pills: z.array(z.string()).optional(),
-  icon_num: z.number().int().min(1).max(4).optional(),
+  icon_num: z.number().int().min(1).max(6).optional(),
   code_snippet: z.string().optional(),
   points: z.array(z.string()).optional(),
 });
@@ -28,21 +28,24 @@ const SlideSchema = z.object({
 const LinkedInSchema = z.object({
   slides: z
     .array(LinkedInSlideSchema)
-    .length(9, 'LinkedIn debe tener exactamente 9 slides')
+    .length(10, 'LinkedIn debe tener exactamente 10 slides')
     .refine((s) => s[0]?.type === 'portada', 'Slide 1 debe ser portada')
     .refine((s) => s[1]?.type === 'problema', 'Slide 2 debe ser problema')
     .refine((s) => s[2]?.type === 'idea', 'Slide 3 debe ser idea')
     .refine((s) => s[3]?.type === 'idea', 'Slide 4 debe ser idea')
     .refine((s) => s[4]?.type === 'idea', 'Slide 5 debe ser idea')
     .refine((s) => s[5]?.type === 'idea', 'Slide 6 debe ser idea')
-    .refine((s) => s[6]?.type === 'resumen', 'Slide 7 debe ser resumen')
-    .refine((s) => s[7]?.type === 'engagement', 'Slide 8 debe ser engagement')
-    .refine((s) => s[8]?.type === 'cta', 'Slide 9 debe ser cta'),
-  caption: z.string().min(10),
+    .refine((s) => s[6]?.type === 'idea', 'Slide 7 debe explicar el tradeoff')
+    .refine((s) => s[7]?.type === 'idea', 'Slide 8 debe explicar cuándo no aplica')
+    .refine((s) => s[8]?.type === 'resumen', 'Slide 9 debe ser resumen')
+    .refine((s) => s[9]?.type === 'engagement', 'Slide 10 debe pedir un comentario'),
+  caption: z.string().min(600).max(1800)
+    .refine((text) => (text.split('\n')[0]?.length ?? 0) <= 140, 'La primera línea supera 140 caracteres')
+    .refine((text) => !/https?:\/\/|www\./i.test(text), 'LinkedIn no admite links en el cuerpo')
+    .refine((text) => !/🚀|¿Sabías que|En este post te cuento/i.test(text), 'El texto usa una fórmula editorial prohibida'),
   hashtags: z
     .array(z.string().regex(/^[^#\s]/, 'Los hashtags no deben incluir el símbolo #'))
-    .min(3)
-    .max(10),
+    .max(2),
 });
 
 const InstagramSchema = z.object({

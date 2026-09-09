@@ -139,7 +139,7 @@ export interface DistributionLog {
 // ── API request / response ───────────────────────────────────
 
 export interface DistributeRequest {
-  slug: string;
+  source: { channel: 'portfolio' | 'linkedin'; id: string };
 }
 
 export interface DistributeResponse {

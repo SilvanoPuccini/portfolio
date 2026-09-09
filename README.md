@@ -100,6 +100,13 @@ npm run dev
 
 Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_AUDIENCE_ID`, `NOTIFY_SECRET`, `ADMIN_PASSWORD`, `GOOGLE_AI_API_KEY`, `NEXT_PUBLIC_SITE_URL`.
 
+### LinkedIn editorial library deployment
+
+1. Apply `supabase/migrations/019_linkedin_editorial_library.sql` before deploying the application code.
+2. Confirm the `linkedin-originals` Storage bucket is private, allows only `application/pdf`, and has a 25 MiB object limit. The migration configures these values and intentionally adds no public object policies.
+3. Configure `NEXT_PUBLIC_SUPABASE_ANON_KEY` for browser-to-Storage signed uploads. The service role key must remain server-only.
+4. Smoke-test one Markdown import, one PDF upload/open, and both Agenda detail routes. LinkedIn records are never consumed by the blog publish/newsletter cron.
+
 ---
 
 ## Contacto

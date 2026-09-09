@@ -6,7 +6,7 @@ import { s } from '@/components/admin/AdminShell';
 import type { DistributionListItem, DistributionStatus } from '@/lib/distribution/types';
 import { DistributionRowSkeleton } from '@/components/admin/distribution/Skeleton';
 
-type Post = { slug: string; title: string; excerpt: string; issue: number };
+type Source = { channel: 'portfolio' | 'linkedin'; id: string; title: string };
 type StatusFilter = 'all' | DistributionStatus;
 
 const STATUS_LABELS: Record<DistributionStatus, string> = {
@@ -65,16 +65,16 @@ function NewDistributionModal({
   onClose: () => void;
   onCreated: (id: string) => void;
 }) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [slug, setSlug] = useState('');
+  const [sources, setSources] = useState<Source[]>([]);
+  const [sourceKey, setSourceKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/admin/posts', {})
+    fetch('/api/admin/distribution-sources', {})
       .then((r) => r.json())
-      .then((d) => setPosts(d.posts ?? []));
+      .then((d) => setSources(d.sources ?? []));
   }, []);
 
   // Avanza el mensaje de progreso mientras genera
@@ -87,7 +87,8 @@ function NewDistributionModal({
   }, [loading]);
 
   async function handleGenerate() {
-    if (!slug) return;
+    const source = sources.find((item) => `${item.channel}:${item.id}` === sourceKey);
+    if (!source) return;
     setLoading(true);
     setStepIdx(0);
     setError('');
@@ -96,7 +97,7 @@ function NewDistributionModal({
       const res = await fetch('/api/admin/distribute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ source: { channel: source.channel, id: source.id } }),
       });
       const data = await res.json() as { id?: string; error?: string };
       if (!res.ok || !data.id) throw new Error(data.error ?? 'Error desconocido');
@@ -106,8 +107,6 @@ function NewDistributionModal({
       setLoading(false);
     }
   }
-
-  const selectedPost = posts.find((p) => p.slug === slug);
 
   return (
     <div style={{
@@ -129,26 +128,17 @@ function NewDistributionModal({
         {!loading ? (
           <>
             <select
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              value={sourceKey}
+              onChange={(e) => setSourceKey(e.target.value)}
               style={{ ...s.input, marginBottom: 12 }}
             >
-              <option value="">— Elegí un post —</option>
-              {posts.map((p) => (
-                <option key={p.slug} value={p.slug}>
-                  Nº {String(p.issue).padStart(2, '0')} · {p.title}
+              <option value="">— Elegí contenido guardado —</option>
+              {sources.map((source) => (
+                <option key={`${source.channel}:${source.id}`} value={`${source.channel}:${source.id}`}>
+                  {source.channel === 'portfolio' ? 'Portfolio' : 'LinkedIn'} · {source.title}
                 </option>
               ))}
             </select>
-
-            {selectedPost && (
-              <div style={{
-                background: '#0f172a', border: '1px solid #1e293b',
-                borderRadius: 8, padding: '12px 14px', marginBottom: 16,
-              }}>
-                <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>{selectedPost.excerpt}</p>
-              </div>
-            )}
 
             {error && <p style={{ ...s.errorText, marginBottom: 12 }}>{error}</p>}
 
@@ -156,8 +146,8 @@ function NewDistributionModal({
               <button onClick={onClose} style={s.btnGhost}>Cancelar</button>
               <button
                 onClick={handleGenerate}
-                disabled={!slug}
-                style={{ ...s.btn, opacity: !slug ? 0.5 : 1 }}
+                disabled={!sourceKey}
+                style={{ ...s.btn, opacity: !sourceKey ? 0.5 : 1 }}
               >
                 Generar →
               </button>

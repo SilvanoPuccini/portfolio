@@ -1,23 +1,19 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgendaCalendar } from './AgendaCalendar';
-import type { PostPublicationListItem } from '@/lib/post-publications/types';
+import type { AgendaItem } from '@/lib/agenda/types';
 
-function item(slug: string): PostPublicationListItem {
+function item(slug: string, channel: 'blog' | 'linkedin' = 'blog'): AgendaItem {
   return {
-    post_slug: slug,
-    raw_title: `Post ${slug}`,
+    id: `${channel}:${slug}`,
+    channel,
+    source_id: slug,
+    title: `Post ${slug}`,
+    detail_path: channel === 'blog' ? `/admin/agenda/${slug}` : `/admin/content/${slug}`,
     scheduled_at: '2026-09-13T13:00:00.000Z',
     status: 'planificado',
-    notify_subscribers: true,
     pre_approved_at: null,
     published_at: null,
-    notified_at: null,
-    notify_attempts: 0,
-    notify_error: null,
-    deleted_at: null,
-    created_at: '2026-01-01T00:00:00.000Z',
-    updated_at: '2026-01-01T00:00:00.000Z',
     has_content: false,
     content_chars: 0,
   };
@@ -32,27 +28,32 @@ describe('AgendaCalendar', () => {
     render(
       <AgendaCalendar
         items={[item('one'), item('two'), item('three')]}
-        selectedSlug={null}
+        selectedId={null}
         onSelect={onSelect}
         onCreate={vi.fn()}
       />,
     );
 
-    expect(screen.queryByRole('button', { name: 'Post three, Planificado' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Mostrar 1 post más/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Post three, Planificado' }));
+    expect(screen.queryByRole('button', { name: 'Post three, Blog, Planificado' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('+1 más'));
+    fireEvent.click(screen.getByRole('button', { name: 'Post three, Blog, Planificado' }));
 
-    expect(onSelect).toHaveBeenCalledWith('three');
-  });
+    expect(onSelect).toHaveBeenCalledWith('blog:three');
+  }, 10_000);
 
   it('starts creation from a day with its date and default publication time', () => {
     const onCreate = vi.fn();
     render(
-      <AgendaCalendar items={[]} selectedSlug={null} onSelect={vi.fn()} onCreate={onCreate} />,
+      <AgendaCalendar items={[]} selectedId={null} onSelect={vi.fn()} onCreate={onCreate} />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Crear post el 13\/9\/2026/ }));
 
     expect(onCreate).toHaveBeenCalledWith('2026-09-13T10:00');
+  });
+
+  it('identifies channel, title and state for each calendar entry', () => {
+    render(<AgendaCalendar items={[item('linkedin-one', 'linkedin')]} selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Post linkedin-one, LinkedIn, Planificado' })).toBeInTheDocument();
   });
 });
