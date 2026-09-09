@@ -22,6 +22,12 @@ export const createPostPublicationSchema = editablePostPublicationSchema.extend(
 export const updatePostPublicationSchema = editablePostPublicationSchema
   .extend({
     status: z.enum(['planificado', 'preaprobado', 'publicado']),
+    /**
+     * Markdown crudo: el servidor lo convierte a texto plano y lo guarda en
+     * raw_content. El parseo vive acá y no en el navegador para que blog y
+     * LinkedIn usen exactamente la misma conversión.
+     */
+    source_markdown: z.string().max(250_000),
   })
   .partial()
   .refine((value) => Object.keys(value).length > 0, 'Nada para actualizar');

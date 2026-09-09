@@ -30,6 +30,9 @@ export const createLinkedInPostSchema = z.strictObject({
 export const updateLinkedInPostSchema = z.strictObject({
   title: z.string().trim().min(1).max(300).optional(),
   body: z.string().max(250_000).optional(),
+  /** Markdown adjuntado desde el detalle: el servidor lo convierte a body. */
+  source_markdown: z.string().max(250_000).optional(),
+  source_filename: z.string().trim().min(1).max(200).regex(/^[^/\\]+\.md$/i, 'El archivo debe ser .md').optional(),
   scheduled_at: z.iso.datetime({ offset: true }).optional(),
   status: linkedinStatusSchema.optional(),
   published_url: z.union([z.literal(''), z.url({ protocol: /^https$/ })]).optional(),

@@ -8,6 +8,7 @@ import {
   updatePostPublicationSchema,
 } from '@/lib/post-publications/schemas';
 import type { UpdatePostPublicationRequest } from '@/lib/post-publications/schemas';
+import { markdownToPlainText } from '@/lib/linkedin-posts/markdown';
 import { isValidTransition, preApprovalBlockReason } from '@/lib/post-publications/types';
 import type {
   PostPublication,
@@ -66,6 +67,14 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Body inválido' }, { status: 400 });
   }
   const body: UpdatePostPublicationRequest = parsed.data;
+
+  // Un .md adjunto es una forma de escribir raw_content, no un campo aparte:
+  // se convierte acá y el resto del handler no necesita saber de dónde vino.
+  if (body.source_markdown !== undefined) {
+    body.raw_content = markdownToPlainText(body.source_markdown);
+    delete body.source_markdown;
+  }
+
   const db = getSupabaseAdmin();
 
   const { data: current, error: readError } = await db
