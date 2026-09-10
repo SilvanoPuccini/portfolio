@@ -28,13 +28,17 @@ export async function POST(req: NextRequest) {
     steps.push({ step: 'lectura', ok: true, detail: `@${username}` });
   } catch (reason) {
     const detail = reason instanceof Error ? reason.message : 'error';
-    steps.push({ step: 'lectura', ok: false, detail });
-    return NextResponse.json({
-      ok: false, steps,
-      hint: detail.includes('Faltan credenciales')
-        ? 'Faltan credenciales de X en el entorno. Revisá las 4 variables en Vercel.'
-        : `X rechazó la lectura: ${detail}`,
-    }, { status: 502 });
+    // El tier Free de la API v2 de X bloquea GET /users/me (client-not-enrolled),
+    // pero permite escribir (POST /tweets) y borrar. No abortamos acá: la verdadera
+    // prueba de fuego del circuito es publicar y borrar el tweet de prueba.
+    steps.push({
+      step: 'lectura',
+      ok: false,
+      detail: detail.includes('client-not-enrolled')
+        ? 'Plan Free (lectura omitida por política de X)'
+        : detail,
+    });
+    username = 'silvanopuccini';
   }
 
   let tweetId: string | null = null;
