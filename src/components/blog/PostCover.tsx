@@ -121,9 +121,69 @@ const techIcons: Record<string, { color: string; icon: React.ReactNode }> = {
       </svg>
     ),
   },
+  Vite: {
+    color: "#A259FF",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <path d="M2.6 5.4 12 21.8 21.4 5.4 12 7.2 2.6 5.4Z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round" />
+        <path d="M13.6 3.1 9.4 11.3l2.7-.35-.9 4.9 4.1-7.6-2.7.42.99-5.57Z" fill="currentColor" />
+      </svg>
+    ),
+  },
 };
 
+/**
+ * Portada comparativa: dos filas de dos, con el "vs" en el medio.
+ *
+ * Un post que compara cuatro herramientas con el logo de una sola desorienta:
+ * el lector cree que el post es sobre esa. Se activa desde el frontmatter con
+ * un keyword del tipo "React vs Angular / Vite vs Next.js", así cualquier post
+ * futuro puede comparar lo suyo sin tocar este archivo.
+ */
+function VersusCenter({ keyword, isFeatured }: { keyword: string; isFeatured: boolean }) {
+  const rows = keyword.split("/").map((row) =>
+    row.split(/\bvs\b/i).map((name) => name.trim()).filter(Boolean),
+  );
+  const size = isFeatured ? 44 : 26;
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+      style={{ gap: isFeatured ? 20 : 12, paddingBottom: isFeatured ? 34 : 26 }}>
+      {rows.map((row, rowIndex) => (
+        <div key={rowIndex} className="flex items-center" style={{ gap: isFeatured ? 22 : 13 }}>
+          {row.map((name, index) => {
+            const tech = techIcons[name];
+            return (
+              <div key={name} className="flex items-center" style={{ gap: isFeatured ? 22 : 13 }}>
+                {index > 0 && (
+                  <span className="font-mono uppercase tracking-[0.18em] text-white/25"
+                    style={{ fontSize: isFeatured ? "0.72rem" : "0.5rem" }}>
+                    vs
+                  </span>
+                )}
+                {tech ? (
+                  <div style={{ width: size, height: size, color: tech.color, opacity: 0.85 }}>
+                    {tech.icon}
+                  </div>
+                ) : (
+                  <span className="font-mono text-white/45"
+                    style={{ fontSize: isFeatured ? "1rem" : "0.7rem" }}>{name}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: boolean }) {
+  // Un keyword con "vs" pide la portada comparativa.
+  if (/\bvs\b/i.test(keyword)) {
+    return <VersusCenter keyword={keyword} isFeatured={isFeatured} />;
+  }
+
   // ── Special case: El Radar ──────────────────────────────────
   if (keyword === "El Radar") {
     return (
