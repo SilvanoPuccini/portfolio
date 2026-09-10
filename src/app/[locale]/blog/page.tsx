@@ -200,12 +200,12 @@ export default async function BlogPage({
           alto mínimo se desactiva arriba y el banner queda con flujo normal.
 
           Usa la proporción nativa de la imagen (2172x724) en vez de un alto
-          fijo, así no se recorta a ningún ancho y en el celular se ve entera
-          en lugar de cortada por los costados.
+          fijo, así no se recorta a los costados. El clip inferior de 2px solo
+          oculta la línea blanca incluida en el borde del asset.
         */
         below={
           <div className="site-container pb-10 sm:pb-12">
-            <div className="relative aspect-[2172/724] w-full overflow-hidden rounded-sm">
+            <div className="relative aspect-[2172/724] w-full overflow-hidden rounded-sm [clip-path:inset(0_0_2px_0)]">
               <Image
                 src="/images/blog-elradar-hero.png"
                 alt="El Radar — el newsletter de Silvano Puccini"
