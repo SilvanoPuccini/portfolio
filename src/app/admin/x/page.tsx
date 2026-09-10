@@ -102,12 +102,22 @@ export default function XPage() {
     return true;
   }
 
+  /**
+   * Publica un tweet de prueba y lo borra. Es la única forma de saber si los
+   * tokens pueden escribir: leer funciona igual con permisos de solo lectura.
+   */
   async function checkAccount() {
-    setError('');
-    const response = await fetch('/api/admin/x-threads/none/publish');
+    setError(''); setBusyId('verify');
+    const response = await fetch('/api/admin/x-verify', { method: 'POST' });
     const json = await response.json().catch(() => ({}));
-    if (json.ok) setAccount(`@${json.account.username}`);
-    else setError(json.error ?? 'No se pudo verificar la cuenta');
+    setBusyId(null);
+    if (json.ok) {
+      setAccount(`@${json.username}`);
+      setError('');
+    } else {
+      const failed = (json.steps ?? []).find((step: { ok: boolean }) => !step.ok);
+      setError(`${failed?.step ?? 'Verificación'} falló. ${json.hint ?? ''}`);
+    }
   }
 
   /** Solo los posts del blog que todavía no tienen su semana armada. */
@@ -126,9 +136,11 @@ export default function XPage() {
         </p>
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <button onClick={checkAccount} style={chip(false)}
+        <button onClick={checkAccount} disabled={busyId === 'verify'}
+          title="Publica un tweet de prueba y lo borra: es la única forma de comprobar el permiso de escritura"
+          style={chip(Boolean(account))}
           className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]">
-          {account ?? 'Verificar cuenta'}
+          {busyId === 'verify' ? 'Probando...' : account ? `${account} puede publicar` : 'Probar conexión con X'}
         </button>
         <select value={planning} onChange={(event) => setPlanning(event.target.value)}
           aria-label="Post del blog para planificar"
