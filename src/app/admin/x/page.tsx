@@ -5,6 +5,11 @@ import { PeriodPicker, inPeriod, periodLabel, type Period } from '@/components/a
 import { XThreadRow } from '@/components/admin/x/XThreadRow';
 import { c, tint } from '@/components/admin/tokens';
 import type { XThread, XThreadListItem, XThreadStatus } from '@/lib/x/types';
+import {
+  formatXReadWarning,
+  formatXVerificationFailure,
+  type XVerificationStep,
+} from '@/lib/x/diagnostics';
 import type { PostPublicationListItem } from '@/lib/post-publications/types';
 
 type Filter = 'all' | XThreadStatus;
@@ -110,14 +115,17 @@ export default function XPage() {
     setError(''); setBusyId('verify');
     try {
       const response = await fetch('/api/admin/x-verify', { method: 'POST' });
-      const json = await response.json().catch(() => ({}));
+      const json = await response.json().catch(() => ({})) as {
+        ok?: boolean;
+        username?: string | null;
+        steps?: XVerificationStep[];
+        hint?: string;
+      };
       if (json.ok) {
-        setAccount(`@${json.username}`);
-        setError('');
+        setAccount(json.username ? `@${json.username}` : 'X');
+        setError(formatXReadWarning(json.steps));
       } else {
-        const failed = (json.steps ?? []).find((step: { ok: boolean }) => !step.ok);
-        const detail = failed?.detail ? `: ${failed.detail}` : '';
-        setError(`${failed?.step ?? 'Verificación'} falló${detail}. ${json.hint ?? ''}`);
+        setError(formatXVerificationFailure(json));
       }
     } catch (reason) {
       setError(`Error de red al conectar: ${reason instanceof Error ? reason.message : 'falló la petición'}`);

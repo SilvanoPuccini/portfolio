@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized } from '@/lib/admin-auth';
 import { deleteTweet, postTweet, whoAmI } from '@/lib/x/client';
+import {
+  isXReadPolicySkip,
+  normalizeXDiagnosticError,
+  type XVerificationStep,
+} from '@/lib/x/diagnostics';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -19,7 +24,8 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const steps: { step: string; ok: boolean; detail?: string }[] = [];
+  const steps: XVerificationStep[] = [];
+  let readSkipped = false;
 
   let username: string | null = null;
   try {
@@ -27,18 +33,12 @@ export async function POST(req: NextRequest) {
     username = me.data.username;
     steps.push({ step: 'lectura', ok: true, detail: `@${username}` });
   } catch (reason) {
-    const detail = reason instanceof Error ? reason.message : 'error';
-    // El tier Free de la API v2 de X bloquea GET /users/me (client-not-enrolled),
-    // pero permite escribir (POST /tweets) y borrar. No abortamos acá: la verdadera
-    // prueba de fuego del circuito es publicar y borrar el tweet de prueba.
-    steps.push({
-      step: 'lectura',
-      ok: false,
-      detail: detail.includes('client-not-enrolled')
-        ? 'Plan Free (lectura omitida por política de X)'
-        : detail,
-    });
-    username = 'silvanopuccini';
+    const detail = normalizeXDiagnosticError(reason);
+    readSkipped = isXReadPolicySkip(reason);
+    steps.push(readSkipped
+      ? { step: 'lectura', ok: true, skipped: true, detail }
+      : { step: 'lectura', ok: false, detail });
+    if (readSkipped) username = 'silvanopuccini';
   }
 
   let tweetId: string | null = null;
@@ -46,13 +46,11 @@ export async function POST(req: NextRequest) {
     tweetId = await postTweet(`Prueba de conexión ${new Date().toISOString()}`, null);
     steps.push({ step: 'escritura', ok: true, detail: tweetId });
   } catch (reason) {
-    const detail = reason instanceof Error ? reason.message : 'error';
+    const detail = normalizeXDiagnosticError(reason);
     steps.push({ step: 'escritura', ok: false, detail });
     return NextResponse.json({
       ok: false, steps,
-      hint: detail.includes('403')
-        ? 'Los tokens son de solo lectura. En el portal de X poné los permisos en Read and write y REGENERÁ el Access Token: el que ya tenés conserva el permiso viejo.'
-        : 'No se pudo publicar. Revisá el nivel de acceso de la app en el portal de X.',
+      hint: 'X rechazó la publicación. Revisá el estado de la app, sus permisos y las credenciales; si cambiaste permisos, regenerá el Access Token and Secret.',
     }, { status: 502 });
   }
 
@@ -62,7 +60,7 @@ export async function POST(req: NextRequest) {
   } catch (reason) {
     // Publicar salió bien, que es lo que se quería probar. Que no se pueda
     // borrar es raro pero no invalida el resultado: se avisa y listo.
-    steps.push({ step: 'borrado', ok: false, detail: reason instanceof Error ? reason.message : 'error' });
+    steps.push({ step: 'borrado', ok: false, detail: normalizeXDiagnosticError(reason) });
     return NextResponse.json({
       ok: true, steps, username,
       hint: `Publicar funciona, pero la prueba quedó en tu cuenta. Borrala a mano: el id es ${tweetId}.`,
@@ -71,6 +69,10 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true, steps, username,
-    hint: 'Leer, publicar y borrar funcionan. El circuito puede salir a producción.',
+    hint: readSkipped
+      ? 'Publicar y borrar funcionan. La lectura no está disponible por la política informada por X.'
+      : steps[0].ok
+        ? 'Leer, publicar y borrar funcionan. El circuito puede salir a producción.'
+        : 'Publicar y borrar funcionan, pero la lectura falló. Revisá el detalle informado.',
   });
 }
