@@ -28,6 +28,28 @@ export const metadata: Metadata = {
   description:
     "Portfolio editorial de Silvano Puccini enfocado en producto, sistemas web y experiencias premium.",
   metadataBase: new URL("https://silvanopuccini.dev"),
+  /**
+   * La raíz redirige a /es, y ahí sí había openGraph. Pero un crawler que no
+   * sigue el redirect se quedaba sin imagen, y el link a silvanopuccini.dev
+   * pelado salía como texto plano. Declararlo acá cubre los dos casos.
+   */
+  openGraph: {
+    title: "Silvano Puccini | Full Stack Developer",
+    description:
+      "Desarrollo web, automatización y arquitectura para negocios que quieren dejar de operar a mano.",
+    type: "website",
+    url: "https://silvanopuccini.dev",
+    siteName: "Silvano Puccini",
+    locale: "es_AR",
+    images: [{ url: "/og-home.png?v=3", width: 1200, height: 630, alt: "silvanopuccini.dev" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Silvano Puccini | Full Stack Developer",
+    description:
+      "Desarrollo web, automatización y arquitectura para negocios que quieren dejar de operar a mano.",
+    images: ["/og-home.png?v=3"],
+  },
   alternates: {
     languages: {
       es: "/es",

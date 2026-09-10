@@ -51,4 +51,11 @@ export default tseslint.config(
       },
     },
   },
+  {
+    // Los scripts de mantenimiento corren en Node, no en el navegador.
+    files: ["scripts/**/*.{js,mjs}"],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
 );

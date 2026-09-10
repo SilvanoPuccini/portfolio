@@ -93,7 +93,7 @@ describe("generatePageMetadata", () => {
       const images = (meta.openGraph?.images ?? []) as Array<{ url: string }>;
       expect(images.length).toBeGreaterThan(0);
       expect(images[0].url).toContain("silvanopuccini.dev");
-      expect(images[0].url).toMatch(/og-default\.(png|svg)(\?.*)?$/);
+      expect(images[0].url).toMatch(/og-home\.png(\?.*)?$/);
     });
 
     it("uses the override og image when provided", () => {
@@ -174,5 +174,18 @@ describe("generatePageMetadata", () => {
       expect(meta.title).toBe(title);
       expect(meta.description).toBe(description);
     });
+  });
+});
+
+describe('la imagen social', () => {
+  it('también se declara en twitter, sin depender del respaldo a og:image', () => {
+    const meta = generatePageMetadata({
+      locale: 'es', path: 'blog/uno', title: 'T', description: 'D',
+      ogImage: '/api/og/uno', ogType: 'article',
+    });
+    // Cuando falta twitter:image, X normalmente cae a og:image. Normalmente.
+    // Si esa tarjeta se arma sin imagen queda el texto pelado, que es
+    // exactamente el resultado que estamos evitando.
+    expect(meta.twitter).toMatchObject({ card: 'summary_large_image', images: ['/api/og/uno'] });
   });
 });

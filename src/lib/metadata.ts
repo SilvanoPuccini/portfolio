@@ -3,9 +3,9 @@ import type { Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://silvanopuccini.dev";
 // PNG required: social crawlers (LinkedIn, Facebook, Twitter) do not render SVG og:image.
-// Cache-busting query param: bump this when og-default.png changes so LinkedIn/Facebook
+// Cache-busting query param: bump this when og-home.png changes so LinkedIn/Facebook
 // treat it as a new URL instead of serving their stale cached image.
-const DEFAULT_OG_IMAGE = "/og-default.png?v=2";
+const DEFAULT_OG_IMAGE = "/og-home.png?v=3";
 
 export type PageMetadataOptions = {
   locale: Locale;
@@ -60,6 +60,9 @@ export function generatePageMetadata(opts: PageMetadataOptions): Metadata {
       card: "summary_large_image",
       title,
       description,
+      // X cae al og:image cuando falta esta, pero depender de ese respaldo es
+      // frágil: si la tarjeta se arma sin imagen queda el texto pelado.
+      images: [ogImage],
     },
   };
 }
