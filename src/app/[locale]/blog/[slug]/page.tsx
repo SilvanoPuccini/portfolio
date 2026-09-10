@@ -40,12 +40,24 @@ export async function generateMetadata({
 
   const title = `${post.title} | Silvano Puccini`;
 
+  /**
+   * Cada nota comparte su propia portada.
+   *
+   * Sin este respaldo, una nota sin `ogImage` en el frontmatter caía a la
+   * imagen por defecto del sitio: al compartir el link salía la portada del
+   * home con el título de la nota, que se lee como un error. Siete de las doce
+   * notas estaban así.
+   *
+   * `/api/og/<slug>` genera la portada con el título y la categoría de la nota,
+   * así que alcanza con que exista el slug. El frontmatter sigue mandando
+   * cuando alguna quiere una imagen propia.
+   */
   return generatePageMetadata({
     locale: resolveLocale(locale),
     path: `blog/${slug}`,
     title,
     description: post.excerpt,
-    ogImage: post.ogImage,
+    ogImage: post.ogImage ?? `/api/og/${slug}`,
     ogType: "article",
   });
 }
