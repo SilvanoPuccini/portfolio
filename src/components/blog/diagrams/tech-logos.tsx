@@ -25,10 +25,18 @@ export const LOGOS = {
   next: { src: `${DEVICON}/nextjs/nextjs-original.svg`, alt: 'Next.js', invert: true },
   angular: { src: `${DEVICON}/angularjs/angularjs-original.svg`, alt: 'Angular' },
   ts: { src: `${DEVICON}/typescript/typescript-original.svg`, alt: 'TypeScript' },
-  django: { src: `${DEVICON}/django/django-plain.svg`, alt: 'Django', invert: true },
+  /*
+   * Django va local y no por CDN: el único que publica devicon es el verde
+   * oscuro de marca (#092e20), que sobre el fondo navy del sitio no se lee, y
+   * al invertirlo salía rosa. Es el mismo logotipo oficial, pintado con el
+   * verde claro que la propia marca usa sobre fondos oscuros.
+   */
+  django: { src: '/logos/django.svg', alt: 'Django' },
   python: { src: `${DEVICON}/python/python-original.svg`, alt: 'Python' },
   node: { src: `${DEVICON}/nodejs/nodejs-original.svg`, alt: 'Node.js' },
   go: { src: `${DEVICON}/go/go-original-wordmark.svg`, alt: 'Go' },
+  /* La marca de Rust es monocroma: sobre el fondo oscuro va invertida a blanco. */
+  rust: { src: `${DEVICON}/rust/rust-original.svg`, alt: 'Rust', invert: true },
   postgres: { src: `${DEVICON}/postgresql/postgresql-original.svg`, alt: 'PostgreSQL' },
   docker: { src: `${DEVICON}/docker/docker-original.svg`, alt: 'Docker' },
   vercel: { src: `${DEVICON}/vercel/vercel-original.svg`, alt: 'Vercel', invert: true },

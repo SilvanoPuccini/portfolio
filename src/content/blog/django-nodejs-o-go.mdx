@@ -6,8 +6,8 @@ displayCategory: 'Criterio'
 excerpt: 'Ningún backend elimina la complejidad de un sistema. La mueve de lugar. Lo que estás eligiendo no es cuál es más rápido, sino en qué parte del proyecto vas a estar peleando dentro de seis meses.'
 featured: false
 linkedinCarousel: false
-readingTime: '7 min'
-keyword: 'Django'
+readingTime: '9 min'
+keyword: 'Django vs Node.js / Go vs Rust'
 ogImage: '/api/og/django-nodejs-o-go'
 ---
 
@@ -25,7 +25,7 @@ Esto no aplica a una empresa con equipo de plataforma, presupuesto de infraestru
 
 Aplica al que va a construir y además operar lo que construye. Si sos la persona que escribe el código y también la que se entera de que algo se cayó, la ecuación cambia entera.
 
-## Django, Node.js y Go tampoco están en el mismo nivel
+## Django, Node.js, Go y Rust no están en el mismo nivel
 
 Igual que con el frontend, la comparación arranca torcida si no se aclara qué es cada cosa.
 
@@ -37,7 +37,9 @@ Node.js es un entorno de ejecución de JavaScript en el servidor. No te da nada 
 
 Go es un lenguaje, no un framework. Trae concurrencia en el propio lenguaje, una biblioteca estándar fuerte y un binario único como resultado de la compilación. La capa de aplicación la escribís vos.
 
-Entonces cuando alguien compara "Django contra Node", está comparando un framework contra un ecosistema de piezas sueltas. Y cuando compara contra Go, está comparando decisiones ya tomadas contra decisiones por tomar. Eso no hace mejor a ninguno: define qué recibís hecho y qué armás.
+Rust también es un lenguaje, y está un escalón más abajo todavía: es un lenguaje de sistemas, del mismo territorio que C y C++. La capa de aplicación también la escribís vos, y además tenés que aprender a escribirla de una forma que el compilador acepte.
+
+Entonces cuando alguien compara "Django contra Node", está comparando un framework contra un ecosistema de piezas sueltas. Y cuando compara contra Go o contra Rust, está comparando decisiones ya tomadas contra decisiones por tomar. Eso no hace mejor a ninguno: define qué recibís hecho y qué armás.
 
 ## Los seis criterios que uso
 
@@ -88,7 +90,19 @@ La palabra clave es medible. Elegir Go por rendimiento sin un número que lo jus
 
 Es la peor opción cuando el producto todavía está buscando su forma y las reglas cambian cada semana.
 
-Go tampoco está en mi producción. Lo estudié y entiendo su modelo, pero cuando tenga un proyecto propio corriendo con Go lo voy a escribir acá con el resultado real, bueno o malo.
+## Rust: potencia real, con una curva que se paga antes de empezar
+
+Rust es un lenguaje de sistemas. Sin recolector de basura corriendo por atrás, compilando a código nativo, con control directo sobre la memoria. La diferencia con C es que Rust no te pide usar ese control con cuidado: te obliga a demostrarle al compilador que lo estás usando bien.
+
+Ese mecanismo se llama pertenencia. Cada dato tiene un dueño, el compilador sabe cuánto vive y quién lo puede leer o escribir en cada momento, y si dos partes del programa se pisan, no compila. No es una advertencia: es un error. Las fallas de memoria y las condiciones de carrera entre hilos, que en otros lenguajes aparecen en producción un domingo a la madrugada, en Rust aparecen en tu máquina antes de que el programa llegue a existir.
+
+Y eso mismo es lo que lo hace más difícil de aprender que Go. En Go escribís algo razonable y funciona. En Rust escribís algo razonable y el compilador te lo rechaza tres veces, hasta que entendés que el problema no era la sintaxis sino tu modelo mental de cómo viven los datos. No alcanza con saber programar: hay que aprender a pensar la memoria, y eso lleva meses, no un fin de semana.
+
+Está orientado a donde ese precio se justifica. Motores de bases de datos, navegadores, sistemas embebidos, herramientas de línea de comandos, infraestructura que corre debajo de todo lo demás. Lugares donde el límite es el hardware, o donde una falla no se puede permitir. Para servidores web existe, y es bueno, pero pagás la curva entera para resolver un problema que Django te resuelve el primer día.
+
+Acá va lo mío sin adornos: tengo el módulo de Rust hecho y lo estudié por encima. Entiendo el modelo y puedo explicarlo, y no tengo una sola línea de Rust en producción ni un proyecto propio donde lo haya puesto a prueba. Es un pendiente con ganas, no una credencial.
+
+Con Go estoy en el mismo lugar: lo estudié, entiendo su modelo y tampoco está en mi producción. Los dos entran a este artículo porque la comparación queda coja sin ellos, no porque los haya peleado. El día que tenga un proyecto propio corriendo con cualquiera de los dos, lo escribo acá con el resultado real, bueno o malo.
 
 ## Ninguno elimina la complejidad: la mueve
 
@@ -96,7 +110,7 @@ Go tampoco está en mi producción. Lo estudié y entiendo su modelo, pero cuand
 
 Esta es la parte que los benchmarks no muestran. Cada opción te ahorra trabajo en una punta y te lo cobra en otra, y ese intercambio es la decisión completa.
 
-Hay una cuarta salida que conviene nombrar, porque cada vez es más común: no escribir backend. Delegar base de datos, autenticación, almacenamiento y tiempo real a un servicio administrado, y dejar solo la lógica propia en funciones. Cuando el equipo es chico y el tiempo es la restricción real, eso puede ser la decisión correcta.
+Hay una salida más que conviene nombrar, porque cada vez es más común: no escribir backend. Delegar base de datos, autenticación, almacenamiento y tiempo real a un servicio administrado, y dejar solo la lógica propia en funciones. Cuando el equipo es chico y el tiempo es la restricción real, eso puede ser la decisión correcta.
 
 Tiene su propio costo, y no está en el código. Cuando el backend es un servicio, delegás también parte de tu diagnóstico. Hay fallas que no vas a encontrar leyendo tu repositorio, porque no están ahí. Me pasó: un problema de acceso a la organización de un servicio administrado, con el repositorio impecable y nada que revertir.
 
@@ -112,7 +126,7 @@ Las tres alternativas descartadas eran defendibles. Por eso fueron decisiones.
 
 ## Lo que todavía no sé
 
-Lo que no sé es cuánto aguanta la cuarta opción cuando el producto crece. Delegar el backend es claramente correcto para arrancar de a dos, pero cada regla de negocio que queda repartida entre el cliente y una función suelta es una regla que no está en un solo lugar donde probarla. En un monolito sé exactamente dónde mirar cuando el dominio está mal. En el modelo delegado todavía no tengo esa certeza, y no sé si el día que la necesite voy a poder recuperarla sin reescribir.
+Lo que no sé es cuánto aguanta el backend delegado cuando el producto crece. Delegar el backend es claramente correcto para arrancar de a dos, pero cada regla de negocio que queda repartida entre el cliente y una función suelta es una regla que no está en un solo lugar donde probarla. En un monolito sé exactamente dónde mirar cuando el dominio está mal. En el modelo delegado todavía no tengo esa certeza, y no sé si el día que la necesite voy a poder recuperarla sin reescribir.
 
 ---
 

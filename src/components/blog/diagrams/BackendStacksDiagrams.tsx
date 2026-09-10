@@ -22,7 +22,8 @@ const OPCIONES = [
   {
     logo: LOGOS.node,
     name: 'Node.js',
-    kind: 'Entorno de ejecución',
+    // Con cuatro columnas, 'Entorno de ejecución' parte el rótulo en dos líneas.
+    kind: 'Entorno',
     lang: 'JavaScript',
     color: '#8cc84b',
     trae: ['Ejecutar JS en el servidor', 'Ecosistema npm', 'Modelo asíncrono nativo'],
@@ -39,6 +40,16 @@ const OPCIONES = [
     ponesVos: 'Casi toda la capa de aplicación',
     brilla: 'Cuando hay un servicio acotado con un requisito medible de carga',
   },
+  {
+    logo: LOGOS.rust,
+    name: 'Rust',
+    kind: 'Lenguaje',
+    lang: 'Rust',
+    color: '#dea584',
+    trae: ['Memoria segura sin recolector', 'Concurrencia verificada al compilar', 'Rendimiento de lenguaje de sistemas'],
+    ponesVos: 'Todo el dominio, y el tiempo de aprenderlo',
+    brilla: 'Cuando el límite es el hardware o la falla no se puede permitir',
+  },
 ];
 
 function OpcionesGrid() {
@@ -46,7 +57,7 @@ function OpcionesGrid() {
     <div
       style={{
         boxSizing: 'border-box',
-        width: '880px',
+        width: '1060px',
         background: CARD,
         border: '1px solid #1a2230',
         borderRadius: '14px',
@@ -62,7 +73,7 @@ function OpcionesGrid() {
           marginBottom: '22px',
         }}
       >
-        UN FRAMEWORK, UN ENTORNO Y UN LENGUAJE
+        UN FRAMEWORK, UN ENTORNO Y DOS LENGUAJES
       </div>
 
       <div style={{ display: 'flex', gap: '16px' }}>
@@ -146,7 +157,7 @@ function OpcionesGrid() {
 
 export function BackendLineupBlock() {
   return (
-    <Diagram w={880} caption="Lo que cada opción trae resuelto y lo que deja de tu lado">
+    <Diagram w={1060} caption="Lo que cada opción trae resuelto y lo que deja de tu lado">
       <OpcionesGrid />
     </Diagram>
   );
@@ -176,6 +187,13 @@ const DESPLAZAMIENTO = [
     ahorra: 'Recursos, despliegue y comportamiento bajo carga simultánea',
     paga: 'Velocidad de desarrollo. Casi nada del dominio viene hecho',
   },
+  {
+    logo: LOGOS.rust,
+    name: 'Rust',
+    color: '#dea584',
+    ahorra: 'Clases enteras de fallas: memoria y datos compartidos entre hilos',
+    paga: 'La curva más larga de las cuatro. El compilador te frena antes de dejarte avanzar',
+  },
 ];
 
 function BalanzaComplejidad() {
@@ -183,7 +201,7 @@ function BalanzaComplejidad() {
     <div
       style={{
         boxSizing: 'border-box',
-        width: '880px',
+        width: '1060px',
         background: CARD,
         border: '1px solid #1a2230',
         borderRadius: '14px',
@@ -315,7 +333,7 @@ function BalanzaComplejidad() {
 
 export function BackendComplexityBlock() {
   return (
-    <Diagram w={880} caption="Cada opción te ahorra en un lado y te cobra en otro">
+    <Diagram w={1060} caption="Cada opción te ahorra en un lado y te cobra en otro">
       <BalanzaComplejidad />
     </Diagram>
   );
