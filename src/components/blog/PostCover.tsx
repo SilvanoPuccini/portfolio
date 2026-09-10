@@ -1,5 +1,7 @@
 "use client";
 
+import { TECH_ICONS, VERSUS_PATTERN, parseVersus } from "./tech-icons";
+
 interface Props {
   title: string;
   category: string;
@@ -50,87 +52,7 @@ const fallback = {
 // ── Tech icons ────────────────────────────────────────────────
 // Add new techs here. color = accent color on dark bg.
 // icon = inline SVG (viewBox 0 0 24 24, uses currentColor).
-const techIcons: Record<string, { color: string; icon: React.ReactNode }> = {
-  React: {
-    color: "#61DAFB",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <circle cx="12" cy="12" r="2.4" fill="currentColor" />
-        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="currentColor" strokeWidth="1.2" fill="none" />
-        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="currentColor" strokeWidth="1.2" fill="none" transform="rotate(60 12 12)" />
-        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="currentColor" strokeWidth="1.2" fill="none" transform="rotate(120 12 12)" />
-      </svg>
-    ),
-  },
-  TypeScript: {
-    color: "#3178C6",
-    icon: (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <rect x="2" y="2" width="20" height="20" rx="3" fill="currentColor" />
-        <text x="12" y="16.5" textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="white" fontFamily="monospace">TS</text>
-      </svg>
-    ),
-  },
-  Angular: {
-    color: "#DD0031",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <path d="M12 2L3 6.2l1.4 12.6L12 22l7.6-3.2L21 6.2z" stroke="currentColor" strokeWidth="1.4" fill="none" />
-        <path d="M12 6.5L8.2 16h1.7l.8-2h2.6l.8 2h1.7L12 6.5z" fill="currentColor" />
-        <path d="M10.3 12.5l1.7-4.5 1.7 4.5h-3.4z" fill="none" stroke="currentColor" strokeWidth="0.8" />
-      </svg>
-    ),
-  },
-  "Next.js": {
-    color: "#FFFFFF",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.3" fill="none" />
-        <path d="M8 16V8l8 9V8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      </svg>
-    ),
-  },
-  Django: {
-    color: "#44B78B",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <rect x="3" y="2" width="4" height="14" rx="1" fill="currentColor" />
-        <rect x="3" y="18" width="4" height="4" rx="1" fill="currentColor" opacity="0.5" />
-        <rect x="9" y="2" width="4" height="8" rx="1" fill="currentColor" />
-        <path d="M9 12h4a4 4 0 0 1 0 8H9v-8z" fill="currentColor" />
-      </svg>
-    ),
-  },
-  Python: {
-    color: "#3776AB",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <path d="M12 2C8.5 2 7 3.5 7 5v2h5v1H5.5C3.5 8 2 9.5 2 12s1.5 4 3.5 4H7v-2.5C7 12 8.5 11 10 11h4c1.5 0 3-1 3-3V5c0-1.5-1.5-3-5-3zm-1 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" fill="currentColor" />
-        <path d="M12 22c3.5 0 5-1.5 5-3v-2h-5v-1h6.5c2 0 3.5-1.5 3.5-4s-1.5-4-3.5-4H17v2.5C17 12 15.5 13 14 13h-4c-1.5 0-3 1-3 3v3c0 1.5 1.5 3 5 3zm1-2a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" fill="currentColor" />
-      </svg>
-    ),
-  },
-  "React + TypeScript": {
-    color: "#61DAFB",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <circle cx="12" cy="12" r="2.4" fill="currentColor" />
-        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="currentColor" strokeWidth="1.2" fill="none" />
-        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="currentColor" strokeWidth="1.2" fill="none" transform="rotate(60 12 12)" />
-        <ellipse cx="12" cy="12" rx="10" ry="3.8" stroke="currentColor" strokeWidth="1.2" fill="none" transform="rotate(120 12 12)" />
-      </svg>
-    ),
-  },
-  Vite: {
-    color: "#A259FF",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <path d="M2.6 5.4 12 21.8 21.4 5.4 12 7.2 2.6 5.4Z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round" />
-        <path d="M13.6 3.1 9.4 11.3l2.7-.35-.9 4.9 4.1-7.6-2.7.42.99-5.57Z" fill="currentColor" />
-      </svg>
-    ),
-  },
-};
+
 
 /**
  * Portada comparativa: dos filas de dos, con el "vs" en el medio.
@@ -141,9 +63,7 @@ const techIcons: Record<string, { color: string; icon: React.ReactNode }> = {
  * futuro puede comparar lo suyo sin tocar este archivo.
  */
 function VersusCenter({ keyword, isFeatured }: { keyword: string; isFeatured: boolean }) {
-  const rows = keyword.split("/").map((row) =>
-    row.split(/\bvs\b/i).map((name) => name.trim()).filter(Boolean),
-  );
+  const rows = parseVersus(keyword);
   const size = isFeatured ? 44 : 26;
 
   return (
@@ -152,7 +72,7 @@ function VersusCenter({ keyword, isFeatured }: { keyword: string; isFeatured: bo
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="flex items-center" style={{ gap: isFeatured ? 22 : 13 }}>
           {row.map((name, index) => {
-            const tech = techIcons[name];
+            const tech = TECH_ICONS[name];
             return (
               <div key={name} className="flex items-center" style={{ gap: isFeatured ? 22 : 13 }}>
                 {index > 0 && (
@@ -180,7 +100,7 @@ function VersusCenter({ keyword, isFeatured }: { keyword: string; isFeatured: bo
 
 function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: boolean }) {
   // Un keyword con "vs" pide la portada comparativa.
-  if (/\bvs\b/i.test(keyword)) {
+  if (VERSUS_PATTERN.test(keyword)) {
     return <VersusCenter keyword={keyword} isFeatured={isFeatured} />;
   }
 
@@ -225,7 +145,7 @@ function KeywordCenter({ keyword, isFeatured }: { keyword: string; isFeatured: b
   }
 
   // ── Known tech with icon ─────────────────────────────────────
-  const tech = techIcons[keyword];
+  const tech = TECH_ICONS[keyword];
   if (tech) {
     const iconSize = isFeatured ? 52 : 32;
     return (

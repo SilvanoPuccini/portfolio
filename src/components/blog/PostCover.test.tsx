@@ -26,3 +26,23 @@ describe('PostCover', () => {
     expect(screen.queryByText('vs')).not.toBeInTheDocument();
   });
 });
+
+describe('los iconos compartidos', () => {
+  it('los usa la misma tabla que la imagen social, para que no se desincronicen', async () => {
+    const { TECH_ICONS, parseVersus, VERSUS_PATTERN } = await import('./tech-icons');
+
+    // Los cuatro del post del domingo tienen que existir en la tabla: si
+    // faltara uno, la portada mostraría tres logos y un nombre suelto.
+    for (const name of ['React', 'Angular', 'Vite', 'Next.js']) {
+      expect(TECH_ICONS[name], `falta el logo de ${name}`).toBeTruthy();
+    }
+
+    expect(VERSUS_PATTERN.test('React vs Angular / Vite vs Next.js')).toBe(true);
+    expect(parseVersus('React vs Angular / Vite vs Next.js')).toEqual([
+      ['React', 'Angular'],
+      ['Vite', 'Next.js'],
+    ]);
+    // Un keyword común no activa la comparación.
+    expect(VERSUS_PATTERN.test('Django')).toBe(false);
+  });
+});

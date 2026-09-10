@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { TECH_ICONS, VERSUS_PATTERN, parseVersus } from '@/components/blog/tech-icons';
 import { getBlogPostBySlug } from '@/lib/mdx';
 import { getVisibilityIndex, isPostVisible } from '@/lib/post-publications/visibility';
 
@@ -27,6 +28,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   }
 
   const accent = CATEGORY_COLOR[post.category] ?? '#22d3d3';
+
+  /**
+   * Los logos de las herramientas que compara la nota, si compara alguna.
+   *
+   * Sale del mismo `keyword` del frontmatter que usa la portada del blog, así
+   * que las dos muestran lo mismo. Es un agregado: una nota sin comparación
+   * conserva la tarjeta de siempre.
+   */
+  const versus = post.keyword && VERSUS_PATTERN.test(post.keyword)
+    ? parseVersus(post.keyword)
+    : null;
 
   return new ImageResponse(
     (
@@ -76,7 +88,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
         <div
           style={{
             display: 'flex',
-            fontSize: 58,
+            fontSize: versus ? 48 : 58,
             fontWeight: 700,
             lineHeight: 1.15,
             color: '#eef2f5',
@@ -85,6 +97,32 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
         >
           {post.title}
         </div>
+
+        {versus && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {versus.map((row, rowIndex) => (
+              <div key={rowIndex} style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+                {row.map((name, index) => {
+                  const tech = TECH_ICONS[name];
+                  return (
+                    <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+                      {index > 0 && (
+                        <div style={{ fontSize: 17, color: '#475569', letterSpacing: '0.16em' }}>VS</div>
+                      )}
+                      {tech ? (
+                        <div style={{ display: 'flex', width: 46, height: 46, color: tech.color }}>
+                          {tech.icon}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22, color: '#94a3b8' }}>{name}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div
