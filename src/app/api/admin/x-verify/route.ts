@@ -27,10 +27,13 @@ export async function POST(req: NextRequest) {
     username = me.data.username;
     steps.push({ step: 'lectura', ok: true, detail: `@${username}` });
   } catch (reason) {
-    steps.push({ step: 'lectura', ok: false, detail: reason instanceof Error ? reason.message : 'error' });
+    const detail = reason instanceof Error ? reason.message : 'error';
+    steps.push({ step: 'lectura', ok: false, detail });
     return NextResponse.json({
       ok: false, steps,
-      hint: 'Las credenciales no sirven ni para leer. Revisá que las cuatro variables estén bien copiadas en Vercel.',
+      hint: detail.includes('Faltan credenciales')
+        ? 'Faltan credenciales de X en el entorno. Revisá las 4 variables en Vercel.'
+        : `X rechazó la lectura: ${detail}`,
     }, { status: 502 });
   }
 

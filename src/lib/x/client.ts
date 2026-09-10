@@ -111,7 +111,7 @@ async function request<T>(method: 'GET' | 'POST' | 'DELETE', path: string, crede
   const text = await response.text();
   if (!response.ok) {
     const error: XApiError = { status: response.status, detail: text.slice(0, 400) };
-    throw Object.assign(new Error(`[x/client] ${method} ${path} → ${response.status}`), error);
+    throw Object.assign(new Error(`[x/client] ${method} ${path} → ${response.status}${text ? `: ${text.slice(0, 300)}` : ''}`), error);
   }
   return (text ? JSON.parse(text) : {}) as T;
 }

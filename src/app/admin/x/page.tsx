@@ -108,15 +108,21 @@ export default function XPage() {
    */
   async function checkAccount() {
     setError(''); setBusyId('verify');
-    const response = await fetch('/api/admin/x-verify', { method: 'POST' });
-    const json = await response.json().catch(() => ({}));
-    setBusyId(null);
-    if (json.ok) {
-      setAccount(`@${json.username}`);
-      setError('');
-    } else {
-      const failed = (json.steps ?? []).find((step: { ok: boolean }) => !step.ok);
-      setError(`${failed?.step ?? 'Verificación'} falló. ${json.hint ?? ''}`);
+    try {
+      const response = await fetch('/api/admin/x-verify', { method: 'POST' });
+      const json = await response.json().catch(() => ({}));
+      if (json.ok) {
+        setAccount(`@${json.username}`);
+        setError('');
+      } else {
+        const failed = (json.steps ?? []).find((step: { ok: boolean }) => !step.ok);
+        const detail = failed?.detail ? `: ${failed.detail}` : '';
+        setError(`${failed?.step ?? 'Verificación'} falló${detail}. ${json.hint ?? ''}`);
+      }
+    } catch (reason) {
+      setError(`Error de red al conectar: ${reason instanceof Error ? reason.message : 'falló la petición'}`);
+    } finally {
+      setBusyId(null);
     }
   }
 
