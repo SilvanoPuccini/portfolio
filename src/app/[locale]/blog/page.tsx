@@ -169,10 +169,21 @@ export default async function BlogPage({
           </>
         }
         bodyClassName="space-y-7 sm:space-y-8"
+        /*
+          El hero reserva un alto mínimo en pantallas grandes para no quedar
+          chato cuando el texto es corto. Acá abajo va el banner, así que ese
+          alto sobra: sin desactivarlo queda un hueco muerto entre la
+          descripción y la imagen.
+        */
+        layoutClassName="lg:min-h-0 xl:min-h-0"
         subtitle={<p>{content.blog.intro}</p>}
         description={
           <div className="space-y-6">
-            <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
+            {/*
+              La línea única recién entra a partir de `lg`. En `sm` forzaba un
+              ancho que no cabía en la tablet y cortaba el texto por la derecha.
+            */}
+            <p className="lg:whitespace-nowrap">{content.blog.editorialNote}</p>
           </div>
         }
         /*
@@ -182,12 +193,18 @@ export default async function BlogPage({
           fondo del hero lo cubra entero en vez de cortarse a la mitad de la
           foto; abajo queda el respiro de ~1cm que usan las demás páginas.
 
+          No lleva margen negativo. Lo llevaba para recuperar el hueco que
+          dejaba el alto mínimo del hero, pero eso ataba la posición del
+          banner a cuántas líneas ocupara el texto: en el celular la
+          descripción crece a tres líneas y la imagen se comía la última. El
+          alto mínimo se desactiva arriba y el banner queda con flujo normal.
+
           Usa la proporción nativa de la imagen (2172x724) en vez de un alto
           fijo, así no se recorta a ningún ancho y en el celular se ve entera
           en lugar de cortada por los costados.
         */
         below={
-          <div className="site-container -mt-20 pb-10 sm:-mt-28 sm:pb-12">
+          <div className="site-container pb-10 sm:pb-12">
             <div className="relative aspect-[2172/724] w-full overflow-hidden rounded-sm">
               <Image
                 src="/images/blog-elradar-hero.png"
