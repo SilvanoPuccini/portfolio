@@ -22,7 +22,16 @@ function item(slug: string, channel: AgendaItem['channel'] = 'blog', overrides: 
   };
 }
 
-describe('AgendaCalendar', () => {
+/**
+ * Tiempo más largo que el de por defecto, a propósito.
+ *
+ * El calendario dibuja un mes entero: 42 celdas, cada una con sus botones y
+ * sus chips en SVG. En jsdom ese render es lento de verdad, y con la suite
+ * completa corriendo en paralelo pasaba los 5 s por defecto de forma
+ * intermitente. No es lentitud del componente en el navegador: es el costo de
+ * armar ese árbol sin motor de layout.
+ */
+describe('AgendaCalendar', { timeout: 20_000 }, () => {
   beforeEach(() => vi.useFakeTimers({ now: new Date('2026-09-07T12:00:00.000Z') }));
   afterEach(() => vi.useRealTimers());
 

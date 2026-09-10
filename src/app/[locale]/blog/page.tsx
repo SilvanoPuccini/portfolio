@@ -14,6 +14,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Linkedin } from "lucide-react";
 
+/** El logo de X. lucide todavía expone `Twitter`, que es el pájaro viejo. */
+function XLogo({ size = 24, strokeWidth = 1.6 }: { size?: number; strokeWidth?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M4 3.5 19.2 20.5M19.4 3.5 4.2 20.5" />
+    </svg>
+  );
+}
+
 type LocaleParams = Promise<{ locale: string }>;
 
 export async function generateMetadata({
@@ -61,6 +79,10 @@ export default async function BlogPage({
       instagramHeading: "Proceso y Detrás de Escena.",
       instagramBody: "Una mirada a la ejecución técnica y el día a día del desarrollo.",
       instagramCta: "Seguinos →",
+      xHeading: "Hilos y criterio en corto.",
+      xBody: "Cada nota del blog se convierte en un hilo: la idea, el ejemplo y el costo.",
+      xCta: "Seguime en X →",
+      socialLabel: "Donde también estoy",
       comingSoon: "Próximamente",
       months: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
     },
@@ -77,12 +99,48 @@ export default async function BlogPage({
       linkedinCta: "View profile",
       instagramHeading: "Process and Behind the Scenes.",
       instagramBody: "A look at technical execution and the day-to-day of development.",
+      xHeading: "Threads and criteria, short form.",
+      xBody: "Every blog note becomes a thread: the idea, the example and the cost.",
+      xCta: "Follow me on X →",
+      socialLabel: "Where else I am",
       instagramCta: "Follow →",
       comingSoon: "Coming soon",
       months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
   } as const;
   const pc = pageCopy[currentLocale];
+
+  /**
+   * Las redes, en un solo lugar. Instagram todavía no está activo pero la
+   * cuenta va a existir: se deja la fila armada para no volver a tocar el
+   * bloque cuando llegue.
+   */
+  const SOCIALS = [
+    {
+      key: "linkedin",
+      name: "LinkedIn",
+      href: "https://www.linkedin.com/in/silvano-puccini/",
+      Icon: Linkedin,
+      heading: pc.linkedinHeading,
+      cta: pc.linkedinCta,
+    },
+    {
+      key: "x",
+      name: "X",
+      href: "https://x.com/silvanopuccini",
+      Icon: XLogo,
+      heading: pc.xHeading,
+      cta: pc.xCta,
+    },
+    {
+      key: "instagram",
+      name: "Instagram",
+      href: "https://www.instagram.com/silvanopuccini.dev/",
+      Icon: Instagram,
+      heading: pc.instagramHeading,
+      cta: pc.instagramCta,
+    },
+  ];
 
   // Colores por categoría
   const categoryColors: Record<string, string> = {
@@ -114,22 +172,30 @@ export default async function BlogPage({
         description={
           <div className="space-y-6">
             <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
-            {/* Banner newsletter — estilo cuadro centrado, con aire a los costados */}
-            <div className="!mt-10 px-2 sm:!mt-12 sm:px-6">
-              <div className="relative mx-auto aspect-[8/3] w-full max-w-6xl overflow-hidden rounded-sm lg:aspect-auto lg:h-[280px] xl:h-[320px]">
-                <Image
-                  src="/images/blog-newsletter-banner.png"
-                  alt="El Radar — mi newsletter"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 1024px"
-                  className="object-cover object-center"
-                  priority
-                />
-              </div>
-            </div>
           </div>
         }
       />
+
+      {/*
+        El banner va fuera del hero, no dentro de su descripción: ahí quedaba
+        encajonado en la columna de texto y no llegaba ni a la mitad del ancho.
+
+        Usa la proporción nativa de la imagen (2172x724) en vez de un alto
+        fijo, así no se recorta a ningún ancho y en el celular se ve entera en
+        lugar de cortada por los costados.
+      */}
+      <section className="site-container -mt-20 pb-4 sm:-mt-28 sm:pb-6">
+        <div className="relative aspect-[2172/724] w-full overflow-hidden rounded-sm">
+          <Image
+            src="/images/blog-elradar-hero.png"
+            alt="El Radar — el newsletter de Silvano Puccini"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            priority
+          />
+        </div>
+      </section>
 
 
       {/* Artículo destacado */}
@@ -233,63 +299,40 @@ export default async function BlogPage({
           </div>
           </Reveal>
 
-          {/* Columna derecha: LinkedIn + Instagram apilados */}
-          <div className="flex flex-col gap-6 lg:col-span-6">
+          {/*
+            Columna derecha: las tres redes.
 
-            {/* LinkedIn */}
-            <Reveal className="flex flex-1">
-            <div className="surface-section relative flex w-full flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
-              <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand-secondary/10 blur-3xl" />
+            Antes eran dos tarjetas altas con un ícono de 13 px, así que el
+            contenedor pesaba más que la marca que tenía que identificar. Se
+            invierte: tarjeta compacta, logo grande y el enlace en texto normal.
+            Entran las tres en el alto que antes ocupaban dos.
+          */}
+          <div className="flex flex-col gap-4 lg:col-span-6">
+            <p className="technical-label">{pc.socialLabel}</p>
 
-              <div className="relative">
-                <p className="technical-label">LinkedIn</p>
-                <h3 className="mt-4 text-xl font-semibold text-text-primary">
-                  {pc.linkedinHeading}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-text-secondary">
-                  {pc.linkedinBody}
-                </p>
-              </div>
+            {SOCIALS.map(({ key, name, href, Icon, heading, cta }) => (
+              <Reveal key={key} className="flex">
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="surface-section group relative flex w-full items-center gap-5 overflow-hidden px-6 py-5 transition-colors hover:border-brand-primary/40 sm:px-7"
+                >
+                  <span className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-primary/10 blur-3xl" />
 
-              <a
-                href="https://www.linkedin.com/in/silvano-puccini/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
-              >
-                <Linkedin size={13} />
-                {pc.linkedinCta}
-              </a>
-            </div>
-            </Reveal>
+                  {/* El logo manda: es lo que se reconoce sin leer. */}
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-sm border border-outline-ghost/15 bg-surface-elevated/60 text-text-primary transition-colors group-hover:text-brand-primary">
+                    <Icon size={30} strokeWidth={1.6} />
+                  </span>
 
-            {/* Instagram */}
-            <Reveal className="flex flex-1">
-            <div className="surface-section relative flex w-full flex-col justify-between overflow-hidden px-8 py-9 sm:px-10">
-              <div className="pointer-events-none absolute -right-12 -bottom-12 h-48 w-48 rounded-full bg-brand-primary/10 blur-3xl" />
-
-              <div className="relative">
-                <p className="technical-label">Instagram</p>
-                <h3 className="mt-4 text-xl font-semibold text-text-primary">
-                  {pc.instagramHeading}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-text-secondary">
-                  {pc.instagramBody}
-                </p>
-              </div>
-
-              <a
-                href="https://www.instagram.com/silvanopuccini.dev/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:underline"
-              >
-                <Instagram size={13} />
-                {pc.instagramCta}
-              </a>
-            </div>
-            </Reveal>
-
+                  <span className="relative min-w-0 flex-1">
+                    <span className="block text-base font-semibold text-text-primary">{name}</span>
+                    <span className="mt-0.5 block truncate text-sm leading-6 text-text-secondary">{heading}</span>
+                    <span className="mt-1 block text-sm text-brand-primary group-hover:underline">{cta}</span>
+                  </span>
+                </a>
+              </Reveal>
+            ))}
           </div>{/* fin columna derecha */}
         </div>{/* fin grid */}
       </section>

@@ -27,7 +27,7 @@ export type NavigationItem = {
 };
 
 export type SocialLink = LinkTarget & {
-  platform: "github" | "linkedin" | "email" | "discord" | "portfolio";
+  platform: "github" | "linkedin" | "x" | "email" | "discord" | "portfolio";
 };
 
 export type SiteMetadata = {

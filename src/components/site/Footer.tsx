@@ -12,16 +12,26 @@ function DiscordIcon(props: ComponentPropsWithoutRef<"svg">) {
   );
 }
 
+/** lucide expone `Twitter`, que sigue siendo el pájaro viejo. */
+function XIcon(props: ComponentPropsWithoutRef<"svg">) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" {...props}>
+      <path d="M4 3.5 19.2 20.5M19.4 3.5 4.2 20.5" />
+    </svg>
+  );
+}
+
 const socialIconMap = {
   github: Github,
   linkedin: Linkedin,
+  x: XIcon,
   email: Mail,
   discord: DiscordIcon,
 } as const;
 
 type FooterPlatform = keyof typeof socialIconMap;
 type FooterSocialLink = Omit<SocialLink, "platform"> & { platform: FooterPlatform };
-const footerPlatformOrder: FooterPlatform[] = ["github", "linkedin", "email", "discord"];
+const footerPlatformOrder: FooterPlatform[] = ["github", "linkedin", "x", "email", "discord"];
 
 function isFooterSocialLink(link: SocialLink | undefined): link is FooterSocialLink {
   return Boolean(link && link.platform in socialIconMap);

@@ -436,6 +436,7 @@ export const siteContent: SiteContent = {
         label: "LinkedIn",
         href: "https://www.linkedin.com/in/silvano-puccini/",
       },
+      { platform: "x", label: "X", href: "https://x.com/silvanopuccini" },
       { platform: "email", label: "Email", href: "mailto:silvano.jm.puccini@gmail.com" },
       { platform: "discord", label: "Discord", href: "https://discord.com/users/925401070388256778" },
       { platform: "portfolio", label: "Portfolio", href: "https://silvanopuccini.github.io/portfolio/" },
