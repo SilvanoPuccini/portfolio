@@ -10,6 +10,7 @@ export default function PageHero({
   description,
   actions,
   aside,
+  below,
   sectionClassName,
   containerClassName,
   contentClassName,
@@ -26,6 +27,12 @@ export default function PageHero({
   description?: ReactNode;
   actions?: ReactNode;
   aside?: ReactNode;
+  /**
+   * Contenido a ancho completo debajo del texto del hero, todavía dentro de su
+   * fondo. Va acá y no en la página para que el degradado lo cubra entero en
+   * vez de cortarse a la mitad.
+   */
+  below?: ReactNode;
   sectionClassName?: string;
   containerClassName?: string;
   contentClassName?: string;
@@ -115,6 +122,8 @@ export default function PageHero({
           ) : null}
         </div>
       </div>
+
+      {below ? <div className="relative">{below}</div> : null}
     </section>
   );
 }

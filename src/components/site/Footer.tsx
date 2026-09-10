@@ -12,11 +12,11 @@ function DiscordIcon(props: ComponentPropsWithoutRef<"svg">) {
   );
 }
 
-/** lucide expone `Twitter`, que sigue siendo el pájaro viejo. */
+/** lucide expone `Twitter`, que sigue siendo el pájaro viejo. Marca oficial de X. */
 function XIcon(props: ComponentPropsWithoutRef<"svg">) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" {...props}>
-      <path d="M4 3.5 19.2 20.5M19.4 3.5 4.2 20.5" />
+    <svg viewBox="0 0 640 640" fill="currentColor" {...props}>
+      <path d="M453.2 112L523.8 112L369.6 288.2L551 528L409 528L297.7 382.6L170.5 528L99.8 528L264.7 339.5L90.8 112L236.4 112L336.9 244.9L453.2 112zM428.4 485.8L467.5 485.8L215.1 152L173.1 152L428.4 485.8z" />
     </svg>
   );
 }

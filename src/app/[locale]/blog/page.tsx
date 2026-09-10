@@ -14,20 +14,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Linkedin } from "lucide-react";
 
-/** El logo de X. lucide todavía expone `Twitter`, que es el pájaro viejo. */
-function XLogo({ size = 24, strokeWidth = 1.6 }: { size?: number; strokeWidth?: number }) {
+/**
+ * El logo de X. lucide todavía expone `Twitter`, que es el pájaro viejo.
+ * La marca es una forma sólida, no dos trazos cruzados: va como `path` relleno
+ * y por eso ignora el `strokeWidth` que sí usan los íconos de lucide.
+ */
+function XLogo({ size = 24 }: { size?: number; strokeWidth?: number }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
+      viewBox="0 0 640 640"
+      fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M4 3.5 19.2 20.5M19.4 3.5 4.2 20.5" />
+      <path d="M453.2 112L523.8 112L369.6 288.2L551 528L409 528L297.7 382.6L170.5 528L99.8 528L264.7 339.5L90.8 112L236.4 112L336.9 244.9L453.2 112zM428.4 485.8L467.5 485.8L215.1 152L173.1 152L428.4 485.8z" />
     </svg>
   );
 }
@@ -174,28 +175,32 @@ export default async function BlogPage({
             <p className="sm:whitespace-nowrap">{content.blog.editorialNote}</p>
           </div>
         }
+        /*
+          El banner va en `below` y no dentro de la descripción: ahí quedaba
+          encajonado en la columna de texto y no llegaba ni a la mitad del
+          ancho. Y va dentro del hero, no como sección aparte, para que el
+          fondo del hero lo cubra entero en vez de cortarse a la mitad de la
+          foto; abajo queda el respiro de ~1cm que usan las demás páginas.
+
+          Usa la proporción nativa de la imagen (2172x724) en vez de un alto
+          fijo, así no se recorta a ningún ancho y en el celular se ve entera
+          en lugar de cortada por los costados.
+        */
+        below={
+          <div className="site-container -mt-20 pb-10 sm:-mt-28 sm:pb-12">
+            <div className="relative aspect-[2172/724] w-full overflow-hidden rounded-sm">
+              <Image
+                src="/images/blog-elradar-hero.png"
+                alt="El Radar — el newsletter de Silvano Puccini"
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+                priority
+              />
+            </div>
+          </div>
+        }
       />
-
-      {/*
-        El banner va fuera del hero, no dentro de su descripción: ahí quedaba
-        encajonado en la columna de texto y no llegaba ni a la mitad del ancho.
-
-        Usa la proporción nativa de la imagen (2172x724) en vez de un alto
-        fijo, así no se recorta a ningún ancho y en el celular se ve entera en
-        lugar de cortada por los costados.
-      */}
-      <section className="site-container -mt-20 pb-4 sm:-mt-28 sm:pb-6">
-        <div className="relative aspect-[2172/724] w-full overflow-hidden rounded-sm">
-          <Image
-            src="/images/blog-elradar-hero.png"
-            alt="El Radar — el newsletter de Silvano Puccini"
-            fill
-            sizes="100vw"
-            className="object-cover object-center"
-            priority
-          />
-        </div>
-      </section>
 
 
       {/* Artículo destacado */}
