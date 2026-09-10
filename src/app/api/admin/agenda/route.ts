@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { normalizeAgendaItems } from '@/lib/agenda/normalize';
 import type { PostPublicationListItem } from '@/lib/post-publications/types';
 import type { LinkedInPostListItem } from '@/lib/linkedin-posts/types';
+import { listThreads } from '@/lib/x/repository';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,5 +31,8 @@ export async function GET(req: NextRequest) {
       has_pdf: Boolean(row.pdf_storage_path || row.carousel_pdf_url),
     }),
   );
-  return NextResponse.json({ items: normalizeAgendaItems(blogs, linkedin) });
+  // Los hilos de X entran al mismo calendario: la semana se lee completa,
+  // con cada canal reconocible por su forma.
+  const xThreads = await listThreads().catch(() => []);
+  return NextResponse.json({ items: normalizeAgendaItems(blogs, linkedin, xThreads) });
 }

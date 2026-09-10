@@ -65,8 +65,22 @@ export function tint(tone: string, alpha = '1f') {
   return `${tone}${alpha}`;
 }
 
-export const CHANNEL_LABEL = { blog: 'Blog', linkedin: 'LinkedIn' } as const;
-export const CHANNEL_SHORT = { blog: 'BL', linkedin: 'IN' } as const;
+export const CHANNEL_LABEL = { blog: 'Blog', linkedin: 'LinkedIn', x: 'X' } as const;
+export const CHANNEL_SHORT = { blog: 'BLOG', linkedin: 'IN', x: 'X' } as const;
+
+/**
+ * La forma dice el canal, el color dice el estado.
+ *
+ * Tres siluetas distinguibles de reojo: el blog es un rectángulo de esquinas
+ * rectas, LinkedIn una pastilla redonda y X un paralelogramo inclinado. Sin
+ * esto el color tendría que codificar dos cosas a la vez y no se leería
+ * ninguna.
+ */
+export const CHANNEL_SHAPE = {
+  blog: { borderRadius: 3, skew: 'none', dot: 0 },
+  linkedin: { borderRadius: 9, skew: 'none', dot: '50%' },
+  x: { borderRadius: 2, skew: 'skewX(-12deg)', dot: 2 },
+} as const;
 
 /** Lunes como día 1: la semana editorial arranca el lunes, no el domingo. */
 export function isoWeek(date: Date): number {

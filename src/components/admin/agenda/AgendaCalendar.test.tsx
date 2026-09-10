@@ -3,13 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgendaCalendar } from './AgendaCalendar';
 import type { AgendaItem } from '@/lib/agenda/types';
 
-function item(slug: string, channel: 'blog' | 'linkedin' = 'blog', overrides: Partial<AgendaItem> = {}): AgendaItem {
+function item(slug: string, channel: AgendaItem['channel'] = 'blog', overrides: Partial<AgendaItem> = {}): AgendaItem {
   return {
     id: `${channel}:${slug}`,
     channel,
     source_id: slug,
     title: `Post ${slug}`,
-    detail_path: channel === 'blog' ? `/admin/agenda/${slug}` : `/admin/content/${slug}`,
+    detail_path: channel === 'blog' ? `/admin/agenda/${slug}` : channel === 'linkedin' ? `/admin/content/${slug}` : '/admin/x',
     scheduled_at: '2026-09-13T13:00:00.000Z',
     status: 'planificado',
     pre_approved_at: null,
@@ -65,6 +65,17 @@ describe('AgendaCalendar', () => {
 
     expect(screen.getAllByText('BLOG').length).toBeGreaterThan(0);
     expect(screen.getAllByText('LINKEDIN').length).toBeGreaterThan(0);
+  });
+
+  it('gives X its own silhouette so three channels stay apart at a glance', () => {
+    render(<AgendaCalendar
+      items={[item('uno'), item('dos', 'linkedin'), item('tres', 'x')]}
+      selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()}
+    />);
+
+    expect(screen.getAllByText('BLOG').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('LINKEDIN').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('X').length).toBeGreaterThan(0);
   });
 
   it('labels which channel each weekday carries, so nothing lands on the wrong day', () => {

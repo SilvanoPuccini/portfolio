@@ -6,9 +6,14 @@ import type { PostPublicationStatus } from '@/lib/post-publications/types';
  * son la misma operación. Esta capa traduce el canal a su ruta para que las
  * páginas no repitan el condicional en cada acción.
  */
+const BASE: Record<AgendaChannel, string> = {
+  blog: '/api/admin/posts-agenda',
+  linkedin: '/api/admin/linkedin-posts',
+  x: '/api/admin/x-threads',
+};
+
 function endpoint(channel: AgendaChannel, sourceId: string) {
-  const base = channel === 'blog' ? '/api/admin/posts-agenda' : '/api/admin/linkedin-posts';
-  return `${base}/${encodeURIComponent(sourceId)}`;
+  return `${BASE[channel]}/${encodeURIComponent(sourceId)}`;
 }
 
 async function readError(response: Response, fallback: string) {
@@ -20,7 +25,10 @@ export async function fetchPieceText(channel: AgendaChannel, sourceId: string): 
   const response = await fetch(endpoint(channel, sourceId));
   if (!response.ok) throw new Error(await readError(response, 'No se pudo traer el texto'));
   const json = await response.json();
-  return (channel === 'blog' ? json.item?.raw_content : json.item?.body) ?? '';
+  if (channel === 'blog') return json.item?.raw_content ?? '';
+  if (channel === 'linkedin') return json.item?.body ?? '';
+  // Un hilo son varios tweets: se muestran juntos, separados, solo para leer.
+  return ((json.item?.tweets ?? []) as { text: string }[]).map((tweet) => tweet.text).join('\n\n');
 }
 
 async function patch(channel: AgendaChannel, sourceId: string, body: Record<string, unknown>) {
@@ -34,11 +42,19 @@ async function patch(channel: AgendaChannel, sourceId: string, body: Record<stri
 }
 
 export function savePieceText(channel: AgendaChannel, sourceId: string, text: string) {
+  if (channel === 'x') {
+    // Editar un hilo desde la agenda partiría los tweets a ciegas por saltos
+    // de línea. Se edita en su propia sección, donde cada uno tiene su caja.
+    return Promise.resolve({ ok: false as const, error: 'Los hilos de X se editan en su sección' });
+  }
   return patch(channel, sourceId, channel === 'blog' ? { raw_content: text } : { body: text });
 }
 
 /** El .md viaja crudo: el servidor lo convierte, así la conversión es una sola. */
 export function attachPieceMarkdown(channel: AgendaChannel, sourceId: string, markdown: string, filename: string) {
+  if (channel === 'x') {
+    return Promise.resolve({ ok: false as const, error: 'Un hilo de X se escribe con Gemini, no se adjunta' });
+  }
   return patch(channel, sourceId, channel === 'blog'
     ? { source_markdown: markdown }
     : { source_markdown: markdown, source_filename: filename });

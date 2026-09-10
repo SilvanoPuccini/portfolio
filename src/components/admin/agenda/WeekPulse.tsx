@@ -1,6 +1,6 @@
 'use client';
 
-import { c, dayKey, isoWeek, itemTone, tint, CHANNEL_LABEL } from '@/components/admin/tokens';
+import { c, dayKey, isoWeek, itemTone, tint, CHANNEL_LABEL, CHANNEL_SHAPE, CHANNEL_SHORT } from '@/components/admin/tokens';
 import type { AgendaItem } from '@/lib/agenda/types';
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -111,20 +111,21 @@ export function WeekPulse({ items, selectedId, onSelect }: {
               ? <span aria-hidden style={{ display: 'block', height: 3, borderRadius: 2, background: c.border }} />
               : dayItems.map((item) => {
                 const tone = itemTone(item);
-                const blog = item.channel === 'blog';
+                const shape = CHANNEL_SHAPE[item.channel];
                 return <button key={item.id} type="button" onClick={() => onSelect(item.id)}
                   aria-label={`${item.title}, ${CHANNEL_LABEL[item.channel]}`} title={item.title}
                   className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#00d4d4]"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 4, width: '100%', minWidth: 0,
                     padding: '3px 5px', cursor: 'pointer', fontFamily: 'inherit',
-                    borderRadius: blog ? 3 : 9,
+                    transform: shape.skew,
+                    borderRadius: shape.borderRadius,
                     border: item.id === selectedId ? `1px solid ${tone}` : `1px solid ${tint(tone, '3d')}`,
                     background: tint(tone, '1f'),
                   }}>
-                  <span aria-hidden style={{ width: 5, height: 5, flexShrink: 0, borderRadius: blog ? 0 : '50%', background: tone }} />
+                  <span aria-hidden style={{ width: 5, height: 5, flexShrink: 0, borderRadius: shape.dot, background: tone }} />
                   <span style={{ fontFamily: 'monospace', fontSize: 8, fontWeight: 700, color: tone, whiteSpace: 'nowrap' }}>
-                    {blog ? 'BLOG' : 'IN'}
+                    {CHANNEL_SHORT[item.channel]}
                   </span>
                 </button>;
               })}

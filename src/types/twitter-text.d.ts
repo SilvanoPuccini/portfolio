@@ -1,6 +1,9 @@
 /**
  * `twitter-text` es la implementación oficial de X y no publica tipos.
- * Declaramos solo lo que usamos: el contador ponderado.
+ *
+ * Es CommonJS sin salida ESM, así que expone un objeto y no exportaciones
+ * nombradas: `import { parseTweet }` compila en Vitest pero rompe en el build
+ * de Turbopack. Se declara como default para importarlo como es de verdad.
  */
 declare module 'twitter-text' {
   export interface ParsedTweet {
@@ -13,5 +16,8 @@ declare module 'twitter-text' {
     validRangeStart: number;
     validRangeEnd: number;
   }
-  export function parseTweet(text: string): ParsedTweet;
+  const twitterText: {
+    parseTweet(text: string): ParsedTweet;
+  };
+  export default twitterText;
 }

@@ -1,6 +1,6 @@
 import type { PostPublicationStatus } from '@/lib/post-publications/types';
 
-export type AgendaChannel = 'blog' | 'linkedin';
+export type AgendaChannel = 'blog' | 'linkedin' | 'x';
 
 export interface AgendaItem {
   id: string;
@@ -12,7 +12,7 @@ export interface AgendaItem {
   detail_path: string;
   has_content: boolean;
   content_chars: number;
-  /** Solo el carrusel de LinkedIn necesita PDF; en el blog siempre es true. */
+  /** Solo el carrusel de LinkedIn necesita PDF; blog y X van siempre en true. */
   has_pdf: boolean;
   /**
    * Si la pieza cumple todo lo que su canal exige para salir de planificado.

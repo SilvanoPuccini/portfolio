@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react';
 import { DaySheet } from './DaySheet';
 import { STATUS_LABELS } from './StatusBadge';
-import { c, dayKey, isoWeek, itemTone, tint, CHANNEL_LABEL } from '@/components/admin/tokens';
-import type { AgendaItem } from '@/lib/agenda/types';
+import { c, dayKey, isoWeek, itemTone, tint, CHANNEL_LABEL, CHANNEL_SHAPE, CHANNEL_SHORT } from '@/components/admin/tokens';
+import type { AgendaChannel, AgendaItem } from '@/lib/agenda/types';
 
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -15,14 +15,14 @@ const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Jul
  * (D+5). Rotularlo en la cabecera evita el error de cargar en el día equivocado,
  * y de paso explica el calendario a alguien que lo ve por primera vez.
  */
-const WEEKDAYS: { label: string; channel?: 'blog' | 'linkedin' }[] = [
+const WEEKDAYS: { label: string; channel?: AgendaChannel }[] = [
   { label: 'Domingo', channel: 'blog' },
-  { label: 'Lunes' },
+  { label: 'Lunes', channel: 'x' },
   { label: 'Martes', channel: 'linkedin' },
-  { label: 'Miércoles' },
-  { label: 'Jueves' },
+  { label: 'Miércoles', channel: 'x' },
+  { label: 'Jueves', channel: 'x' },
   { label: 'Viernes', channel: 'linkedin' },
-  { label: 'Sábado' },
+  { label: 'Sábado', channel: 'x' },
 ];
 
 const VISIBLE_PER_DAY = 2;
@@ -47,16 +47,15 @@ function PieceChip({ item, selected, onClick }: {
   onClick: () => void;
 }) {
   const tone = itemTone(item);
-  const blog = item.channel === 'blog';
+  const shape = CHANNEL_SHAPE[item.channel];
   return <button type="button" onClick={onClick}
     aria-label={`${item.title}, ${CHANNEL_LABEL[item.channel]}, ${STATUS_LABELS[item.status]}${item.is_ready ? '' : ', incompleta'}`}
     className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
     style={{
       position: 'relative', display: 'block', width: '100%', minWidth: 0,
       textAlign: 'left', padding: '4px 6px', cursor: 'pointer', fontFamily: 'inherit',
-      // La forma dice el canal: el blog es un rectángulo recto, LinkedIn va
-      // redondeado. El color queda libre para hablar solo del estado.
-      borderRadius: blog ? 3 : 9,
+      // La forma dice el canal; el color queda libre para hablar del estado.
+      borderRadius: shape.borderRadius,
       border: `1px solid ${selected ? tone : tint(tone, '4d')}`,
       borderLeft: `3px solid ${tone}`,
       background: tint(tone, '1f'),
@@ -64,10 +63,10 @@ function PieceChip({ item, selected, onClick }: {
     <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 1 }}>
       <span aria-hidden style={{
         width: 5, height: 5, flexShrink: 0,
-        borderRadius: blog ? 0 : '50%', background: tone,
+        borderRadius: shape.dot, background: tone,
       }} />
       <span style={{ fontFamily: 'monospace', fontSize: 8.5, fontWeight: 700, letterSpacing: '0.08em', color: tone }}>
-        {blog ? 'BLOG' : 'LINKEDIN'}
+        {item.channel === 'linkedin' ? 'LINKEDIN' : CHANNEL_SHORT[item.channel]}
       </span>
       {item.status === 'publicado' && <span aria-hidden style={{ marginLeft: 'auto', fontSize: 8, color: tone }}>✓</span>}
       {!item.is_ready && item.status !== 'publicado' && <span aria-hidden title="Le falta material" style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 700, color: c.incomplete }}>!</span>}
@@ -159,9 +158,9 @@ export function AgendaCalendar({ items, selectedId, onSelect, onCreate }: {
         }}>
           <span aria-hidden style={{
             width: 5, height: 5, flexShrink: 0, background: 'currentColor',
-            borderRadius: day.channel === 'blog' ? 0 : '50%',
+            borderRadius: CHANNEL_SHAPE[day.channel].dot,
           }} />
-          {day.channel === 'blog' ? 'BLOG' : 'LINKEDIN'}
+          {day.channel === 'linkedin' ? 'LINKEDIN' : CHANNEL_SHORT[day.channel]}
         </span>}
       </div>)}
     </div>

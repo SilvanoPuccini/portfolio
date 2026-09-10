@@ -1,4 +1,4 @@
-import { parseTweet } from 'twitter-text';
+import twitterText from 'twitter-text';
 import { NEVER_MENTION } from './author-profile';
 
 /**
@@ -27,7 +27,7 @@ export interface ValidationIssue {
  */
 export function weightedLength(text: string): { length: number; valid: boolean } {
   // NFC primero: "á" puede venir como un carácter o como dos, y pesan distinto.
-  const parsed = parseTweet(text.normalize('NFC'));
+  const parsed = twitterText.parseTweet(text.normalize('NFC'));
   return { length: parsed.weightedLength, valid: parsed.valid };
 }
 
