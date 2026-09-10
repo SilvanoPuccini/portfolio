@@ -37,12 +37,16 @@ describe('AgendaCalendar', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: /Post three, Blog, Planificado/ })).not.toBeInTheDocument();
+    // Se busca por texto y no por rol con nombre: `getByRole` con `name`
+    // calcula el nombre accesible de TODOS los botones del calendario, que son
+    // varias decenas, y bajo carga se pasa del tiempo límite. El texto visible
+    // prueba lo mismo y es una búsqueda directa.
+    expect(screen.queryByText('Post three')).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('+1 más'));
-    fireEvent.click(screen.getByRole('button', { name: /Post three, Blog, Planificado/ }));
+    fireEvent.click(screen.getByText('Post three').closest('button')!);
 
     expect(onSelect).toHaveBeenCalledWith('blog:three');
-  }, 10_000);
+  });
 
   it('starts creation from a day with its date and default publication time', () => {
     const onCreate = vi.fn();
@@ -50,14 +54,14 @@ describe('AgendaCalendar', () => {
       <AgendaCalendar items={[]} selectedId={null} onSelect={vi.fn()} onCreate={onCreate} />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Crear post el 13\/9\/2026/ }));
+    fireEvent.click(screen.getByLabelText('Crear post el 13/9/2026'));
 
     expect(onCreate).toHaveBeenCalledWith('2026-09-13T10:00');
   });
 
   it('identifies channel, title and state for each calendar entry', () => {
     render(<AgendaCalendar items={[item('linkedin-one', 'linkedin')]} selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /Post linkedin-one, LinkedIn, Planificado/ })).toBeInTheDocument();
+    expect(screen.getByLabelText('Post linkedin-one, LinkedIn, Planificado, incompleta')).toBeInTheDocument();
   });
 
   it('names the channel with a word, not an abbreviation', () => {
@@ -92,14 +96,13 @@ describe('AgendaCalendar', () => {
     const onSelect = vi.fn();
     render(<AgendaCalendar items={[item('del-dia')]} selectedId={null} onSelect={onSelect} onCreate={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ver el 13/9/2026' }));
-    const sheet = screen.getByRole('dialog');
-    expect(sheet).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Ver el 13/9/2026'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ver y editar el texto' }));
+    fireEvent.click(screen.getByText('Ver y editar el texto'));
     expect(onSelect).toHaveBeenCalledWith('blog:del-dia');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  }, 10_000);
+  });
 
   it('marks a piece that still has no material so it reads apart from a ready one', () => {
     render(<AgendaCalendar
@@ -107,7 +110,7 @@ describe('AgendaCalendar', () => {
       selectedId={null} onSelect={vi.fn()} onCreate={vi.fn()}
     />);
 
-    expect(screen.getByRole('button', { name: 'Post sin-material, LinkedIn, Planificado, incompleta' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Post completa, Blog, Planificado' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Post sin-material, LinkedIn, Planificado, incompleta')).toBeInTheDocument();
+    expect(screen.getByLabelText('Post completa, Blog, Planificado')).toBeInTheDocument();
   });
 });
