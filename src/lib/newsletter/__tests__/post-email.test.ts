@@ -30,9 +30,10 @@ describe('buildEmail', () => {
     expect(html).not.toContain('background-image');
   });
 
-  it('usa font Georgia/serif en el cover (elegante y universal en mail)', () => {
+  it('usa monospace (JetBrains Mono) en el cover', () => {
     const html = buildEmail(baseOpts());
-    expect(html).toContain("'Georgia','Times New Roman',serif");
+    expect(html).toContain("'JetBrains Mono',monospace");
+    expect(html).not.toContain("'Georgia','Times New Roman',serif");
   });
 
   it('muestra la fecha arriba y el botón como bloque debajo', () => {

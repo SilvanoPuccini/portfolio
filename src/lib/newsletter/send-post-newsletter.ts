@@ -52,13 +52,13 @@ export function buildEmail(opts: {
   // Fondo sólido del cover por categoría (tinta CLARA de la categoría:
   // que no se mezcle con el fondo oscuro del cuerpo del mail).
   const COVER_BG: Record<string, string> = {
-    Performance: '#1a4a2e',
-    Producto: '#302060',
-    'Automatización': '#3d2e10',
-    Criterio: '#2b3a72',
-    Editorial: '#0f4a58',
+    Performance: '#0f3525',
+    Producto: '#241845',
+    'Automatización': '#32260e',
+    Criterio: '#1e2d5a',
+    Editorial: '#0c3a48',
   };
-  const coverBg = COVER_BG[opts.category] ?? '#222844';
+  const coverBg = COVER_BG[opts.category] ?? '#1a2040';
 
   // Cover del post en HTML puro (traducción email-safe de PostCover):
   // sin radial-gradient ni SVG porque Gmail los elimina. Solo color
@@ -68,17 +68,17 @@ export function buildEmail(opts: {
   if (e.keyword === 'El Radar') {
     coverKeyword = `
       <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin:0 0 6px;">El</p>
-      <p style="font-family:'Georgia','Times New Roman',serif;font-size:34px;font-weight:700;font-style:italic;letter-spacing:0.12em;text-transform:none;color:rgba(255,255,255,0.9);margin:0;line-height:1.1;">Radar</p>
-      <p style="font-family:'Georgia','Times New Roman',serif;font-size:11px;font-style:italic;letter-spacing:0.18em;text-transform:none;color:rgba(255,255,255,0.5);margin:8px 0 0;">arquitectura · código · producto</p>`;
+      <p style="font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;letter-spacing:0.12em;text-transform:none;color:rgba(255,255,255,0.9);margin:0;line-height:1.1;">Radar</p>
+      <p style="font-family:monospace;font-size:11px;letter-spacing:0.18em;text-transform:none;color:rgba(255,255,255,0.5);margin:8px 0 0;">arquitectura · código · producto</p>`;
   } else if (VERSUS_PATTERN.test(e.keyword)) {
     coverKeyword = `
-      <p style="font-family:'Georgia','Times New Roman',serif;font-size:19px;font-weight:700;font-style:italic;letter-spacing:0.06em;text-transform:none;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
+      <p style="font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;letter-spacing:0.06em;text-transform:none;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
   } else {
     const techColor = TECH_ICONS[e.keyword]?.color;
     const color = techColor ?? '#ffffff';
     const size = techColor ? '24px' : '20px';
     coverKeyword = `
-      <p style="font-family:'Georgia','Times New Roman',serif;font-size:${size};font-weight:700;font-style:italic;letter-spacing:0.06em;text-transform:none;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
+      <p style="font-family:'JetBrains Mono',monospace;font-size:${size};font-weight:700;letter-spacing:0.06em;text-transform:none;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
   }
 
   return `<!DOCTYPE html>
@@ -100,9 +100,9 @@ export function buildEmail(opts: {
     }
   </style>
 </head>
-<body style="margin:0;padding:40px 16px;background:#050810;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
+  <body style="margin:0;padding:40px 16px;background:#161a2b;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
 
-  <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+   <div style="max-width:600px;width:100%;margin:0 auto;background:#112137;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
     <!-- HEADER — radar SVG + marca en texto (el SVG se ve donde el cliente lo permite; en Gmail queda el texto limpio) -->
     <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
