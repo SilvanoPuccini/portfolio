@@ -115,7 +115,7 @@ export async function sendWelcomeEmail(email: string) {
 
     <!-- Header — logo El Radar PNG -->
     <div style="padding:0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;background:#0b1120;">
-      <img src="https://silvanopuccini.dev/images/el-radar-logo.png" alt="El Radar" style="width:100%;display:block;"/>
+      <img src="https://silvanopuccini.dev/images/el-radar-logo-email.png" width="480" alt="El Radar — Mi Newsletter" style="width:100%;max-width:480px;height:auto;display:block;border:0;margin:0 auto;"/>
       <div style="padding:20px 32px 24px;text-align:center;">
         <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
         <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>

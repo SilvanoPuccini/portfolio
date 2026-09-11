@@ -5,7 +5,7 @@ import { CATEGORY_COLOR } from '@/lib/resend';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
 const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
-const LOGO_URL = `${SITE_URL}/images/el-radar-logo.png`;
+const LOGO_URL = `${SITE_URL}/images/el-radar-logo-email.png`;
 
 export type SendPostNewsletterResult =
   | { ok: true; sent: number }
@@ -35,7 +35,7 @@ function buildEmail(opts: {
   date: string;
   postUrl: string;
   unsubUrl: string;
-  posterUrl?: string;
+  posterUrl: string;
 }): string {
   const cat = CATEGORY_COLOR[opts.category] ?? CATEGORY_COLOR['Producto'];
 
@@ -48,10 +48,6 @@ function buildEmail(opts: {
     date: escapeHtml(opts.date),
   };
 
-  const posterStyle = opts.posterUrl
-    ? `background-image:url('${opts.posterUrl}');background-size:cover;background-position:center;`
-    : '';
-
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -63,20 +59,20 @@ function buildEmail(opts: {
 
   <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-    <!-- HEADER — logo El Radar PNG -->
-    <div style="padding:0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;background:#0b1120;">
-      <img src="${LOGO_URL}" alt="El Radar" style="width:100%;display:block;"/>
-      <div style="padding:20px 32px 24px;text-align:center;">
+    <!-- HEADER — logo El Radar PNG, centrado y a tamaño contenido -->
+    <div style="padding:28px 32px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;background:#0b1120;">
+      <img src="${LOGO_URL}" width="480" alt="El Radar — Mi Newsletter" style="display:block;width:100%;max-width:480px;height:auto;border:0;margin:0 auto;"/>
+      <div style="padding:20px 0 24px;text-align:center;">
         <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
         <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>
       </div>
     </div>
 
     <!-- CONTENT -->
-    <div style="padding:0 32px 32px;">
+    <div style="padding:28px 32px 32px;">
 
       <!-- Centro: EL RADAR · NUEVO POST · Nº XX -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:1.6;">
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 24px;text-align:center;line-height:1.8;">
         <span style="color:#94a3b8;">El Radar</span>
         <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
         <span style="color:#00d4d4;">Nuevo post</span>
@@ -87,12 +83,8 @@ function buildEmail(opts: {
       <!-- Card del post -->
       <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
 
-        <!-- Póster / imagen de portada -->
-        ${opts.posterUrl ? `
-        <div style="width:100%;aspect-ratio:16/9;${posterStyle}position:relative;">
-          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,17,32,0.1) 0%,rgba(11,17,32,0.75) 100%);"></div>
-        </div>
-        ` : ''}
+        <!-- Banner compacto del post: <img> real (background-image no renderiza en Gmail) -->
+        <img src="${opts.posterUrl}" width="600" alt="${e.title}" style="display:block;width:100%;height:auto;border:0;"/>
 
         <!-- Card header: categoría + número -->
         <table width="100%" cellpadding="0" cellspacing="0" style="padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
@@ -145,19 +137,24 @@ function buildEmail(opts: {
       <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 8px;line-height:1.6;">
         Recibís este email porque te suscribiste a <strong style="color:#00d4d4;">El Radar</strong>.
       </p>
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 12px;line-height:1.6;">
-        Vas a recibir 1–2 posts por semana sobre performance, producto y automatización con IA.
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 16px;line-height:1.6;">
+        Vas a recibir 1 o 2 posts por semana sobre performance, producto y automatización con IA.
       </p>
-      <div style="display:flex;justify-content:center;gap:16px;margin-bottom:12px;">
-        <a href="${SITE_URL}/es/blog" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:12px 28px;border-radius:8px;letter-spacing:0.04em;">Ver el blog →</a>
-        <a href="https://www.linkedin.com/in/silvano-puccini/" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:rgba(221,226,248,0.8);text-decoration:none;border:1px solid rgba(255,255,255,0.25);padding:12px 28px;border-radius:8px;">Seguime en LinkedIn →</a>
-      </div>
-      <p style="font-size:10px;color:#475569;margin:0 0 8px;font-family:monospace;letter-spacing:0.05em;">El Radar · silvanopuccini.dev</p>
-      <div style="display:flex;justify-content:center;gap:16px;">
-        <a href="${SITE_URL}/preferencias" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Preferencias</a>
-        <span style="color:#2a2a3a;">·</span>
-        <a href="${opts.unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
-      </div>
+      <!-- Botones con tabla (flex no lo soporta Gmail) -->
+      <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 16px;">
+        <tr>
+          <td style="padding:0 8px 0 0;">
+            <a href="${SITE_URL}/es/blog" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:12px 28px;border-radius:8px;letter-spacing:0.04em;white-space:nowrap;">Ver el blog →</a>
+          </td>
+          <td style="padding:0 0 0 8px;">
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:rgba(221,226,248,0.8);text-decoration:none;border:1px solid rgba(255,255,255,0.25);padding:12px 28px;border-radius:8px;white-space:nowrap;">Seguime en LinkedIn →</a>
+          </td>
+        </tr>
+      </table>
+      <p style="font-size:10px;color:#475569;margin:0 0 12px;font-family:monospace;letter-spacing:0.05em;">El Radar · silvanopuccini.dev</p>
+      <p style="font-size:11px;margin:0;line-height:1.6;">
+        <a href="${opts.unsubUrl}" style="color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
+      </p>
     </div>
 
   </div>
@@ -182,9 +179,8 @@ export async function sendPostNewsletter(slug: string): Promise<SendPostNewslett
   const issueLabel = `Nueva nota · Nº ${issueNum}`;
   const postUrl = `${SITE_URL}/es/blog/${slug}`;
 
-  const posterUrl = post.ogImage
-    ? `${SITE_URL}${post.ogImage}`
-    : `${SITE_URL}/images/el-radar-n${issueNum}-poster.png`;
+  // Banner compacto uniforme del email (1200x360). Los OG de web/redes quedan intactos.
+  const posterUrl = `${SITE_URL}/images/el-radar-n${issueNum}-banner.png`;
 
   const { data: subscribers, error: dbError } = await getSupabaseAdmin()
     .from('subscribers')
