@@ -38,6 +38,15 @@ describe('buildEmail', () => {
     expect(html).not.toContain('Georgia');
   });
 
+  it('tiene los divs balanceados (el footer va dentro del contenedor)', () => {
+    const html = buildEmail(baseOpts());
+    const opens = (html.match(/<div[\s>]/g) || []).length;
+    const closes = (html.match(/<\/div>/g) || []).length;
+    expect(closes).toBe(opens);
+    expect(html.indexOf('FOOTER')).toBeGreaterThan(html.indexOf('CONTENT'));
+    expect(html).toContain('color-scheme');
+  });
+
   it('el texto es sólido sin opacidades en el color de letra', () => {
     const html = buildEmail(baseOpts());
     // Los únicos rgba son bordes/fondos, no colores de texto

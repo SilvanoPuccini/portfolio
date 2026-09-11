@@ -55,9 +55,11 @@ export function buildEmail(opts: {
   return `<!DOCTYPE html>
 <html lang="es">
   <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>El Radar · Nº ${e.issue} · ${e.title}</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="light"/>
+  <meta name="supported-color-schemes" content="light"/>
+  <title>El Radar · Nº ${e.issue} · ${e.title}</title>
     <style>
       @media only screen and (max-width:480px) {
         body { padding:8px 6px !important; }
@@ -150,11 +152,9 @@ export function buildEmail(opts: {
         </div>
       </div>
     </div>
-      </div>
-    </div>
 
-    <!-- FOOTER pegado al resto, sin caja separada -->
-    <div style="padding:20px 24px 24px;text-align:center;border-top:1px solid #2f5a7d;background:#14466b;">
+    <!-- FOOTER dentro del contenedor gigante -->
+    <div style="padding:20px 24px 24px;text-align:center;border-top:1px solid #2f5a7d;background:#10283f;">
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 6px;line-height:1.6;">
         Recibís este email porque te suscribiste a <strong style="color:#22d3ee;">El Radar</strong>.
       </p>
