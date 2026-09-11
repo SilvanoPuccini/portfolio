@@ -51,8 +51,6 @@ export function buildEmail(opts: {
   // Cover = color brillante de categoría (como el badge),
   // texto oscuro para que brille siempre. Un solo font (Inter).
   const keywordUpper = e.keyword.toUpperCase();
-  // Clave sin acentos para clases CSS por categoría (ej: "automatizacion").
-  const catKey = opts.category.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -66,9 +64,7 @@ export function buildEmail(opts: {
       @media only screen and (max-width:480px) {
         body { padding:8px 6px !important; }
         .email-cover-keyword { font-size:14px !important; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; }
-        .email-excerpt { border-left-width:8px !important; }
         .email-divider { border-top-color:#5a8ab0 !important; border-bottom-color:#5a8ab0 !important; }
-        .email-excerpt-automatizacion { border-left-color:#d97706 !important; }
         .email-eyebrow-brand { color:#ffffff !important; }
         .email-header-title { font-size:20px !important; }
         .email-header-name { font-size:11px !important; }
@@ -101,8 +97,8 @@ export function buildEmail(opts: {
         <span style="color:#ffffff;">Nº ${e.issue}</span>
       </p>
 
-      <!-- Post: cover + contenido, caja con borde redondo sobre el fondo único -->
-      <div style="background:#14466b;border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;">
+      <!-- Post: cover + contenido, caja con borde redondo -->
+      <div style="background:#10283f;border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;">
 
         <!-- Cover -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
@@ -114,7 +110,7 @@ export function buildEmail(opts: {
         </table>
 
         <!-- Categoría + Nº -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#14466b;border-bottom:1px solid #2f5a7d;" class="email-divider">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#10283f;border-bottom:1px solid #2f5a7d;" class="email-divider">
           <tr>
             <td style="padding:14px 24px;">
               <span style="display:inline-block;background:${cat.text};color:#050810;border:1px solid ${cat.text};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
@@ -130,11 +126,11 @@ export function buildEmail(opts: {
         </table>
 
         <!-- Título + excerpt + CTA -->
-        <div style="padding:24px;background:#14466b;">
+        <div style="padding:24px;background:#10283f;">
           <h2 style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 14px;">
             ${e.title}
           </h2>
-          <p class="email-excerpt email-excerpt-${catKey}" style="font-family:Inter,sans-serif;font-size:14px;color:#d4e2f2;line-height:1.7;margin:0 0 18px;border-left:4px solid ${cat.text};padding-left:14px;">
+          <p style="font-family:Inter,sans-serif;font-size:14px;color:#d4e2f2;line-height:1.7;margin:0 0 18px;border-left:4px solid ${cat.text};padding-left:14px;">
             ${e.excerpt}
           </p>
 
@@ -176,7 +172,7 @@ export function buildEmail(opts: {
         </tr>
         <tr>
           <td align="center" style="padding:0;">
-            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #5a7186;padding:10px 24px;border-radius:8px;text-align:center;">Seguime en LinkedIn →</a>
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #ffffff;padding:10px 24px;border-radius:8px;text-align:center;background:#10283f;">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
