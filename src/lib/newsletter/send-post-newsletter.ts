@@ -66,9 +66,10 @@ export function buildEmail(opts: {
       @media only screen and (max-width:480px) {
         body { padding:8px 6px !important; }
         .email-cover-keyword { font-size:14px !important; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; }
-        .email-excerpt { border-left-width:6px !important; }
+        .email-excerpt { border-left-width:8px !important; }
         .email-divider { border-top-color:#5a8ab0 !important; border-bottom-color:#5a8ab0 !important; }
-        .email-excerpt-automatizacion { border-left-color:#f59e0b !important; }
+        .email-excerpt-automatizacion { border-left-color:#d97706 !important; }
+        .email-eyebrow-brand { color:#ffffff !important; }
         .email-header-title { font-size:20px !important; }
         .email-header-name { font-size:11px !important; }
         .email-tagline { font-size:9px !important; }
@@ -93,7 +94,7 @@ export function buildEmail(opts: {
 
       <!-- Eyebrow -->
       <p class="email-eyebrow" style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
-        <span style="color:#a78bfa;">El Radar</span>
+        <span class="email-eyebrow-brand" style="color:#a78bfa;">El Radar</span>
         <span style="color:#5a7186;margin:0 8px;">·</span>
         <span style="color:#22d3ee;">Nuevo post</span>
         <span style="color:#5a7186;margin:0 8px;">·</span>
@@ -158,9 +159,9 @@ export function buildEmail(opts: {
       </div>
     </div>
 
-    <!-- FOOTER en caja gemela a la del post -->
-    <div style="padding:0 24px 24px;background:#14466b;">
-      <div style="background:#10283f;border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;padding:20px 24px;text-align:center;">
+    <!-- FOOTER a ras del contenedor gigante, sin gutters -->
+    <div style="padding:0;background:#14466b;">
+      <div style="background:#10283f;border-top:1px solid #2f5a7d;padding:20px 24px 24px;text-align:center;">
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 6px;line-height:1.6;">
         Recibís este email porque te suscribiste a <strong style="color:#22d3ee;white-space:nowrap;">El&nbsp;Radar</strong>.
       </p>
