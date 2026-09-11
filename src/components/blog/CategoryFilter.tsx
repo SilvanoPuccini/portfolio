@@ -11,10 +11,10 @@ const POSTS_PER_PAGE = 6;
 
 const categoryColors: Record<string, string> = {
   Performance: "bg-green-500/10 text-green-400 border-green-500/20",
-  Producto: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  Producto: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
   Automatización: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   Criterio: "bg-sky-500/10 text-sky-400 border-sky-500/20",
-  Editorial: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  Editorial: "bg-blue-500/10 text-blue-400 border-blue-500/20",
 };
 
 const copy = {

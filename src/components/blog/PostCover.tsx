@@ -18,9 +18,9 @@ const categoryConfig: Record<string, { gradient: string; dot: string; label: str
   },
   Producto: {
     gradient:
-      "radial-gradient(ellipse at 25% 60%, rgba(168,85,247,0.22) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.14) 0%, transparent 50%)",
-    dot: "rgba(168,85,247,0.35)",
-    label: "text-purple-400",
+      "radial-gradient(ellipse at 25% 60%, rgba(99,102,241,0.24) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(67,56,202,0.16) 0%, transparent 50%)",
+    dot: "rgba(99,102,241,0.35)",
+    label: "text-indigo-400",
   },
   Automatización: {
     gradient:
@@ -30,9 +30,9 @@ const categoryConfig: Record<string, { gradient: string; dot: string; label: str
   },
   Editorial: {
     gradient:
-      "radial-gradient(ellipse at 25% 60%, rgba(0,212,212,0.22) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(5,102,217,0.14) 0%, transparent 50%)",
-    dot: "rgba(0,212,212,0.35)",
-    label: "text-brand-primary",
+      "radial-gradient(ellipse at 25% 60%, rgba(59,130,246,0.24) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(37,99,235,0.16) 0%, transparent 50%)",
+    dot: "rgba(59,130,246,0.35)",
+    label: "text-blue-400",
   },
   Criterio: {
     gradient:

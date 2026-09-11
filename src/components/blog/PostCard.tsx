@@ -15,10 +15,10 @@ export function PostCard({ slug, title, date, category, excerpt, readingTime, lo
   // Colores por categoría
   const categoryColors: Record<string, string> = {
     'Performance':    'bg-green-500/10 text-green-400',
-    'Producto':       'bg-purple-500/10 text-purple-400',
+    'Producto':       'bg-indigo-500/10 text-indigo-400',
     'Automatización': 'bg-amber-500/10 text-amber-400',
     'Criterio':       'bg-sky-500/10 text-sky-400',
-    'Editorial':      'bg-cyan-500/10 text-cyan-400',
+    'Editorial':      'bg-blue-500/10 text-blue-400',
   };
 
   const categoryColor = categoryColors[category] || 'bg-blue-500/10 text-blue-400';

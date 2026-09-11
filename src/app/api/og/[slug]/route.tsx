@@ -7,10 +7,10 @@ export const runtime = 'nodejs';
 
 const CATEGORY_COLOR: Record<string, string> = {
   Performance: '#4ade80',
-  Producto: '#c084fc',
+  Producto: '#818cf8',
   Automatización: '#fbbf24',
   Criterio: '#38bdf8',
-  Editorial: '#22d3d3',
+  Editorial: '#3b82f6',
 };
 
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
