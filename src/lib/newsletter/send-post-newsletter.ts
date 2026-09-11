@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { CATEGORY_COLOR } from '@/lib/resend';
+import { VERSUS_PATTERN, parseVersus } from '@/components/blog/tech-icons';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
 const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
@@ -51,6 +52,14 @@ export function buildEmail(opts: {
   // Cover = color brillante de categoría (como el badge),
   // texto oscuro para que brille siempre. Un solo font (Inter).
   const keywordUpper = e.keyword.toUpperCase();
+  // Versus: cada comparativa en nowrap y el corte cae en la barra.
+  // "DJANGO VS NODE.JS / GO VS RUST" parte justo en el medio, sin cortar palabras.
+  let coverKeywordHtml = keywordUpper;
+  if (VERSUS_PATTERN.test(opts.keyword)) {
+    coverKeywordHtml = parseVersus(opts.keyword)
+      .map(([a, b]) => `<span style="white-space:nowrap;">${escapeHtml(a).toUpperCase()} VS ${escapeHtml(b).toUpperCase()}</span>`)
+      .join(' / ');
+  }
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -104,7 +113,7 @@ export function buildEmail(opts: {
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
           <tr>
             <td align="center" style="padding:28px 20px;">
-              <p class="email-cover-keyword" style="font-family:Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.06em;color:#050810;margin:0;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;word-break:break-word;">${keywordUpper}</p>
+              <p class="email-cover-keyword" style="font-family:Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.06em;color:#050810;margin:0;line-height:1.5;word-break:normal;overflow-wrap:normal;">${coverKeywordHtml}</p>
             </td>
           </tr>
         </table>

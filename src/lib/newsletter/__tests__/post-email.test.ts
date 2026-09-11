@@ -62,7 +62,14 @@ describe('buildEmail', () => {
 
   it('muestra el keyword versus como texto', () => {
     const html = buildEmail(baseOpts({ keyword: 'React vs Angular / Vite vs Next.js' }));
-    expect(html).toContain('REACT VS ANGULAR / VITE VS NEXT.JS');
+    expect(html).toContain('<span style="white-space:nowrap;">REACT VS ANGULAR</span>');
+    expect(html).toContain('<span style="white-space:nowrap;">VITE VS NEXT.JS</span>');
+  });
+
+  it('el versus no corta palabras: cada comparativa va en nowrap', () => {
+    const html = buildEmail(baseOpts({ keyword: 'Django vs Node.js / Go vs Rust' }));
+    expect(html).toContain('<span style="white-space:nowrap;">DJANGO VS NODE.JS</span>');
+    expect(html).toContain('<span style="white-space:nowrap;">GO VS RUST</span>');
   });
 
   it('usa el color de la categoría en pill y borde', () => {
