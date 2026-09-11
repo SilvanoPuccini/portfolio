@@ -68,17 +68,17 @@ export function buildEmail(opts: {
   if (e.keyword === 'El Radar') {
     coverKeyword = `
       <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin:0 0 6px;">El</p>
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin:0;line-height:1;">Radar</p>
+      <p class="email-cover-brand" style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin:0;line-height:1;">Radar</p>
       <p style="font-family:monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:8px 0 0;">arquitectura · código · producto</p>`;
   } else if (VERSUS_PATTERN.test(e.keyword)) {
     coverKeyword = `
-      <p style="font-family:monospace;font-size:17px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
+      <p class="email-cover-versus" style="font-family:monospace;font-size:17px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
   } else {
     const techColor = TECH_ICONS[e.keyword]?.color;
     const color = techColor ?? '#ffffff';
     const size = techColor ? '22px' : '19px';
     coverKeyword = `
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:${size};font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
+      <p class="email-cover-keyword" style="font-family:'Space Grotesk',sans-serif;font-size:${size};font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
   }
 
   return `<!DOCTYPE html>
@@ -93,6 +93,10 @@ export function buildEmail(opts: {
       .email-btn-cell { display:block !important; width:100% !important; padding:0 0 12px 0 !important; }
       .email-btn { display:block !important; text-align:center !important; }
       .email-eyebrow { font-size:10px !important; letter-spacing:0.1em !important; }
+      .email-cover-cell { padding:22px 20px 20px !important; }
+      .email-cover-brand { font-size:24px !important; }
+      .email-cover-versus { font-size:14px !important; }
+      .email-cover-keyword { font-size:16px !important; }
     }
   </style>
 </head>
@@ -161,7 +165,7 @@ export function buildEmail(opts: {
         <!-- Cover del post en HTML: header de la card, sale del slug -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${coverBg};border-top:3px solid ${cat.text};">
           <tr>
-            <td align="center" style="padding:36px 24px 32px;text-align:center;">
+            <td class="email-cover-cell" align="center" style="padding:36px 24px 32px;text-align:center;">
               ${coverKeyword}
             </td>
           </tr>
