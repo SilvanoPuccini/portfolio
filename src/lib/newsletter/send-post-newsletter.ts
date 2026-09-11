@@ -2,7 +2,6 @@ import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { CATEGORY_COLOR } from '@/lib/resend';
-import { TECH_ICONS, VERSUS_PATTERN } from '@/components/blog/tech-icons';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
 const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
@@ -52,75 +51,69 @@ export function buildEmail(opts: {
   // Cover = color brillante de categoría (como el badge),
   // texto oscuro para que brille siempre. Un solo font (Inter).
   const keywordUpper = e.keyword.toUpperCase();
-  let coverKeyword: string;
-  if (e.keyword === 'El Radar') {
-    coverKeyword = `
-      <p style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#050810;margin:0 0 8px;">El</p>
-      <p style="font-family:Inter,sans-serif;font-size:32px;font-weight:700;letter-spacing:0.14em;color:#050810;margin:0;line-height:1.1;">Radar</p>
-      <p style="font-family:Inter,sans-serif;font-size:10px;font-weight:500;letter-spacing:0.14em;color:#050810;margin:8px 0 0;opacity:0.7;">arquitectura · código · producto</p>`;
-  } else if (VERSUS_PATTERN.test(e.keyword)) {
-    coverKeyword = `
-      <p style="font-family:Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:0.08em;color:#050810;margin:0;line-height:1.8;">${keywordUpper}</p>`;
-  } else {
-    const techColor = TECH_ICONS[e.keyword]?.color;
-    const color = techColor ?? '#050810';
-    coverKeyword = `
-      <p style="font-family:Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.06em;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
-  }
 
   return `<!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>El Radar · Nº ${e.issue} · ${e.title}</title>
-</head>
-<body style="margin:0;padding:20px 12px;background:#112137;font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>El Radar · Nº ${e.issue} · ${e.title}</title>
+    <style>
+      @media only screen and (max-width:480px) {
+        body { padding:8px 6px !important; }
+        .email-cover-keyword { font-size:14px !important; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; }
+        .email-tagline { font-size:9px !important; }
+        .email-footer-btn-cell { display:block !important; width:100% !important; padding:0 0 8px 0 !important; }
+        .email-footer-btn { display:block !important; width:100% !important; text-align:center !important; }
+      }
+    </style>
+  </head>
+<body style="margin:0;padding:20px 12px;background:#050810;font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;">
 
-  <div style="max-width:600px;width:100%;margin:0 auto;background:#161a2b;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
+  <div style="max-width:600px;width:100%;margin:0 auto;background:#1e3a5f;border:1px solid #2d4a6f;border-radius:16px;overflow:hidden;">
 
     <!-- HEADER -->
-    <div style="padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.1);text-align:center;">
-      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 8px;">est. 2026</p>
-      <p style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#e2e8f0;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 4px;">El Radar</p>
-      <p style="font-family:Inter,sans-serif;font-size:8px;color:#64748b;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">arquitectura · código · producto</p>
-      <p style="font-family:Inter,sans-serif;font-size:11px;color:#00d4d4;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Silvano Puccini · Full Stack Dev</p>
+    <div style="padding:28px 24px 20px;border-bottom:1px solid #2d4a6f;text-align:center;background:#1e3a5f;">
+      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#8fa3bf;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 8px;">est. 2026</p>
+      <p style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 4px;">El Radar</p>
+      <p class="email-tagline" style="font-family:Inter,sans-serif;font-size:9px;color:#8fa3bf;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">arquitectura · código · producto</p>
+      <p style="font-family:Inter,sans-serif;font-size:11px;color:#22d3ee;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Silvano Puccini · Full Stack Dev</p>
     </div>
 
     <!-- CONTENT -->
-    <div style="padding:24px;">
+    <div style="padding:24px;background:#1e3a5f;">
 
       <!-- Eyebrow -->
-      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
-        <span style="color:#c084fc;">El Radar</span>
-        <span style="color:#475569;margin:0 8px;">·</span>
-        <span style="color:#00d4d4;">Nuevo post</span>
-        <span style="color:#475569;margin:0 8px;">·</span>
-        <span style="color:#e2e8f0;">Nº ${e.issue}</span>
+      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
+        <span style="color:#a78bfa;">El Radar</span>
+        <span style="color:#5a7186;margin:0 8px;">·</span>
+        <span style="color:#22d3ee;">Nuevo post</span>
+        <span style="color:#5a7186;margin:0 8px;">·</span>
+        <span style="color:#ffffff;">Nº ${e.issue}</span>
       </p>
 
       <!-- Card -->
-      <div style="border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
+      <div style="border:1px solid #2d4a6f;border-radius:12px;overflow:hidden;background:#16283f;">
 
         <!-- Cover -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
           <tr>
             <td align="center" style="padding:28px 20px;">
-              ${coverKeyword}
+              <p class="email-cover-keyword" style="font-family:Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.06em;color:#050810;margin:0;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;word-break:break-word;">${keywordUpper}</p>
             </td>
           </tr>
         </table>
 
         <!-- Card header: categoría + Nº -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#16283f;border-bottom:1px solid #2d4a6f;">
           <tr>
-            <td>
-              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">
+            <td style="padding:14px 20px;">
+              <span style="display:inline-block;background:#0f1f33;color:${cat.text};border:1px solid ${cat.text};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">
                 ${e.category}
               </span>
             </td>
-            <td style="text-align:right;vertical-align:middle;">
-              <span style="font-family:Inter,sans-serif;font-size:10px;color:#64748b;letter-spacing:0.12em;text-transform:uppercase;">
+            <td style="text-align:right;vertical-align:middle;padding:14px 20px;">
+              <span style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;letter-spacing:0.12em;text-transform:uppercase;">
                 Nº ${e.issue}
               </span>
             </td>
@@ -128,26 +121,26 @@ export function buildEmail(opts: {
         </table>
 
         <!-- Card body -->
-        <div style="padding:24px;">
-          <h2 style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:#e2e8f0;line-height:1.3;margin:0 0 14px;">
+        <div style="padding:24px;background:#16283f;">
+          <h2 style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 14px;">
             ${e.title}
           </h2>
-          <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;line-height:1.7;margin:0 0 18px;border-left:3px solid ${cat.text};padding-left:14px;">
+          <p style="font-family:Inter,sans-serif;font-size:14px;color:#d4e2f2;line-height:1.7;margin:0 0 18px;border-left:3px solid ${cat.text};padding-left:14px;">
             ${e.excerpt}
           </p>
 
           <!-- Meta + CTA -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #2d4a6f;padding-top:16px;margin-top:4px;">
             <tr>
               <td style="padding-bottom:12px;">
-                <span style="font-family:Inter,sans-serif;font-size:12px;color:#64748b;">
+                <span style="font-family:Inter,sans-serif;font-size:12px;color:#8fa3bf;">
                   ${e.readingTime} · ${e.date}
                 </span>
               </td>
             </tr>
             <tr>
-              <td style="text-align:left;">
-                <a href="${opts.postUrl}" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:12px 24px;border-radius:8px;text-align:center;max-width:100%;">
+              <td style="text-align:center;">
+                <a href="${opts.postUrl}" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#22d3ee;padding:12px 24px;border-radius:8px;text-align:center;">
                   Leer el post completo →
                 </a>
               </td>
@@ -156,28 +149,30 @@ export function buildEmail(opts: {
         </div>
       </div>
     </div>
+      </div>
+    </div>
 
     <!-- FOOTER -->
-    <div style="padding:20px 24px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);">
-      <p style="font-family:Inter,sans-serif;font-size:10px;color:#475569;margin:0 0 6px;line-height:1.6;">
-        Recibís este email porque te suscribiste a <strong style="color:#00d4d4;">El Radar</strong>.
+    <div style="padding:20px 24px;text-align:center;border-top:1px solid #2d4a6f;background:#1e3a5f;">
+      <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 6px;line-height:1.6;">
+        Recibís este email porque te suscribiste a <strong style="color:#22d3ee;">El Radar</strong>.
       </p>
-      <p style="font-family:Inter,sans-serif;font-size:10px;color:#475569;margin:0 0 14px;line-height:1.6;">
+      <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 14px;line-height:1.6;">
         Vas a recibir 1 o 2 posts por semana sobre performance, producto y automatización con IA.
       </p>
       <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 14px;">
         <tr>
-          <td style="padding:0 6px 0 0;">
-            <a href="${SITE_URL}/es/blog" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:10px 24px;border-radius:8px;letter-spacing:0.03em;white-space:nowrap;">Ver el blog →</a>
+          <td class="email-footer-btn-cell" style="padding:0 6px 0 0;">
+            <a href="${SITE_URL}/es/blog" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#22d3ee;padding:10px 24px;border-radius:8px;white-space:nowrap;">Ver el blog →</a>
           </td>
-          <td style="padding:0 0 0 6px;">
-            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.2);padding:10px 24px;border-radius:8px;white-space:nowrap;">Seguime en LinkedIn →</a>
+          <td class="email-footer-btn-cell" style="padding:0 0 0 6px;">
+            <a href="https://www.linkedin.com/in/silvano-puccini/" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #5a7186;padding:10px 24px;border-radius:8px;white-space:nowrap;background:#16283f;">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
-      <p style="font-family:Inter,sans-serif;font-size:9px;color:#334155;margin:0 0 8px;">El Radar · silvanopuccini.dev</p>
+      <p style="font-family:Inter,sans-serif;font-size:9px;color:#5a7186;margin:0 0 8px;">El Radar · silvanopuccini.dev</p>
       <p style="font-family:Inter,sans-serif;font-size:10px;margin:0;">
-        <a href="${opts.unsubUrl}" style="color:#475569;text-decoration:underline;">Desuscribirse</a>
+        <a href="${opts.unsubUrl}" style="color:#8fa3bf;text-decoration:underline;">Desuscribirse</a>
       </p>
     </div>
 

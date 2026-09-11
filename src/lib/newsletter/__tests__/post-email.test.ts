@@ -45,10 +45,10 @@ describe('buildEmail', () => {
     expect(textMatches).toEqual([]);
   });
 
-  it('pinta el keyword tech con su color', () => {
+  it('el keyword del cover es oscuro sobre fondo brillante (legible siempre)', () => {
     const html = buildEmail(baseOpts({ keyword: 'React' }));
-    expect(html).toContain('#61DAFB');
     expect(html).toContain('REACT');
+    expect(html).toContain('color:#050810');
   });
 
   it('muestra el keyword versus como texto', () => {

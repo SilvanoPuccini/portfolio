@@ -136,84 +136,65 @@ export async function sendWelcomeEmail(email: string) {
           <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
         </g>
       </svg>
-      <div style="position:relative;z-index:1;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
-          <tr>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-          </tr>
-        </table>
-        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
-          <tr>
-            <td style="vertical-align:bottom;padding-bottom:2px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
-            </td>
-            <td style="vertical-align:bottom;padding-left:5px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
-            </td>
-          </tr>
-        </table>
-        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
-          arquitectura · código · producto
-        </div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:9px;color:#00d4d4;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;">
-          Silvano Puccini · Full Stack Dev
-        </div>
-      </div>
+     <div style="position:relative;z-index:1;">
+         <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 8px;">est. 2026</p>
+         <p style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#e2e8f0;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 4px;">El Radar</p>
+         <p class="email-tagline" style="font-family:Inter,sans-serif;font-size:9px;color:#64748b;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">arquitectura · código · producto</p>
+         <p class="email-cyan" style="font-family:Inter,sans-serif;font-size:11px;color:#00d4d4;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Silvano Puccini · Full Stack Dev</p>
+       </div>
     </div>
 
     <!-- Body -->
     <div style="padding:40px 32px;">
 
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#8c909f;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 10px;">Hola,</p>
-      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
+       <p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 10px;">Hola,</p>
+       <h1 style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#e2e8f0;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">Me alegra que estés acá.</h1>
 
-      <!-- Te suscribiste a: El Radar — misma línea -->
-      <table cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
-        <tr>
-          <td style="vertical-align:middle;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;">Te suscribiste a:</span>
-          </td>
-          <td style="vertical-align:middle;padding-left:8px;">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.28em;text-transform:uppercase;">El</span>
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;margin-left:3px;">Radar</span>
-          </td>
-        </tr>
-      </table>
+       <!-- Te suscribiste a: El Radar — misma línea -->
+       <table cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+         <tr>
+           <td style="vertical-align:middle;">
+             <span style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;line-height:1.7;">Te suscribiste a:</span>
+           </td>
+           <td style="vertical-align:middle;padding-left:8px;">
+             <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:#e2e8f0;letter-spacing:0.28em;text-transform:uppercase;">El</span>
+             <span style="font-family:Inter,sans-serif;font-size:15px;font-weight:700;color:#e2e8f0;letter-spacing:0.14em;text-transform:uppercase;margin-left:3px;">Radar</span>
+           </td>
+         </tr>
+       </table>
 
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 12px;">
-        El blog de <strong style="color:#00d4d4;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.
-      </p>
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 28px;">
-        Vas a recibir <strong style="color:#00d4d4;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.
-      </p>
+       <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;line-height:1.7;margin:0 0 12px;">
+         El blog de <strong style="color:#00d4d4;">Silvano Puccini</strong> — un espacio donde documento decisiones reales de desarrollo, sin relleno y sin tutoriales de introducción.
+       </p>
+       <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;line-height:1.7;margin:0 0 28px;">
+         Vas a recibir <strong style="color:#00d4d4;">1–2 posts por semana</strong> sobre performance, producto y automatización con IA.
+       </p>
 
-      <!-- Lo que vas a encontrar -->
-      <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;margin-bottom:32px;">
-        <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
-          <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;color:#00d4d4;letter-spacing:0.14em;text-transform:uppercase;">Lo que vas a encontrar</span>
-        </div>
-        <div style="padding:16px 20px;">
-          <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);margin:0 0 8px;">→ Performance real — Web Vitals, optimización y arquitectura</p>
-          <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);margin:0 0 8px;">→ Producto — qué funciona, qué no, y por qué</p>
-          <p style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:rgba(221,226,248,0.8);margin:0;">→ Automatización con IA — herramientas en proyectos reales</p>
-        </div>
-      </div>
+       <!-- Lo que vas a encontrar -->
+       <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;margin-bottom:32px;">
+         <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);">
+           <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:#00d4d4;letter-spacing:0.14em;text-transform:uppercase;">Lo que vas a encontrar</span>
+         </div>
+         <div style="padding:16px 20px;">
+           <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;margin:0 0 8px;">→ Performance real — Web Vitals, optimización y arquitectura</p>
+           <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;margin:0 0 8px;">→ Producto — qué funciona, qué no, y por qué</p>
+           <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;margin:0;">→ Automatización con IA — herramientas en proyectos reales</p>
+         </div>
+       </div>
 
-      <!-- CTAs -->
-      <table cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding-bottom:12px;">
-            <a href="${SITE_URL}/es/blog" style="display:inline-block;background:#00d4d4;color:#050810;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;padding:13px 26px;border-radius:8px;text-decoration:none;letter-spacing:0.04em;">Ver el blog →</a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;background:transparent;color:rgba(221,226,248,0.8);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;padding:13px 26px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,0.25);">Seguime en LinkedIn →</a>
-          </td>
-        </tr>
-      </table>
+       <!-- CTAs -->
+       <table cellpadding="0" cellspacing="0" class="email-footer-buttons">
+         <tr>
+           <td class="email-footer-btn-cell" style="padding-bottom:12px;">
+             <a href="${SITE_URL}/es/blog" class="email-footer-btn" style="display:inline-block;background:#00d4d4;color:#050810;font-family:Inter,sans-serif;font-size:14px;font-weight:700;padding:13px 26px;border-radius:8px;text-decoration:none;letter-spacing:0.04em;white-space:nowrap;">Ver el blog →</a>
+           </td>
+         </tr>
+         <tr>
+           <td class="email-footer-btn-cell">
+             <a href="https://www.linkedin.com/in/silvano-puccini/" class="email-footer-btn" style="display:inline-block;background:transparent;color:#94a3b8;font-family:Inter,sans-serif;font-size:13px;font-weight:600;padding:13px 26px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;">Seguime en LinkedIn →</a>
+           </td>
+         </tr>
+       </table>
 
     </div>
 
