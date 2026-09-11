@@ -5,6 +5,7 @@ import { CATEGORY_COLOR } from '@/lib/resend';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
 const SITE_URL = process.env.DISTRIBUTION_BASE_URL ?? 'https://silvanopuccini.dev';
+const LOGO_URL = `${SITE_URL}/images/el-radar-logo.png`;
 
 export type SendPostNewsletterResult =
   | { ok: true; sent: number }
@@ -30,94 +31,68 @@ function buildEmail(opts: {
   excerpt: string;
   category: string;
   issue: string;
-  keyword: string;
   readingTime: string;
   date: string;
   postUrl: string;
   unsubUrl: string;
+  posterUrl?: string;
 }): string {
   const cat = CATEGORY_COLOR[opts.category] ?? CATEGORY_COLOR['Producto'];
 
-  // Escape user-derived content to prevent HTML injection
   const e = {
     title: escapeHtml(opts.title),
     excerpt: escapeHtml(opts.excerpt),
     category: escapeHtml(opts.category),
     issue: escapeHtml(opts.issue),
-    keyword: escapeHtml(opts.keyword),
     readingTime: escapeHtml(opts.readingTime),
     date: escapeHtml(opts.date),
   };
+
+  const posterStyle = opts.posterUrl
+    ? `background-image:url('${opts.posterUrl}');background-size:cover;background-position:center;`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>El Radar</title>
+  <title>El Radar · Nº ${e.issue} · ${e.title}</title>
 </head>
 <body style="margin:0;padding:40px 16px;background:#050810;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
 
   <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-    <!-- Header — logo El Radar -->
-    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
-      <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
-        <g opacity="0.3">
-          <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
-          <circle cx="110" cy="55" r="44" stroke="#00d4d4" stroke-width="0.5"/>
-          <circle cx="110" cy="55" r="66" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
-          <circle cx="110" cy="55" r="90" stroke="#00d4d4" stroke-width="0.375"/>
-          <line x1="110" y1="55" x2="173" y2="9" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
-          <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
-        </g>
-      </svg>
-      <div style="position:relative;z-index:1;">
-        <!-- est. 2026 con líneas cortas -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
-          <tr>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-          </tr>
-        </table>
-        <!-- El Radar en una sola línea — tabla para compatibilidad mobile -->
-        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
-          <tr>
-            <td style="vertical-align:bottom;padding-bottom:2px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
-            </td>
-            <td style="vertical-align:bottom;padding-left:5px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
-            </td>
-          </tr>
-        </table>
-        <!-- tagline sin líneas -->
-        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
-          arquitectura · código · producto
-        </div>
-        <!-- Silvano Puccini en cyan -->
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
-          Silvano Puccini · Full Stack Dev
-        </div>
+    <!-- HEADER — logo El Radar PNG -->
+    <div style="padding:0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;background:#0b1120;">
+      <img src="${LOGO_URL}" alt="El Radar" style="width:100%;display:block;"/>
+      <div style="padding:20px 32px 24px;text-align:center;">
+        <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
+        <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>
       </div>
     </div>
 
-    <!-- Content -->
-    <div style="padding:40px 32px;">
+    <!-- CONTENT -->
+    <div style="padding:0 32px 32px;">
 
-      <!-- Eyebrow: línea 1 en una línea, keyword en línea 2 -->
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 8px;text-align:center;line-height:1.6;">
+      <!-- Centro: EL RADAR · NUEVO POST · Nº XX -->
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:1.6;">
         <span style="color:#94a3b8;">El Radar</span>
         <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
-        <span style="color:#00d4d4;">Nueva nota · Nº ${e.issue}</span>
-      </p>
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 40px;text-align:center;">
-        <span style="color:${cat.text};">${e.keyword.toUpperCase()}</span>
+        <span style="color:#00d4d4;">Nuevo post</span>
+        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
+        <span style="color:#ffffff;">Nº ${e.issue}</span>
       </p>
 
       <!-- Card del post -->
       <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
+
+        <!-- Póster / imagen de portada -->
+        ${opts.posterUrl ? `
+        <div style="width:100%;aspect-ratio:16/9;${posterStyle}position:relative;">
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,17,32,0.1) 0%,rgba(11,17,32,0.75) 100%);"></div>
+        </div>
+        ` : ''}
 
         <!-- Card header: categoría + número -->
         <table width="100%" cellpadding="0" cellspacing="0" style="padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
@@ -136,25 +111,25 @@ function buildEmail(opts: {
         </table>
 
         <!-- Card body -->
-        <div style="padding:32px 24px 28px;">
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 20px;letter-spacing:-0.01em;">
+        <div style="padding:28px 24px 24px;">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px;letter-spacing:-0.01em;">
             ${e.title}
           </h2>
-          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 28px;border-left:2px solid ${cat.text};padding-left:14px;">
+          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;border-left:2px solid ${cat.text};padding-left:14px;">
             ${e.excerpt}
           </p>
 
-          <!-- Meta + CTA en misma fila -->
+          <!-- Meta + CTA largo -->
           <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">
             <tr>
               <td style="vertical-align:middle;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8c909f;letter-spacing:0.06em;">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.06em;">
                   ${e.readingTime} · ${e.date}
                 </span>
               </td>
               <td style="text-align:right;vertical-align:middle;">
-                <a href="${opts.postUrl}" style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#00d4d4;text-decoration:none;letter-spacing:0.04em;">
-                  Leer más →
+                <a href="${opts.postUrl}" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;background:#00d4d4;padding:12px 24px;border-radius:8px;">
+                  Leer el post completo →
                 </a>
               </td>
             </tr>
@@ -165,10 +140,24 @@ function buildEmail(opts: {
 
     </div>
 
-    <!-- Footer -->
-    <div style="padding:24px 32px;text-align:center;">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.8;">Recibís este email porque te suscribiste a El Radar.</p>
-      <a href="${opts.unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
+    <!-- FOOTER -->
+    <div style="padding:24px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.04);">
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 8px;line-height:1.6;">
+        Recibís este email porque te suscribiste a <strong style="color:#00d4d4;">El Radar</strong>.
+      </p>
+      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 12px;line-height:1.6;">
+        Vas a recibir 1–2 posts por semana sobre performance, producto y automatización con IA.
+      </p>
+      <div style="display:flex;justify-content:center;gap:16px;margin-bottom:12px;">
+        <a href="${SITE_URL}/es/blog" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:12px 28px;border-radius:8px;letter-spacing:0.04em;">Ver el blog →</a>
+        <a href="https://www.linkedin.com/in/silvano-puccini/" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:rgba(221,226,248,0.8);text-decoration:none;border:1px solid rgba(255,255,255,0.25);padding:12px 28px;border-radius:8px;">Seguime en LinkedIn →</a>
+      </div>
+      <p style="font-size:10px;color:#475569;margin:0 0 8px;font-family:monospace;letter-spacing:0.05em;">El Radar · silvanopuccini.dev</p>
+      <div style="display:flex;justify-content:center;gap:16px;">
+        <a href="${SITE_URL}/preferencias" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Preferencias</a>
+        <span style="color:#2a2a3a;">·</span>
+        <a href="${opts.unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
+      </div>
     </div>
 
   </div>
@@ -193,6 +182,8 @@ export async function sendPostNewsletter(slug: string): Promise<SendPostNewslett
   const issueLabel = `Nueva nota · Nº ${issueNum}`;
   const postUrl = `${SITE_URL}/es/blog/${slug}`;
 
+  const posterUrl = post.ogImage ? `${SITE_URL}${post.ogImage}` : undefined;
+
   const { data: subscribers, error: dbError } = await getSupabaseAdmin()
     .from('subscribers')
     .select('email')
@@ -213,12 +204,11 @@ export async function sendPostNewsletter(slug: string): Promise<SendPostNewslett
     from: 'Silvano Puccini <hola@silvanopuccini.dev>',
     to: s.email,
     subject: `El Radar · ${issueLabel} — ${post.title}`,
-    html: buildEmail({
+      html: buildEmail({
       title: post.title,
       excerpt: post.excerpt ?? '',
       category: post.category,
       issue: issueNum,
-      keyword: post.keyword ?? post.category,
       readingTime: post.readingTime ?? '5 min',
       date: formatDate(post.date),
       postUrl,
@@ -226,6 +216,7 @@ export async function sendPostNewsletter(slug: string): Promise<SendPostNewslett
         const { token, exp } = generateUnsubToken(s.email);
         return `${SITE_URL}/unsubscribe?email=${encodeURIComponent(s.email)}&token=${token}&exp=${exp}`;
       })(),
+      posterUrl,
     }),
   }));
 

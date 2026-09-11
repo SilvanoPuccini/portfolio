@@ -113,45 +113,12 @@ export async function sendWelcomeEmail(email: string) {
 
   <div style="max-width:580px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-    <!-- Top accent line -->
-    <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
-
-    <!-- Header — logo El Radar -->
-    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
-      <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
-        <g opacity="0.3">
-          <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
-          <circle cx="110" cy="55" r="44" stroke="#00d4d4" stroke-width="0.5"/>
-          <circle cx="110" cy="55" r="66" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
-          <circle cx="110" cy="55" r="90" stroke="#00d4d4" stroke-width="0.375"/>
-          <line x1="110" y1="55" x2="173" y2="9" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
-          <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
-        </g>
-      </svg>
-      <div style="position:relative;z-index:1;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
-          <tr>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-          </tr>
-        </table>
-        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
-          <tr>
-            <td style="vertical-align:bottom;padding-bottom:2px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
-            </td>
-            <td style="vertical-align:bottom;padding-left:5px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
-            </td>
-          </tr>
-        </table>
-        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
-          arquitectura · código · producto
-        </div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:9px;color:#00d4d4;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;">
-          Silvano Puccini · Full Stack Dev
-        </div>
+    <!-- Header — logo El Radar PNG -->
+    <div style="padding:0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;background:#0b1120;">
+      <img src="https://silvanopuccini.dev/images/el-radar-logo.png" alt="El Radar" style="width:100%;display:block;"/>
+      <div style="padding:20px 32px 24px;text-align:center;">
+        <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
+        <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>
       </div>
     </div>
 
