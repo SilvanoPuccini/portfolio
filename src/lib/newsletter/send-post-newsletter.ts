@@ -97,6 +97,7 @@ export function buildEmail(opts: {
       .email-cover-brand { font-size:24px !important; }
       .email-cover-versus { font-size:14px !important; }
       .email-cover-keyword { font-size:16px !important; }
+      .email-header-name { font-size:8px !important; letter-spacing:0.1em !important; }
     }
   </style>
 </head>
@@ -140,8 +141,8 @@ export function buildEmail(opts: {
         <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
           arquitectura · código · producto
         </div>
-        <!-- Silvano Puccini en cyan -->
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+        <!-- Silvano Puccini en cyan (nunca se parte en mobile) -->
+        <div class="email-header-name" style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;white-space:nowrap;">
           Silvano Puccini · Full Stack Dev
         </div>
       </div>
