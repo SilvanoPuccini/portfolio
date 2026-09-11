@@ -9,7 +9,7 @@ const CATEGORY_COLOR: Record<string, string> = {
   Performance: '#4ade80',
   Producto: '#c084fc',
   Automatización: '#fbbf24',
-  Criterio: '#818cf8',
+  Criterio: '#38bdf8',
   Editorial: '#22d3d3',
 };
 

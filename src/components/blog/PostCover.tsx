@@ -36,9 +36,9 @@ const categoryConfig: Record<string, { gradient: string; dot: string; label: str
   },
   Criterio: {
     gradient:
-      "radial-gradient(ellipse at 25% 60%, rgba(99,102,241,0.24) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(67,56,202,0.16) 0%, transparent 50%)",
-    dot: "rgba(99,102,241,0.35)",
-    label: "text-indigo-400",
+      "radial-gradient(ellipse at 25% 60%, rgba(56,189,248,0.24) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(2,132,199,0.16) 0%, transparent 50%)",
+    dot: "rgba(56,189,248,0.35)",
+    label: "text-sky-400",
   },
 };
 
