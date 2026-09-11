@@ -117,7 +117,7 @@ export async function sendWelcomeEmail(email: string) {
     <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
 
     <!-- HEADER — radar SVG + marca en texto (el SVG se ve donde el cliente lo permite; en Gmail queda el texto limpio) -->
-    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.12);text-align:center;position:relative;">
+    <div class="email-header" style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.12);text-align:center;position:relative;">
       <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
         <g opacity="0.3">
           <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
@@ -210,7 +210,7 @@ export async function sendWelcomeEmail(email: string) {
     </div>
 
     <!-- Footer -->
-    <div style="padding:16px 20px 20px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
+    <div class="email-footer" style="padding:16px 20px 20px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
       <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 4px;line-height:1.6;white-space:nowrap;">Recibís este email porque te suscribiste a El Radar.</p>
       <a href="${unsubUrl}" style="font-size:11px;color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
     </div>
