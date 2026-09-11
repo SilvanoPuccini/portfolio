@@ -208,7 +208,7 @@ export function buildEmail(opts: {
             </td>
           </tr>
           <tr>
-            <td style="text-align:left;">
+            <td style="text-align:center;">
               <a href="${opts.postUrl}" style="display:block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;background:#00d4d4;padding:12px 24px;border-radius:8px;text-align:center;">
                 Leer el post completo →
               </a>
