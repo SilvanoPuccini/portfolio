@@ -49,36 +49,36 @@ export function buildEmail(opts: {
     keyword: escapeHtml(opts.keyword),
   };
 
-  // Fondo sólido del cover por categoría (tinta oscura del color de la
-  // categoría: Gmail elimina los radial-gradient, así que va sólido).
+  // Fondo sólido del cover por categoría (tinta CLARA de la categoría:
+  // que no se mezcle con el fondo oscuro del cuerpo del mail).
   const COVER_BG: Record<string, string> = {
-    Performance: '#0c1a12',
-    Producto: '#150e22',
-    'Automatización': '#1c1508',
-    Criterio: '#141a36',
-    Editorial: '#07272e',
+    Performance: '#1a4a2e',
+    Producto: '#302060',
+    'Automatización': '#3d2e10',
+    Criterio: '#2b3a72',
+    Editorial: '#0f4a58',
   };
-  const coverBg = COVER_BG[opts.category] ?? '#0b0b12';
+  const coverBg = COVER_BG[opts.category] ?? '#222844';
 
   // Cover del post en HTML puro (traducción email-safe de PostCover):
-  // sin radial-gradient ni SVG porque Gmail los elimina. Solo color sólido
-  // de categoría + keyword centrado. Sale siempre del slug, sin imágenes.
+  // sin radial-gradient ni SVG porque Gmail los elimina. Solo color
+  // sólido de categoría + keyword centrado. Sale siempre del slug.
   const keywordUpper = e.keyword.toUpperCase();
   let coverKeyword: string;
   if (e.keyword === 'El Radar') {
     coverKeyword = `
-      <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin:0 0 6px;">El</p>
-      <p class="email-cover-brand" style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin:0;line-height:1;">Radar</p>
-      <p style="font-family:monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:8px 0 0;">arquitectura · código · producto</p>`;
+      <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin:0 0 6px;">El</p>
+      <p style="font-family:'Georgia','Times New Roman',serif;font-size:34px;font-weight:700;font-style:italic;letter-spacing:0.12em;text-transform:none;color:rgba(255,255,255,0.9);margin:0;line-height:1.1;">Radar</p>
+      <p style="font-family:'Georgia','Times New Roman',serif;font-size:11px;font-style:italic;letter-spacing:0.18em;text-transform:none;color:rgba(255,255,255,0.5);margin:8px 0 0;">arquitectura · código · producto</p>`;
   } else if (VERSUS_PATTERN.test(e.keyword)) {
     coverKeyword = `
-      <p class="email-cover-versus" style="font-family:monospace;font-size:17px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
+      <p style="font-family:'Georgia','Times New Roman',serif;font-size:19px;font-weight:700;font-style:italic;letter-spacing:0.06em;text-transform:none;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
   } else {
     const techColor = TECH_ICONS[e.keyword]?.color;
     const color = techColor ?? '#ffffff';
-    const size = techColor ? '22px' : '19px';
+    const size = techColor ? '24px' : '20px';
     coverKeyword = `
-      <p class="email-cover-keyword" style="font-family:'Space Grotesk',sans-serif;font-size:${size};font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
+      <p style="font-family:'Georgia','Times New Roman',serif;font-size:${size};font-weight:700;font-style:italic;letter-spacing:0.06em;text-transform:none;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
   }
 
   return `<!DOCTYPE html>
@@ -97,6 +97,8 @@ export function buildEmail(opts: {
       .email-cover-brand { font-size:24px !important; }
       .email-cover-versus { font-size:14px !important; }
       .email-cover-keyword { font-size:16px !important; }
+      .email-cta-table td { display:block !important; width:100% !important; text-align:left !important; }
+      .email-cta-btn { display:block !important; width:100% !important; text-align:center !important; }
     }
   </style>
 </head>
@@ -196,21 +198,23 @@ export function buildEmail(opts: {
             ${e.excerpt}
           </p>
 
-          <!-- Meta + CTA largo -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">
-            <tr>
-              <td style="vertical-align:middle;">
-                <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.06em;">
-                  ${e.readingTime} · ${e.date}
-                </span>
-              </td>
-              <td style="text-align:right;vertical-align:middle;">
-                <a href="${opts.postUrl}" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;background:#00d4d4;padding:12px 24px;border-radius:8px;">
-                  Leer el post completo →
-                </a>
-              </td>
-            </tr>
-          </table>
+        <!-- Meta + CTA: fecha arriba, botón largo abajo (mobile: apilados) -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">
+          <tr>
+            <td style="vertical-align:middle;text-align:left;padding-bottom:10px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.06em;">
+                ${e.readingTime} · ${e.date}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align:left;">
+              <a href="${opts.postUrl}" style="display:block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;background:#00d4d4;padding:12px 24px;border-radius:8px;text-align:center;">
+                Leer el post completo →
+              </a>
+            </td>
+          </tr>
+        </table>
         </div>
 
       </div>

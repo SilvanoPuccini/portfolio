@@ -30,9 +30,17 @@ describe('buildEmail', () => {
     expect(html).not.toContain('background-image');
   });
 
-  it('muestra el título una sola vez', () => {
-    const html = buildEmail(baseOpts({ title: 'Título Único XYZ' }));
-    expect(html.split('Título Único XYZ').length - 1).toBe(2); // <title> + h2
+  it('usa font Georgia/serif en el cover (elegante y universal en mail)', () => {
+    const html = buildEmail(baseOpts());
+    expect(html).toContain("'Georgia','Times New Roman',serif");
+  });
+
+  it('muestra la fecha arriba y el botón como bloque debajo', () => {
+    const html = buildEmail(baseOpts());
+    expect(html).toContain('min');
+    expect(html).toContain('Ago');
+    expect(html).toContain('Leer el post completo');
+    expect(html).toContain('display:block');
   });
 
   it('pinta el keyword tech con su color', () => {
