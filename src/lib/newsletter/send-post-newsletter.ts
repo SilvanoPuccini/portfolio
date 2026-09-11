@@ -99,7 +99,7 @@ export function buildEmail(opts: {
 
       <!-- Eyebrow -->
       <p class="email-eyebrow" style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
-        <span class="email-eyebrow-brand" style="color:#a78bfa;">El Radar</span>
+        <span class="email-eyebrow-brand" style="color:#ffffff;">El Radar</span>
         <span style="color:#5a7186;margin:0 8px;">·</span>
         <span style="color:#22d3ee;">Nuevo post</span>
         <span style="color:#5a7186;margin:0 8px;">·</span>
