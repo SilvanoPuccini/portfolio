@@ -20,13 +20,13 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   return `${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function buildEmail(opts: {
+export function buildEmail(opts: {
   title: string;
   excerpt: string;
   category: string;
@@ -49,6 +49,17 @@ function buildEmail(opts: {
     keyword: escapeHtml(opts.keyword),
   };
 
+  // Fondo sólido del cover por categoría (tinta oscura del color de la
+  // categoría: Gmail elimina los radial-gradient, así que va sólido).
+  const COVER_BG: Record<string, string> = {
+    Performance: '#0c1a12',
+    Producto: '#150e22',
+    'Automatización': '#1c1508',
+    Criterio: '#141a36',
+    Editorial: '#07272e',
+  };
+  const coverBg = COVER_BG[opts.category] ?? '#0b0b12';
+
   // Cover del post en HTML puro (traducción email-safe de PostCover):
   // sin radial-gradient ni SVG porque Gmail los elimina. Solo color sólido
   // de categoría + keyword centrado. Sale siempre del slug, sin imágenes.
@@ -56,19 +67,18 @@ function buildEmail(opts: {
   let coverKeyword: string;
   if (e.keyword === 'El Radar') {
     coverKeyword = `
-      <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:0 0 6px;">El</p>
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin:0;line-height:1;">Radar</p>
-      <p style="font-family:monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin:8px 0 0;">arquitectura · código · producto</p>`;
+      <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin:0 0 6px;">El</p>
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin:0;line-height:1;">Radar</p>
+      <p style="font-family:monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:8px 0 0;">arquitectura · código · producto</p>`;
   } else if (VERSUS_PATTERN.test(e.keyword)) {
     coverKeyword = `
-      <p style="font-family:monospace;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin:0;line-height:1.8;">${keywordUpper}</p>`;
+      <p style="font-family:monospace;font-size:17px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
   } else {
     const techColor = TECH_ICONS[e.keyword]?.color;
-    const color = techColor ?? 'rgba(255,255,255,0.45)';
-    const size = techColor ? '20px' : '15px';
-    const weight = techColor ? '600' : '400';
+    const color = techColor ?? '#ffffff';
+    const size = techColor ? '22px' : '19px';
     coverKeyword = `
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:${size};font-weight:${weight};letter-spacing:0.12em;text-transform:uppercase;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:${size};font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
   }
 
   return `<!DOCTYPE html>
@@ -90,11 +100,47 @@ function buildEmail(opts: {
 
   <div style="max-width:600px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-    <!-- HEADER — marca en texto (cero imágenes: Gmail les pone botón de descarga) -->
-    <div style="padding:28px 32px 24px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;background:#0b1120;">
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;margin:0 0 8px;">El Radar</p>
-      <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
-      <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>
+    <!-- HEADER — radar SVG + marca en texto (el SVG se ve donde el cliente lo permite; en Gmail queda el texto limpio) -->
+    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
+      <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
+        <g opacity="0.3">
+          <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
+          <circle cx="110" cy="55" r="44" stroke="#00d4d4" stroke-width="0.5"/>
+          <circle cx="110" cy="55" r="66" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
+          <circle cx="110" cy="55" r="90" stroke="#00d4d4" stroke-width="0.375"/>
+          <line x1="110" y1="55" x2="173" y2="9" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
+          <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
+        </g>
+      </svg>
+      <div style="position:relative;z-index:1;">
+        <!-- est. 2026 con líneas cortas -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+          <tr>
+            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
+            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
+          </tr>
+        </table>
+        <!-- El Radar en una sola línea — tabla para compatibilidad mobile -->
+        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
+          <tr>
+            <td style="vertical-align:bottom;padding-bottom:2px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
+            </td>
+            <td style="vertical-align:bottom;padding-left:5px;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
+            </td>
+          </tr>
+        </table>
+        <!-- tagline sin líneas -->
+        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
+          arquitectura · código · producto
+        </div>
+        <!-- Silvano Puccini en cyan -->
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;">
+          Silvano Puccini · Full Stack Dev
+        </div>
+      </div>
     </div>
 
     <!-- CONTENT -->
@@ -113,7 +159,7 @@ function buildEmail(opts: {
       <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
 
         <!-- Cover del post en HTML: header de la card, sale del slug -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0b12;border-top:3px solid ${cat.text};">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${coverBg};border-top:3px solid ${cat.text};">
           <tr>
             <td align="center" style="padding:36px 24px 32px;text-align:center;">
               ${coverKeyword}
