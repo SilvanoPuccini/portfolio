@@ -182,7 +182,9 @@ export async function sendPostNewsletter(slug: string): Promise<SendPostNewslett
   const issueLabel = `Nueva nota · Nº ${issueNum}`;
   const postUrl = `${SITE_URL}/es/blog/${slug}`;
 
-  const posterUrl = post.ogImage ? `${SITE_URL}${post.ogImage}` : undefined;
+  const posterUrl = post.ogImage
+    ? `${SITE_URL}${post.ogImage}`
+    : `${SITE_URL}/images/el-radar-n${issueNum}-poster.png`;
 
   const { data: subscribers, error: dbError } = await getSupabaseAdmin()
     .from('subscribers')
