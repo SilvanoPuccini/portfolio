@@ -97,8 +97,6 @@ export function buildEmail(opts: {
       .email-cover-brand { font-size:24px !important; }
       .email-cover-versus { font-size:14px !important; }
       .email-cover-keyword { font-size:16px !important; }
-      .email-cta-table td { display:block !important; width:100% !important; text-align:left !important; }
-      .email-cta-btn { display:block !important; width:100% !important; text-align:center !important; }
     }
   </style>
 </head>
