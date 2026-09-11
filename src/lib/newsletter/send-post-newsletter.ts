@@ -70,10 +70,10 @@ export function buildEmail(opts: {
   </head>
 <body style="margin:0;padding:20px 12px;background:#050810;font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;">
 
-  <div style="max-width:600px;width:100%;margin:0 auto;background:#1e3a5f;border:1px solid #2d4a6f;border-radius:16px;overflow:hidden;">
+  <div style="max-width:600px;width:100%;margin:0 auto;background:#14466b;border:1px solid #2f5a7d;border-radius:16px;overflow:hidden;">
 
     <!-- HEADER -->
-    <div style="padding:28px 24px 20px;border-bottom:1px solid #2d4a6f;text-align:center;background:#1e3a5f;">
+    <div style="padding:28px 24px 20px;border-bottom:1px solid #2f5a7d;text-align:center;background:#14466b;">
       <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#8fa3bf;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 8px;">est. 2026</p>
       <p style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 4px;">El Radar</p>
       <p class="email-tagline" style="font-family:Inter,sans-serif;font-size:9px;color:#8fa3bf;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">arquitectura · código · producto</p>
@@ -81,7 +81,7 @@ export function buildEmail(opts: {
     </div>
 
     <!-- CONTENT -->
-    <div style="padding:24px;background:#1e3a5f;">
+    <div style="padding:24px;background:#14466b;">
 
       <!-- Eyebrow -->
       <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
@@ -93,7 +93,7 @@ export function buildEmail(opts: {
       </p>
 
       <!-- Card -->
-      <div style="border:1px solid #2d4a6f;border-radius:12px;overflow:hidden;background:#16283f;">
+      <div style="border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;background:#10283f;">
 
         <!-- Cover -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
@@ -105,10 +105,10 @@ export function buildEmail(opts: {
         </table>
 
         <!-- Card header: categoría + Nº -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#16283f;border-bottom:1px solid #2d4a6f;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#10283f;border-bottom:1px solid #2f5a7d;">
           <tr>
             <td style="padding:14px 20px;">
-              <span style="display:inline-block;background:#0f1f33;color:${cat.text};border:1px solid ${cat.text};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">
+              <span style="display:inline-block;background:${cat.text};color:#050810;border:1px solid ${cat.text};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
                 ${e.category}
               </span>
             </td>
@@ -121,7 +121,7 @@ export function buildEmail(opts: {
         </table>
 
         <!-- Card body -->
-        <div style="padding:24px;background:#16283f;">
+        <div style="padding:24px;background:#10283f;">
           <h2 style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 14px;">
             ${e.title}
           </h2>
@@ -130,7 +130,7 @@ export function buildEmail(opts: {
           </p>
 
           <!-- Meta + CTA -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #2d4a6f;padding-top:16px;margin-top:4px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #2f5a7d;padding-top:16px;margin-top:4px;">
             <tr>
               <td style="padding-bottom:12px;">
                 <span style="font-family:Inter,sans-serif;font-size:12px;color:#8fa3bf;">
@@ -152,8 +152,9 @@ export function buildEmail(opts: {
       </div>
     </div>
 
-    <!-- FOOTER -->
-    <div style="padding:20px 24px;text-align:center;border-top:1px solid #2d4a6f;background:#1e3a5f;">
+    <!-- FOOTER en contenedor propio, misma medida que la card -->
+    <div style="padding:0 24px 24px;background:#14466b;">
+      <div style="border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;background:#10283f;padding:20px 24px;text-align:center;">
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 6px;line-height:1.6;">
         Recibís este email porque te suscribiste a <strong style="color:#22d3ee;">El Radar</strong>.
       </p>
@@ -166,7 +167,7 @@ export function buildEmail(opts: {
             <a href="${SITE_URL}/es/blog" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#22d3ee;padding:10px 24px;border-radius:8px;white-space:nowrap;">Ver el blog →</a>
           </td>
           <td class="email-footer-btn-cell" style="padding:0 0 0 6px;">
-            <a href="https://www.linkedin.com/in/silvano-puccini/" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #5a7186;padding:10px 24px;border-radius:8px;white-space:nowrap;background:#16283f;">Seguime en LinkedIn →</a>
+            <a href="https://www.linkedin.com/in/silvano-puccini/" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #5a7186;padding:10px 24px;border-radius:8px;white-space:nowrap;background:#10283f;">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
@@ -174,6 +175,7 @@ export function buildEmail(opts: {
       <p style="font-family:Inter,sans-serif;font-size:10px;margin:0;">
         <a href="${opts.unsubUrl}" style="color:#8fa3bf;text-decoration:underline;">Desuscribirse</a>
       </p>
+      </div>
     </div>
 
   </div>
