@@ -94,18 +94,21 @@ export function buildEmail(opts: {
       .email-btn { display:block !important; text-align:center !important; }
       .email-eyebrow { font-size:10px !important; letter-spacing:0.1em !important; }
       .email-cover-cell { padding:22px 20px 20px !important; }
-      .email-cover-brand { font-size:24px !important; }
-      .email-cover-versus { font-size:14px !important; }
-      .email-cover-keyword { font-size:16px !important; }
+      .email-cover-brand { font-size:24px !important; opacity:1 !important; }
+      .email-cover-versus { font-size:14px !important; opacity:1 !important; }
+      .email-cover-keyword { font-size:16px !important; opacity:1 !important; }
       .email-header-name { font-size:8px !important; letter-spacing:0.1em !important; }
       .email-header { border-bottom:1px solid rgba(255,255,255,0.2) !important; }
       .email-footer { border-top:1px solid rgba(255,255,255,0.2) !important; }
+      .email-excerpt { border-left-width:4px !important; padding-left:18px !important; }
+      body { background:#112137 !important; }
+      .email-container { background:#161a2b !important; }
     }
   </style>
 </head>
   <body style="margin:0;padding:40px 16px;background:#161a2b;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
 
-   <div style="max-width:600px;width:100%;margin:0 auto;background:#112137;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+   <div class="email-container" style="max-width:600px;width:100%;margin:0 auto;background:#112137;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
     <!-- HEADER — radar SVG + marca en texto (el SVG se ve donde el cliente lo permite; en Gmail queda el texto limpio) -->
     <div class="email-header" style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.12);text-align:center;position:relative;">
@@ -195,9 +198,9 @@ export function buildEmail(opts: {
           <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px;letter-spacing:-0.01em;">
             ${e.title}
           </h2>
-          <p style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;border-left:2px solid ${cat.text};padding-left:14px;">
-            ${e.excerpt}
-          </p>
+           <p class="email-excerpt" style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;border-left:2px solid ${cat.text};padding-left:14px;">
+             ${e.excerpt}
+           </p>
 
         <!-- Meta + CTA: fecha arriba, botón largo abajo (mobile: apilados) -->
         <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">

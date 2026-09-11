@@ -104,14 +104,22 @@ export async function sendWelcomeEmail(email: string) {
 
   const html = `<!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>El Radar</title>
-</head>
-<body style="margin:0;padding:40px 16px;background:#050810;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
+ <head>
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+   <title>El Radar</title>
+   <style>
+     @media only screen and (max-width:480px) {
+       body { background:#112137 !important; }
+       .email-container { background:#161a2b !important; }
+       .email-header { border-bottom:1px solid rgba(255,255,255,0.2) !important; }
+       .email-footer { border-top:1px solid rgba(255,255,255,0.2) !important; }
+     }
+   </style>
+ </head>
+ <body style="margin:0;padding:40px 16px;background:#161a2b;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
 
-  <div style="max-width:580px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+   <div class="email-container" style="max-width:580px;width:100%;margin:0 auto;background:#112137;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
     <!-- Top accent line -->
     <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
