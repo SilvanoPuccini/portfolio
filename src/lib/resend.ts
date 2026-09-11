@@ -117,7 +117,7 @@ export async function sendWelcomeEmail(email: string) {
     <div style="height:2px;background:linear-gradient(90deg,transparent 0%,#00d4d4 50%,transparent 100%);"></div>
 
     <!-- HEADER — radar SVG + marca en texto (el SVG se ve donde el cliente lo permite; en Gmail queda el texto limpio) -->
-    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;">
+    <div style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.12);text-align:center;position:relative;">
       <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
         <g opacity="0.3">
           <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
