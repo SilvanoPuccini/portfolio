@@ -95,8 +95,8 @@ export function buildEmail(opts: {
         <span style="color:#ffffff;">Nº ${e.issue}</span>
       </p>
 
-      <!-- Post: cover + contenido, todo en el mismo contenedor sin cajas anidadas -->
-      <div style="background:#10283f;">
+      <!-- Post: cover + contenido, caja con borde redondo -->
+      <div style="background:#10283f;border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;">
 
         <!-- Cover -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
@@ -153,10 +153,11 @@ export function buildEmail(opts: {
       </div>
     </div>
 
-    <!-- FOOTER dentro del contenedor gigante -->
-    <div style="padding:20px 24px 24px;text-align:center;border-top:1px solid #2f5a7d;background:#10283f;">
+    <!-- FOOTER en caja gemela a la del post -->
+    <div style="padding:0 24px 24px;background:#14466b;">
+      <div style="background:#10283f;border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;padding:20px 24px;text-align:center;">
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 6px;line-height:1.6;">
-        Recibís este email porque te suscribiste a <strong style="color:#22d3ee;">El Radar</strong>.
+        Recibís este email porque te suscribiste a <strong style="color:#22d3ee;white-space:nowrap;">El&nbsp;Radar</strong>.
       </p>
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 14px;line-height:1.6;">
         Vas a recibir 1 o 2 posts por semana sobre performance, producto y automatización con IA.
@@ -177,6 +178,7 @@ export function buildEmail(opts: {
       <p style="font-family:Inter,sans-serif;font-size:10px;margin:0;">
         <a href="${opts.unsubUrl}" style="color:#8fa3bf;text-decoration:underline;">Desuscribirse</a>
       </p>
+      </div>
     </div>
 
   </div>
