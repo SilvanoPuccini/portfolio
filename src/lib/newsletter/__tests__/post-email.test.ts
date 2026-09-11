@@ -30,18 +30,19 @@ describe('buildEmail', () => {
     expect(html).not.toContain('background-image');
   });
 
-  it('usa monospace (JetBrains Mono) en el cover', () => {
+  it('usa un solo font (Inter) en todo el template', () => {
     const html = buildEmail(baseOpts());
-    expect(html).toContain("'JetBrains Mono',monospace");
-    expect(html).not.toContain("'Georgia','Times New Roman',serif");
+    expect(html).toContain('Inter,sans-serif');
+    expect(html).not.toContain('Space Grotesk');
+    expect(html).not.toContain('JetBrains Mono');
+    expect(html).not.toContain('Georgia');
   });
 
-  it('muestra la fecha arriba y el botón como bloque debajo', () => {
+  it('el texto es sólido sin opacidades en el color de letra', () => {
     const html = buildEmail(baseOpts());
-    expect(html).toContain('min');
-    expect(html).toContain('Ago');
-    expect(html).toContain('Leer el post completo');
-    expect(html).toContain('display:block');
+    // Los únicos rgba son bordes/fondos, no colores de texto
+    const textMatches = html.match(/color:rgba\([^)]+\)/g) || [];
+    expect(textMatches).toEqual([]);
   });
 
   it('pinta el keyword tech con su color', () => {

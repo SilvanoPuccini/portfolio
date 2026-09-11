@@ -49,36 +49,23 @@ export function buildEmail(opts: {
     keyword: escapeHtml(opts.keyword),
   };
 
-  // Fondo sólido del cover por categoría (tinta CLARA de la categoría:
-  // que no se mezcle con el fondo oscuro del cuerpo del mail).
-  const COVER_BG: Record<string, string> = {
-    Performance: '#0f3525',
-    Producto: '#241845',
-    'Automatización': '#32260e',
-    Criterio: '#1e2d5a',
-    Editorial: '#0c3a48',
-  };
-  const coverBg = COVER_BG[opts.category] ?? '#1a2040';
-
-  // Cover del post en HTML puro (traducción email-safe de PostCover):
-  // sin radial-gradient ni SVG porque Gmail los elimina. Solo color
-  // sólido de categoría + keyword centrado. Sale siempre del slug.
+  // Cover = color brillante de categoría (como el badge),
+  // texto oscuro para que brille siempre. Un solo font (Inter).
   const keywordUpper = e.keyword.toUpperCase();
   let coverKeyword: string;
   if (e.keyword === 'El Radar') {
     coverKeyword = `
-      <p style="font-family:monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin:0 0 6px;">El</p>
-      <p style="font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;letter-spacing:0.12em;text-transform:none;color:rgba(255,255,255,0.9);margin:0;line-height:1.1;">Radar</p>
-      <p style="font-family:monospace;font-size:11px;letter-spacing:0.18em;text-transform:none;color:rgba(255,255,255,0.5);margin:8px 0 0;">arquitectura · código · producto</p>`;
+      <p style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#050810;margin:0 0 8px;">El</p>
+      <p style="font-family:Inter,sans-serif;font-size:32px;font-weight:700;letter-spacing:0.14em;color:#050810;margin:0;line-height:1.1;">Radar</p>
+      <p style="font-family:Inter,sans-serif;font-size:10px;font-weight:500;letter-spacing:0.14em;color:#050810;margin:8px 0 0;opacity:0.7;">arquitectura · código · producto</p>`;
   } else if (VERSUS_PATTERN.test(e.keyword)) {
     coverKeyword = `
-      <p style="font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;letter-spacing:0.06em;text-transform:none;color:#ffffff;margin:0;line-height:1.8;">${keywordUpper}</p>`;
+      <p style="font-family:Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:0.08em;color:#050810;margin:0;line-height:1.8;">${keywordUpper}</p>`;
   } else {
     const techColor = TECH_ICONS[e.keyword]?.color;
-    const color = techColor ?? '#ffffff';
-    const size = techColor ? '24px' : '20px';
+    const color = techColor ?? '#050810';
     coverKeyword = `
-      <p style="font-family:'JetBrains Mono',monospace;font-size:${size};font-weight:700;letter-spacing:0.06em;text-transform:none;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
+      <p style="font-family:Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.06em;color:${color};margin:0;line-height:1.5;">${keywordUpper}</p>`;
   }
 
   return `<!DOCTYPE html>
@@ -87,106 +74,53 @@ export function buildEmail(opts: {
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>El Radar · Nº ${e.issue} · ${e.title}</title>
-  <style>
-    @media only screen and (max-width:480px) {
-      .email-content { padding-left:20px !important; padding-right:20px !important; }
-      .email-btn-cell { display:block !important; width:100% !important; padding:0 0 12px 0 !important; }
-      .email-btn { display:block !important; text-align:center !important; }
-      .email-eyebrow { font-size:10px !important; letter-spacing:0.1em !important; }
-      .email-cover-cell { padding:22px 20px 20px !important; }
-      .email-cover-brand { font-size:24px !important; opacity:1 !important; }
-      .email-cover-versus { font-size:14px !important; opacity:1 !important; }
-      .email-cover-keyword { font-size:16px !important; opacity:1 !important; }
-      .email-header-name { font-size:8px !important; letter-spacing:0.1em !important; }
-      .email-header { border-bottom:1px solid rgba(255,255,255,0.2) !important; }
-      .email-footer { border-top:1px solid rgba(255,255,255,0.2) !important; }
-      .email-excerpt { border-left-width:4px !important; padding-left:18px !important; }
-      body { background:#112137 !important; }
-      .email-container { background:#161a2b !important; }
-    }
-  </style>
 </head>
-  <body style="margin:0;padding:40px 16px;background:#161a2b;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:20px 12px;background:#112137;font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;">
 
-   <div class="email-container" style="max-width:600px;width:100%;margin:0 auto;background:#112137;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+  <div style="max-width:600px;width:100%;margin:0 auto;background:#161a2b;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
 
-    <!-- HEADER — radar SVG + marca en texto (el SVG se ve donde el cliente lo permite; en Gmail queda el texto limpio) -->
-    <div class="email-header" style="padding:32px;border-bottom:1px solid rgba(255,255,255,0.12);text-align:center;position:relative;">
-      <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" aria-hidden="true">
-        <g opacity="0.3">
-          <circle cx="110" cy="55" r="24" stroke="#00d4d4" stroke-width="0.75" stroke-dasharray="4 4"/>
-          <circle cx="110" cy="55" r="44" stroke="#00d4d4" stroke-width="0.5"/>
-          <circle cx="110" cy="55" r="66" stroke="#00d4d4" stroke-width="0.5" stroke-dasharray="8 8"/>
-          <circle cx="110" cy="55" r="90" stroke="#00d4d4" stroke-width="0.375"/>
-          <line x1="110" y1="55" x2="173" y2="9" stroke="#00d4d4" stroke-width="1" opacity="0.5"/>
-          <line x1="110" y1="55" x2="47" y2="101" stroke="#00d4d4" stroke-width="0.5" opacity="0.2"/>
-        </g>
-      </svg>
-      <div style="position:relative;z-index:1;">
-        <!-- est. 2026 con líneas cortas -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
-          <tr>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-            <td style="white-space:nowrap;padding:0 8px;font-family:monospace;font-size:8px;color:#8c909f;letter-spacing:0.22em;text-transform:uppercase;">est. 2026</td>
-            <td style="border-bottom:1px solid rgba(255,255,255,0.15);width:40%;"></td>
-          </tr>
-        </table>
-        <!-- El Radar en una sola línea — tabla para compatibilidad mobile -->
-        <table cellpadding="0" cellspacing="0" style="margin:0 auto 4px;">
-          <tr>
-            <td style="vertical-align:bottom;padding-bottom:2px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;">El</span>
-            </td>
-            <td style="vertical-align:bottom;padding-left:5px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;">Radar</span>
-            </td>
-          </tr>
-        </table>
-        <!-- tagline sin líneas -->
-        <div style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;">
-          arquitectura · código · producto
-        </div>
-        <!-- Silvano Puccini en cyan (nunca se parte en mobile) -->
-        <div class="email-header-name" style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;white-space:nowrap;">
-          Silvano Puccini · Full Stack Dev
-        </div>
-      </div>
+    <!-- HEADER -->
+    <div style="padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.1);text-align:center;">
+      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 8px;">est. 2026</p>
+      <p style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#e2e8f0;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 4px;">El Radar</p>
+      <p style="font-family:Inter,sans-serif;font-size:8px;color:#64748b;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">arquitectura · código · producto</p>
+      <p style="font-family:Inter,sans-serif;font-size:11px;color:#00d4d4;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Silvano Puccini · Full Stack Dev</p>
     </div>
 
     <!-- CONTENT -->
-    <div class="email-content" style="padding:28px 32px 32px;">
+    <div style="padding:24px;">
 
-      <!-- Centro: EL RADAR · NUEVO POST · Nº XX -->
-      <p class="email-eyebrow" style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 24px;text-align:center;line-height:2;">
-        <span style="color:#94a3b8;">El Radar</span>
-        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
+      <!-- Eyebrow -->
+      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
+        <span style="color:#c084fc;">El Radar</span>
+        <span style="color:#475569;margin:0 8px;">·</span>
         <span style="color:#00d4d4;">Nuevo post</span>
-        <span style="color:rgba(255,255,255,0.2);margin:0 6px;">·</span>
-        <span style="color:#ffffff;">Nº ${e.issue}</span>
+        <span style="color:#475569;margin:0 8px;">·</span>
+        <span style="color:#e2e8f0;">Nº ${e.issue}</span>
       </p>
 
-      <!-- Card del post -->
-      <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
+      <!-- Card -->
+      <div style="border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
 
-        <!-- Cover del post en HTML: header de la card, sale del slug -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:${coverBg};border-top:3px solid ${cat.text};">
+        <!-- Cover -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
           <tr>
-            <td class="email-cover-cell" align="center" style="padding:36px 24px 32px;text-align:center;">
+            <td align="center" style="padding:28px 20px;">
               ${coverKeyword}
             </td>
           </tr>
         </table>
 
-        <!-- Card header: categoría + número -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
+        <!-- Card header: categoría + Nº -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);">
           <tr>
             <td>
-              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:4px 12px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">
+              <span style="display:inline-block;background:${cat.bg};color:${cat.text};border:1px solid ${cat.border};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">
                 ${e.category}
               </span>
             </td>
-            <td style="text-align:right;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#8c909f;letter-spacing:0.14em;text-transform:uppercase;">
+            <td style="text-align:right;vertical-align:middle;">
+              <span style="font-family:Inter,sans-serif;font-size:10px;color:#64748b;letter-spacing:0.12em;text-transform:uppercase;">
                 Nº ${e.issue}
               </span>
             </td>
@@ -194,59 +128,56 @@ export function buildEmail(opts: {
         </table>
 
         <!-- Card body -->
-        <div style="padding:28px 24px 24px;">
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px;letter-spacing:-0.01em;">
+        <div style="padding:24px;">
+          <h2 style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:#e2e8f0;line-height:1.3;margin:0 0 14px;">
             ${e.title}
           </h2>
-           <p class="email-excerpt" style="font-size:14px;color:rgba(221,226,248,0.8);line-height:1.7;margin:0 0 20px;border-left:2px solid ${cat.text};padding-left:14px;">
-             ${e.excerpt}
-           </p>
+          <p style="font-family:Inter,sans-serif;font-size:14px;color:#cbd5e1;line-height:1.7;margin:0 0 18px;border-left:3px solid ${cat.text};padding-left:14px;">
+            ${e.excerpt}
+          </p>
 
-        <!-- Meta + CTA: fecha arriba, botón largo abajo (mobile: apilados) -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-top:4px;">
-          <tr>
-            <td style="vertical-align:middle;text-align:left;padding-bottom:10px;">
-              <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;color:#8c909f;letter-spacing:0.06em;">
-                ${e.readingTime} · ${e.date}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td style="text-align:center;">
-              <a href="${opts.postUrl}" style="display:block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;letter-spacing:0.04em;background:#00d4d4;padding:12px 24px;border-radius:8px;text-align:center;">
-                Leer el post completo →
-              </a>
-            </td>
-          </tr>
-        </table>
+          <!-- Meta + CTA -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
+            <tr>
+              <td style="padding-bottom:12px;">
+                <span style="font-family:Inter,sans-serif;font-size:12px;color:#64748b;">
+                  ${e.readingTime} · ${e.date}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td style="text-align:left;">
+                <a href="${opts.postUrl}" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:12px 24px;border-radius:8px;text-align:center;max-width:100%;">
+                  Leer el post completo →
+                </a>
+              </td>
+            </tr>
+          </table>
         </div>
-
       </div>
-
     </div>
 
     <!-- FOOTER -->
-    <div class="email-footer" style="padding:24px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.12);">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 8px;line-height:1.6;">
+    <div style="padding:20px 24px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);">
+      <p style="font-family:Inter,sans-serif;font-size:10px;color:#475569;margin:0 0 6px;line-height:1.6;">
         Recibís este email porque te suscribiste a <strong style="color:#00d4d4;">El Radar</strong>.
       </p>
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0 0 16px;line-height:1.6;">
+      <p style="font-family:Inter,sans-serif;font-size:10px;color:#475569;margin:0 0 14px;line-height:1.6;">
         Vas a recibir 1 o 2 posts por semana sobre performance, producto y automatización con IA.
       </p>
-      <!-- Botones con tabla apilable (flex no lo soporta Gmail; en mobile van uno abajo del otro) -->
-      <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 16px;">
+      <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 14px;">
         <tr>
-          <td class="email-btn-cell" style="padding:0 8px 0 0;">
-            <a href="${SITE_URL}/es/blog" class="email-btn" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:12px 28px;border-radius:8px;letter-spacing:0.04em;white-space:nowrap;">Ver el blog →</a>
+          <td style="padding:0 6px 0 0;">
+            <a href="${SITE_URL}/es/blog" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#00d4d4;padding:10px 24px;border-radius:8px;letter-spacing:0.03em;white-space:nowrap;">Ver el blog →</a>
           </td>
-          <td class="email-btn-cell" style="padding:0 0 0 8px;">
-            <a href="https://www.linkedin.com/in/silvano-puccini/" class="email-btn" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:rgba(221,226,248,0.8);text-decoration:none;border:1px solid rgba(255,255,255,0.25);padding:12px 28px;border-radius:8px;white-space:nowrap;">Seguime en LinkedIn →</a>
+          <td style="padding:0 0 0 6px;">
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.2);padding:10px 24px;border-radius:8px;white-space:nowrap;">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
-      <p style="font-size:10px;color:#475569;margin:0 0 12px;font-family:monospace;letter-spacing:0.05em;">El Radar · silvanopuccini.dev</p>
-      <p style="font-size:11px;margin:0;line-height:1.6;">
-        <a href="${opts.unsubUrl}" style="color:rgba(140,144,159,0.5);text-decoration:underline;">Desuscribirse</a>
+      <p style="font-family:Inter,sans-serif;font-size:9px;color:#334155;margin:0 0 8px;">El Radar · silvanopuccini.dev</p>
+      <p style="font-family:Inter,sans-serif;font-size:10px;margin:0;">
+        <a href="${opts.unsubUrl}" style="color:#475569;text-decoration:underline;">Desuscribirse</a>
       </p>
     </div>
 
