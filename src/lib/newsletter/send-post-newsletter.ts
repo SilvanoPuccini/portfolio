@@ -62,7 +62,10 @@ export function buildEmail(opts: {
       @media only screen and (max-width:480px) {
         body { padding:8px 6px !important; }
         .email-cover-keyword { font-size:14px !important; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; }
+        .email-header-title { font-size:20px !important; }
+        .email-header-name { font-size:11px !important; }
         .email-tagline { font-size:9px !important; }
+        .email-eyebrow { font-size:11px !important; }
       }
     </style>
   </head>
@@ -71,18 +74,18 @@ export function buildEmail(opts: {
   <div style="max-width:600px;width:100%;margin:0 auto;background:#14466b;border:1px solid #2f5a7d;border-radius:16px;overflow:hidden;">
 
     <!-- HEADER -->
-    <div style="padding:28px 24px 20px;border-bottom:1px solid #2f5a7d;text-align:center;background:#14466b;">
-      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#8fa3bf;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 8px;">est. 2026</p>
-      <p style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 4px;">El Radar</p>
-      <p class="email-tagline" style="font-family:Inter,sans-serif;font-size:9px;color:#8fa3bf;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 12px;">arquitectura · código · producto</p>
-      <p style="font-family:Inter,sans-serif;font-size:11px;color:#22d3ee;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Silvano Puccini · Full Stack Dev</p>
+    <div style="padding:32px 24px 24px;border-bottom:1px solid #2f5a7d;text-align:center;background:#14466b;">
+      <p style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:#8fa3bf;letter-spacing:0.28em;text-transform:uppercase;margin:0 0 10px;">est. 2026</p>
+      <p class="email-header-title" style="font-family:Inter,sans-serif;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 6px;">El Radar</p>
+      <p class="email-tagline" style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;letter-spacing:0.16em;text-transform:uppercase;margin:0 0 14px;">arquitectura · código · producto</p>
+      <p class="email-header-name" style="font-family:Inter,sans-serif;font-size:12px;color:#22d3ee;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Silvano Puccini · Full Stack Dev</p>
     </div>
 
     <!-- CONTENT -->
     <div style="padding:24px;background:#14466b;">
 
       <!-- Eyebrow -->
-      <p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
+      <p class="email-eyebrow" style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 20px;text-align:center;line-height:2;">
         <span style="color:#a78bfa;">El Radar</span>
         <span style="color:#5a7186;margin:0 8px;">·</span>
         <span style="color:#22d3ee;">Nuevo post</span>
@@ -90,8 +93,8 @@ export function buildEmail(opts: {
         <span style="color:#ffffff;">Nº ${e.issue}</span>
       </p>
 
-      <!-- Card -->
-      <div style="border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;background:#10283f;">
+      <!-- Post: cover + contenido, todo en el mismo contenedor sin cajas anidadas -->
+      <div style="background:#10283f;">
 
         <!-- Cover -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${cat.text};">
@@ -102,15 +105,15 @@ export function buildEmail(opts: {
           </tr>
         </table>
 
-        <!-- Card header: categoría + Nº -->
+        <!-- Categoría + Nº -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#10283f;border-bottom:1px solid #2f5a7d;">
           <tr>
-            <td style="padding:14px 20px;">
+            <td style="padding:14px 24px;">
               <span style="display:inline-block;background:${cat.text};color:#050810;border:1px solid ${cat.text};border-radius:20px;padding:4px 12px;font-family:Inter,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
                 ${e.category}
               </span>
             </td>
-            <td style="text-align:right;vertical-align:middle;padding:14px 20px;">
+            <td style="text-align:right;vertical-align:middle;padding:14px 24px;">
               <span style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;letter-spacing:0.12em;text-transform:uppercase;">
                 Nº ${e.issue}
               </span>
@@ -118,12 +121,12 @@ export function buildEmail(opts: {
           </tr>
         </table>
 
-        <!-- Card body -->
+        <!-- Título + excerpt + CTA -->
         <div style="padding:24px;background:#10283f;">
           <h2 style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 14px;">
             ${e.title}
           </h2>
-          <p style="font-family:Inter,sans-serif;font-size:14px;color:#d4e2f2;line-height:1.7;margin:0 0 18px;border-left:3px solid ${cat.text};padding-left:14px;">
+          <p style="font-family:Inter,sans-serif;font-size:14px;color:#d4e2f2;line-height:1.7;margin:0 0 18px;border-left:4px solid ${cat.text};padding-left:14px;">
             ${e.excerpt}
           </p>
 
@@ -150,9 +153,8 @@ export function buildEmail(opts: {
       </div>
     </div>
 
-    <!-- FOOTER en contenedor propio, misma medida que la card -->
-    <div style="padding:0 24px 24px;background:#14466b;">
-      <div style="border:1px solid #2f5a7d;border-radius:12px;overflow:hidden;background:#10283f;padding:20px 24px;text-align:center;">
+    <!-- FOOTER pegado al resto, sin caja separada -->
+    <div style="padding:20px 24px 24px;text-align:center;border-top:1px solid #2f5a7d;background:#14466b;">
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 6px;line-height:1.6;">
         Recibís este email porque te suscribiste a <strong style="color:#22d3ee;">El Radar</strong>.
       </p>
@@ -175,7 +177,6 @@ export function buildEmail(opts: {
       <p style="font-family:Inter,sans-serif;font-size:10px;margin:0;">
         <a href="${opts.unsubUrl}" style="color:#8fa3bf;text-decoration:underline;">Desuscribirse</a>
       </p>
-      </div>
     </div>
 
   </div>
