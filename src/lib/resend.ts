@@ -113,13 +113,11 @@ export async function sendWelcomeEmail(email: string) {
 
   <div style="max-width:580px;width:100%;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
 
-    <!-- Header — logo El Radar PNG -->
-    <div style="padding:0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;position:relative;background:#0b1120;">
-      <img src="https://silvanopuccini.dev/images/el-radar-logo-email.png" width="480" alt="El Radar — Mi Newsletter" style="width:100%;max-width:480px;height:auto;display:block;border:0;margin:0 auto;"/>
-      <div style="padding:20px 32px 24px;text-align:center;">
-        <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
-        <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>
-      </div>
+    <!-- Header — marca en texto (cero imágenes: Gmail les pone botón de descarga) -->
+    <div style="padding:28px 32px 24px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;background:#0b1120;">
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.32em;text-transform:uppercase;margin:0 0 8px;">El Radar</p>
+      <p style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;">Silvano Puccini · Full Stack Dev</p>
+      <p style="font-family:monospace;font-size:7px;color:#8c909f;letter-spacing:0.2em;text-transform:uppercase;margin:0;">ARQUITECTURA · CÓDIGO · PRODUCTO</p>
     </div>
 
     <!-- Body -->
