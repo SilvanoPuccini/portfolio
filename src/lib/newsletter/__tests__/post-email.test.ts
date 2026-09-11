@@ -38,6 +38,12 @@ describe('buildEmail', () => {
     expect(html).not.toContain('Georgia');
   });
 
+  it('el excerpt de Automatización lleva clase propia para el ámbar sólido en mobile', () => {
+    const html = buildEmail(baseOpts({ category: 'Automatización' }));
+    expect(html).toContain('email-excerpt-automatizacion');
+    expect(html).toContain('.email-excerpt-automatizacion');
+  });
+
   it('tiene los divs balanceados (el footer va dentro del contenedor)', () => {
     const html = buildEmail(baseOpts());
     const opens = (html.match(/<div[\s>]/g) || []).length;
