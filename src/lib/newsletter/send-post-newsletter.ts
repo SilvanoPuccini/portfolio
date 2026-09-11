@@ -63,8 +63,6 @@ export function buildEmail(opts: {
         body { padding:8px 6px !important; }
         .email-cover-keyword { font-size:14px !important; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; }
         .email-tagline { font-size:9px !important; }
-        .email-footer-btn-cell { display:block !important; width:100% !important; padding:0 0 8px 0 !important; }
-        .email-footer-btn { display:block !important; width:100% !important; text-align:center !important; }
       }
     </style>
   </head>
@@ -161,13 +159,15 @@ export function buildEmail(opts: {
       <p style="font-family:Inter,sans-serif;font-size:10px;color:#8fa3bf;margin:0 0 14px;line-height:1.6;">
         Vas a recibir 1 o 2 posts por semana sobre performance, producto y automatización con IA.
       </p>
-      <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 14px;">
+      <table cellpadding="0" cellspacing="0" align="center" width="100%" style="margin:0 auto 14px;max-width:320px;">
         <tr>
-          <td class="email-footer-btn-cell" style="padding:0 6px 0 0;">
-            <a href="${SITE_URL}/es/blog" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#22d3ee;padding:10px 24px;border-radius:8px;white-space:nowrap;">Ver el blog →</a>
+          <td align="center" style="padding:0 0 8px 0;">
+            <a href="${SITE_URL}/es/blog" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#050810;text-decoration:none;background:#22d3ee;padding:10px 24px;border-radius:8px;text-align:center;">Ver el blog →</a>
           </td>
-          <td class="email-footer-btn-cell" style="padding:0 0 0 6px;">
-            <a href="https://www.linkedin.com/in/silvano-puccini/" class="email-footer-btn" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #5a7186;padding:10px 24px;border-radius:8px;white-space:nowrap;background:#10283f;">Seguime en LinkedIn →</a>
+        </tr>
+        <tr>
+          <td align="center" style="padding:0;">
+            <a href="https://www.linkedin.com/in/silvano-puccini/" style="display:block;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border:1px solid #5a7186;padding:10px 24px;border-radius:8px;text-align:center;background:#10283f;">Seguime en LinkedIn →</a>
           </td>
         </tr>
       </table>
