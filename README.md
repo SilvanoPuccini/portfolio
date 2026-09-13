@@ -100,6 +100,14 @@ npm run dev
 
 Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_AUDIENCE_ID`, `NOTIFY_SECRET`, `ADMIN_PASSWORD`, `GOOGLE_AI_API_KEY`, `NEXT_PUBLIC_SITE_URL`.
 
+### Circuito editorial de X
+
+- `src/lib/x/prompt.ts` conserva el prompt original; el historial de correcciones, el contexto y la selección de proveedor se agregan alrededor del prompt, sin reescribirlo.
+- Gemini es el proveedor primario. Ante un error de cuota, la misma generación pasa por el adaptador de Groq cuando existe `GROQ_API_KEY`; otros errores no activan el failover.
+- Los estados manuales son controlados: `planificado → preaprobado → publicado`, con retorno `publicado → preaprobado`. La recuperación desde `error` exige una huella de aprobación o una publicación previa.
+- **Publicar ahora** llama a la API de X. **Marcar publicado** solo registra una publicación hecha afuera del panel y fija `published_at`. Esa marca se conserva al volver a preaprobado porque es la barrera que impide que el cron publique el hilo otra vez.
+- Agenda enlaza cada pieza de X como `/admin/x?thread=<id>`; la pantalla abre, enfoca y desplaza hasta el hilo solicitado sin alterar el uso normal del listado.
+
 ### LinkedIn editorial library deployment
 
 1. Apply `supabase/migrations/019_linkedin_editorial_library.sql` before deploying the application code.

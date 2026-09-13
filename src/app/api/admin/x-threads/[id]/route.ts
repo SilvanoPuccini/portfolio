@@ -5,6 +5,7 @@ import { deleteTweet } from '@/lib/x/client';
 import { fingerprint } from '@/lib/x/orchestrate';
 import { getThread, threadsScheduledOn, softDelete, updateThread } from '@/lib/x/repository';
 import { allowedUrls } from '@/lib/x/repository';
+import { xStatusTimestampUpdates, xTransitionBlockReason } from '@/lib/x/status';
 import { validateThread } from '@/lib/x/validate';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +53,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     updates.status = 'error';
     updates.published_url = null;
     updates.last_error = 'Borrado en X por fuera del admin';
+  }
+
+  /**
+   * Un cambio de estado no es un update más: el panel maneja las transiciones
+   * como contrato con el cron (dueNow solo toma preaprobado sin published_at).
+   * Acá se valida contra el estado de la fila ANTES de aplicar cualquier otra
+   * cosa, y los timestamps acompañan a la transición. "Marcar publicado" fija
+   * published_at si falta: es declarar que ya salió, no publicarlo, y así el
+   * cron no puede republicar un hilo marcado a mano.
+   */
+  if (body.status !== undefined) {
+    const blocked = xTransitionBlockReason(thread, body.status);
+    if (blocked) return NextResponse.json({ error: blocked }, { status: 400 });
+    Object.assign(updates, xStatusTimestampUpdates(thread, body.status));
   }
 
   // Tocar el texto invalida la aprobación: lo que se publica tiene que ser

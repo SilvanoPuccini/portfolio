@@ -6,7 +6,7 @@ import { StatusPill } from '@/components/admin/StatusPill';
 import { c, tint } from '@/components/admin/tokens';
 import { CREDITS_DEPLETED_MESSAGE } from '@/lib/x/client';
 import { weightedLength } from '@/lib/x/validate';
-import type { XThreadListItem, XThread } from '@/lib/x/types';
+import type { XThreadListItem, XThread, XThreadStatus } from '@/lib/x/types';
 
 const TONE = {
   planificado: c.planned,
@@ -65,7 +65,7 @@ function TweetBox({ index, value, onChange }: {
  * Una fila por turno de publicación. Igual que en la agenda: todo lo que se le
  * puede hacer al hilo se hace acá, sin ir a otra pantalla.
  */
-export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onSave, onSaveDate, onPublish, onDelete, onMarkRemoved, busy }: {
+export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onSave, onSaveDate, onPublish, onChangeStatus, onDelete, onMarkRemoved, busy }: {
   item: XThreadListItem;
   expanded: boolean;
   full?: XThread;
@@ -75,6 +75,8 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
   onSave: (tweets: string[], reply: string) => Promise<boolean>;
   onSaveDate: (scheduledAt: string) => Promise<boolean>;
   onPublish: () => void | Promise<unknown>;
+  /** Transición de estado manual: "marcar publicado" sin tocar la API de X. */
+  onChangeStatus: (status: XThreadStatus) => void | Promise<unknown>;
   onDelete: () => void | Promise<unknown>;
   onMarkRemoved: () => void | Promise<unknown>;
   busy: boolean;
@@ -89,6 +91,10 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
   const dirty = draft !== null || reply !== null;
   const allText = [...tweets, replyText].join('\n\n');
   const noCredits = item.last_error === CREDITS_DEPLETED_MESSAGE;
+  // Preaprobar/publicar a mano exige aprobación previa: la huella la deja la
+  // generación o el guardado. Solo la fila ya publicada escapa (published_at
+  // ya existe y siguió de marca anti-republish cuando bajó de estado).
+  const cannotAdvance = !item.approved_fingerprint && !item.published_at;
 
   const actionButton = (label: string, onClick: () => void, tone: string, extra?: { title?: string; disabled?: boolean }) => (
     <button type="button" onClick={onClick} disabled={busy || extra?.disabled}
@@ -102,7 +108,8 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
       }}>{busy ? 'Trabajando...' : label}</button>
   );
 
-  return <article style={{ borderTop: `1px solid ${c.border}`, boxShadow: `inset 3px 0 0 ${tone}` }}>
+  return <article id={`x-thread-${item.id}`} tabIndex={-1} aria-labelledby={`x-thread-title-${item.id}`}
+    style={{ borderTop: `1px solid ${c.border}`, boxShadow: `inset 3px 0 0 ${tone}`, scrollMarginTop: 70 }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '11px 14px' }}>
       {/* X se distingue por su propia forma: ni rectángulo (blog) ni pastilla
           redonda (LinkedIn). Un rombo, para reconocerlo sin leer. */}
@@ -114,7 +121,7 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
       }}>X</span>
 
       <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-        <button type="button" onClick={onToggle} aria-expanded={expanded}
+        <button id={`x-thread-title-${item.id}`} type="button" onClick={onToggle} aria-expanded={expanded}
           className="transition-colors hover:text-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
           style={{
             display: 'block', width: '100%', textAlign: 'left', border: 0, background: 'transparent',
@@ -136,10 +143,55 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
         {(item.status === 'planificado' || item.status === 'error') &&
           actionButton(busy ? 'Trabajando...' : item.status === 'error' ? 'Reescribir' : 'Escribir', onGenerate, c.ready)}
 
-        {item.status === 'preaprobado' && actionButton('Publicar ahora', onPublish, c.published, {
-          disabled: dirty,
-          title: dirty ? 'Guardá los cambios antes de publicar' : undefined,
+        {item.status === 'planificado' && actionButton('Marcar preaprobado', () => onChangeStatus('preaprobado'), c.ready, {
+          disabled: cannotAdvance,
+          title: cannotAdvance
+            ? 'Escribilo o guardalo primero: sin huella de aprobación no se preaprueba'
+            : 'Pasa a preaprobado sin publicar nada',
         })}
+
+        {/*
+          Instinto: dos botones "publicar" seguidos confunden. Uno publica de
+          verdad contra la API de X y guarda la URL; el otro declara que ya
+          salió a mano, afuera del panel. El segundo es el que evita que el
+          cron publique dos veces lo mismo.
+        */}
+        {item.status === 'preaprobado' && (
+          <>
+            {actionButton('Publicar ahora', onPublish, c.published, {
+              disabled: dirty,
+              title: dirty ? 'Guardá los cambios antes de publicar' : 'Publica en X con la API y guarda la URL del hilo',
+            })}
+            {actionButton('Marcar publicado', () => onChangeStatus('publicado'), c.published, {
+              disabled: dirty,
+              title: dirty
+                ? 'Guardá los cambios antes de marcar'
+                : 'Lo publicaste a mano, fuera del panel: marcalo sin llamar a la API de X',
+            })}
+            {actionButton('← Volver a planificado', () => onChangeStatus('planificado'), c.planned)}
+          </>
+        )}
+
+        {item.status === 'publicado' && actionButton('← Volver a preaprobado', () => onChangeStatus('preaprobado'), c.ready, {
+          title: 'Vuelve a preaprobado conservando published_at: el cron no lo vuelve a publicar',
+        })}
+
+        {item.status === 'error' && (
+          <>
+            {actionButton('Recuperar como preaprobado', () => onChangeStatus('preaprobado'), c.ready, {
+              disabled: cannotAdvance,
+              title: cannotAdvance
+                ? 'No se puede recuperar: falta una huella de aprobación o una publicación anterior'
+                : 'Recuperación manual con la huella aprobada que conserva el hilo',
+            })}
+            {actionButton('Marcar publicado', () => onChangeStatus('publicado'), c.published, {
+              disabled: cannotAdvance,
+              title: cannotAdvance
+                ? 'No se puede marcar: falta una huella de aprobación o una publicación anterior'
+                : 'Lo publicaste a mano (ej: sin crédito): marcalo para que el cron no lo repita',
+            })}
+          </>
+        )}
 
         {item.published_url && <IconButton label="Ver el hilo en X"
           onClick={() => window.open(item.published_url!, '_blank', 'noopener,noreferrer')}>&#8599;</IconButton>}

@@ -5,6 +5,7 @@ import {
 } from './client';
 import { planWeek } from './gemini';
 import { fingerprint, orchestrateThread } from './orchestrate';
+import { validateThread } from './validate';
 import {
   allowedUrls, appendRewriteHistory, createThread, createWeek, siblingsOf, updateThread,
 } from './repository';
@@ -19,6 +20,10 @@ export const MAX_TWEET_LENGTH = 280;
  * Una línea por tweet. Reporta los tweets que exceden el límite de X, pero los
  * guarda igual: el editor los recorta y la validación los pincha hasta que
  * queden publicables. La fila nace planificada, sin aprobación.
+ *
+ * El texto importado se valida y se deja con huella si pasa: preaprobar exige
+ * approved_fingerprint, así que un import válido arranca aprobable sin tener
+ * que reescribirlo, y uno inválido queda con el motivo en last_error.
  */
 export async function importThread(row: {
   post_slug: string;
@@ -31,12 +36,19 @@ export async function importThread(row: {
 
   if (tweets.length === 0) throw new Error('No vino ningún tweet: una línea por tweet');
 
+  const texts = tweets.map((tweet) => tweet.text);
+  const issues = validateThread(texts, '', allowedUrls());
+
   const thread = await createThread({
     post_slug: row.post_slug,
     angle_id: row.angle_id,
     angle_summary: row.angle_summary,
     scheduled_at: row.scheduled_at,
     tweets,
+    approved_fingerprint: issues.length === 0 ? fingerprint(texts, '') : null,
+    last_error: issues.length === 0
+      ? null
+      : issues.map((issue) => `${issue.target}: ${issue.problem}`).join(' | ').slice(0, 1000),
   });
 
   return { thread, oversize };

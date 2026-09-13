@@ -10,4 +10,22 @@ describe('normalizeAgendaItems', () => {
     expect(items.map((item) => item.id)).toEqual(['blog:same', 'linkedin:same']);
     expect(items.map((item) => item.detail_path)).toEqual(['/admin/agenda/same', '/admin/content/same']);
   });
+
+  it('deep-links an X agenda item to its matching thread', () => {
+    const thread = {
+      id: 'thread/id with spaces',
+      status: 'preaprobado',
+      scheduled_at: '2026-09-13T13:00:00.000Z',
+      pre_approved_at: '2026-09-12T13:00:00.000Z',
+      published_at: null,
+      angle_summary: 'Ángulo | pregunta',
+      preview: 'Primer tweet',
+      has_content: true,
+    } as never;
+
+    const [item] = normalizeAgendaItems([], [], [thread]);
+
+    expect(item.source_id).toBe('thread/id with spaces');
+    expect(item.detail_path).toBe('/admin/x?thread=thread%2Fid%20with%20spaces');
+  });
 });

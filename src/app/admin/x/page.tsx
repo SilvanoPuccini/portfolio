@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PeriodPicker, inPeriod, periodLabel, type Period } from '@/components/admin/PeriodPicker';
 import { XThreadRow } from '@/components/admin/x/XThreadRow';
 import { c, tint } from '@/components/admin/tokens';
@@ -10,6 +11,7 @@ import {
   formatXVerificationFailure,
   type XVerificationStep,
 } from '@/lib/x/diagnostics';
+import { resolveXThreadDeepLink } from '@/lib/x/deep-link';
 import type { PostPublicationListItem } from '@/lib/post-publications/types';
 
 type Filter = 'all' | XThreadStatus;
@@ -47,7 +49,10 @@ function Tile({ tone, value, label, active, onClick }: {
   </button>;
 }
 
-export default function XPage() {
+function XPageContent() {
+  const searchParams = useSearchParams();
+  const requestedThreadId = searchParams.get('thread');
+  const handledDeepLink = useRef<string | null>(null);
   const [items, setItems] = useState<XThreadListItem[]>([]);
   const [full, setFull] = useState<Record<string, XThread>>({});
   const [blogs, setBlogs] = useState<PostPublicationListItem[]>([]);
@@ -94,14 +99,46 @@ export default function XPage() {
     [inScope, filter],
   );
 
-  /** Al abrir una fila se trae el hilo completo, que la lista no incluye. */
-  const open = useCallback(async (id: string) => {
-    setOpenId((current) => (current === id ? null : id));
+  /** La lista no incluye los tweets completos; se traen una sola vez al abrir. */
+  const loadFullThread = useCallback(async (id: string) => {
     if (full[id]) return;
     const response = await fetch(`/api/admin/x-threads/${id}`);
     const json = await response.json().catch(() => ({}));
     if (response.ok) setFull((current) => ({ ...current, [id]: json.item }));
   }, [full]);
+
+  const open = useCallback(async (id: string) => {
+    setOpenId((current) => (current === id ? null : id));
+    await loadFullThread(id);
+  }, [loadFullThread]);
+
+  /**
+   * Agenda links to a concrete row. Move the period/filter just enough to make
+   * that row visible, load its detail, then leave ordinary list behavior alone.
+   */
+  useEffect(() => {
+    if (loading || handledDeepLink.current === requestedThreadId) return;
+    const target = resolveXThreadDeepLink(items, requestedThreadId);
+    if (!target) return;
+
+    handledDeepLink.current = target.id;
+    setFilter('all');
+    setPeriod(target.period);
+    setOpenId(target.id);
+    void loadFullThread(target.id);
+  }, [items, loadFullThread, loading, requestedThreadId]);
+
+  useEffect(() => {
+    if (!requestedThreadId || openId !== requestedThreadId) return;
+    if (!visible.some((item) => item.id === requestedThreadId)) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const row = document.getElementById(`x-thread-${requestedThreadId}`);
+      row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [openId, requestedThreadId, visible]);
 
   async function act(id: string, run: () => Promise<Response>) {
     setBusyId(id); setError(''); setWarnings((current) => ({ ...current, [id]: '' }));
@@ -311,7 +348,11 @@ export default function XPage() {
           warning={warnings[item.id] ? warnings[item.id] : null}
           onToggle={() => open(item.id)}
           onGenerate={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/generate`, { method: 'POST' }))}
-          onPublish={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/publish`, { method: 'POST' }))}
+           onPublish={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/publish`, { method: 'POST' }))}
+          onChangeStatus={(status) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+          }))}
           onSaveDate={(scheduledAt) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ scheduled_at: scheduledAt }),
@@ -328,4 +369,10 @@ export default function XPage() {
         />)}
     </div>
   </div>;
+}
+
+export default function XPage() {
+  return <Suspense fallback={<p style={{ color: c.textDim, fontSize: 12 }}>Cargando hilos...</p>}>
+    <XPageContent />
+  </Suspense>;
 }

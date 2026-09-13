@@ -84,6 +84,9 @@ export async function createThread(row: {
   angle_summary: string;
   scheduled_at: string;
   tweets: { text: string; tweet_number: number }[];
+  /** Huella de aprobación si el texto importado pasa los controles en el momento. */
+  approved_fingerprint?: string | null;
+  last_error?: string | null;
 }) {
   const { data, error } = await getSupabaseAdmin()
     .from('x_threads').insert({

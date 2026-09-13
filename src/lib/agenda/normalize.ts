@@ -49,7 +49,9 @@ export function normalizeAgendaItems(
       // 'error' es operativo y no existe en el circuito editorial: en el
       // calendario se lee como planificado, y el detalle explica qué pasó.
       status: item.status === 'error' ? 'planificado' : item.status,
-      detail_path: '/admin/x',
+      // El detalle de un hilo vive en su propia fila: el deep link abre
+      // /admin/x y deja esa fila expandida y a la vista.
+      detail_path: `/admin/x?thread=${encodeURIComponent(item.id)}`,
       has_content: item.has_content,
       content_chars: item.preview.length,
       has_pdf: true,
