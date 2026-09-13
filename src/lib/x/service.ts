@@ -1,11 +1,69 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { X_USERNAME } from './author-profile';
-import { publishThread, threadUrl } from './client';
+import {
+  CREDITS_DEPLETED_MESSAGE, isCreditsDepletedError, publishThread, threadUrl,
+} from './client';
 import { planWeek } from './gemini';
 import { fingerprint, orchestrateThread } from './orchestrate';
-import { allowedUrls, createWeek, siblingsOf, updateThread } from './repository';
+import {
+  allowedUrls, appendRewriteHistory, createThread, createWeek, siblingsOf, updateThread,
+} from './repository';
 import { xScheduleFor } from './scheduling';
-import type { XThread } from './types';
+import { MAX_REWRITE_HISTORY, type XAngle, type XRewriteHistoryEntry, type XThread } from './types';
+
+export const MAX_TWEET_LENGTH = 280;
+
+/**
+ * Importa un hilo escrito a mano o fuera del panel.
+ *
+ * Una línea por tweet. Reporta los tweets que exceden el límite de X, pero los
+ * guarda igual: el editor los recorta y la validación los pincha hasta que
+ * queden publicables. La fila nace planificada, sin aprobación.
+ */
+export async function importThread(row: {
+  post_slug: string;
+  angle_id: string;
+  angle_summary: string;
+  scheduled_at: string;
+  text: string;
+}) {
+  const { tweets, oversize } = parseThreadText(row.text);
+
+  if (tweets.length === 0) throw new Error('No vino ningún tweet: una línea por tweet');
+
+  const thread = await createThread({
+    post_slug: row.post_slug,
+    angle_id: row.angle_id,
+    angle_summary: row.angle_summary,
+    scheduled_at: row.scheduled_at,
+    tweets,
+  });
+
+  return { thread, oversize };
+}
+
+/**
+ * Parte el texto importado en tweets, una línea por tweet.
+ *
+ * Las líneas en blanco son separadores visuales, no tweets vacíos. Se reportan
+ * los que pasan de 280 sin descartarlos: el límite es de X, no del clipboard.
+ */
+export function parseThreadText(text: string): {
+  tweets: { text: string; tweet_number: number }[];
+  oversize: { tweet_number: number; length: number }[];
+} {
+  const tweets = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((text, index) => ({ text, tweet_number: index + 1 }));
+
+  const oversize = tweets
+    .filter((tweet) => tweet.text.length > MAX_TWEET_LENGTH)
+    .map((tweet) => ({ tweet_number: tweet.tweet_number, length: tweet.text.length }));
+
+  return { tweets, oversize };
+}
 
 /**
  * Las operaciones de negocio del circuito de X, sin HTTP.
@@ -27,18 +85,35 @@ async function loadArticle(postSlug: string) {
 }
 
 /**
+ * El guion de la semana para un hilo, desde el snapshot persistido (R8).
+ *
+ * Regenerar NUNCA vuelve a pedirle el guion a la IA: el plan guardado es la
+ * fuente. Solo si no hay snapshot (fila vieja sin backfill) se reconstruye un
+ * ángulo único desde lo que tiene la fila.
+ */
+function planFor(thread: XThread): XAngle[] {
+  if (thread.plan && thread.plan.length > 0) return thread.plan;
+  return [{
+    id: thread.angle_id,
+    summary: thread.angle_summary.split(' | ')[0] ?? thread.angle_summary,
+    question: thread.angle_summary.split(' | ')[1] ?? '',
+  }];
+}
+
+/**
  * Arma la semana de un post: pide el guion de ángulos y crea un turno por día.
  * El texto de cada hilo se escribe después, día por día.
  */
 export async function planWeekFor(postSlug: string) {
   const article = await loadArticle(postSlug);
-  const { angles, tokens } = await planWeek(article.raw_title, article.raw_content);
+  const { data, tokens, provider } = await planWeek(article.raw_title, article.raw_content);
+  const angles = data.angles;
   if (angles.length === 0) {
     throw new Error('El artículo no dio ningún ángulo distinto para publicar');
   }
   const dates = xScheduleFor(article.scheduled_at);
   const rows = await createWeek(postSlug, angles, dates);
-  return { threads: rows, angles, tokens };
+  return { threads: rows, angles, tokens, provider };
 }
 
 /** Escribe y valida el texto de un hilo. Deja el resultado en la fila. */
@@ -46,16 +121,24 @@ export async function generateThread(thread: XThread) {
   const article = await loadArticle(thread.post_slug);
   const siblings = await siblingsOf(thread.post_slug, thread.id);
 
-  // El guion completo se reconstruye desde las filas hermanas de la semana:
-  // el escritor necesita ver hacia dónde va, no solo su propio ángulo.
+  // La historia con memória: cada vuelta se persiste apenas termina, así que
+  // si la corrida muere a la mitad, lo que ya se intentó no se pierde.
+  let history: XRewriteHistoryEntry[] = (thread.rewrite_history ?? []).slice(-MAX_REWRITE_HISTORY);
+  const persistAttempt = async (entry: XRewriteHistoryEntry) => {
+    history = appendRewriteHistory(history, entry);
+    await updateThread(thread.id, { rewrite_history: history });
+  };
+
   const result = await orchestrateThread({
     articleTitle: article.raw_title,
     articleUrl: `https://www.silvanopuccini.dev/es/blog/${article.post_slug}`,
     articleText: article.raw_content,
-    angles: [{ id: thread.angle_id, summary: thread.angle_summary, question: '' }],
+    angles: planFor(thread),
     selectedAngleId: thread.angle_id,
     publishedThisWeek: siblings,
     allowedUrls: allowedUrls(),
+    history,
+    onAttempt: persistAttempt,
   });
 
   if (result.outcome === 'blocked') {
@@ -64,7 +147,7 @@ export async function generateThread(thread: XThread) {
       generation_attempts: thread.generation_attempts + result.attempts,
       last_error: result.reasons.join(' | ').slice(0, 1000),
       // Se guarda igual para poder mirarlo, pero sin huella no se publica.
-      tweets: result.lastDraft?.tweets.map((text) => ({ text })) ?? [],
+      tweets: (result.lastDraft?.tweets ?? []).map((text, index) => ({ text, tweet_number: index + 1 })),
       approved_fingerprint: null,
     });
   }
@@ -73,7 +156,7 @@ export async function generateThread(thread: XThread) {
     status: 'preaprobado',
     pre_approved_at: new Date().toISOString(),
     thesis: result.draft.thesis,
-    tweets: result.draft.tweets.map((text) => ({ text })),
+    tweets: result.draft.tweets.map((text, index) => ({ text, tweet_number: index + 1 })),
     reply_with_link: result.draft.reply_with_link,
     evidence: result.draft.evidence,
     approved_fingerprint: result.fingerprint,
@@ -128,6 +211,16 @@ export async function publishThreadNow(thread: XThread) {
     });
     return { alreadyPublished: false as const, thread: updated };
   } catch (reason) {
+    if (isCreditsDepletedError(reason)) {
+      // El panel muestra el mensaje manual y el botón de copiar: el hilo ya
+      // no se puede publicar desde acá hasta que haya crédito.
+      await updateThread(thread.id, {
+        status: 'error',
+        publish_attempts: thread.publish_attempts + 1,
+        last_error: CREDITS_DEPLETED_MESSAGE,
+      });
+      throw reason;
+    }
     const detail = reason instanceof Error ? reason.message : String(reason);
     await updateThread(thread.id, {
       status: 'error',

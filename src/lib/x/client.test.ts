@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildSignature, percentEncode, threadUrl } from './client';
+import {
+  XCreditsDepletedError, buildSignature, isCreditsDepletedError, percentEncode, threadUrl,
+} from './client';
 
 /**
  * Vector fijo para comprobar la firma sin tocar la red. El valor esperado se
@@ -96,5 +98,20 @@ describe('buildSignature', () => {
 describe('threadUrl', () => {
   it('points at the first post, which is what opens the whole thread', () => {
     expect(threadUrl('silvanopuccini', '1234567890')).toBe('https://x.com/silvanopuccini/status/1234567890');
+  });
+});
+
+describe('XCreditsDepletedError', () => {
+  it('is a typed 402 with a stable code', () => {
+    const error = new XCreditsDepletedError('You have reached your limit');
+    expect(error.status).toBe(402);
+    expect(error.code).toBe('credits-depleted');
+    expect(error.name).toBe('XCreditsDepletedError');
+  });
+
+  it('is identified by isCreditsDepletedError, no other error confuses it', () => {
+    expect(isCreditsDepletedError(new XCreditsDepletedError('sin crédito'))).toBe(true);
+    expect(isCreditsDepletedError(Object.assign(new Error('otro'), { status: 402 }))).toBe(false);
+    expect(isCreditsDepletedError(null)).toBe(false);
   });
 });

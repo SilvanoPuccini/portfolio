@@ -1,63 +1,20 @@
-import { GoogleGenerativeAI, SchemaType, type Schema } from '@google/generative-ai';
-import { jsonrepair } from 'jsonrepair';
+import { SchemaType, type Schema } from '@google/generative-ai';
 import { criticSystemPrompt, writerInput, writerSystemPrompt } from './prompt';
+import { callJson } from './providers';
 import { ANGLES_PER_WEEK } from './scheduling';
-import type { XAngle, XEvidence } from './types';
+import type { XAngle, XEvidence, XProvider } from './types';
 
 /**
- * Las tres llamadas a Gemini: planificar la semana, escribir un hilo y
- * criticarlo.
+ * Las tres operaciones del circuito de X: planificar la semana, escribir un
+ * hilo y criticarlo. Todas pasan por el seam de proveedores y devuelven cuál
+ * corrió, para registrarlo en el historial de reescrituras.
  *
  * El esquema va declarado, no pedido por texto. Pedir "devolvé solo JSON" en el
  * prompt no es un contrato: el modelo lo cumple casi siempre, y ese casi es
  * justo lo que rompe un circuito que corre sin nadie mirando.
  */
 
-const MODEL = 'gemini-2.5-flash';
-const MAX_ATTEMPTS = 3;
-const BACKOFF_MS = [0, 8_000, 20_000];
-
-function client() {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) throw new Error('[x/gemini] Falta GOOGLE_AI_API_KEY');
-  return new GoogleGenerativeAI(apiKey);
-}
-
-function isRetryable(error: Error): boolean {
-  const status = (error as { status?: number }).status;
-  if (status === 429 || status === 503) return true;
-  const message = error.message.toLowerCase();
-  return ['503', '429', 'unavailable', 'overloaded', 'high demand'].some((s) => message.includes(s));
-}
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Llama al modelo con un esquema declarado y devuelve el objeto ya parseado.
- * jsonrepair cubre el caso de una coma colgada; el esquema cubre el resto.
- */
-async function callJson<T>(system: string, input: string, schema: Schema): Promise<{ data: T; tokens: number }> {
-  const model = client().getGenerativeModel({
-    model: MODEL,
-    systemInstruction: system,
-    generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 0.9 },
-  });
-
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    if (BACKOFF_MS[attempt]) await sleep(BACKOFF_MS[attempt]);
-    try {
-      const result = await model.generateContent(input);
-      const text = result.response.text();
-      const tokens = result.response.usageMetadata?.totalTokenCount ?? 0;
-      return { data: JSON.parse(jsonrepair(text)) as T, tokens };
-    } catch (reason) {
-      lastError = reason instanceof Error ? reason : new Error(String(reason));
-      if (!isRetryable(lastError)) throw lastError;
-    }
-  }
-  throw lastError ?? new Error('[x/gemini] Sin respuesta');
-}
+type JsonResult<T> = { data: T; tokens: number; provider: XProvider };
 
 // ── 1. El guion de la semana ────────────────────────────────────────
 
@@ -89,7 +46,7 @@ const ANGLES_SCHEMA: Schema = {
  * otras palabras, que es exactamente lo que X sanciona como contenido
  * sustancialmente similar.
  */
-export async function planWeek(articleTitle: string, articleText: string) {
+export async function planWeek(articleTitle: string, articleText: string): Promise<JsonResult<{ angles: XAngle[] }>> {
   const system = `
 Sos el planificador editorial de El Radar para X. Leés un artículo y proponés
 hasta ${ANGLES_PER_WEEK} ángulos GENUINAMENTE distintos para publicar durante la semana.
@@ -105,8 +62,8 @@ central, y question con la pregunta concreta que ese ángulo responde.
 `.trim();
 
   const input = JSON.stringify({ title: articleTitle, text: articleText }, null, 2);
-  const { data, tokens } = await callJson<{ angles: XAngle[] }>(system, input, ANGLES_SCHEMA);
-  return { angles: data.angles.slice(0, ANGLES_PER_WEEK), tokens };
+  const result = await callJson<{ angles: XAngle[] }>(system, input, ANGLES_SCHEMA);
+  return { ...result, data: { angles: result.data.angles.slice(0, ANGLES_PER_WEEK) } };
 }
 
 // ── 2. El escritor ──────────────────────────────────────────────────
@@ -158,7 +115,7 @@ export interface WriteParams {
   fixes?: string[];
 }
 
-export async function writeThread(params: WriteParams) {
+export async function writeThread(params: WriteParams): Promise<JsonResult<XDraft>> {
   const base = writerInput(params);
   const input = params.fixes?.length
     ? `${base}\n\nCORREGÍ ESTOS PROBLEMAS DE LA VERSIÓN ANTERIOR:\n${params.fixes.map((f) => `- ${f}`).join('\n')}`
@@ -205,7 +162,7 @@ export async function critique(params: {
   publishedThisWeek: string[];
   /** Resultado del validador por código. El crítico no lo recalcula. */
   validationReport: { code: string; target: string; problem: string }[];
-}) {
+}): Promise<JsonResult<XCritique>> {
   const input = JSON.stringify({
     article: { title: params.articleTitle, text: params.articleText },
     weekly_plan: params.angles,

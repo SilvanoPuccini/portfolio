@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CopyIconButton, ConfirmIconButton, IconButton, ChevronIcon, CrossIcon } from '@/components/admin/IconButton';
 import { StatusPill } from '@/components/admin/StatusPill';
 import { c, tint } from '@/components/admin/tokens';
+import { CREDITS_DEPLETED_MESSAGE } from '@/lib/x/client';
 import { weightedLength } from '@/lib/x/validate';
 import type { XThreadListItem, XThread } from '@/lib/x/types';
 
@@ -24,6 +25,12 @@ const LABEL = {
 function fmtDay(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'short' });
 }
+
+const isoToLocalInput = (iso: string) => {
+  const date = new Date(iso);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
 /** Un tweet del hilo, editable, con su contador ponderado real. */
 function TweetBox({ index, value, onChange }: {
@@ -58,13 +65,15 @@ function TweetBox({ index, value, onChange }: {
  * Una fila por turno de publicación. Igual que en la agenda: todo lo que se le
  * puede hacer al hilo se hace acá, sin ir a otra pantalla.
  */
-export function XThreadRow({ item, expanded, full, onToggle, onGenerate, onSave, onPublish, onDelete, onMarkRemoved, busy }: {
+export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onSave, onSaveDate, onPublish, onDelete, onMarkRemoved, busy }: {
   item: XThreadListItem;
   expanded: boolean;
   full?: XThread;
+  warning?: string | null;
   onToggle: () => void;
   onGenerate: () => void | Promise<unknown>;
   onSave: (tweets: string[], reply: string) => Promise<boolean>;
+  onSaveDate: (scheduledAt: string) => Promise<boolean>;
   onPublish: () => void | Promise<unknown>;
   onDelete: () => void | Promise<unknown>;
   onMarkRemoved: () => void | Promise<unknown>;
@@ -72,12 +81,26 @@ export function XThreadRow({ item, expanded, full, onToggle, onGenerate, onSave,
 }) {
   const [draft, setDraft] = useState<string[] | null>(null);
   const [reply, setReply] = useState<string | null>(null);
+  const [dateDraft, setDateDraft] = useState<string | null>(null);
   const tone = TONE[item.status];
 
   const tweets = draft ?? (full?.tweets ?? []).map((tweet) => tweet.text);
   const replyText = reply ?? full?.reply_with_link ?? '';
   const dirty = draft !== null || reply !== null;
   const allText = [...tweets, replyText].join('\n\n');
+  const noCredits = item.last_error === CREDITS_DEPLETED_MESSAGE;
+
+  const actionButton = (label: string, onClick: () => void, tone: string, extra?: { title?: string; disabled?: boolean }) => (
+    <button type="button" onClick={onClick} disabled={busy || extra?.disabled}
+      title={extra?.title}
+      className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+      style={{
+        height: 26, padding: '0 12px', borderRadius: 6, cursor: (busy || extra?.disabled) ? 'not-allowed' : 'pointer',
+        opacity: extra?.disabled ? .45 : 1,
+        border: `1px solid ${tint(tone, '73')}`, background: tint(tone, '14'),
+        color: tone, fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+      }}>{busy ? 'Trabajando...' : label}</button>
+  );
 
   return <article style={{ borderTop: `1px solid ${c.border}`, boxShadow: `inset 3px 0 0 ${tone}` }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '11px 14px' }}>
@@ -110,23 +133,13 @@ export function XThreadRow({ item, expanded, full, onToggle, onGenerate, onSave,
       <StatusPill tone={tone} label={LABEL[item.status]} />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-        {item.status === 'planificado' && <button type="button" onClick={onGenerate} disabled={busy}
-          className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
-          style={{
-            height: 26, padding: '0 12px', borderRadius: 6, cursor: busy ? 'wait' : 'pointer',
-            border: `1px solid ${tint(c.ready, '73')}`, background: tint(c.ready, '14'),
-            color: c.ready, fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
-          }}>{busy ? 'Escribiendo...' : 'Escribir'}</button>}
+        {(item.status === 'planificado' || item.status === 'error') &&
+          actionButton(busy ? 'Trabajando...' : item.status === 'error' ? 'Reescribir' : 'Escribir', onGenerate, c.ready)}
 
-        {item.status === 'preaprobado' && <button type="button" onClick={onPublish} disabled={busy || dirty}
-          title={dirty ? 'Guardá los cambios antes de publicar' : undefined}
-          className="transition-[filter] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
-          style={{
-            height: 26, padding: '0 12px', borderRadius: 6,
-            cursor: busy || dirty ? 'not-allowed' : 'pointer', opacity: dirty ? .45 : 1,
-            border: `1px solid ${tint(c.published, '73')}`, background: tint(c.published, '14'),
-            color: c.published, fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
-          }}>{busy ? 'Publicando...' : 'Publicar ahora'}</button>}
+        {item.status === 'preaprobado' && actionButton('Publicar ahora', onPublish, c.published, {
+          disabled: dirty,
+          title: dirty ? 'Guardá los cambios antes de publicar' : undefined,
+        })}
 
         {item.published_url && <IconButton label="Ver el hilo en X"
           onClick={() => window.open(item.published_url!, '_blank', 'noopener,noreferrer')}>&#8599;</IconButton>}
@@ -153,7 +166,45 @@ export function XThreadRow({ item, expanded, full, onToggle, onGenerate, onSave,
         <strong style={{ color: c.textSoft }}>Angulo:</strong> {item.angle_summary}
       </p>
 
-      {item.last_error && <p role="alert" style={{
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <label style={{ fontSize: 11, color: c.textDim }}>
+          Dia hora:
+          <input type="datetime-local" value={isoToLocalInput(dateDraft ?? item.scheduled_at)}
+            onChange={(event) => setDateDraft(event.target.value)}
+            disabled={busy}
+            aria-label="Dia y hora del hilo"
+            style={{
+              marginLeft: 6, padding: '5px 8px', borderRadius: 6, fontSize: 12, fontFamily: 'inherit',
+              background: c.page, border: `1px solid ${c.border}`, color: c.text, outline: 'none',
+            }} />
+        </label>
+        {dateDraft !== null && <button type="button" disabled={busy}
+          onClick={async () => {
+            const next = new Date(dateDraft).toISOString();
+            if (await onSaveDate(next)) setDateDraft(null);
+          }}
+          className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+          style={{
+            height: 26, padding: '0 12px', borderRadius: 6, border: 0,
+            background: c.ready, color: c.page, fontSize: 11, fontWeight: 700,
+            cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
+          }}>Guardar fecha</button>}
+      </div>
+
+      {warning && <p role="status" style={{
+        margin: '0 0 12px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
+        border: `1px solid ${c.planned}`, background: tint(c.planned, '0f'), color: c.textSoft,
+      }}>{warning}</p>}
+
+      {noCredits && <p role="alert" style={{
+        margin: '0 0 12px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
+        border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late,
+      }}>
+        <strong>X sin saldo.</strong> El hilo queda validado y copiado para publicar a mano:
+        usá el boton de copiar, pegalo en X y programa la hora desde alla.
+      </p>}
+
+      {item.last_error && !noCredits && <p role="alert" style={{
         margin: '0 0 12px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
         border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late,
       }}>{item.last_error}</p>}

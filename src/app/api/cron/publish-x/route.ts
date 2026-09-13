@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isApiKeyAuthorized, isCronAuthorized } from '@/lib/admin-auth';
+import { isCreditsDepletedError } from '@/lib/x/client';
 import { dueNow, pendingGeneration } from '@/lib/x/repository';
 import { generateThread, publishThreadNow } from '@/lib/x/service';
 
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
   const generated: string[] = [];
   const blocked: { id: string; reason: string }[] = [];
   const failed: { id: string; error: string }[] = [];
+  const skippedCredits: string[] = [];
 
   // 1. Publicar lo que vence hoy y ya pasó los controles.
   for (const thread of await dueNow()) {
@@ -50,6 +52,12 @@ export async function GET(req: NextRequest) {
       const result = await publishThreadNow(thread);
       if (!result.alreadyPublished) published.push(result.thread.published_url ?? thread.id);
     } catch (reason) {
+      // Un 402 de crédito no es un fallo: el circuito es manual y la persona
+      // ya lo sabe desde el panel. El cron no debe hacer ruido por eso.
+      if (isCreditsDepletedError(reason)) {
+        skippedCredits.push(thread.id);
+        continue;
+      }
       failed.push({ id: thread.id, error: reason instanceof Error ? reason.message : 'error' });
     }
   }
@@ -76,6 +84,7 @@ export async function GET(req: NextRequest) {
     generated: generated.length,
     blocked: blocked.length,
     failed: failed.length,
-    detail: { published, blocked, failed },
+    skipped_credits: skippedCredits.length,
+    detail: { published, blocked, failed, skipped_credits: skippedCredits },
   });
 }

@@ -5,6 +5,8 @@ export type XThreadStatus = PostPublicationStatus | 'error';
 
 export interface XTweet {
   text: string;
+  /** Orden explícito dentro del hilo. 1-based, lo asigna la regla de reorden. */
+  tweet_number?: number;
 }
 
 /** Respaldo de una afirmación contra la fuente. Nunca se publica. */
@@ -16,6 +18,31 @@ export interface XEvidence {
   excerpt: string;
   type: 'personal' | 'technical' | 'inference' | 'hypothetical';
 }
+
+/** Qué motor corrió la última generación. Se guarda para el futuro informe. */
+export type XProvider = 'gemini' | 'groq';
+
+/**
+ * Una vuelta del circuito escribir→validar→criticar.
+ *
+ * La historia se persiste y se le vuelve a pasar al escritor: reescribir sin
+ * memoria hace que el modelo repita los mismos problemas en cada intento.
+ */
+export interface XRewriteHistoryEntry {
+  /** Cuándo se generó este intento. ISO. */
+  at: string;
+  /** Vuelta dentro de la corrida: empieza en 1. */
+  attempt: number;
+  /** Qué motor escribió este borrador. */
+  provider: XProvider;
+  /** Problemas que se le pasaron al escritor en ESTE intento (vacíos en el 1). */
+  fixes: string[];
+  verdict?: 'rewrite' | 'blocked' | 'approved';
+  reasons?: string[];
+}
+
+/** Cuántas vueltas de historia entran en el próximo prompt. Las más viejas se descartan. */
+export const MAX_REWRITE_HISTORY = 12;
 
 export interface XThread {
   id: string;
@@ -36,6 +63,10 @@ export interface XThread {
   generation_attempts: number;
   publish_attempts: number;
   last_error: string | null;
+  /** Guion de la semana tal como se planificó. Re-planear es una acción explícita. */
+  plan: XAngle[] | null;
+  /** Vueltas de generación persistidas, con sus fixes y el motor que corrió. */
+  rewrite_history: XRewriteHistoryEntry[];
   deleted_at: string | null;
   created_at: string;
   updated_at: string;

@@ -59,6 +59,13 @@ export default function XPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [account, setAccount] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<Record<string, string>>({});
+  const [importOpen, setImportOpen] = useState(false);
+  const [importPost, setImportPost] = useState('');
+  const [importSummary, setImportSummary] = useState('');
+  const [importDate, setImportDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+  const [importText, setImportText] = useState('');
+  const [importReport, setImportReport] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -97,12 +104,20 @@ export default function XPage() {
   }, [full]);
 
   async function act(id: string, run: () => Promise<Response>) {
-    setBusyId(id); setError('');
+    setBusyId(id); setError(''); setWarnings((current) => ({ ...current, [id]: '' }));
     const response = await run();
-    const json = await response.json().catch(() => ({}));
+    const json = await response.json().catch(() => ({})) as { item?: XThread; warning?: string; error?: string };
     setBusyId(null);
-    if (!response.ok) { setError(json.error ?? 'No se pudo completar'); return false; }
-    if (json.item) setFull((current) => ({ ...current, [id]: json.item }));
+    if (!response.ok) {
+      // El 402 de X ya quedó en last_error de la fila: el panel lo muestra como
+      // "copiá y publicá a mano". No hace falta repetirlo acá.
+      if (response.status !== 402) setError(json.error ?? 'No se pudo completar');
+      return false;
+    }
+    const updated = json.item;
+    if (updated) setFull((current) => ({ ...current, [id]: updated }));
+    const warning = json.warning;
+    if (warning) setWarnings((current) => ({ ...current, [id]: warning }));
     await load();
     return true;
   }
@@ -181,8 +196,91 @@ export default function XPage() {
             fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
             cursor: planning ? 'pointer' : 'not-allowed', opacity: planning ? 1 : .45,
           }}>{busyId === 'plan' ? 'Armando...' : 'Armar semana'}</button>
+        <button onClick={() => setImportOpen((current) => !current)}
+          aria-expanded={importOpen}
+          style={chip(importOpen)}
+          className="transition-colors hover:border-[#00d4d4] hover:text-[#00d4d4]">
+          Importar un hilo
+        </button>
       </div>
     </header>
+
+    {importOpen && <div style={{
+      marginBottom: 16, padding: 16, borderRadius: 12,
+      background: c.surface, border: `1px solid ${c.border}`,
+    }}>
+      <p style={{ margin: '0 0 4px', fontFamily: 'monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: c.ready }}>
+        Importar hilo escrito a mano
+      </p>
+      <p style={{ margin: '0 0 12px', fontSize: 12, color: c.textDim, lineHeight: 1.5 }}>
+        Una linea por tweet. Si alguno pasa de 280, se importa igual y el editor lo pincha hasta
+        dejarlo publicable.
+      </p>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
+        <select value={importPost} onChange={(event) => setImportPost(event.target.value)}
+          aria-label="Post del blog del hilo"
+          style={{ ...chip(false), fontFamily: 'inherit' }}>
+          <option value="">Post del blog...</option>
+          {blogs.map((blog) => <option key={blog.post_slug} value={blog.post_slug}>{blog.raw_title}</option>)}
+        </select>
+        <input value={importSummary} onChange={(event) => setImportSummary(event.target.value)}
+          aria-label="Angulo del hilo"
+          placeholder="Angulo (resumen | pregunta)"
+          style={{
+            padding: '8px 12px', borderRadius: 7, fontSize: 12, color: c.text,
+            background: c.page, border: `1px solid ${c.border}`, outline: 'none', fontFamily: 'inherit',
+          }} />
+        <input type="datetime-local" value={importDate} onChange={(event) => setImportDate(event.target.value)}
+          aria-label="Fecha y hora del hilo"
+          style={{
+            padding: '8px 12px', borderRadius: 7, fontSize: 12, color: c.text,
+            background: c.page, border: `1px solid ${c.border}`, outline: 'none', fontFamily: 'inherit',
+          }} />
+        <textarea value={importText} onChange={(event) => setImportText(event.target.value)}
+          aria-label="Tweets del hilo, uno por linea"
+          placeholder={'Tweet 1\nTweet 2\nTweet 3'}
+          style={{
+            minHeight: 110, padding: 11, borderRadius: 8, fontSize: 13, lineHeight: 1.6,
+            color: c.text, background: c.page, border: `1px solid ${c.border}`,
+            fontFamily: 'inherit', resize: 'vertical', outline: 'none',
+          }} />
+      </div>
+      {importReport && <p role="alert" style={{
+        margin: '0 0 10px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
+        border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late,
+      }}>{importReport}</p>}
+      <button type="button" disabled={!importPost || !importSummary || !importText || busyId === 'import'}
+        onClick={async () => {
+          setBusyId('import'); setError(''); setImportReport('');
+          const response = await fetch('/api/admin/x-threads/import', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              post_slug: importPost,
+              angle_id: importSummary.replace(/\s+/g, '-').toLowerCase().slice(0, 60) || 'importado',
+              angle_summary: importSummary,
+              scheduled_at: new Date(importDate).toISOString(),
+              text: importText,
+            }),
+          });
+          const json = await response.json().catch(() => ({})) as {
+            item?: XThread; oversize?: { tweet_number: number; length: number }[]; error?: string;
+          };
+          setBusyId(null);
+          if (!response.ok) return setImportReport(json.error ?? 'No se pudo importar');
+          if (json.oversize?.length) {
+            setImportReport(`Se importó, pero estos tweets pasan de 280: ${json.oversize.map((o) => `#${o.tweet_number} (${o.length})`).join(', ')}.`);
+          }
+          setImportText(''); setImportSummary(''); setImportOpen(false);
+          await load();
+        }}
+        className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+        style={{
+          background: c.ready, color: c.page, border: 0, borderRadius: 8, padding: '10px 18px',
+          fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
+          cursor: importPost && importSummary && importText ? 'pointer' : 'not-allowed',
+          opacity: importPost && importSummary && importText ? 1 : .45,
+        }}>{busyId === 'import' ? 'Importando...' : 'Importar'}</button>
+    </div>}
 
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
       <PeriodPicker value={period} onChange={setPeriod} />
@@ -210,9 +308,14 @@ export default function XPage() {
           expanded={openId === item.id}
           full={full[item.id]}
           busy={busyId === item.id}
+          warning={warnings[item.id] ? warnings[item.id] : null}
           onToggle={() => open(item.id)}
           onGenerate={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/generate`, { method: 'POST' }))}
           onPublish={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/publish`, { method: 'POST' }))}
+          onSaveDate={(scheduledAt) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduled_at: scheduledAt }),
+          }))}
           onSave={(tweets, reply) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tweets: tweets.map((text) => ({ text })), reply_with_link: reply }),

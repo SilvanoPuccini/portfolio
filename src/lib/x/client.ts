@@ -97,6 +97,33 @@ export interface XApiError {
   detail: string;
 }
 
+/**
+ * X devolvió 402 y el cuerpo lo afirma: la cuenta quedó sin crédito.
+ *
+ * Es un estado TRANSITORIO y de negocio, no un error opaco del endpoint: para
+ * el circuito manual no hay que reintentar ni marcar fallo de infraestructura,
+ * hay que avisarle a la persona que copie y publique a mano. Por eso es un tipo
+ * propio y no un `XApiError` genérico.
+ *
+ * Se tipifica SOLO si el cuerpo confirma el título/type de crédito. Un 401 de
+ * auth no se toca: ahí es un error real de configuración.
+ */
+export class XCreditsDepletedError extends Error {
+  readonly status = 402;
+  readonly code = 'credits-depleted';
+  constructor(detail: string) {
+    super(`[x/credits] La cuenta de X quedó sin crédito: ${detail || 'copiá y publicá a mano'}`);
+    this.name = 'XCreditsDepletedError';
+  }
+}
+
+export function isCreditsDepletedError(reason: unknown): reason is XCreditsDepletedError {
+  return reason instanceof XCreditsDepletedError;
+}
+
+/** Mensaje estable para el panel: el hilo no se publica desde acá, se copia. */
+export const CREDITS_DEPLETED_MESSAGE = 'Sin crédito en X: copiá y publicá a mano.';
+
 async function request<T>(method: 'GET' | 'POST' | 'DELETE', path: string, credentials: XCredentials, body?: unknown): Promise<T> {
   const url = `${API}${path}`;
   const response = await fetch(url, {
@@ -110,6 +137,9 @@ async function request<T>(method: 'GET' | 'POST' | 'DELETE', path: string, crede
 
   const text = await response.text();
   if (!response.ok) {
+    if (response.status === 402 && /credit/i.test(text)) {
+      throw new XCreditsDepletedError(text.slice(0, 300));
+    }
     const error: XApiError = { status: response.status, detail: text.slice(0, 400) };
     throw Object.assign(new Error(`[x/client] ${method} ${path} → ${response.status}${text ? `: ${text.slice(0, 300)}` : ''}`), error);
   }

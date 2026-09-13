@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized } from '@/lib/admin-auth';
-import { whoAmI } from '@/lib/x/client';
+import { isCreditsDepletedError, whoAmI } from '@/lib/x/client';
 import { getThread } from '@/lib/x/repository';
 import { publishThreadNow } from '@/lib/x/service';
 
@@ -34,6 +34,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const result = await publishThreadNow(thread);
     return NextResponse.json({ item: result.thread, alreadyPublished: result.alreadyPublished });
   } catch (reason) {
+    // El 402 de crédito agotado es un estado conocido del circuito manual, no
+    // una falla: la UI lo muestra como "copiá y publicá a mano" y el hilo ya
+    // quedó marcado en last_error.
+    if (isCreditsDepletedError(reason)) {
+      return NextResponse.json({ creditsDepleted: true, error: reason.message }, { status: 402 });
+    }
     return NextResponse.json({ error: reason instanceof Error ? reason.message : 'No se pudo publicar' }, { status: 502 });
   }
 }

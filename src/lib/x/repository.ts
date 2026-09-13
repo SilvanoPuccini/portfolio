@@ -1,13 +1,14 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { BLOG_URL, LINKEDIN_URL } from './author-profile';
-import type { XAngle, XThread, XThreadListItem } from './types';
+import { MAX_REWRITE_HISTORY } from './types';
+import type { XAngle, XRewriteHistoryEntry, XThread, XThreadListItem } from './types';
 
 /**
  * Acceso a `x_threads`. Vive aparte de las rutas para que el cron y el admin
  * usen exactamente el mismo camino, sin dos versiones de la misma consulta.
  */
 
-const COLUMNS = 'id, post_slug, angle_id, angle_summary, thesis, tweets, reply_with_link, evidence, status, scheduled_at, pre_approved_at, published_at, published_ids, published_url, approved_fingerprint, generation_attempts, publish_attempts, last_error, deleted_at, created_at, updated_at';
+const COLUMNS = 'id, post_slug, angle_id, angle_summary, thesis, tweets, reply_with_link, evidence, status, scheduled_at, pre_approved_at, published_at, published_ids, published_url, approved_fingerprint, generation_attempts, publish_attempts, last_error, plan, rewrite_history, deleted_at, created_at, updated_at';
 
 /** Las únicas URL que pueden aparecer en la respuesta del hilo. */
 export function allowedUrls(): string[] {
@@ -52,13 +53,55 @@ export async function siblingsOf(postSlug: string, exceptId?: string): Promise<s
     .flatMap((row) => ((row.tweets ?? []) as { text: string }[]).map((tweet) => tweet.text));
 }
 
-/** Crea los cuatro turnos de la semana. Choca si el ángulo ya existe. */
+/**
+ * Otros hilos que vendrían a la misma hora. El panel avisa de la colisión pero
+ * deja guardar: a veces publicar dos el mismo día es una decisión, no un error.
+ */
+export async function threadsScheduledOn(scheduledAt: string, exceptId?: string): Promise<XThread[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('x_threads').select(COLUMNS)
+    .eq('scheduled_at', scheduledAt).is('deleted_at', null);
+  if (error) throw new Error(error.message);
+  return (data ?? []).filter((row) => row.id !== exceptId) as XThread[];
+}
+
+/**
+ * Sobre la marcha del historial de reescrituras.
+ *
+ * El historial alimenta la próxima generación (el escritor recibe los fixes
+ * acumulados), pero no puede crecer sin límite: cada entrada tiene los fixes de
+ * una vuelta y adentro del prompt caben solo los últimos. El cap está acá, a la
+ * vista del dato, y no en el servicio.
+ */
+export function appendRewriteHistory(current: XRewriteHistoryEntry[], entry: XRewriteHistoryEntry): XRewriteHistoryEntry[] {
+  return [...current, entry].slice(-MAX_REWRITE_HISTORY);
+}
+
+/** Crea un hilo a mano o importado, sin planificar la semana con IA. */
+export async function createThread(row: {
+  post_slug: string;
+  angle_id: string;
+  angle_summary: string;
+  scheduled_at: string;
+  tweets: { text: string; tweet_number: number }[];
+}) {
+  const { data, error } = await getSupabaseAdmin()
+    .from('x_threads').insert({
+      ...row,
+      plan: [{ id: row.angle_id, summary: row.angle_summary.split(' | ')[0], question: row.angle_summary.split(' | ')[1] ?? '' }],
+    }).select(COLUMNS).single();
+  if (error) throw new Error(error.message);
+  return data as XThread;
+}
+
+/** Crea los cuatro turnos de la semana. Choca si el ángulo sigue vivo. */
 export async function createWeek(postSlug: string, angles: XAngle[], dates: string[]) {
   const rows = angles.map((angle, index) => ({
     post_slug: postSlug,
     angle_id: angle.id,
     angle_summary: `${angle.summary} | ${angle.question}`,
     scheduled_at: dates[index],
+    plan: angles,
   }));
   const { data, error } = await getSupabaseAdmin()
     .from('x_threads').insert(rows).select(COLUMNS);
