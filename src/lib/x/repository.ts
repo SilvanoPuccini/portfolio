@@ -77,6 +77,23 @@ export function appendRewriteHistory(current: XRewriteHistoryEntry[], entry: XRe
   return [...current, entry].slice(-MAX_REWRITE_HISTORY);
 }
 
+/**
+ * Los ángulos de semanas recientes, para que el planificador no repita tesis.
+ * El resumen guardado incluye la pregunta ("idea | pregunta"): se compara la
+ * idea, que es lo que define el ángulo aunque cambie el ejemplo.
+ */
+export async function recentAngles(limit = 12): Promise<string[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('x_threads').select('angle_summary, created_at')
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map((row) => (row.angle_summary as string).split(' | ')[0].trim())
+    .filter(Boolean);
+}
+
 /** Crea un hilo a mano o importado, sin planificar la semana con IA. */
 export async function createThread(row: {
   post_slug: string;

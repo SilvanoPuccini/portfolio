@@ -1,5 +1,5 @@
 import { SchemaType, type Schema } from '@google/generative-ai';
-import { criticSystemPrompt, writerInput, writerSystemPrompt } from './prompt';
+import { criticSystemPrompt, planWeekInput, planWeekSystem, writerInput, writerSystemPrompt } from './prompt';
 import { callJson } from './providers';
 import { ANGLES_PER_WEEK } from './scheduling';
 import type { XAngle, XEvidence, XProvider } from './types';
@@ -29,8 +29,9 @@ const ANGLES_SCHEMA: Schema = {
           id: { type: SchemaType.STRING },
           summary: { type: SchemaType.STRING },
           question: { type: SchemaType.STRING },
+          anchor: { type: SchemaType.STRING },
         },
-        required: ['id', 'summary', 'question'],
+        required: ['id', 'summary', 'question', 'anchor'],
       },
     },
   },
@@ -45,24 +46,17 @@ const ANGLES_SCHEMA: Schema = {
  * cada día se generara sin plan, los cuatro terminarían diciendo lo mismo con
  * otras palabras, que es exactamente lo que X sanciona como contenido
  * sustancialmente similar.
+ *
+ * `recentAngles` son los resúmenes de ángulos de semanas recientes: el
+ * planificador los conoce para no repetir tesis.
  */
-export async function planWeek(articleTitle: string, articleText: string): Promise<JsonResult<{ angles: XAngle[] }>> {
-  const system = `
-Sos el planificador editorial de El Radar para X. Leés un artículo y proponés
-hasta ${ANGLES_PER_WEEK} ángulos GENUINAMENTE distintos para publicar durante la semana.
-
-Distintos significa que cambian la tesis y el ejemplo, no las palabras. Dos
-ángulos que se responden con la misma frase son el mismo ángulo.
-
-Si el artículo no da para ${ANGLES_PER_WEEK} ángulos distintos, devolvé menos. Nunca rellenes:
-publicar cuatro variantes de lo mismo puede costar la cuenta.
-
-Cada ángulo: id corto en kebab-case, summary de una oración con la idea
-central, y question con la pregunta concreta que ese ángulo responde.
-`.trim();
-
-  const input = JSON.stringify({ title: articleTitle, text: articleText }, null, 2);
-  const result = await callJson<{ angles: XAngle[] }>(system, input, ANGLES_SCHEMA);
+export async function planWeek(
+  articleTitle: string,
+  articleText: string,
+  recentAngles: string[] = [],
+): Promise<JsonResult<{ angles: XAngle[] }>> {
+  const input = planWeekInput({ articleTitle, articleText, recentAngles });
+  const result = await callJson<{ angles: XAngle[] }>(planWeekSystem(ANGLES_PER_WEEK, recentAngles), input, ANGLES_SCHEMA);
   return { ...result, data: { angles: result.data.angles.slice(0, ANGLES_PER_WEEK) } };
 }
 

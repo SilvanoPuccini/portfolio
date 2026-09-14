@@ -7,7 +7,7 @@ import { planWeek } from './gemini';
 import { fingerprint, orchestrateThread } from './orchestrate';
 import { validateThread } from './validate';
 import {
-  allowedUrls, appendRewriteHistory, createThread, createWeek, siblingsOf, updateThread,
+  allowedUrls, appendRewriteHistory, createThread, createWeek, recentAngles, siblingsOf, updateThread,
 } from './repository';
 import { xScheduleFor } from './scheduling';
 import { MAX_REWRITE_HISTORY, type XAngle, type XRewriteHistoryEntry, type XThread } from './types';
@@ -31,8 +31,10 @@ export async function importThread(row: {
   angle_summary: string;
   scheduled_at: string;
   text: string;
+  /** Falso: guarda todo el texto como un solo tweet, sin partir por líneas. */
+  by_line?: boolean;
 }) {
-  const { tweets, oversize } = parseThreadText(row.text);
+  const { tweets, oversize } = parseThreadText(row.text, { byLine: row.by_line ?? true });
 
   if (tweets.length === 0) throw new Error('No vino ningún tweet: una línea por tweet');
 
@@ -55,20 +57,26 @@ export async function importThread(row: {
 }
 
 /**
- * Parte el texto importado en tweets, una línea por tweet.
+ * Parte el texto importado en tweets.
  *
- * Las líneas en blanco son separadores visuales, no tweets vacíos. Se reportan
- * los que pasan de 280 sin descartarlos: el límite es de X, no del clipboard.
+ * Por defecto (byLine) una línea por tweet, y las líneas en blanco son
+ * separadores visuales, no tweets vacíos. Con byLine false, TODO el texto es
+ * un solo tweet: sirve para importar un hilo que todavía no está partido y
+ * cortarlo después en el editor. Se reportan los que pasan de 280 sin
+ * descartarlos: el límite es de X, no del clipboard.
  */
-export function parseThreadText(text: string): {
+export function parseThreadText(text: string, options: { byLine?: boolean } = {}): {
   tweets: { text: string; tweet_number: number }[];
   oversize: { tweet_number: number; length: number }[];
 } {
-  const tweets = text
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((text, index) => ({ text, tweet_number: index + 1 }));
+  const byLine = options.byLine ?? true;
+  const tweets = byLine
+    ? text
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((text, index) => ({ text, tweet_number: index + 1 }))
+    : [{ text: text.trim(), tweet_number: 1 }].filter((tweet) => tweet.text.length > 0);
 
   const oversize = tweets
     .filter((tweet) => tweet.text.length > MAX_TWEET_LENGTH)
@@ -115,10 +123,14 @@ function planFor(thread: XThread): XAngle[] {
 /**
  * Arma la semana de un post: pide el guion de ángulos y crea un turno por día.
  * El texto de cada hilo se escribe después, día por día.
+ *
+ * Le pasa al planificador los ángulos de semanas recientes para que no repita
+ * tesis: la repetición es lo que hoy produce hilos que se sienten iguales.
  */
 export async function planWeekFor(postSlug: string) {
   const article = await loadArticle(postSlug);
-  const { data, tokens, provider } = await planWeek(article.raw_title, article.raw_content);
+  const recent = await recentAngles(12);
+  const { data, tokens, provider } = await planWeek(article.raw_title, article.raw_content, recent);
   const angles = data.angles;
   if (angles.length === 0) {
     throw new Error('El artículo no dio ningún ángulo distinto para publicar');

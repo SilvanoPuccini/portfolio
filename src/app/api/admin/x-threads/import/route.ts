@@ -12,6 +12,8 @@ const importSchema = z.strictObject({
   angle_summary: z.string().min(1).max(500),
   scheduled_at: z.iso.datetime({ offset: true }),
   text: z.string().min(1).max(4000),
+  /** Falso: guarda todo el texto como un solo tweet, sin partir por líneas. */
+  by_line: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {

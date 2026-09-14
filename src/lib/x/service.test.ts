@@ -30,4 +30,23 @@ describe('parseThreadText', () => {
     expect(tweets[0].text).toHaveLength(281);
     expect(oversize).toEqual([{ tweet_number: 1, length: 281 }]);
   });
+
+  it('keeps the whole text as a single tweet when byLine is false', () => {
+    const { tweets, oversize } = parseThreadText('Parrafo uno\n\nParrafo dos\nParrafo tres', { byLine: false });
+    expect(tweets).toHaveLength(1);
+    expect(tweets[0].text).toBe('Parrafo uno\n\nParrafo dos\nParrafo tres');
+    expect(tweets[0].tweet_number).toBe(1);
+    expect(oversize).toEqual([]);
+  });
+
+  it('reports oversize when the single-tweet text exceeds 280', () => {
+    const { tweets, oversize } = parseThreadText(`${'o'.repeat(281)}\n\n${'x'.repeat(10)}`, { byLine: false });
+    expect(tweets).toHaveLength(1);
+    expect(oversize).toEqual([{ tweet_number: 1, length: 293 }]);
+  });
+
+  it('produces no tweets when byLine false and the text is blank', () => {
+    const { tweets } = parseThreadText('   \n  ', { byLine: false });
+    expect(tweets).toEqual([]);
+  });
 });

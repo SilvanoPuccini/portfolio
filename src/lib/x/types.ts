@@ -78,9 +78,18 @@ export interface XThreadListItem extends Omit<XThread, 'tweets' | 'evidence'> {
   preview: string;
 }
 
-/** Un ángulo del guion semanal: una idea y la pregunta que responde. */
+/**
+ * Un ángulo del guion semanal: una idea, la pregunta que responde y el dato
+ * del artículo del que parte.
+ *
+ * `anchor` es el motivo por el que este ángulo existe: el fragmento o la idea
+ * concreta del post fuente que lo sostiene. Sin anchor los ángulos salen
+ * genéricos (sirven para cualquier post) y los hilos por herencia salen
+ * débiles. Es opcional para filas viejas o importadas a mano.
+ */
 export interface XAngle {
   id: string;
   summary: string;
   question: string;
+  anchor?: string;
 }

@@ -14,10 +14,15 @@ export const dynamic = 'force-dynamic';
  * Los tweets ya llevan tweet_number, pero el ORDEN siempre manda acá: al
  * guardar, se renumera por posición. Así un reorden o un alta manual no pueden
  * dejar números repetidos o salteados, y el editor nunca pelea contra la base.
+ *
+ * Los límites son de almacenamiento, no de publicación: un import a mano puede
+ * traer un texto larguísimo o un hilo con muchos tweets, y la validación de X
+ * (validateThread) lo pincha en last_error sin impedir guardarlo. El editor
+ * decide el contenido; la fila queda inválida hasta que cumpla.
  */
 const updateSchema = z.strictObject({
-  tweets: z.array(z.object({ text: z.string().max(400) })).min(1).max(8).optional(),
-  reply_with_link: z.string().max(400).optional(),
+  tweets: z.array(z.object({ text: z.string().max(10000) })).max(50).optional(),
+  reply_with_link: z.string().max(10000).optional(),
   scheduled_at: z.iso.datetime({ offset: true }).optional(),
   status: z.enum(['planificado', 'preaprobado', 'publicado', 'error']).optional(),
   /** Marca que el hilo se borró en X por fuera del admin. */

@@ -33,8 +33,8 @@ const isoToLocalInput = (iso: string) => {
 };
 
 /** Un tweet del hilo, editable, con su contador ponderado real. */
-function TweetBox({ index, value, onChange }: {
-  index: number; value: string; onChange: (text: string) => void;
+function TweetBox({ index, value, onChange, onRemove }: {
+  index: number; value: string; onChange: (text: string) => void; onRemove: () => void;
 }) {
   const { length, valid } = weightedLength(value);
   return <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
@@ -57,7 +57,11 @@ function TweetBox({ index, value, onChange }: {
         {length} / 280
       </div>
     </div>
-    <span style={{ marginTop: 4 }}><CopyIconButton text={value} label={`Copiar tweet ${index + 1}`} /></span>
+    <span style={{ marginTop: 4, display: 'inline-flex', gap: 4 }}>
+      <CopyIconButton text={value} label={`Copiar tweet ${index + 1}`} />
+      <ConfirmIconButton label={`Borrar tweet ${index + 1}`} tone={c.late}
+        question="Borrar este tweet del hilo?" onConfirm={onRemove}><CrossIcon /></ConfirmIconButton>
+    </span>
   </div>;
 }
 
@@ -267,7 +271,8 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
         </p>
         : <div style={{ display: 'grid', gap: 10 }}>
           {tweets.map((text, index) => <TweetBox key={index} index={index} value={text}
-            onChange={(next) => setDraft(tweets.map((t, i) => (i === index ? next : t)))} />)}
+            onChange={(next) => setDraft(tweets.map((t, i) => (i === index ? next : t)))}
+            onRemove={() => setDraft(tweets.filter((_, i) => i !== index))} />)}
 
           <div style={{ borderTop: `1px solid ${c.border}`, paddingTop: 10 }}>
             <p style={{ margin: '0 0 6px', fontFamily: 'monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: c.textDim }}>
@@ -298,7 +303,7 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
                 cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
               }}>Guardar cambios</button>
             <span style={{ fontSize: 11, color: c.textDim }}>
-              Editar invalida la aprobacion: se revalida al guardar.
+              Se guarda aunque X lo rechace: el motivo queda en la fila hasta arreglarlo.
             </span>
           </div>}
         </div>}

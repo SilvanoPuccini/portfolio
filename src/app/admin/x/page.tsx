@@ -12,6 +12,7 @@ import {
   type XVerificationStep,
 } from '@/lib/x/diagnostics';
 import { resolveXThreadDeepLink } from '@/lib/x/deep-link';
+import { groupThreadsByPost, orderedPosts, postFilterSections } from '@/lib/x/grouping';
 import type { PostPublicationListItem } from '@/lib/post-publications/types';
 
 type Filter = 'all' | XThreadStatus;
@@ -58,6 +59,7 @@ function XPageContent() {
   const [blogs, setBlogs] = useState<PostPublicationListItem[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  const [postFilter, setPostFilter] = useState<string | null>(null);
   const [period, setPeriod] = useState<Period>({ mode: 'semana', anchor: new Date().toISOString() });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [planning, setPlanning] = useState('');
@@ -70,34 +72,74 @@ function XPageContent() {
   const [importSummary, setImportSummary] = useState('');
   const [importDate, setImportDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
   const [importText, setImportText] = useState('');
+  const [importByLine, setImportByLine] = useState(true);
   const [importReport, setImportReport] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [threadsResponse, blogsResponse] = await Promise.all([
-      fetch('/api/admin/x-threads'),
-      fetch('/api/admin/posts-agenda?page=1&per_page=200'),
-    ]);
+    // La agenda completa, página a página: el número de post es su orden
+    // cronológico global, así que no puede depender de la página que se vea.
+    const threadsPromise = fetch('/api/admin/x-threads');
+    const firstPage = await fetch('/api/admin/posts-agenda?page=1&per_page=200')
+      .then((response) => response.json().catch(() => ({})));
+    const blogItems: PostPublicationListItem[] = [...(firstPage.items ?? [])];
+    const total = firstPage.total ?? blogItems.length;
+    for (let page = 2; page <= Math.ceil(total / 200); page++) {
+      const json = await fetch(`/api/admin/posts-agenda?page=${page}&per_page=200`)
+        .then((response) => response.json().catch(() => ({})));
+      blogItems.push(...(json.items ?? []));
+    }
+    const threadsResponse = await threadsPromise;
     const threadsJson = await threadsResponse.json().catch(() => ({}));
-    const blogsJson = await blogsResponse.json().catch(() => ({}));
     setLoading(false);
     if (!threadsResponse.ok) return setError(threadsJson.error ?? 'No se pudieron cargar los hilos');
     setItems(threadsJson.items ?? []);
-    setBlogs(blogsJson.items ?? []);
+    setBlogs(blogItems);
     setError('');
   }, []);
   useEffect(() => { load(); }, [load]);
 
   const inScope = useMemo(() => items.filter((item) => inPeriod(item.scheduled_at, period)), [items, period]);
-  const counts = useMemo(() => {
-    const map: Record<XThreadStatus, number> = { planificado: 0, preaprobado: 0, publicado: 0, error: 0 };
-    for (const item of inScope) map[item.status] += 1;
+  const posts = useMemo(() => orderedPosts(blogs), [blogs]);
+  const now = new Date().toISOString();
+  const countByPost = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const item of inScope) map[item.post_slug] = (map[item.post_slug] ?? 0) + 1;
     return map;
   }, [inScope]);
-  const visible = useMemo(
-    () => inScope.filter((item) => filter === 'all' || item.status === filter),
-    [inScope, filter],
+  const { past, future } = useMemo(
+    () => postFilterSections(posts, countByPost, now),
+    [posts, countByPost, now],
   );
+  // El filtro por post deja de mirar el período: elegir un post viejo muestra
+  // SUS hilos (o la ausencia) sin importar en qué semana cayeron.
+  const scopeItems = useMemo(
+    () => (postFilter ? items.filter((item) => item.post_slug === postFilter) : inScope),
+    [items, inScope, postFilter],
+  );
+  const counts = useMemo(() => {
+    const map: Record<XThreadStatus, number> = { planificado: 0, preaprobado: 0, publicado: 0, error: 0 };
+    for (const item of scopeItems) map[item.status] += 1;
+    return map;
+  }, [scopeItems]);
+  const visible = useMemo(
+    () => scopeItems.filter((item) => filter === 'all' || item.status === filter),
+    [scopeItems, filter],
+  );
+  const groups = useMemo(() => {
+    const base = groupThreadsByPost(visible, posts);
+    const present = new Set(base.map((group) => group.post_slug));
+    // Los posts del período sin hilos también se muestran: para volver a un
+    // post viejo y armarle la semana desde acá. Con filtro de post activo, solo
+    // ese post.
+    const empty = (postFilter
+      ? posts.filter((post) => post.post_slug === postFilter)
+      : posts.filter((post) => inPeriod(post.scheduled_at, period))
+    ).filter((post) => !present.has(post.post_slug));
+    return [...base, ...empty.map((post) => ({
+      post_slug: post.post_slug, title: post.title, number: post.number, threads: [],
+    }))].sort((a, b) => a.number - b.number);
+  }, [posts, visible, period, postFilter]);
 
   /** La lista no incluye los tweets completos; se traen una sola vez al abrir. */
   const loadFullThread = useCallback(async (id: string) => {
@@ -123,6 +165,7 @@ function XPageContent() {
 
     handledDeepLink.current = target.id;
     setFilter('all');
+    setPostFilter(null);
     setPeriod(target.period);
     setOpenId(target.id);
     void loadFullThread(target.id);
@@ -186,11 +229,25 @@ function XPageContent() {
     }
   }
 
-  /** Solo los posts del blog que todavía no tienen su semana armada. */
+  /** Solo los posts de la agenda que todavía no tienen su semana armada. */
   const plannable = useMemo(() => {
     const planned = new Set(items.map((item) => item.post_slug));
-    return blogs.filter((blog) => !planned.has(blog.post_slug));
-  }, [blogs, items]);
+    return posts.filter((post) => !planned.has(post.post_slug));
+  }, [posts, items]);
+
+  /** Arma la semana de un post. Si vino de un grupo sin hilos, lo deja filtrado. */
+  const planFor = useCallback(async (postSlug: string) => {
+    setBusyId('plan'); setError('');
+    const response = await fetch('/api/admin/x-threads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_slug: postSlug }),
+    });
+    const json = await response.json().catch(() => ({}));
+    setBusyId(null);
+    if (!response.ok) return setError(json.error ?? 'No se pudo planificar');
+    setPostFilter(postSlug);
+    await load();
+  }, []);
 
   return <div>
     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -212,21 +269,12 @@ function XPageContent() {
           aria-label="Post del blog para planificar"
           style={{ ...chip(false), fontFamily: 'inherit', maxWidth: 240 }}>
           <option value="">Planificar la semana de...</option>
-          {plannable.map((blog) => <option key={blog.post_slug} value={blog.post_slug}>{blog.raw_title}</option>)}
+          {plannable.map((post) => <option key={post.post_slug} value={post.post_slug}>
+            {`Nº ${String(post.number).padStart(2, '0')} · ${post.title} (${new Date(post.scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })})`}
+          </option>)}
         </select>
         <button disabled={!planning || busyId === 'plan'}
-          onClick={async () => {
-            setBusyId('plan'); setError('');
-            const response = await fetch('/api/admin/x-threads', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ post_slug: planning }),
-            });
-            const json = await response.json().catch(() => ({}));
-            setBusyId(null);
-            if (!response.ok) return setError(json.error ?? 'No se pudo planificar');
-            setPlanning('');
-            await load();
-          }}
+          onClick={() => void planFor(planning)}
           className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
           style={{
             background: c.ready, color: c.page, border: 0, borderRadius: 8, padding: '10px 18px',
@@ -258,7 +306,9 @@ function XPageContent() {
           aria-label="Post del blog del hilo"
           style={{ ...chip(false), fontFamily: 'inherit' }}>
           <option value="">Post del blog...</option>
-          {blogs.map((blog) => <option key={blog.post_slug} value={blog.post_slug}>{blog.raw_title}</option>)}
+          {posts.map((post) => <option key={post.post_slug} value={post.post_slug}>
+            {`Nº ${String(post.number).padStart(2, '0')} · ${post.title} (${new Date(post.scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })})`}
+          </option>)}
         </select>
         <input value={importSummary} onChange={(event) => setImportSummary(event.target.value)}
           aria-label="Angulo del hilo"
@@ -275,12 +325,19 @@ function XPageContent() {
           }} />
         <textarea value={importText} onChange={(event) => setImportText(event.target.value)}
           aria-label="Tweets del hilo, uno por linea"
-          placeholder={'Tweet 1\nTweet 2\nTweet 3'}
+          placeholder={importByLine ? 'Tweet 1\nTweet 2\nTweet 3' : 'Todo el hilo en un solo texto'}
           style={{
             minHeight: 110, padding: 11, borderRadius: 8, fontSize: 13, lineHeight: 1.6,
             color: c.text, background: c.page, border: `1px solid ${c.border}`,
             fontFamily: 'inherit', resize: 'vertical', outline: 'none',
           }} />
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: c.textDim, cursor: 'pointer' }}>
+          <input type="checkbox" checked={importByLine} onChange={(event) => setImportByLine(event.target.checked)} />
+          Separar por líneas (una línea por tweet)
+        </label>
+        {!importByLine && <p style={{ margin: '2px 0 0 24px', fontSize: 10, color: c.textDim }}>
+          Desactivado: todo el texto se guarda como UN tweet del hilo. Puede pasar de 280: se importa igual y lo partís vos en el editor.
+        </p>}
       </div>
       {importReport && <p role="alert" style={{
         margin: '0 0 10px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
@@ -297,6 +354,7 @@ function XPageContent() {
               angle_summary: importSummary,
               scheduled_at: new Date(importDate).toISOString(),
               text: importText,
+              by_line: importByLine,
             }),
           });
           const json = await response.json().catch(() => ({})) as {
@@ -322,15 +380,42 @@ function XPageContent() {
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
       <PeriodPicker value={period} onChange={setPeriod} />
       <span style={{ fontSize: 11, color: c.textDim }}>
-        {inScope.length} {inScope.length === 1 ? 'hilo' : 'hilos'} en {periodLabel(period)}
+        {scopeItems.length} {scopeItems.length === 1 ? 'hilo' : 'hilos'}{postFilter ? ' en el post filtrado' : ` en ${periodLabel(period)}`}
       </span>
     </div>
 
-    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
       {TILES.map((tile) => <Tile key={tile.status} tone={tile.tone} label={tile.label}
         value={counts[tile.status]} active={filter === tile.status}
         onClick={() => setFilter((current) => (current === tile.status ? 'all' : tile.status))} />)}
     </div>
+
+    {posts.length > 0 && <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}
+      aria-label="Filtrar hilos por post">
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button type="button" onClick={() => setPostFilter(null)} aria-pressed={postFilter === null}
+          title="Todos los posts"
+          style={{ ...chip(postFilter === null), fontFamily: 'inherit' }}>Todos</button>
+        <span style={{ fontFamily: 'monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.textDim }}>Pasados</span>
+        {past.map((post) => <button key={post.post_slug} type="button"
+          onClick={() => setPostFilter(post.post_slug === postFilter ? null : post.post_slug)}
+          aria-pressed={postFilter === post.post_slug}
+          title={post.label}
+          style={{ ...chip(postFilter === post.post_slug), fontFamily: 'inherit', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {post.label}{post.count > 0 && ` · ${post.count}`}
+        </button>)}
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.textDim }}>Nuevos</span>
+        {future.map((post) => <button key={post.post_slug} type="button"
+          onClick={() => setPostFilter(post.post_slug === postFilter ? null : post.post_slug)}
+          aria-pressed={postFilter === post.post_slug}
+          title={post.label}
+          style={{ ...chip(postFilter === post.post_slug), fontFamily: 'inherit', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {post.label}{post.count > 0 && ` · ${post.count}`}
+        </button>)}
+      </div>
+    </div>}
 
     {error && <div role="alert" style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late, fontSize: 13 }}>{error}</div>}
 
@@ -341,32 +426,67 @@ function XPageContent() {
             ? 'Todavía no hay hilos. Elegí un post del blog y armá su semana.'
             : `No hay hilos en ${periodLabel(period)} con este filtro.`}
         </p>
-        : visible.map((item) => <XThreadRow key={item.id} item={item}
-          expanded={openId === item.id}
-          full={full[item.id]}
-          busy={busyId === item.id}
-          warning={warnings[item.id] ? warnings[item.id] : null}
-          onToggle={() => open(item.id)}
-          onGenerate={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/generate`, { method: 'POST' }))}
-           onPublish={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/publish`, { method: 'POST' }))}
-          onChangeStatus={(status) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status }),
-          }))}
-          onSaveDate={(scheduledAt) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scheduled_at: scheduledAt }),
-          }))}
-          onSave={(tweets, reply) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tweets: tweets.map((text) => ({ text })), reply_with_link: reply }),
-          }))}
-          onMarkRemoved={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mark_removed: true }),
-          }))}
-          onDelete={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, { method: 'DELETE' }))}
-        />)}
+        : groups.map((group) => (
+          <section key={group.post_slug} aria-label={`Semana de ${group.title}`}
+            style={{ borderBottom: `1px solid ${c.border}` }}>
+            <header style={{
+              display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap',
+              padding: '9px 14px', background: tint(c.ready, '07'),
+              borderBottom: `1px solid ${c.border}`,
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: c.text, letterSpacing: '-0.01em' }}>
+                {`Nº ${String(group.number).padStart(2, '0')} · ${group.title}`}
+              </span>
+              <span style={{
+                fontFamily: 'monospace', fontSize: 10, letterSpacing: '0.1em',
+                textTransform: 'uppercase', color: c.textDim,
+              }}>
+                {group.threads.length === 0
+                  ? 'Sin hilos todavia'
+                  : `Semana · ${group.threads.length} ${group.threads.length === 1 ? 'hilo' : 'hilos'} · desde ${new Date(group.threads[0].scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}`}
+              </span>
+            </header>
+            {group.threads.length === 0 && <div style={{ padding: 14 }}>
+              <p style={{ margin: '0 0 10px', fontSize: 12, color: c.textDim }}>
+                Este post todavia no tiene hilos: arma su semana y despues escribi cada texto.
+              </p>
+              <button type="button" disabled={busyId === 'plan'}
+                onClick={() => void planFor(group.post_slug)}
+                className="transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+                style={{
+                  height: 30, padding: '0 15px', borderRadius: 7, border: 0,
+                  background: c.ready, color: c.page, fontSize: 12, fontWeight: 700,
+                  cursor: busyId === 'plan' ? 'wait' : 'pointer', fontFamily: 'inherit',
+                }}>{busyId === 'plan' ? 'Armando...' : 'Armar semana'}</button>
+            </div>}
+            {group.threads.map((item) => <XThreadRow key={item.id} item={item}
+              expanded={openId === item.id}
+              full={full[item.id]}
+              busy={busyId === item.id}
+              warning={warnings[item.id] ? warnings[item.id] : null}
+              onToggle={() => open(item.id)}
+              onGenerate={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/generate`, { method: 'POST' }))}
+              onPublish={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/publish`, { method: 'POST' }))}
+              onChangeStatus={(status) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+              }))}
+              onSaveDate={(scheduledAt) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ scheduled_at: scheduledAt }),
+              }))}
+              onSave={(tweets, reply) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tweets: tweets.map((text) => ({ text })), reply_with_link: reply }),
+              }))}
+              onMarkRemoved={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mark_removed: true }),
+              }))}
+              onDelete={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, { method: 'DELETE' }))}
+            />)}
+          </section>
+        ))}
     </div>
   </div>;
 }
