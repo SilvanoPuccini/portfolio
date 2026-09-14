@@ -8,6 +8,7 @@ import JsonLd from "@/components/JsonLd";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { StackSection } from "@/components/about/StackSection";
+import { EducationCertificateActions } from "@/components/about/EducationCertificateActions";
 import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
@@ -459,6 +460,9 @@ export default async function AboutPage({
                 <h3 className="mt-3 text-xl font-semibold text-text-primary">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-text-tertiary">{item.period}</p>
                 <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">{item.detail}</p>
+                {index === 0 ? (
+                  <EducationCertificateActions locale={currentLocale} title={item.title} />
+                ) : null}
               </Reveal>
             ))}
           </div>

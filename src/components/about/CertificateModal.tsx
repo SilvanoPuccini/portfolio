@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { X } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -14,12 +14,28 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 interface Props {
   stackName: string;
   fileName: string;
+  labels?: {
+    certificate: string;
+    close: string;
+    loading: string;
+    error: string;
+  };
   onClose: () => void;
 }
 
-export function CertificateModal({ stackName, fileName, onClose }: Props) {
+const defaultLabels = {
+  certificate: "Certificado",
+  close: "Cerrar",
+  loading: "Cargando certificado…",
+  error: "No se pudo cargar el certificado.",
+};
+
+export function CertificateModal({ stackName, fileName, labels = defaultLabels, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
   const [containerWidth, setContainerWidth] = useState(0);
   // Alto disponible calculado en JS con window.innerHeight (igual que los
   // diagramas del blog) — nunca depende del clientHeight de un contenedor
@@ -52,8 +68,27 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
     : containerWidth;
 
   useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") close();
+      if (e.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
     }
     // Un back físico/gesto de mobile mientras el certificado está abierto no
     // debe sacar de la página: consume la entrada de historial que empujamos.
@@ -66,10 +101,12 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
     window.history.pushState({ certificateModal: true }, "");
 
     document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("popstate", onPopState);
       document.body.style.overflow = "";
+      previouslyFocused?.focus();
     };
   }, []);
 
@@ -91,6 +128,10 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
 
       {/* Panel */}
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="relative z-10 flex w-[min(92vw,64rem)] flex-col overflow-hidden rounded-[var(--radius-surface)] border border-outline-ghost/15 bg-[rgb(var(--surface))] shadow-[0_32px_80px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -101,18 +142,20 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
         >
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-tertiary">
-              Certificado
+              {labels.certificate}
             </p>
-            <p className="mt-0.5 text-sm font-semibold text-text-primary sm:text-base">
+            <p id={titleId} className="mt-0.5 text-sm font-semibold text-text-primary sm:text-base">
               {stackName}
             </p>
           </div>
           <button
+            ref={closeButtonRef}
+            type="button"
             onClick={close}
-            className="flex h-8 w-8 items-center justify-center rounded-pill border border-outline-ghost/15 text-text-tertiary transition-colors hover:border-outline-ghost/30 hover:text-text-primary"
-            aria-label="Cerrar"
+            className="flex h-8 w-8 items-center justify-center rounded-pill border border-outline-ghost/15 text-text-tertiary transition-colors hover:border-outline-ghost/30 hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
+            aria-label={labels.close}
           >
-            <X size={14} />
+            <X size={14} aria-hidden="true" />
           </button>
         </div>
 
@@ -126,12 +169,12 @@ export function CertificateModal({ stackName, fileName, onClose }: Props) {
             file={`/api/certificate/${encodeURIComponent(fileName)}`}
             loading={
               <div className="flex h-64 items-center justify-center text-sm text-text-tertiary">
-                Cargando certificado…
+                {labels.loading}
               </div>
             }
             error={
               <div className="flex h-64 items-center justify-center text-sm text-text-tertiary">
-                No se pudo cargar el certificado.
+                {labels.error}
               </div>
             }
           >

@@ -18,6 +18,7 @@ const ALLOWED: Record<string, string> = {
   "Certificado-Java-backend.pdf": "Certificado-Java-backend.pdf",
   "Certificado-Rust.pdf": "Certificado-Rust.pdf",
   "docker.pdf": "docker.pdf",
+  "master-full-stack-conquer-blocks.pdf": "master-full-stack-conquer-blocks.pdf",
 };
 
 export async function GET(
