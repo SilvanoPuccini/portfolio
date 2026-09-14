@@ -53,10 +53,15 @@ export function preApprovalBlockReason(raw: string | null | undefined): string |
  * Fila tal como la devuelve el listado del admin. No trae `raw_content`
  * (el texto entero de cada post) porque la pantalla solo necesita saber si
  * hay texto cargado, no leerlo.
+ *
+ * `issue` es el número real del post (el mismo que muestra Newsletter): la
+ * posición en el blog por fecha, el más antiguo = Nº 1, y crece con cada post
+ * cargado. No se inventa en el cliente: lo calcula el servidor desde los MDX.
  */
 export interface PostPublicationListItem extends Omit<PostPublication, 'raw_content'> {
   has_content: boolean;
   content_chars: number;
+  issue: number;
 }
 
 export function slugifyTitle(title: string): string {

@@ -270,7 +270,7 @@ function XPageContent() {
           style={{ ...chip(false), fontFamily: 'inherit', maxWidth: 240 }}>
           <option value="">Planificar la semana de...</option>
           {plannable.map((post) => <option key={post.post_slug} value={post.post_slug}>
-            {`Nº ${String(post.number).padStart(2, '0')} · ${post.title} (${new Date(post.scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })})`}
+            {`${post.number > 0 ? `Nº ${String(post.number).padStart(2, '0')} · ` : ''}${post.title} (${new Date(post.scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })})`}
           </option>)}
         </select>
         <button disabled={!planning || busyId === 'plan'}
@@ -307,7 +307,7 @@ function XPageContent() {
           style={{ ...chip(false), fontFamily: 'inherit' }}>
           <option value="">Post del blog...</option>
           {posts.map((post) => <option key={post.post_slug} value={post.post_slug}>
-            {`Nº ${String(post.number).padStart(2, '0')} · ${post.title} (${new Date(post.scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })})`}
+            {`${post.number > 0 ? `Nº ${String(post.number).padStart(2, '0')} · ` : ''}${post.title} (${new Date(post.scheduled_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })})`}
           </option>)}
         </select>
         <input value={importSummary} onChange={(event) => setImportSummary(event.target.value)}
@@ -390,31 +390,24 @@ function XPageContent() {
         onClick={() => setFilter((current) => (current === tile.status ? 'all' : tile.status))} />)}
     </div>
 
-    {posts.length > 0 && <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}
-      aria-label="Filtrar hilos por post">
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" onClick={() => setPostFilter(null)} aria-pressed={postFilter === null}
-          title="Todos los posts"
-          style={{ ...chip(postFilter === null), fontFamily: 'inherit' }}>Todos</button>
-        <span style={{ fontFamily: 'monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.textDim }}>Pasados</span>
-        {past.map((post) => <button key={post.post_slug} type="button"
-          onClick={() => setPostFilter(post.post_slug === postFilter ? null : post.post_slug)}
-          aria-pressed={postFilter === post.post_slug}
-          title={post.label}
-          style={{ ...chip(postFilter === post.post_slug), fontFamily: 'inherit', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {post.label}{post.count > 0 && ` · ${post.count}`}
-        </button>)}
-      </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.textDim }}>Nuevos</span>
-        {future.map((post) => <button key={post.post_slug} type="button"
-          onClick={() => setPostFilter(post.post_slug === postFilter ? null : post.post_slug)}
-          aria-pressed={postFilter === post.post_slug}
-          title={post.label}
-          style={{ ...chip(postFilter === post.post_slug), fontFamily: 'inherit', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {post.label}{post.count > 0 && ` · ${post.count}`}
-        </button>)}
-      </div>
+    {posts.length > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+      <span style={{ fontFamily: 'monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.textDim, whiteSpace: 'nowrap' }}>Post</span>
+      <select value={postFilter ?? ''} onChange={(event) => setPostFilter(event.target.value || null)}
+        aria-label="Filtrar hilos por post (Pasados / Nuevos)"
+        title={postFilter ? (past.find((p) => p.post_slug === postFilter) ?? future.find((p) => p.post_slug === postFilter))?.label : 'Todos los posts'}
+        style={{ ...chip(postFilter !== null), fontFamily: 'inherit', maxWidth: 340, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <option value="">Todos los posts</option>
+        {past.length > 0 && <optgroup label="Pasados">
+          {past.map((post) => <option key={post.post_slug} value={post.post_slug}>
+            {post.label}{post.count > 0 && ` · ${post.count}`}
+          </option>)}
+        </optgroup>}
+        {future.length > 0 && <optgroup label="Nuevos">
+          {future.map((post) => <option key={post.post_slug} value={post.post_slug}>
+            {post.label}{post.count > 0 && ` · ${post.count}`}
+          </option>)}
+        </optgroup>}
+      </select>
     </div>}
 
     {error && <div role="alert" style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late, fontSize: 13 }}>{error}</div>}
@@ -435,7 +428,7 @@ function XPageContent() {
               borderBottom: `1px solid ${c.border}`,
             }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: c.text, letterSpacing: '-0.01em' }}>
-                {`Nº ${String(group.number).padStart(2, '0')} · ${group.title}`}
+                {group.number > 0 ? `Nº ${String(group.number).padStart(2, '0')} · ${group.title}` : group.title}
               </span>
               <span style={{
                 fontFamily: 'monospace', fontSize: 10, letterSpacing: '0.1em',

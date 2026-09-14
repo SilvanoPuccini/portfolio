@@ -1,12 +1,15 @@
 import type { PostPublicationListItem } from '@/lib/post-publications/types';
 import type { XThreadListItem } from './types';
 
-/** Una referencia a un post de la agenda, con su número de orden cronológico. */
+/** Una referencia a un post de la agenda, con su número real de edición. */
 export interface PostRef {
   post_slug: string;
   /** Título del post. */
   title: string;
-  /** Número de orden: la posición del post en la agenda completa por fecha. */
+  /**
+   * Número real del post (issue del blog, el mismo que muestra Newsletter):
+   * identifica cuándo se cargó y en qué orden va. 0 si el post no tiene edición.
+   */
   number: number;
   /** Fecha de publicación del post. */
   scheduled_at: string;
@@ -22,17 +25,17 @@ export interface XThreadGroup {
 }
 
 /**
- * Todos los posts de la agenda en orden cronológico, numerados por posición.
- * El número es estable mientras no cambie la agenda: sirve para identificar un
- * post de un vistazo, igual que en las otras secciones del admin.
+ * Todos los posts de la agenda en orden cronológico. El número NO se calcula
+ * por posición: es el issue real del blog (el más antiguo = Nº 1, crece con
+ * cada post cargado), el mismo que se ve en Newsletter y en Agenda.
  */
 export function orderedPosts(blogs: PostPublicationListItem[]): PostRef[] {
   return [...blogs]
     .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
-    .map((blog, index) => ({
+    .map((blog) => ({
       post_slug: blog.post_slug,
       title: blog.raw_title,
-      number: index + 1,
+      number: blog.issue,
       scheduled_at: blog.scheduled_at,
     }));
 }
@@ -50,7 +53,9 @@ export interface PostFilterOption {
 /**
  * Opciones del filtro rápido por post, separadas en Pasados y Nuevos según la
  * fecha de publicación del post. Los pasados van del más reciente hacia
- * atrás; los nuevos, hacia adelante. Incluye posts sin hilos: elegirlos es la
+ * atrás; los nuevos también del más reciente hacia atrás, porque en X se
+ * trabaja al revés: el próximo post a publicar es el más nuevo (número más
+ * alto), así que aparece primero. Incluye posts sin hilos: elegirlos es la
  * única forma de volver a un post viejo y armarle la semana.
  */
 export function postFilterSections(
@@ -60,7 +65,9 @@ export function postFilterSections(
 ): { past: PostFilterOption[]; future: PostFilterOption[] } {
   const option = (post: PostRef): PostFilterOption => ({
     post_slug: post.post_slug,
-    label: `Nº ${String(post.number).padStart(2, '0')} · ${post.title}`,
+    label: post.number > 0
+      ? `Nº ${String(post.number).padStart(2, '0')} · ${post.title}`
+      : post.title,
     number: post.number,
     title: post.title,
     count: countByPost[post.post_slug] ?? 0,
@@ -72,7 +79,7 @@ export function postFilterSections(
     .map(option);
   const future = posts
     .filter((post) => post.scheduled_at > now)
-    .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
+    .sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at))
     .map(option);
 
   return { past, future };

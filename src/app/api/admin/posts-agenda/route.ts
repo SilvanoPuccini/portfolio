@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { getAllBlogPosts } from '@/lib/mdx';
 import { createPostPublicationSchema } from '@/lib/post-publications/schemas';
 import type { PostPublicationStatus } from '@/lib/post-publications/types';
 
@@ -39,6 +40,11 @@ export async function GET(req: NextRequest) {
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // El número de post es el issue real del blog (como en Newsletter): la
+  // posición por fecha de cada MDX, el más antiguo = Nº 1. No es un orden
+  // inventado por la agenda: es el número que identifica al post.
+  const issueBySlug = new Map(getAllBlogPosts().map((post) => [post.slug, post.issue]));
+
   // El listado no manda `raw_content`: es el texto entero de cada post, y
   // viajaba al navegador solo para dibujar una fila. Lo que la pantalla
   // necesita saber es si hay texto cargado y cuánto, no el texto en sí.
@@ -46,6 +52,7 @@ export async function GET(req: NextRequest) {
     ...row,
     has_content: Boolean(raw_content && raw_content.trim().length > 0),
     content_chars: raw_content?.trim().length ?? 0,
+    issue: issueBySlug.get(row.post_slug) ?? 0,
   }));
 
   return NextResponse.json({ items, total: count ?? 0, page, per_page: perPage });
