@@ -72,7 +72,6 @@ function XPageContent() {
   const [importSummary, setImportSummary] = useState('');
   const [importDate, setImportDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
   const [importText, setImportText] = useState('');
-  const [importByLine, setImportByLine] = useState(true);
   const [importReport, setImportReport] = useState('');
 
   const load = useCallback(async () => {
@@ -298,8 +297,8 @@ function XPageContent() {
         Importar hilo escrito a mano
       </p>
       <p style={{ margin: '0 0 12px', fontSize: 12, color: c.textDim, lineHeight: 1.5 }}>
-        Una linea por tweet. Si alguno pasa de 280, se importa igual y el editor lo pincha hasta
-        dejarlo publicable.
+        Pegá el texto completo. Los saltos simples se unen con un espacio; una línea en blanco
+        (punto y aparte) separa párrafos. Cada post tiene un máximo ponderado de 280 caracteres.
       </p>
       <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
         <select value={importPost} onChange={(event) => setImportPost(event.target.value)}
@@ -324,20 +323,13 @@ function XPageContent() {
             background: c.page, border: `1px solid ${c.border}`, outline: 'none', fontFamily: 'inherit',
           }} />
         <textarea value={importText} onChange={(event) => setImportText(event.target.value)}
-          aria-label="Tweets del hilo, uno por linea"
-          placeholder={importByLine ? 'Tweet 1\nTweet 2\nTweet 3' : 'Todo el hilo en un solo texto'}
+          aria-label="Texto completo del hilo"
+          placeholder="Pegá acá el texto completo del hilo"
           style={{
             minHeight: 110, padding: 11, borderRadius: 8, fontSize: 13, lineHeight: 1.6,
             color: c.text, background: c.page, border: `1px solid ${c.border}`,
             fontFamily: 'inherit', resize: 'vertical', outline: 'none',
           }} />
-        <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: c.textDim, cursor: 'pointer' }}>
-          <input type="checkbox" checked={importByLine} onChange={(event) => setImportByLine(event.target.checked)} />
-          Separar por líneas (una línea por tweet)
-        </label>
-        {!importByLine && <p style={{ margin: '2px 0 0 24px', fontSize: 10, color: c.textDim }}>
-          Desactivado: todo el texto se guarda como UN tweet del hilo. Puede pasar de 280: se importa igual y lo partís vos en el editor.
-        </p>}
       </div>
       {importReport && <p role="alert" style={{
         margin: '0 0 10px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
@@ -354,7 +346,6 @@ function XPageContent() {
               angle_summary: importSummary,
               scheduled_at: new Date(importDate).toISOString(),
               text: importText,
-              by_line: importByLine,
             }),
           });
           const json = await response.json().catch(() => ({})) as {

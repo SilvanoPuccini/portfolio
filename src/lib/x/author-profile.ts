@@ -174,6 +174,10 @@ export const NEVER_MENTION = [
 ];
 
 export const BLOG_URL = 'https://www.silvanopuccini.dev/es/';
+export const BLOG_INDEX_URLS = [
+  'https://silvanopuccini.dev/es/blog',
+  'https://silvanopuccini.dev/es/blog/',
+] as const;
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/silvanopuccini/';
 /** Su cuenta de X. Se usa para armar la URL del hilo ya publicado. */
 export const X_USERNAME = 'silvanopuccini';

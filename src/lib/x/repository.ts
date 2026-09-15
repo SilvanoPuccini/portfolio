@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { BLOG_URL, LINKEDIN_URL } from './author-profile';
+import { BLOG_INDEX_URLS, BLOG_URL, LINKEDIN_URL } from './author-profile';
 import { MAX_REWRITE_HISTORY } from './types';
 import type { XAngle, XRewriteHistoryEntry, XThread, XThreadListItem } from './types';
 
@@ -12,7 +12,7 @@ const COLUMNS = 'id, post_slug, angle_id, angle_summary, thesis, tweets, reply_w
 
 /** Las únicas URL que pueden aparecer en la respuesta del hilo. */
 export function allowedUrls(): string[] {
-  return [BLOG_URL, LINKEDIN_URL];
+  return [BLOG_URL, ...BLOG_INDEX_URLS, LINKEDIN_URL];
 }
 
 function toListItem(row: XThread): XThreadListItem {

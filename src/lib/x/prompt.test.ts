@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { allowedUrls } from './repository';
 import { planWeekInput, planWeekSystem, writerInput, writerSystemPrompt } from './prompt';
 
 describe('planWeekSystem', () => {
@@ -66,5 +67,21 @@ describe('writerInput', () => {
     expect(input.article.title).toBe('T');
     expect(input.weekly_plan[0].anchor).toBe('Dato');
     expect(input.selected_angle_id).toBe('a');
+  });
+
+  it('guía al redactor con el índice nuevo sin perder las URL canónicas anteriores', () => {
+    const input = JSON.parse(writerInput({
+      articleTitle: 'T',
+      articleUrl: 'https://silvanopuccini.dev/es/blog/p',
+      articleText: 'Texto',
+      angles: [{ id: 'a', summary: 'S', question: 'Q', anchor: 'Dato' }],
+      selectedAngleId: 'a',
+      publishedThisWeek: [],
+      allowedUrls: allowedUrls(),
+    }));
+    expect(input.allowed_urls).toContain('https://silvanopuccini.dev/es/blog');
+    expect(input.allowed_urls).toContain('https://silvanopuccini.dev/es/blog/');
+    expect(input.allowed_urls).toContain('https://www.silvanopuccini.dev/es/');
+    expect(input.allowed_urls).toContain('https://www.linkedin.com/in/silvanopuccini/');
   });
 });

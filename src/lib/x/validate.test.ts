@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { allowedUrls } from './repository';
 import { validateThread, weightedLength } from './validate';
 
 const OK_URL = 'https://www.silvanopuccini.dev/es/';
@@ -83,6 +84,16 @@ describe('validateThread', () => {
   it('rejects a link that is not on the allow list', () => {
     const issues = validateThread(goodThread(), 'Miralo acá: https://ejemplo-no-autorizado.com/post', ALLOWED);
     expect(issues).toContainEqual(expect.objectContaining({ target: 'link_reply' }));
+  });
+
+  it.each([
+    'https://www.silvanopuccini.dev/es/',
+    'https://silvanopuccini.dev/es/blog',
+    'https://silvanopuccini.dev/es/blog/',
+    'https://www.linkedin.com/in/silvanopuccini/',
+  ])('accepts the manually allowed response URL %s', (url) => {
+    const issues = validateThread(goodThread(), `Leé el blog acá: ${url}`, allowedUrls());
+    expect(issues).toEqual([]);
   });
 
   it('rejects a reply with no link at all, which would strand the thread', () => {

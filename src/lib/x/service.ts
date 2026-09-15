@@ -5,7 +5,7 @@ import {
 } from './client';
 import { planWeek } from './gemini';
 import { fingerprint, orchestrateThread } from './orchestrate';
-import { validateThread } from './validate';
+import { validateThread, weightedLength } from './validate';
 import {
   allowedUrls, appendRewriteHistory, createThread, createWeek, recentAngles, siblingsOf, updateThread,
 } from './repository';
@@ -17,13 +17,8 @@ export const MAX_TWEET_LENGTH = 280;
 /**
  * Importa un hilo escrito a mano o fuera del panel.
  *
- * Una línea por tweet. Reporta los tweets que exceden el límite de X, pero los
- * guarda igual: el editor los recorta y la validación los pincha hasta que
- * queden publicables. La fila nace planificada, sin aprobación.
- *
- * El texto importado se valida y se deja con huella si pasa: preaprobar exige
- * approved_fingerprint, así que un import válido arranca aprobable sin tener
- * que reescribirlo, y uno inválido queda con el motivo en last_error.
+ * El texto se divide según párrafos y el peso real de X. La fila nace
+ * planificada y sin aprobación, como cualquier borrador.
  */
 export async function importThread(row: {
   post_slug: string;
@@ -31,15 +26,16 @@ export async function importThread(row: {
   angle_summary: string;
   scheduled_at: string;
   text: string;
-  /** Falso: guarda todo el texto como un solo tweet, sin partir por líneas. */
-  by_line?: boolean;
 }) {
-  const { tweets, oversize } = parseThreadText(row.text, { byLine: row.by_line ?? true });
+  const tweets = parseThreadText(row.text);
 
-  if (tweets.length === 0) throw new Error('No vino ningún tweet: una línea por tweet');
+  if (tweets.length === 0) throw new Error('No vino ningún texto para importar');
 
   const texts = tweets.map((tweet) => tweet.text);
   const issues = validateThread(texts, '', allowedUrls());
+  const oversize = tweets
+    .map((tweet) => ({ tweet_number: tweet.tweet_number, length: weightedLength(tweet.text).length }))
+    .filter((tweet) => tweet.length > MAX_TWEET_LENGTH);
 
   const thread = await createThread({
     post_slug: row.post_slug,
@@ -57,32 +53,111 @@ export async function importThread(row: {
 }
 
 /**
- * Parte el texto importado en tweets.
- *
- * Por defecto (byLine) una línea por tweet, y las líneas en blanco son
- * separadores visuales, no tweets vacíos. Con byLine false, TODO el texto es
- * un solo tweet: sirve para importar un hilo que todavía no está partido y
- * cortarlo después en el editor. Se reportan los que pasan de 280 sin
- * descartarlos: el límite es de X, no del clipboard.
+ * Une saltos simples, conserva el punto y aparte y empaqueta párrafos completos.
+ * Un párrafo demasiado largo se corta por oración, espacio o, como último
+ * recurso, por el límite ponderado de X.
  */
-export function parseThreadText(text: string, options: { byLine?: boolean } = {}): {
-  tweets: { text: string; tweet_number: number }[];
-  oversize: { tweet_number: number; length: number }[];
-} {
-  const byLine = options.byLine ?? true;
-  const tweets = byLine
-    ? text
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((text, index) => ({ text, tweet_number: index + 1 }))
-    : [{ text: text.trim(), tweet_number: 1 }].filter((tweet) => tweet.text.length > 0);
+export function parseThreadText(text: string): { text: string; tweet_number: number }[] {
+  const chunks: string[] = [];
+  const normalized = text.replace(/\r\n?/g, '\n').trim();
+  if (!normalized) return [];
 
-  const oversize = tweets
-    .filter((tweet) => tweet.text.length > MAX_TWEET_LENGTH)
-    .map((tweet) => ({ tweet_number: tweet.tweet_number, length: tweet.text.length }));
+  const paragraphs = normalized
+    .split(/\n\s*\n/u)
+    .map((paragraph) => paragraph.replace(/[^\S\n]*\n[^\S\n]*/gu, ' ').trim())
+    .filter(Boolean);
+  const segmenter = new Intl.Segmenter('es', { granularity: 'grapheme' });
+  const fits = (candidate: string) => {
+    const measured = weightedLength(candidate);
+    return measured.valid && measured.length <= MAX_TWEET_LENGTH;
+  };
 
-  return { tweets, oversize };
+  const splitOversizedParagraph = (paragraph: string): string[] => {
+    const parts: string[] = [];
+    let remaining = Array.from(segmenter.segment(paragraph), ({ segment }) => segment);
+
+    while (remaining.length > 0) {
+      let candidate = '';
+      let longestValid = 0;
+
+      // Keep scanning after an invalid URL prefix: twitter-text can count the
+      // complete URL as 23 even when an intermediate substring is oversized.
+      for (let index = 0; index < remaining.length; index++) {
+        candidate += remaining[index];
+        if (fits(candidate)) longestValid = index + 1;
+      }
+
+      if (longestValid === 0) {
+        const oversizedGrapheme = Array.from(remaining[0]);
+        if (oversizedGrapheme.length === 1) {
+          throw new Error('El texto contiene un carácter que X no acepta');
+        }
+        remaining = [...oversizedGrapheme, ...remaining.slice(1)];
+        continue;
+      }
+
+      if (longestValid === remaining.length) {
+        parts.push(remaining.join('').trimEnd());
+        break;
+      }
+
+      let boundary = longestValid;
+      let foundSentenceBoundary = false;
+      for (let index = longestValid; index > 0; index--) {
+        const part = remaining.slice(0, index).join('').trimEnd();
+        if (/[.!?。！？…](?:["'”’»)\]}]*)$/u.test(part) && fits(part)) {
+          boundary = index;
+          foundSentenceBoundary = true;
+          break;
+        }
+      }
+
+      if (!foundSentenceBoundary) {
+        for (let index = longestValid - 1; index > 0; index--) {
+          if (!/^\s+$/u.test(remaining[index])) continue;
+          const part = remaining.slice(0, index).join('').trimEnd();
+          if (part && fits(part)) {
+            boundary = index;
+            break;
+          }
+        }
+      }
+
+      const chunk = remaining.slice(0, boundary).join('').trimEnd();
+      if (chunk) parts.push(chunk);
+      remaining = remaining.slice(boundary);
+      while (remaining.length > 0 && /^\s+$/u.test(remaining[0])) remaining.shift();
+    }
+
+    return parts;
+  };
+
+  let current = '';
+  for (const paragraph of paragraphs) {
+    const candidate = current ? `${current}\n\n${paragraph}` : paragraph;
+    if (fits(candidate)) {
+      current = candidate;
+      continue;
+    }
+
+    if (current) {
+      chunks.push(current);
+      current = '';
+    }
+
+    if (fits(paragraph)) {
+      current = paragraph;
+      continue;
+    }
+
+    const parts = splitOversizedParagraph(paragraph);
+    chunks.push(...parts.slice(0, -1));
+    current = parts.at(-1) ?? '';
+  }
+
+  if (current) chunks.push(current);
+
+  return chunks.map((chunk, index) => ({ text: chunk, tweet_number: index + 1 }));
 }
 
 /**

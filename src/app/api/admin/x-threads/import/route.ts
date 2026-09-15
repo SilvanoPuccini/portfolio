@@ -12,8 +12,6 @@ const importSchema = z.strictObject({
   angle_summary: z.string().min(1).max(500),
   scheduled_at: z.iso.datetime({ offset: true }),
   text: z.string().min(1).max(4000),
-  /** Falso: guarda todo el texto como un solo tweet, sin partir por líneas. */
-  by_line: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -26,8 +24,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await importThread(parsed.data);
-    // Los tweets pasados de 280 se importan y se reportan: recortar es edición,
-    // y la edición vive en el editor.
     return NextResponse.json({ item: result.thread, oversize: result.oversize }, { status: 201 });
   } catch (reason) {
     return NextResponse.json({ error: reason instanceof Error ? reason.message : 'No se pudo importar' }, { status: 400 });
