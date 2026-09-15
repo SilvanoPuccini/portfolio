@@ -15,7 +15,7 @@ const MODELS_TO_TEST = [
 ];
 
 /** El modelo exacto que usa el failover de cuota de src/lib/x/providers.ts. */
-const GROQ_MODEL = 'gpt-oss-120b';
+const GROQ_MODEL = 'openai/gpt-oss-120b';
 
 async function testModel(apiKey: string, model: string): Promise<string> {
   try {

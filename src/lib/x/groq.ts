@@ -10,7 +10,7 @@ import { jsonrepair } from 'jsonrepair';
  */
 
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'gpt-oss-120b';
+const MODEL = 'openai/gpt-oss-120b';
 
 /** Traduce el Schema de Gemini (SchemaType, PascalCase) a JSON Schema plano. */
 export function toJsonSchema(schema: Schema): Record<string, unknown> {
