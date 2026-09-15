@@ -260,10 +260,22 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
         usá el boton de copiar, pegalo en X y programa la hora desde alla.
       </p>}
 
-      {item.last_error && !noCredits && <p role="alert" style={{
-        margin: '0 0 12px', padding: '9px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
+      {item.last_error && !noCredits && <div role="alert" style={{
+        margin: '0 0 12px', padding: '10px 12px', borderRadius: 8, fontSize: 11, lineHeight: 1.5,
         border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late,
-      }}>{item.last_error}</p>}
+      }}>
+        {item.status === 'error' && <p style={{ margin: '0 0 4px', fontWeight: 700 }}>
+          La IA rechazo este hilo{item.generation_attempts > 0 && ` (${item.generation_attempts} ${item.generation_attempts === 1 ? 'intento' : 'intentos'})`}.
+        </p>}
+        <p style={{ margin: 0, opacity: 0.92 }}>
+          {item.status === 'error'
+            ? 'Aprieta Reescribir para que trabaje sobre esta devolucion.'
+            : item.last_error}
+        </p>
+        {item.status === 'error' && item.last_error && <p style={{ margin: '6px 0 0', opacity: 0.75, whiteSpace: 'pre-wrap' }}>
+          {item.last_error.split(' | ').map((reason) => `· ${reason}`).join('\n')}
+        </p>}
+      </div>}
 
       {!full ? <p style={{ margin: 0, fontSize: 12, color: c.textDim }}>Cargando...</p>
         : tweets.length === 0 ? <p style={{ margin: 0, fontSize: 12, color: c.textDim }}>

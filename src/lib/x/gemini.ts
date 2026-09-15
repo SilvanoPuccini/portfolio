@@ -48,15 +48,18 @@ const ANGLES_SCHEMA: Schema = {
  * sustancialmente similar.
  *
  * `recentAngles` son los resúmenes de ángulos de semanas recientes: el
- * planificador los conoce para no repetir tesis.
+ * planificador los conoce para no repetir tesis. `rejectedAngles` son los
+ * ángulos que ya fallaron en generación (con el motivo): conocerlos evita
+ * re-proponer tesis que el circuito ya descartó y desperdiciar el turno.
  */
 export async function planWeek(
   articleTitle: string,
   articleText: string,
   recentAngles: string[] = [],
+  rejectedAngles: string[] = [],
 ): Promise<JsonResult<{ angles: XAngle[] }>> {
-  const input = planWeekInput({ articleTitle, articleText, recentAngles });
-  const result = await callJson<{ angles: XAngle[] }>(planWeekSystem(ANGLES_PER_WEEK, recentAngles), input, ANGLES_SCHEMA);
+  const input = planWeekInput({ articleTitle, articleText, recentAngles, rejectedAngles });
+  const result = await callJson<{ angles: XAngle[] }>(planWeekSystem(ANGLES_PER_WEEK, recentAngles, rejectedAngles), input, ANGLES_SCHEMA);
   return { ...result, data: { angles: result.data.angles.slice(0, ANGLES_PER_WEEK) } };
 }
 

@@ -170,14 +170,19 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
       ...validation.map((issue) => `${issue.target}: ${issue.problem}`),
       ...verdict.issues.map((issue) => `${issue.target}: ${issue.problem}. Corrección: ${issue.suggested_change}`),
     ];
+    fixes = nextFixes.slice(-MAX_REWRITE_HISTORY * 4);
+    // La entrada se persiste DESPUÉS de actualizar `fixes`: la vuelta que acaba
+    // de fallar es la que más importa y es la única forma de que el último
+    // rechazo (con su corrección) llegue a la próxima corrida. Antes se guardaba
+    // el estado viejo y la devolución del intento final se perdía.
     await params.onAttempt?.({
       at: new Date().toISOString(),
       attempt: n,
       provider,
       fixes: [...fixes],
       verdict: 'rewrite',
+      reasons: [...nextFixes],
     });
-    fixes = nextFixes.slice(-MAX_REWRITE_HISTORY * 4);
 
     if (n >= MAX_ATTEMPTS) {
       return {

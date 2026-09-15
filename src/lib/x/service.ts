@@ -7,7 +7,7 @@ import { planWeek } from './gemini';
 import { fingerprint, orchestrateThread } from './orchestrate';
 import { validateThread, weightedLength } from './validate';
 import {
-  allowedUrls, appendRewriteHistory, createThread, createWeek, recentAngles, siblingsOf, updateThread,
+  allowedUrls, appendRewriteHistory, createThread, createWeek, recentAngles, rejectedAngles, siblingsOf, updateThread,
 } from './repository';
 import { xScheduleFor } from './scheduling';
 import { MAX_REWRITE_HISTORY, type XAngle, type XRewriteHistoryEntry, type XThread } from './types';
@@ -205,7 +205,8 @@ function planFor(thread: XThread): XAngle[] {
 export async function planWeekFor(postSlug: string) {
   const article = await loadArticle(postSlug);
   const recent = await recentAngles(12);
-  const { data, tokens, provider } = await planWeek(article.raw_title, article.raw_content, recent);
+  const rejected = await rejectedAngles(8);
+  const { data, tokens, provider } = await planWeek(article.raw_title, article.raw_content, recent, rejected);
   const angles = data.angles;
   if (angles.length === 0) {
     throw new Error('El artículo no dio ningún ángulo distinto para publicar');
@@ -242,7 +243,11 @@ export async function generateThread(thread: XThread) {
 
   if (result.outcome === 'blocked') {
     return updateThread(thread.id, {
-      status: 'planificado',
+      // `planificado` hace que el cron vuelva a tomar la fila cada día y la
+      // regenere en bucle contra el mismo ángulo. `error` saca la fila del
+      // circuito automático: queda con el botón "Reescribir" para que la
+      // reescritura sea a mano, trabajando sobre la devolución acumulada.
+      status: 'error',
       generation_attempts: thread.generation_attempts + result.attempts,
       last_error: result.reasons.join(' | ').slice(0, 1000),
       // Se guarda igual para poder mirarlo, pero sin huella no se publica.

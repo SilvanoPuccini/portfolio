@@ -35,7 +35,11 @@ export interface XRewriteHistoryEntry {
   attempt: number;
   /** Qué motor escribió este borrador. */
   provider: XProvider;
-  /** Problemas que se le pasaron al escritor en ESTE intento (vacíos en el 1). */
+  /**
+   * Problemas acumulados, con su corrección, que quedan para el intento
+   * siguiente. Es la devolución que la próxima corrida le pasa al escritor;
+   * por eso la vuelta que acaba de fallar se persiste con sus propios fixes.
+   */
   fixes: string[];
   verdict?: 'rewrite' | 'blocked' | 'approved';
   reasons?: string[];

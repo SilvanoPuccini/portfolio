@@ -22,6 +22,18 @@ describe('planWeekSystem', () => {
     expect(system).not.toContain('ÁNGULOS YA USADOS');
     expect(system).toContain('anchor');
   });
+
+  it('lista los ángulos rechazados con su motivo para que el planificador no los vuelva a proponer', () => {
+    const system = planWeekSystem(4, [], ['La deuda técnica es un costo — No pasó los controles en 3 intentos']);
+    expect(system).toContain('ÁNGULOS RECHAZADOS');
+    expect(system).toContain('La deuda técnica es un costo');
+    expect(system).toContain('No pasó los controles');
+  });
+
+  it('omite la sección de rechazados cuando no los hay', () => {
+    const system = planWeekSystem(4, ['Ángulo viejo']);
+    expect(system).not.toContain('ÁNGULOS RECHAZADOS');
+  });
 });
 
 describe('planWeekInput', () => {
@@ -34,6 +46,17 @@ describe('planWeekInput', () => {
     expect(input.article.title).toBe('Título');
     expect(input.article.text).toBe('Cuerpo del artículo');
     expect(input.recent_angles).toEqual(['Ángulo viejo']);
+    expect(input.rejected_angles).toEqual([]);
+  });
+
+  it('pasa los ángulos rechazados al planificador', () => {
+    const input = JSON.parse(planWeekInput({
+      articleTitle: 'Título',
+      articleText: 'Cuerpo del artículo',
+      recentAngles: [],
+      rejectedAngles: ['Ángulo fallado — motivo'],
+    }));
+    expect(input.rejected_angles).toEqual(['Ángulo fallado — motivo']);
   });
 });
 

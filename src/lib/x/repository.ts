@@ -94,6 +94,31 @@ export async function recentAngles(limit = 12): Promise<string[]> {
     .filter(Boolean);
 }
 
+/**
+ * Los ángulos que ya fallaron en generación y por qué, para que el
+ * planificador no vuelva a proponerlos. Se ordenan por `updated_at` porque un
+ * hilo rechazado ayer se actualizó ayer, aunque su `created_at` sea de cuando
+ * se armó la semana: la recencia del rechazo es lo que moldea el plan.
+ */
+export async function rejectedAngles(limit = 8): Promise<string[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('x_threads').select('angle_summary, last_error')
+    .is('deleted_at', null)
+    .not('last_error', 'is', null)
+    .in('status', ['planificado', 'error'])
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .filter((row) => Boolean(row.last_error))
+    .map((row) => {
+      const idea = (row.angle_summary as string).split(' | ')[0].trim();
+      const reason = (row.last_error as string).replace(/\s+/g, ' ').trim().slice(0, 160);
+      return `${idea} — ${reason}`;
+    })
+    .filter(Boolean);
+}
+
 /** Crea un hilo a mano o importado, sin planificar la semana con IA. */
 export async function createThread(row: {
   post_slug: string;
@@ -167,12 +192,17 @@ export async function dueNow(now = new Date()): Promise<XThread[]> {
  * Se genera con días de anticipación a propósito. Si la generación falla o el
  * crítico rechaza dos veces, quedan días para arreglarlo en vez de perder el
  * turno. Generar el mismo día no deja margen para nada.
+ *
+ * `last_error is null` rompe el bucle del cron: una fila con devolución
+ * negativa queda fuera del circuito automático y vuelve a intentarse solo a
+ * mano, con el botón "Reescribir", que ya conoce los motivos del rechazo.
  */
 export async function pendingGeneration(daysAhead: number, now = new Date()): Promise<XThread[]> {
   const horizon = new Date(now.getTime() + daysAhead * 86_400_000).toISOString();
   const { data, error } = await getSupabaseAdmin()
     .from('x_threads').select(COLUMNS)
     .eq('status', 'planificado')
+    .is('last_error', null)
     .is('deleted_at', null)
     .lte('scheduled_at', horizon)
     .order('scheduled_at');

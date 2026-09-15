@@ -215,7 +215,7 @@ Con "approved", issues tiene que estar vacío.
 }
 
 /** Instrucción de sistema del planificador. La entrada va aparte, como datos. */
-export function planWeekSystem(anglesPerWeek: number, recentAngles: string[] = []): string {
+export function planWeekSystem(anglesPerWeek: number, recentAngles: string[] = [], rejectedAngles: string[] = []): string {
   const repetition = recentAngles.length
     ? `
 
@@ -223,6 +223,16 @@ export function planWeekSystem(anglesPerWeek: number, recentAngles: string[] = [
 repetido si responde la misma tesis, aunque cambies las palabras o el ejemplo:
 
 ${recentAngles.map((angle) => `  · ${angle}`).join('\n')}`
+    : '';
+
+  const rejected = rejectedAngles.length
+    ? `
+
+ÁNGULOS RECHAZADOS (ya fallaron en generación). NO los vuelvas a proponer, ni
+siquiera con otro ejemplo: reescribirlos es desperdiciar el turno y arriesgar
+la cuenta por contenido similar. Acá figura qué los hizo fallar:
+
+${rejectedAngles.map((angle) => `  · ${angle}`).join('\n')}`
     : '';
 
   return `
@@ -245,7 +255,7 @@ REGLAS DE CALIDAD
 4. La question tiene que ser la pregunta concreta que ESE ángulo responde,
    no una pregunta de artículo.
 5. Si el artículo no da para ${anglesPerWeek} ángulos así, devolvé menos. Nunca
-   rellenes: publicar cuatro variantes de lo mismo puede costar la cuenta.${repetition}
+   rellenes: publicar cuatro variantes de lo mismo puede costar la cuenta.${repetition}${rejected}
 
 Salida: cada ángulo con id corto en kebab-case, summary de una oración con la
 idea central, question con la pregunta concreta y anchor con el dato del
@@ -258,10 +268,13 @@ export function planWeekInput(params: {
   articleTitle: string;
   articleText: string;
   recentAngles: string[];
+  /** Ángulos que ya fallaron en generación, con el motivo, para no repetirlos. */
+  rejectedAngles?: string[];
 }): string {
   return JSON.stringify({
     article: { title: params.articleTitle, text: params.articleText },
     recent_angles: params.recentAngles,
+    rejected_angles: params.rejectedAngles ?? [],
   }, null, 2);
 }
 
