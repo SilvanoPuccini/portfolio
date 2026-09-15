@@ -4,7 +4,7 @@ import {
   CREDITS_DEPLETED_MESSAGE, isCreditsDepletedError, publishThread, threadUrl,
 } from './client';
 import { planWeek } from './gemini';
-import { fingerprint, orchestrateThread } from './orchestrate';
+import { fingerprint, orchestrateThread, REPETITION_BLOCK_REASON } from './orchestrate';
 import { validateThread, weightedLength } from './validate';
 import {
   allowedUrls, appendRewriteHistory, createThread, createWeek, recentAngles, rejectedAngles, siblingsOf, updateThread,
@@ -216,56 +216,102 @@ export async function planWeekFor(postSlug: string) {
   return { threads: rows, angles, tokens, provider };
 }
 
-/** Escribe y valida el texto de un hilo. Deja el resultado en la fila. */
+/**
+ * Escribe y valida el texto de un hilo. Deja el resultado en la fila.
+ *
+ * Si el ángulo actual resulta imposible de escribir sin repetir otro hilo de la
+ * semana, no da vueltas reescribiendo lo mismo: pasa al siguiente ángulo del
+ * plan y prueba con ese. El plan es el que planificó la semana, no se pide de
+ * nuevo a la IA.
+ */
 export async function generateThread(thread: XThread) {
   const article = await loadArticle(thread.post_slug);
   const siblings = await siblingsOf(thread.post_slug, thread.id);
+  const plan = planFor(thread);
+  const articleUrl = `https://www.silvanopuccini.dev/es/blog/${article.post_slug}`;
+  const authorizedUrls = [...new Set([...allowedUrls(), articleUrl])];
 
-  // La historia con memória: cada vuelta se persiste apenas termina, así que
-  // si la corrida muere a la mitad, lo que ya se intentó no se pierde.
-  let history: XRewriteHistoryEntry[] = (thread.rewrite_history ?? []).slice(-MAX_REWRITE_HISTORY);
-  const persistAttempt = async (entry: XRewriteHistoryEntry) => {
-    history = appendRewriteHistory(history, entry);
-    await updateThread(thread.id, { rewrite_history: history });
-  };
+  // Orden de prueba: el ángulo de la fila primero, después el resto del plan en
+  // su orden. Así una corrida retomada prueba lo que quedó pendiente.
+  const planOrder = [...plan];
+  planOrder.sort((a, b) => (a.id === thread.angle_id ? -1 : 0) - (b.id === thread.angle_id ? -1 : 0));
 
-  const result = await orchestrateThread({
-    articleTitle: article.raw_title,
-    articleUrl: `https://www.silvanopuccini.dev/es/blog/${article.post_slug}`,
-    articleText: article.raw_content,
-    angles: planFor(thread),
-    selectedAngleId: thread.angle_id,
-    publishedThisWeek: siblings,
-    allowedUrls: allowedUrls(),
-    history,
-    onAttempt: persistAttempt,
-  });
+  const tried = new Set<string>();
+  let totalAttempts = 0;
 
-  if (result.outcome === 'blocked') {
-    return updateThread(thread.id, {
-      // `planificado` hace que el cron vuelva a tomar la fila cada día y la
-      // regenere en bucle contra el mismo ángulo. `error` saca la fila del
-      // circuito automático: queda con el botón "Reescribir" para que la
-      // reescritura sea a mano, trabajando sobre la devolución acumulada.
-      status: 'error',
-      generation_attempts: thread.generation_attempts + result.attempts,
-      last_error: result.reasons.join(' | ').slice(0, 1000),
-      // Se guarda igual para poder mirarlo, pero sin huella no se publica.
-      tweets: (result.lastDraft?.tweets ?? []).map((text, index) => ({ text, tweet_number: index + 1 })),
-      approved_fingerprint: null,
+  while (tried.size < planOrder.length) {
+    const angle = planOrder.find((candidate) => !tried.has(candidate.id))!;
+    tried.add(angle.id);
+
+    // La historia con memória: cada vuelta se persiste apenas termina, así que
+    // si la corrida muere a la mitad, lo que ya se intentó no se pierde. Al
+    // cambiar de ángulo se reinicia: los fixes pendientes son del ángulo que
+    // acaba de fallar y no aplican al siguiente.
+    let history: XRewriteHistoryEntry[] = angle.id === thread.angle_id
+      ? (thread.rewrite_history ?? []).slice(-MAX_REWRITE_HISTORY)
+      : [];
+    const persistAttempt = async (entry: XRewriteHistoryEntry) => {
+      history = appendRewriteHistory(history, entry);
+      await updateThread(thread.id, { rewrite_history: history });
+    };
+
+    const result = await orchestrateThread({
+      articleTitle: article.raw_title,
+      articleUrl,
+      articleText: article.raw_content,
+      angles: plan,
+      selectedAngleId: angle.id,
+      publishedThisWeek: siblings,
+      allowedUrls: authorizedUrls,
+      history,
+      onAttempt: persistAttempt,
     });
+    totalAttempts += result.attempts;
+
+    if (result.outcome === 'approved') {
+      return updateThread(thread.id, {
+        status: 'preaprobado',
+        pre_approved_at: new Date().toISOString(),
+        thesis: result.draft.thesis,
+        tweets: result.draft.tweets.map((text, index) => ({ text, tweet_number: index + 1 })),
+        reply_with_link: result.draft.reply_with_link,
+        evidence: result.draft.evidence,
+        approved_fingerprint: result.fingerprint,
+        generation_attempts: thread.generation_attempts + totalAttempts,
+        last_error: null,
+        // Si el ángulo que pasó no era el original, que la fila lo registre.
+        ...(angle.id !== thread.angle_id
+          ? { angle_id: angle.id, angle_summary: `${angle.summary} | ${angle.question}` }
+          : {}),
+      });
+    }
+
+    // El ángulo se agotó por repetición: reescribir no lo vuelve distinto.
+    // Cualquier otro motivo de bloqueo se devuelve tal cual, sin intentar más.
+    if (result.reasons[0] !== REPETITION_BLOCK_REASON) {
+      return updateThread(thread.id, {
+        // `planificado` hace que el cron vuelva a tomar la fila cada día y la
+        // regenere en bucle contra el mismo ángulo. `error` saca la fila del
+        // circuito automático: queda con el botón "Reescribir" para que la
+        // reescritura sea a mano, trabajando sobre la devolución acumulada.
+        status: 'error',
+        generation_attempts: thread.generation_attempts + totalAttempts,
+        last_error: result.reasons.join(' | ').slice(0, 1000),
+        // Se guarda igual para poder mirarlo, pero sin huella no se publica.
+        tweets: (result.lastDraft?.tweets ?? []).map((text, index) => ({ text, tweet_number: index + 1 })),
+        approved_fingerprint: null,
+      });
+    }
+
+    // Repetición: se prueba el siguiente ángulo del plan, sin quemar la fila.
   }
 
   return updateThread(thread.id, {
-    status: 'preaprobado',
-    pre_approved_at: new Date().toISOString(),
-    thesis: result.draft.thesis,
-    tweets: result.draft.tweets.map((text, index) => ({ text, tweet_number: index + 1 })),
-    reply_with_link: result.draft.reply_with_link,
-    evidence: result.draft.evidence,
-    approved_fingerprint: result.fingerprint,
-    generation_attempts: thread.generation_attempts + result.attempts,
-    last_error: null,
+    status: 'error',
+    generation_attempts: thread.generation_attempts + totalAttempts,
+    last_error: 'Todos los ángulos del plan ya están cubiertos por hilos publicables de la semana. Replanificá u otro post.',
+    tweets: [],
+    approved_fingerprint: null,
   });
 }
 

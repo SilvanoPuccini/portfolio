@@ -96,6 +96,27 @@ describe('validateThread', () => {
     expect(issues).toEqual([]);
   });
 
+  it('accepts the article URL, www or not, which is not listed explicitly', () => {
+    for (const url of [
+      'https://www.silvanopuccini.dev/es/blog/nextjs-vite-o-angular',
+      'https://silvanopuccini.dev/es/blog/nextjs-vite-o-angular',
+      'https://www.silvanopuccini.dev/es/blog/nextjs-vite-o-angular/',
+    ]) {
+      const issues = validateThread(goodThread(), `Lo escribí acá: ${url}`, allowedUrls());
+      expect(issues).toEqual([]);
+    }
+  });
+
+  it('accepts a LinkedIn URL that is the author profile', () => {
+    const issues = validateThread(goodThread(), 'Mí perfil: https://www.linkedin.com/in/silvanopuccini/', allowedUrls());
+    expect(issues).toEqual([]);
+  });
+
+  it('rejects a LinkedIn URL that is not the author profile', () => {
+    const issues = validateThread(goodThread(), 'Mí perfil: https://www.linkedin.com/in/otro-usuario/', allowedUrls());
+    expect(issues).toContainEqual(expect.objectContaining({ target: 'link_reply' }));
+  });
+
   it('rejects a reply with no link at all, which would strand the thread', () => {
     const issues = validateThread(goodThread(), 'Gracias por leer.', ALLOWED);
     expect(issues).toContainEqual(expect.objectContaining({ target: 'link_reply' }));

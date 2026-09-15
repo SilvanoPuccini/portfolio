@@ -47,6 +47,46 @@ function firstLineWords(text: string): number {
   return firstLine.trim().split(/\s+/).filter(Boolean).length;
 }
 
+/** Host normalizado: sin www y en minúsculas, para comparar dominios. */
+function normalizedHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+/** Path normalizado (sin barra final) para escopar casos tipo LinkedIn. */
+function normalizedPath(url: string): string {
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '') || '/';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Autoriza una URL de la respuesta con el link.
+ *
+ * No compara string contra string: normaliza el host (sin www, en minúsculas) y
+ * acepta cualquier path bajo los dominios permitidos. Así el artículo de la
+ * semana (`/es/blog/...`), las notas y el portfolio pasan aunque no estén
+ * anotados a mano, pero un dominio ajeno no. LinkedIn es la única excepción con
+ * path: solo el perfil propio, no cualquier página de LinkedIn.
+ */
+export function isAuthorizedUrl(rawUrl: string, allowedUrls: string[]): boolean {
+  const clean = rawUrl.replace(/[.,;)]+$/, '').trim();
+  const host = normalizedHost(clean);
+  if (!host) return false;
+
+  for (const allowed of allowedUrls) {
+    const allowedHost = normalizedHost(allowed);
+    if (host !== allowedHost) continue;
+    return allowedHost.includes('linkedin.') ? normalizedPath(clean) === normalizedPath(allowed) : true;
+  }
+  return false;
+}
+
 /**
  * Valida el paquete completo. Devuelve todos los problemas, no solo el primero:
  * si el generador tiene que reescribir, conviene que los vea todos de una.
@@ -104,9 +144,8 @@ export function validateThread(tweets: string[], replyWithLink: string, allowedU
   const urlsInReply = replyWithLink.match(/https?:\/\/\S+/g) ?? [];
   if (urlsInReply.length === 0) push('FORMAT', 'link_reply', 'La respuesta tiene que llevar al menos una URL.');
   for (const url of urlsInReply) {
-    const clean = url.replace(/[.,;)]+$/, '');
-    if (!allowedUrls.includes(clean)) {
-      push('FORMAT', 'link_reply', `URL no autorizada: ${clean}`);
+    if (!isAuthorizedUrl(url, allowedUrls)) {
+      push('FORMAT', 'link_reply', `URL no autorizada: ${url}`);
     }
   }
 

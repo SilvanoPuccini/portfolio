@@ -21,6 +21,16 @@ import { MAX_REWRITE_HISTORY, type XAngle, type XProvider, type XRewriteHistoryE
 /** Un borrador inicial y hasta dos reescrituras. Después se bloquea. */
 export const MAX_ATTEMPTS = 3;
 
+/**
+ * Señal de que el ángulo está agotado, no el texto.
+ *
+ * Cuando el crítico marca REPETITION el problema no se resuelve reescribiendo:
+ * la tesis ya la cubrió otro hilo de la semana y cambiar las palabras no
+ * vuelve nuevo un ángulo. El circuito corta acá en vez de gastar intentos, y
+ * el servicio usa esta línea para probar el siguiente ángulo del plan.
+ */
+export const REPETITION_BLOCK_REASON = 'El ángulo ya lo cubrió otro hilo publicable de la semana: reescribirlo no lo vuelve distinto.';
+
 export interface OrchestrateParams {
   articleTitle: string;
   articleUrl: string;
@@ -124,6 +134,31 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
     });
     tokens += reviewed.tokens;
     const verdict = reviewed.data;
+
+    if (verdict.verdict !== 'approved' && verdict.issues.some((issue) => issue.code === 'REPETITION')) {
+      const reasons = [
+        REPETITION_BLOCK_REASON,
+        verdict.summary,
+        ...verdict.issues.map((issue) => `${issue.target}: ${issue.problem}`),
+        ...validation.map((issue) => `${issue.target}: ${issue.problem}`),
+      ];
+      await params.onAttempt?.({
+        at: new Date().toISOString(),
+        attempt: n,
+        provider,
+        fixes: [...fixes],
+        verdict: 'blocked',
+        reasons,
+      });
+      return {
+        outcome: 'blocked',
+        reasons,
+        attempts: n,
+        tokens,
+        lastDraft,
+        provider,
+      };
+    }
 
     if (verdict.verdict === 'approved' && validation.length === 0) {
       await params.onAttempt?.({

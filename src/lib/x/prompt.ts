@@ -142,8 +142,10 @@ FORMATO
 · Sin numerar los posts. Sin hashtags por defecto, máximo uno si identifica un
   tema de forma útil. Sin emojis decorativos. Sin rayas largas.
 · Sin menciones a terceros ni referencias a tendencias del día.
-· reply_with_link: una frase breve más las URL exactas que te autorizan. Sin
-  inventar ni acortar enlaces.
+· reply_with_link: una frase breve más las URL que te autorizan. Sin inventar ni
+  acortar enlaces. Válidas: cualquier página de silvanopuccini.dev (tu blog, tus
+  notas, tu portfolio, el artículo que estás adaptando) y tu perfil de LinkedIn.
+  Fuera de esos dominios, no.
 
 EVIDENCIA
 Por cada afirmación verificable registrá un objeto en evidence con target,
