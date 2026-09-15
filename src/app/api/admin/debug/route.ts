@@ -14,6 +14,9 @@ const MODELS_TO_TEST = [
   'gemini-1.5-pro',
 ];
 
+/** El modelo exacto que usa el failover de cuota de src/lib/x/providers.ts. */
+const GROQ_MODEL = 'gpt-oss-120b';
+
 async function testModel(apiKey: string, model: string): Promise<string> {
   try {
     const res = await fetch(
@@ -47,6 +50,39 @@ async function testModel(apiKey: string, model: string): Promise<string> {
   }
 }
 
+/** El espejo de Groq: mismo test, formato OpenAI. Mide la key del failover. */
+async function testGroq(apiKey: string): Promise<string> {
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{ role: 'user', content: 'Reply with one word: OK' }],
+      }),
+    });
+
+    const data = await res.json() as {
+      choices?: { message?: { content?: string } }[];
+      error?: { message?: string };
+    };
+
+    if (data.error) {
+      const message = data.error.message ?? 'error desconocido';
+      if (/quota|rate limit|429/i.test(message)) return `⚠️ 429 quota exceeded (existe)`;
+      return `❌ ${res.status} ${message.slice(0, 120)}`;
+    }
+
+    const text = data.choices?.[0]?.message?.content ?? '?';
+    return `✅ OK — "${text.trim()}"`;
+  } catch (err) {
+    return `❌ fetch error: ${err instanceof Error ? err.message : String(err)}`;
+  }
+}
+
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -61,6 +97,11 @@ export async function GET(req: NextRequest) {
   for (const model of MODELS_TO_TEST) {
     results[model] = await testModel(apiKey, model);
   }
+
+  const groqApiKey = process.env.GROQ_API_KEY;
+  results[`groq:${GROQ_MODEL}`] = groqApiKey
+    ? await testGroq(groqApiKey)
+    : '⚠️ GROQ_API_KEY no configurada (failover por cuota apagado)';
 
   return NextResponse.json({ results });
 }

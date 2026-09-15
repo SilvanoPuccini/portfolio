@@ -36,7 +36,7 @@ export default function DebugPage() {
 
       <div style={{ ...s.card, maxWidth: 520 }}>
         <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
-          Prueba cada modelo de Gemini disponible con tu API key. La clave nunca sale del servidor.
+          Prueba cada modelo de Gemini disponible con tu API key, y el fallback de cuota en Groq. La clave nunca sale del servidor.
         </p>
 
         <button onClick={runTest} disabled={loading} style={{ ...s.btn, opacity: loading ? 0.6 : 1 }}>
