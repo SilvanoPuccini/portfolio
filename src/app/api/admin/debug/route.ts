@@ -4,6 +4,16 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 import { isAuthorized } from '@/lib/admin-auth';
+import { callJson } from '@/lib/x/providers';
+import { callGroqJson } from '@/lib/x/groq';
+import { SchemaType, type Schema } from '@google/generative-ai';
+
+/** Schema trivial para probar el seam con la misma mecánica del circuito real. */
+const SEAM_TEST_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: { ok: { type: SchemaType.STRING } },
+  required: ['ok'],
+};
 
 const MODELS_TO_TEST = [
   'gemini-2.5-flash',
@@ -83,6 +93,45 @@ async function testGroq(apiKey: string): Promise<string> {
   }
 }
 
+/**
+ * La llamada JSON REAL de Groq: mismo response_format json_schema que usa el
+ * circuito, no la llamada trivial del test de "OK" que va sin response_format.
+ * Si esta falla y el "OK" pasa, el problema es el formato de salida de Groq.
+ */
+async function testGroqJson(apiKey: string): Promise<string> {
+  try {
+    const result = await callGroqJson<{ ok: string }>({
+      system: 'Responde JSON con {"ok":"OK"}.',
+      input: 'Responde una sola palabra: OK',
+      schema: SEAM_TEST_SCHEMA,
+      apiKey,
+    });
+    return `✅ JSON OK — "${result.data?.ok ?? '?'}" (${result.tokens} tokens)`;
+  } catch (err) {
+    return `❌ ${err instanceof Error ? err.message : String(err)}`;
+  }
+}
+
+/**
+ * La prueba que faltaba: el SEAM, no los providers sueltos.
+ * Llama a callJson (providers.ts) — la función exacta que usan writeThread y
+ * critique, o sea el circuito real del botón Reescribir. Con Gemini en 429,
+ * un resultado provider:'groq' demuestra el failover de punta a punta.
+ */
+async function testSeam(): Promise<string> {
+  try {
+    const result = await callJson<{ ok: string }>(
+      'Responde JSON con {"ok":"OK"}.',
+      'Responde una sola palabra: OK',
+      SEAM_TEST_SCHEMA,
+    );
+    return `✅ ${result.provider === 'groq' ? 'FAILOVER ACTIVO — salió por Groq' : 'salió por Gemini'} — "${result.data?.ok ?? '?'}"`;
+  } catch (reason) {
+    const msg = reason instanceof Error ? reason.message : String(reason);
+    return `❌ el seam relanzó el error original (provider no probado): ${msg.slice(0, 160)}`;
+  }
+}
+
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -102,6 +151,10 @@ export async function GET(req: NextRequest) {
   results[`groq:${GROQ_MODEL}`] = groqApiKey
     ? await testGroq(groqApiKey)
     : '⚠️ GROQ_API_KEY no configurada (failover por cuota apagado)';
+  results['groq JSON (response_format del circuito real)'] = groqApiKey
+    ? await testGroqJson(groqApiKey)
+    : '⚠️ GROQ_API_KEY no configurada';
+  results['seam (callJson, el circuito real del botón)'] = await testSeam();
 
   return NextResponse.json({ results });
 }

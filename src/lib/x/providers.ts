@@ -42,9 +42,15 @@ export async function callJson<T>(
       const result = await callGroqJson<T>({ system, input, schema, apiKey: groqApiKey });
       console.warn('[x/providers] Cuota de Gemini agotada, la llamada salió por Groq.');
       return { ...result, provider: 'groq' as const };
-    } catch {
+    } catch (groqError) {
       // Si el fallback también falla, el error original es el que importa
-      // para el panel (gemini + fix), no el del espejo groq.
+      // para el panel (gemini + fix), no el del espejo groq. Pero el error
+      // de Groq se loguea: ocultarlo hizo imposible diagnosticar por qué el
+      // failover "no entraba" cuando en realidad la llamada JSON fallaba.
+      console.warn(
+        '[x/providers] El fallback a Groq falló:',
+        groqError instanceof Error ? groqError.message : String(groqError),
+      );
       throw reason;
     }
   }
