@@ -44,6 +44,21 @@ function enumOf(schema: Schema): unknown[] | undefined {
   return value.enum;
 }
 
+/**
+ * Extrae el tiempo de espera sugerido por Groq en un 429 (tokens por minuto,
+ * RPM, etc.). Fuentes: header Retry-After, o el "Please try again in Xs" del
+ * cuerpo. Devuelve undefined si no se puede saber, para que el llamador no
+ * invente una espera.
+ */
+function retryAfterSeconds(response: Response, body: string): number | undefined {
+  const header = response.headers?.get('retry-after');
+  const headerSecs = header ? Number(header) : NaN;
+  if (Number.isFinite(headerSecs) && headerSecs > 0) return Math.ceil(headerSecs);
+  const match = /try again in\s+(\d+(?:\.\d+)?)s/i.exec(body);
+  if (match) return Math.ceil(Number(match[1]));
+  return undefined;
+}
+
 export async function callGroqJson<T>(params: {
   system: string;
   input: string;
@@ -78,7 +93,11 @@ export async function callGroqJson<T>(params: {
   if (!response.ok) {
     throw Object.assign(
       new Error(`[x/groq] ${MODEL} → ${response.status}: ${raw.slice(0, 300)}`),
-      { status: response.status, detail: raw.slice(0, 400) },
+      {
+        status: response.status,
+        detail: raw.slice(0, 400),
+        retryAfterSeconds: retryAfterSeconds(response, raw),
+      },
     );
   }
 

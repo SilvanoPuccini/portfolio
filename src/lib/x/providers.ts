@@ -22,6 +22,46 @@ export interface JsonCallResult<T> {
   provider: XProvider;
 }
 
+/**
+ * Error del fallback cuando los dos proveedores fallan. Lleva la causa REAL
+ * de Groq (no el 429 de Gemini enmascarado) y, si Groq la informó, cuánto
+ * esperar antes de reintentar. El panel lo muestra como está: sin esto, el
+ * 500 decía "Gemini agotado" aunque el problema era el límite de Groq.
+ */
+export class ProviderFailoverError extends Error {
+  readonly geminiReason: unknown;
+  readonly groqStatus?: number;
+  readonly retryAfterSeconds?: number;
+
+  constructor(params: {
+    geminiReason: unknown;
+    groqMessage: string;
+    groqStatus?: number;
+    retryAfterSeconds?: number;
+  }) {
+    const retryHint = params.retryAfterSeconds
+      ? ` Esperá ${params.retryAfterSeconds}s y reintentá.`
+      : '';
+    super(
+      `[x/providers] Gemini agotado (cuota) y el fallback a Groq también falló: ${params.groqMessage}.${retryHint}`,
+    );
+    this.name = 'ProviderFailoverError';
+    this.geminiReason = params.geminiReason;
+    this.groqStatus = params.groqStatus;
+    this.retryAfterSeconds = params.retryAfterSeconds;
+  }
+}
+
+/** Normaliza el detalle de un error de Groq para el mensaje del panel. */
+function groqDetail(error: unknown): { message: string; status?: number; retryAfterSeconds?: number } {
+  if (error instanceof Error) {
+    const status = (error as Error & { status?: number }).status;
+    const retryAfterSeconds = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;
+    return { message: error.message, status, retryAfterSeconds };
+  }
+  return { message: String(error) };
+}
+
 export async function callJson<T>(
   system: string,
   input: string,
@@ -43,15 +83,18 @@ export async function callJson<T>(
       console.warn('[x/providers] Cuota de Gemini agotada, la llamada salió por Groq.');
       return { ...result, provider: 'groq' as const };
     } catch (groqError) {
-      // Si el fallback también falla, el error original es el que importa
-      // para el panel (gemini + fix), no el del espejo groq. Pero el error
-      // de Groq se loguea: ocultarlo hizo imposible diagnosticar por qué el
-      // failover "no entraba" cuando en realidad la llamada JSON fallaba.
-      console.warn(
-        '[x/providers] El fallback a Groq falló:',
-        groqError instanceof Error ? groqError.message : String(groqError),
-      );
-      throw reason;
+      // Antes esto relanzaba el error ORIGINAL de Gemini: enmascaraba la
+      // causa real (límite de Groq) y hacía creer que el failover no entraba.
+      // Ahora el panel ve la verdad: cuál de los dos proveedores falló y
+      // cuánto esperar antes de reintentar.
+      const detail = groqDetail(groqError);
+      console.warn('[x/providers] El fallback a Groq falló:', detail.message);
+      throw new ProviderFailoverError({
+        geminiReason: reason,
+        groqMessage: detail.message,
+        groqStatus: detail.status,
+        retryAfterSeconds: detail.retryAfterSeconds,
+      });
     }
   }
 }
