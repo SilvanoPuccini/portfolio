@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  advanceOn, isKnownState, phaseIndex, PIPELINE, type LeadEvent, type LeadState,
+  advanceOn, isKnownState, isManualEvent, phaseIndex, PIPELINE,
+  type LeadEvent, type LeadState,
 } from './pipeline';
 
 describe('PIPELINE', () => {
@@ -83,5 +84,40 @@ describe('isKnownState', () => {
   it('rejects anything else', () => {
     expect(isKnownState('inventado')).toBe(false);
     expect(isKnownState('')).toBe(false);
+  });
+});
+
+describe('contrato firmado', () => {
+  it('se ubica entre el envío del contrato y el cobro', () => {
+    expect(phaseIndex('contrato_enviado')).toBeLessThan(phaseIndex('contrato_firmado'));
+    expect(phaseIndex('contrato_firmado')).toBeLessThan(phaseIndex('cerrado'));
+  });
+
+  it('avanza desde el contrato enviado', () => {
+    expect(advanceOn('contrato_firmado', 'contrato_enviado')).toBe('contrato_firmado');
+  });
+
+  it('no rebobina una venta ya cobrada', () => {
+    expect(advanceOn('contrato_firmado', 'cerrado')).toBeNull();
+  });
+});
+
+describe('MANUAL_EVENTS', () => {
+  it('deja afuera los hechos que dispara un correo real', () => {
+    // Marcarlos a mano volvería a separar lo que pasó de lo que el panel
+    // cree que pasó: justo el problema que el pipeline vino a cerrar.
+    expect(isManualEvent('propuesta_enviada')).toBe(false);
+    expect(isManualEvent('contrato_enviado')).toBe(false);
+  });
+
+  it('acepta los que sí decide una persona', () => {
+    expect(isManualEvent('contrato_firmado')).toBe(true);
+    expect(isManualEvent('pago_recibido')).toBe(true);
+    expect(isManualEvent('facturado')).toBe(true);
+    expect(isManualEvent('entregado')).toBe(true);
+  });
+
+  it('rechaza cualquier otra cosa', () => {
+    expect(isManualEvent('inventado')).toBe(false);
   });
 });

@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
 import { autoSelectSlugs as computeAutoSelectSlugs } from '@/lib/auto-select-slugs';
-import { PIPELINE, DEAD_ENDS } from '@/lib/leads/pipeline';
+import { PIPELINE, DEAD_ENDS, labelForState } from '@/lib/leads/pipeline';
+import { LeadAdvanceBar } from '@/components/admin/leads/LeadAdvanceBar';
 
 type Lead = {
   id: string;
@@ -529,6 +530,14 @@ export default function LeadDetailPage() {
         <p style={{ fontSize: 12, color: c.textDim, margin: '4px 0 0' }}>{fmt(lead.created_at)}</p>
       </div>
 
+      {/* Lo primero de la ficha es qué sigue, no el formulario de hace un mes. */}
+      <LeadAdvanceBar
+        leadId={lead.id}
+        estado={lead.estado}
+        monto={lead.monto_presupuestado}
+        onAdvanced={() => void load()}
+      />
+
       {/* Read-only: Formulario */}
       <div style={{ ...s.card, marginBottom: 20 }}>
         <p style={s.sectionTitle}>Formulario</p>
@@ -642,7 +651,7 @@ export default function LeadDetailPage() {
           <select value={estado} onChange={(e) => setEstado(e.target.value)}
             style={{ ...s.input, appearance: 'auto' as React.CSSProperties['appearance'] }}>
             {ESTADOS.map((e) => (
-              <option key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</option>
+              <option key={e} value={e}>{labelForState(e)}</option>
             ))}
           </select>
         </div>

@@ -23,6 +23,7 @@ export const PIPELINE = [
   'en conversación',
   'presupuestado',
   'contrato_enviado',
+  'contrato_firmado',
   'cerrado',
   'facturado',
   'entregado',
@@ -40,6 +41,7 @@ export type LeadState = (typeof PIPELINE)[number] | (typeof DEAD_ENDS)[number];
 export type LeadEvent =
   | 'propuesta_enviada'
   | 'contrato_enviado'
+  | 'contrato_firmado'
   | 'pago_recibido'
   | 'facturado'
   | 'entregado';
@@ -48,9 +50,59 @@ export type LeadEvent =
 const LANDS_ON: Record<LeadEvent, LeadState> = {
   propuesta_enviada: 'presupuestado',
   contrato_enviado: 'contrato_enviado',
+  // Hoy lo marcás vos. Cuando Documenso esté conectado, su webhook manda
+  // este mismo hecho y el paso deja de necesitarte.
+  contrato_firmado: 'contrato_firmado',
   pago_recibido: 'cerrado',
   facturado: 'facturado',
   entregado: 'entregado',
+};
+
+/**
+ * Los hechos que puede disparar una persona desde el panel.
+ *
+ * `propuesta_enviada` y `contrato_enviado` quedan afuera a propósito: los
+ * dispara el envío real del correo, no un botón. Marcarlos a mano volvería a
+ * separar lo que pasó de lo que el panel cree que pasó, que es exactamente el
+ * problema que este módulo vino a cerrar.
+ */
+export const MANUAL_EVENTS = ['contrato_firmado', 'pago_recibido', 'facturado', 'entregado'] as const;
+
+export type ManualEvent = (typeof MANUAL_EVENTS)[number];
+
+export function isManualEvent(event: string): event is ManualEvent {
+  return (MANUAL_EVENTS as readonly string[]).includes(event);
+}
+
+/**
+ * Cómo se llama cada estado para una persona.
+ *
+ * La base guarda `presupuestado` y `cerrado` por compatibilidad con las filas
+ * que ya existían, pero en pantalla eso no dice nada: lo que pasó fue que se
+ * mandó la propuesta y que la venta se ganó.
+ */
+export const STATE_LABEL: Record<string, string> = {
+  nuevo: 'Nuevo',
+  llamada_agendada: 'Llamada agendada',
+  no_show: 'No apareció',
+  'en conversación': 'En conversación',
+  presupuestado: 'Propuesta enviada',
+  contrato_enviado: 'Contrato enviado',
+  contrato_firmado: 'Contrato firmado',
+  cerrado: 'Ganado',
+  facturado: 'Facturado',
+  entregado: 'Entregado',
+  descartado: 'Perdido',
+};
+
+export const labelForState = (estado: string) => STATE_LABEL[estado] ?? estado;
+
+/** El botón que corresponde en cada fase: lo que sigue depende de dónde está. */
+export const NEXT_ACTION: Record<string, { event: ManualEvent; label: string }> = {
+  contrato_enviado: { event: 'contrato_firmado', label: 'Marcar firmado' },
+  contrato_firmado: { event: 'pago_recibido', label: 'Registrar cobro' },
+  cerrado: { event: 'facturado', label: 'Facturar' },
+  facturado: { event: 'entregado', label: 'Marcar entregado' },
 };
 
 /** Posición en el recorrido, o -1 si el estado está fuera de la línea. */

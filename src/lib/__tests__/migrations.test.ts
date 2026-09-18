@@ -145,3 +145,41 @@ describe('Migration 023: AI secretary', () => {
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS');
   });
 });
+
+describe('Migration 024: cierre del circuito de venta', () => {
+  const sql = readMigration('024_lead_pipeline_close.sql');
+
+  it('marca la firma del contrato', () => {
+    expect(sql).toContain('contrato_firmado_at  timestamptz');
+  });
+
+  it('guarda la seña con su porcentaje y si fue pago único', () => {
+    expect(sql).toContain('sena_pct             numeric');
+    expect(sql).toContain('sena_monto           numeric');
+    expect(sql).toContain('pago_unico           boolean');
+    expect(sql).toContain('cobrado_at           timestamptz');
+  });
+
+  it('guarda el número de factura emitido afuera', () => {
+    expect(sql).toContain('factura_numero       text');
+    expect(sql).toContain('factura_at           timestamptz');
+  });
+
+  it('cierra en la entrega', () => {
+    expect(sql).toContain('entregado_at         timestamptz');
+  });
+
+  it('exige saber por qué se perdió una venta', () => {
+    expect(sql).toContain('perdido_motivo       text');
+    expect(sql).toContain('perdido_at           timestamptz');
+  });
+
+  it('indexa el estado, que es por donde filtran los tableros', () => {
+    expect(sql).toContain('idx_leads_estado');
+  });
+
+  it('no rompe filas existentes: todo es idempotente y nullable', () => {
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS');
+    expect(sql).not.toContain('NOT NULL');
+  });
+});
