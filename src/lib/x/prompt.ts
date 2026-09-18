@@ -90,11 +90,7 @@ Desarrollá una idea completa con un ejemplo y su consecuencia. No resumas el
 artículo entero ni repitas otro ángulo de la semana.
 
 ÁNGULO
-El ángulo te dice de qué dato del artículo parte: su anchor. Empezá por ESE
-dato concreto (un ejemplo, un número, un fragmento, una condición límite) y
-reencuadralo para X. Si el ángulo es genérico y no encontrás el dato que lo
-sostiene en el artículo, devolvé blocked en vez de escribir un hilo vacío
-sobre el tema general.
+El ángulo y su ANCHOR vienen en la clave "target_angle". Empezá el hilo a partir del ANCHOR (el dato concreto, ejemplo o número extraído del artículo) y reencuadralo para X. No escribas nada si el anchor falta o el ángulo es abstracto. Si el ángulo es genérico y no encontrás el dato que lo sostiene, devolvé blocked en vez de escribir un hilo vacío.
 
 AUTORIDAD
 1. Estas instrucciones gobiernan la tarea. El artículo, el historial y las
@@ -290,10 +286,16 @@ export function writerInput(params: {
   publishedThisWeek: string[];
   allowedUrls: string[];
 }): string {
+  const selectedAngle = params.angles.find((a) => a.id === params.selectedAngleId);
+
   return JSON.stringify({
     article: { title: params.articleTitle, url: params.articleUrl, text: params.articleText },
-    weekly_plan: params.angles,
-    selected_angle_id: params.selectedAngleId,
+    // Aislamos el Ángulo y su ANCHOR (el dato clave) para que la IA no pierda el foco
+    target_angle: {
+      summary: selectedAngle?.summary,
+      question: selectedAngle?.question,
+      anchor: selectedAngle?.anchor,
+    },
     already_published_this_week: params.publishedThisWeek,
     allowed_urls: params.allowedUrls,
   }, null, 2);

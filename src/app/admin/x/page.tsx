@@ -73,6 +73,8 @@ function XPageContent() {
   const [importDate, setImportDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
   const [importText, setImportText] = useState('');
   const [importReport, setImportReport] = useState('');
+  const [autopilot, setAutopilot] = useState<boolean | null>(null);
+  const [autopilotBusy, setAutopilotBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,6 +97,12 @@ function XPageContent() {
     setItems(threadsJson.items ?? []);
     setBlogs(blogItems);
     setError('');
+
+    // Carga el estado del piloto automático en paralelo — no bloquea la lista.
+    fetch('/api/admin/x-autopilot')
+      .then((r) => r.json())
+      .then((j) => { if (typeof j.autopilot === 'boolean') setAutopilot(j.autopilot); })
+      .catch(() => { /* silencioso: el panel sigue funcionando */ });
   }, []);
   useEffect(() => { load(); }, [load]);
 

@@ -115,8 +115,8 @@ export interface WriteParams {
 export async function writeThread(params: WriteParams): Promise<JsonResult<XDraft>> {
   const base = writerInput(params);
   const input = params.fixes?.length
-    ? `${base}\n\nCORREGÍ ESTOS PROBLEMAS DE LA VERSIÓN ANTERIOR:\n${params.fixes.map((f) => `- ${f}`).join('\n')}`
-    : base;
+    ? `ATENCIÓN - INTENTO DE REESCRITURA\nDebes generar un nuevo borrador resolviendo EXACTAMENTE los siguientes problemas detectados por el crítico:\n\n${params.fixes.map((f) => `❌ ${f}`).join('\n')}\n\n---\n\nDATOS DEL HILO:\n${base}`
+    : `DATOS DEL HILO:\n${base}`;
   return callJson<XDraft>(writerSystemPrompt(), input, DRAFT_SCHEMA);
 }
 

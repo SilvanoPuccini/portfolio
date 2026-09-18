@@ -102,7 +102,24 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
   let lastDraft: XDraft | null = null;
 
   const attempt = async (n: number): Promise<OrchestrateResult> => {
-    const written = await writeThread({ ...params, fixes });
+    let written;
+    try {
+      written = await writeThread({ ...params, fixes });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ProviderFailoverError' && (error as any).retryAfterSeconds) {
+        const wait = (error as any).retryAfterSeconds;
+        if (wait < 60) {
+          console.warn(`[x/orchestrate] Salvando loop: durmiendo ${wait}s por límite de cuota.`);
+          await new Promise((resolve) => setTimeout(resolve, wait * 1000 + 500));
+          written = await writeThread({ ...params, fixes });
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
+
     tokens += written.tokens;
     provider = written.provider;
     const draft = written.data;
@@ -123,15 +140,39 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
 
     const validation = validateThread(draft.tweets, draft.reply_with_link, params.allowedUrls);
 
-    const reviewed = await critique({
-      draft,
-      articleTitle: params.articleTitle,
-      articleText: params.articleText,
-      angles: params.angles,
-      selectedAngleId: params.selectedAngleId,
-      publishedThisWeek: params.publishedThisWeek,
-      validationReport: validation,
-    });
+    let reviewed;
+    try {
+      reviewed = await critique({
+        draft,
+        articleTitle: params.articleTitle,
+        articleText: params.articleText,
+        angles: params.angles,
+        selectedAngleId: params.selectedAngleId,
+        publishedThisWeek: params.publishedThisWeek,
+        validationReport: validation,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ProviderFailoverError' && (error as any).retryAfterSeconds) {
+        const wait = (error as any).retryAfterSeconds;
+        if (wait < 60) {
+          console.warn(`[x/orchestrate] Salvando loop crítico: durmiendo ${wait}s por límite de cuota.`);
+          await new Promise((resolve) => setTimeout(resolve, wait * 1000 + 500));
+          reviewed = await critique({
+            draft,
+            articleTitle: params.articleTitle,
+            articleText: params.articleText,
+            angles: params.angles,
+            selectedAngleId: params.selectedAngleId,
+            publishedThisWeek: params.publishedThisWeek,
+            validationReport: validation,
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
     tokens += reviewed.tokens;
     const verdict = reviewed.data;
 

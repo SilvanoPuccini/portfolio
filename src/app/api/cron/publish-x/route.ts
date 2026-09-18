@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isApiKeyAuthorized, isCronAuthorized } from '@/lib/admin-auth';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { isCreditsDepletedError } from '@/lib/x/client';
 import { dueNow, pendingGeneration } from '@/lib/x/repository';
 import { generateThread, publishThreadNow } from '@/lib/x/service';
@@ -34,10 +35,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Interruptor de pausa. Si algo sale mal, se apaga desde una variable de
-  // entorno sin tener que redeployar el código ni borrar el cron.
+  // Interruptor desde la base: si el piloto está apagado el cron no genera
+  // ni publica. El env var X_AUTOPUBLISH=off sigue siendo el freno de
+  // emergencia (no requiere deploy ni UI).
   if (process.env.X_AUTOPUBLISH === 'off') {
-    return NextResponse.json({ paused: true, published: 0, generated: 0 });
+    return NextResponse.json({ paused: true, reason: 'env', published: 0, generated: 0 });
+  }
+
+  const { data: settings } = await getSupabaseAdmin()
+    .from('site_settings').select('x_autopilot').eq('id', 1).single();
+
+  if (!settings?.x_autopilot) {
+    return NextResponse.json({ paused: true, reason: 'manual_mode', published: 0, generated: 0 });
   }
 
   const published: string[] = [];

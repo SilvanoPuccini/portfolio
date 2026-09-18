@@ -88,8 +88,8 @@ describe('writerInput', () => {
       allowedUrls: ['https://silvanopuccini.dev'],
     }));
     expect(input.article.title).toBe('T');
-    expect(input.weekly_plan[0].anchor).toBe('Dato');
-    expect(input.selected_angle_id).toBe('a');
+    expect(input.target_angle.anchor).toBe('Dato');
+    expect(input.target_angle.summary).toBe('S');
   });
 
   it('guía al redactor con el índice nuevo sin perder las URL canónicas anteriores', () => {
