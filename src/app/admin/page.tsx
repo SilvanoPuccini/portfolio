@@ -1,9 +1,49 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { s } from '@/components/admin/AdminShell';
-import { c } from '@/components/admin/tokens';
+import { c, tint } from '@/components/admin/tokens';
+import type { Alert, AlertSeverity } from '@/lib/admin/alerts';
 import type { CrmStats } from '@/app/api/admin/crm-stats/route';
+
+/** El color dice la urgencia. Rojo cuesta plata, ámbar es trabajo, cian avisa. */
+const SEVERITY_TONE: Record<AlertSeverity, string> = {
+  urgent: c.late,
+  warn: c.incomplete,
+  info: c.ready,
+};
+
+/**
+ * Un aviso es una fila accionable, no un número suelto.
+ *
+ * Todo el punto de esta franja es que cada línea lleve al lugar donde se
+ * resuelve: un tablero que informa «3 sin leer» y no deja hacer clic obliga a
+ * buscar a mano lo que ya encontró.
+ */
+function AlertRow({ alert }: { alert: Alert }) {
+  const tone = SEVERITY_TONE[alert.severity];
+  return (
+    <Link href={alert.href}
+      className="transition-colors hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none',
+        background: c.surface, border: `1px solid ${c.border}`,
+        borderLeft: `3px solid ${tone}`, borderRadius: 8, padding: '10px 14px',
+      }}>
+      <span aria-hidden style={{
+        flexShrink: 0, minWidth: 22, height: 20, borderRadius: 5,
+        display: 'grid', placeItems: 'center',
+        background: tint(tone, '1f'), color: tone,
+        fontFamily: 'monospace', fontSize: 11, fontWeight: 700,
+      }}>{alert.count}</span>
+      <span style={{ fontSize: 13, color: c.text, minWidth: 0 }}>{alert.text}</span>
+      <span aria-hidden style={{
+        marginLeft: 'auto', flexShrink: 0, color: c.textDim, fontSize: 14,
+      }}>&rsaquo;</span>
+    </Link>
+  );
+}
 
 type Stats = { subscribers: number; totalMessages: number; unreadMessages: number; totalPosts: number };
 type Subscriber = { id: string; email: string; created_at: string };
@@ -21,18 +61,31 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [crmStats, setCrmStats] = useState<CrmStats | null>(null);
   const [crmError, setCrmError] = useState<string | null>(null);
+  const [alerts, setAlerts] = useState<Alert[] | null>(null);
+  const [alertsIncomplete, setAlertsIncomplete] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     setCrmError(null);
     try {
-      const [statsRes, subsRes, msgsRes, crmRes] = await Promise.all([
+      const [statsRes, subsRes, msgsRes, crmRes, alertsRes] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/admin/subscribers'),
         fetch('/api/admin/messages'),
         fetch('/api/admin/crm-stats'),
+        fetch('/api/admin/alerts'),
       ]);
+
+      // Los avisos se resuelven aparte: son lo primero que se lee, así que un
+      // fallo en las estadísticas no puede dejarte sin ellos.
+      if (alertsRes.ok) {
+        const data = await alertsRes.json() as { alerts: Alert[]; incomplete?: string[] };
+        setAlerts(data.alerts ?? []);
+        setAlertsIncomplete(data.incomplete ?? []);
+      } else {
+        setAlerts([]);
+      }
 
       if (!statsRes.ok || !subsRes.ok || !msgsRes.ok) {
         const failedRes = !statsRes.ok ? statsRes : !subsRes.ok ? subsRes : msgsRes;
@@ -88,19 +141,60 @@ export default function DashboardPage() {
         <p style={{ color: c.textDim, fontSize: 13 }}>Cargando datos...</p>
       )}
 
+      {/* Hoy: lo único que responde «qué hago ahora». Va antes que cualquier
+          número, porque los números cuentan cómo venimos, no qué falta. */}
+      {alerts && (
+        <section aria-label="Lo que reclama atención hoy" style={{ marginBottom: 26 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 11, flexWrap: 'wrap' }}>
+            <p style={{ ...s.eyebrow, margin: 0 }}>Hoy</p>
+            <span style={{ fontSize: 12, color: c.textDim }}>
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {alerts.length > 0 && ` · ${alerts.length} ${alerts.length === 1 ? 'cosa reclama acción' : 'cosas reclaman acción'}`}
+            </span>
+          </div>
+
+          {alerts.length === 0 ? (
+            <div style={{
+              ...s.card, padding: '14px 16px',
+              borderLeft: `3px solid ${c.published}`,
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span aria-hidden style={{ color: c.published, fontSize: 14 }}>✓</span>
+              <p style={{ margin: 0, fontSize: 13, color: c.text }}>
+                Nada pendiente. Ningún lead esperando, ningún correo sin salir.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 7 }}>
+              {alerts.map((alert) => <AlertRow key={alert.id} alert={alert} />)}
+            </div>
+          )}
+
+          {alertsIncomplete.length > 0 && (
+            <p role="status" style={{ marginTop: 9, fontSize: 11.5, color: c.incomplete }}>
+              No se pudo revisar: {alertsIncomplete.join(', ')}. La lista puede estar incompleta.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Stats */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
           {[
-            { label: 'Suscriptores activos', value: stats.subscribers, accent: true },
-            { label: 'Posts publicados', value: stats.totalPosts },
-            { label: 'Mensajes totales', value: stats.totalMessages },
-            { label: 'Sin leer', value: stats.unreadMessages, accent: stats.unreadMessages > 0 },
+            { label: 'Suscriptores activos', value: stats.subscribers, accent: true, href: '/admin/subscribers' },
+            { label: 'Posts publicados', value: stats.totalPosts, accent: false, href: '/admin/agenda' },
+            { label: 'Mensajes totales', value: stats.totalMessages, accent: false, href: '/admin/messages' },
+            { label: 'Sin leer', value: stats.unreadMessages, accent: stats.unreadMessages > 0, href: '/admin/messages' },
           ].map((stat) => (
-            <div key={stat.label} style={{ ...s.card, padding: '18px 22px' }}>
-              <p style={{ ...s.eyebrow, color: stat.accent ? '#00d4d4' : '#475569', marginBottom: 8 }}>{stat.label}</p>
-              <p style={{ fontSize: 36, fontWeight: 700, color: '#fff', margin: 0 }}>{stat.value}</p>
-            </div>
+            // Cada número lleva a donde se trabaja: un dato que no se puede
+            // abrir obliga a buscar a mano lo que el panel ya encontró.
+            <Link key={stat.label} href={stat.href}
+              className="transition-colors hover:border-[#00d4d4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+              style={{ ...s.card, padding: '18px 22px', textDecoration: 'none', display: 'block' }}>
+              <p style={{ ...s.eyebrow, color: stat.accent ? c.ready : c.textDim, marginBottom: 8 }}>{stat.label}</p>
+              <p style={{ fontSize: 36, fontWeight: 700, color: c.text, margin: 0 }}>{stat.value}</p>
+            </Link>
           ))}
         </div>
       )}
@@ -126,7 +220,7 @@ export default function DashboardPage() {
             : recentMsgs.map((msg) => (
               <div key={msg.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1e293b' }}>
                 <div>
-                  <p style={{ fontSize: 13, color: msg.read ? '#64748b' : '#e2e8f0', margin: '0 0 2px' }}>
+                  <p style={{ fontSize: 13, color: msg.read ? c.textDim : c.text, margin: '0 0 2px' }}>
                     {!msg.read && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#00d4d4', marginRight: 6, verticalAlign: 'middle' }} />}
                     {msg.name}
                   </p>
@@ -169,7 +263,7 @@ export default function DashboardPage() {
                 },
               ].map((kpi) => (
                 <div key={kpi.label} style={{ ...s.card, padding: '18px 22px' }}>
-                  <p style={{ ...s.eyebrow, color: kpi.accent ? '#00d4d4' : '#475569', marginBottom: 8 }}>
+                  <p style={{ ...s.eyebrow, color: kpi.accent ? c.ready : c.textDim, marginBottom: 8 }}>
                     {kpi.label}
                   </p>
                   <p style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: 0 }}>

@@ -164,7 +164,7 @@ export default function NewsletterPage() {
                         <button
                           onClick={() => setHistPage((p) => Math.max(0, p - 1))}
                           disabled={histPage === 0}
-                          style={{ background: 'none', border: 'none', color: histPage === 0 ? '#2a3a50' : '#475569', cursor: histPage === 0 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
+                          style={{ background: 'none', border: 'none', color: histPage === 0 ? c.hairline : c.textDim, cursor: histPage === 0 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
                         >
                           ← Ant.
                         </button>
@@ -174,7 +174,7 @@ export default function NewsletterPage() {
                         <button
                           onClick={() => setHistPage((p) => Math.min(totalPages - 1, p + 1))}
                           disabled={histPage === totalPages - 1}
-                          style={{ background: 'none', border: 'none', color: histPage === totalPages - 1 ? '#2a3a50' : '#475569', cursor: histPage === totalPages - 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
+                          style={{ background: 'none', border: 'none', color: histPage === totalPages - 1 ? c.hairline : c.textDim, cursor: histPage === totalPages - 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}
                         >
                           Sig. →
                         </button>

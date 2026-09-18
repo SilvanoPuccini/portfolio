@@ -87,7 +87,7 @@ export default function SubscribersPage() {
           { label: 'Desuscriptos', value: unsubCount },
         ].map((stat) => (
           <div key={stat.label} style={{ ...s.card, padding: '16px 20px' }}>
-            <p style={{ ...s.eyebrow, color: stat.accent ? '#00d4d4' : '#475569', marginBottom: 6 }}>{stat.label}</p>
+            <p style={{ ...s.eyebrow, color: stat.accent ? c.ready : c.textDim, marginBottom: 6 }}>{stat.label}</p>
             <p style={{ fontSize: 30, fontWeight: 700, color: '#fff', margin: 0 }}>{stat.value}</p>
           </div>
         ))}
@@ -97,7 +97,7 @@ export default function SubscribersPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {(['all', 'active', 'unsubscribed'] as Filter[]).map((f) => (
           <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-            style={{ ...s.btnGhost, color: filter === f ? '#00d4d4' : '#475569', borderColor: filter === f ? '#00d4d4' : '#1e293b' }}>
+            style={{ ...s.btnGhost, color: filter === f ? c.ready : c.textDim, borderColor: filter === f ? c.ready : c.border }}>
             {f === 'all' ? 'Todos' : f === 'active' ? 'Activos' : 'Desuscriptos'}
           </button>
         ))}
@@ -110,10 +110,10 @@ export default function SubscribersPage() {
         {!loading && totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1e293b' }}>
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-              style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
+              style={{ background: 'none', border: 'none', color: page === 1 ? c.hairline : c.textDim, cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
             <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
             <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              style={{ background: 'none', border: 'none', color: page === totalPages ? '#2a3a50' : '#475569', cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
+              style={{ background: 'none', border: 'none', color: page === totalPages ? c.hairline : c.textDim, cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
           </div>
         )}
         {!loading && paginated.map((sub) => (
@@ -126,7 +126,7 @@ export default function SubscribersPage() {
               <span style={{
                 fontSize: 11, padding: '3px 10px', borderRadius: 20, fontFamily: 'monospace',
                 background: sub.status === 'active' ? 'rgba(0,212,212,0.1)' : 'rgba(100,116,139,0.12)',
-                color: sub.status === 'active' ? '#00d4d4' : '#64748b',
+                color: sub.status === 'active' ? c.ready : c.textDim,
               }}>
                 {sub.status === 'active' ? 'activo' : 'desuscripto'}
               </span>

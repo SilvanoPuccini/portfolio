@@ -75,7 +75,7 @@ export default function MessagesPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {(['all', 'unread'] as const).map((f) => (
           <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-            style={{ ...s.btnGhost, color: filter === f ? '#00d4d4' : '#64748b', borderColor: filter === f ? '#00d4d4' : '#1e293b' }}>
+            style={{ ...s.btnGhost, color: filter === f ? c.ready : c.textDim, borderColor: filter === f ? c.ready : c.border }}>
             {f === 'all' ? 'Todos' : 'Sin leer'}
           </button>
         ))}
@@ -93,10 +93,10 @@ export default function MessagesPage() {
                 {totalPages > 1 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1e293b' }}>
                     <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                      style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
+                      style={{ background: 'none', border: 'none', color: page === 1 ? c.hairline : c.textDim, cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
                     <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
                     <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                      style={{ background: 'none', border: 'none', color: page === totalPages ? '#2a3a50' : '#475569', cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
+                      style={{ background: 'none', border: 'none', color: page === totalPages ? c.hairline : c.textDim, cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
                   </div>
                 )}
                 {paginated.map((msg) => (
