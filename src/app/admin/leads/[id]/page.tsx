@@ -9,68 +9,18 @@ import { PIPELINE, DEAD_ENDS, labelForState } from '@/lib/leads/pipeline';
 import { LeadAdvanceBar } from '@/components/admin/leads/LeadAdvanceBar';
 import { LeadSection } from '@/components/admin/leads/LeadSection';
 import { sectionsFor, type SectionId } from '@/lib/leads/sections';
+import {
+  buildPertRows, pertHours,
+  type Lead, type LeadModule, type PertRow, type RateConfig,
+} from '@/lib/leads/types';
+import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/LeadReadOnlySections';
+import { LeadEditableForm } from '@/components/admin/leads/LeadEditableForm';
+import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
+import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
 
-type Lead = {
-  id: string;
-  created_at: string;
-  nombre: string;
-  email: string;
-  telefono: string | null;
-  tipo_proyecto: string | null;
-  que_construir: string | null;
-  secciones: string | null;
-  tiene_login: boolean | null;
-  tiene_pagos: boolean | null;
-  tiene_admin: string | null;
-  integraciones: string[] | null;
-  idiomas: number | null;
-  tiene_marca: boolean | null;
-  tiene_contenido: boolean | null;
-  problema: string | null;
-  presupuesto_rango: string | null;
-  plazo: string | null;
-  canal_llamada: string | null;
-  estado: string;
-  titular: string | null;
-  localidad: string | null;
-  pais: string | null;
-  notas_llamada: string | null;
-  diagnostico_objetivo: string | null;
-  diagnostico_situacion: string | null;
-  diagnostico_requerimiento: string | null;
-  diagnostico_dolor: string | null;
-  diagnostico_deseo: string | null;
-  diagnostico_preocupaciones: string | null;
-  monto_presupuestado: number | null;
-  horas_calculadas: number | null;
-  fecha_llamada: string | null;
-  grabacion_url: string | null;
-  transcripcion: string | null;
-  pago_estado: string | null;
-  service: string | null;
-  service_data: Record<string, unknown> | null;
-  proposal_sent_at: string | null;
-  contract_sent_at: string | null;
-};
 
-type Module = {
-  slug: string;
-  label: string;
-  horas_min: number;
-  horas_max: number;
-  categoria: string;
-};
 
-type RateConfig = { tarifa_hora: number; buffer_pct: number };
 
-type PertRow = {
-  slug: string;
-  label: string;
-  o: number;
-  m: number;
-  p: number;
-  selected: boolean;
-};
 
 // El selector de estado usa el recorrido real, no una copia que se olvida
 // de los estados nuevos. Ver src/lib/leads/pipeline.ts.
@@ -82,43 +32,13 @@ function fmt(iso: string) {
   });
 }
 
-function bool(v: boolean | null) {
-  return v === true ? 'Sí' : v === false ? 'No' : '—';
-}
 
-function pertHours(o: number, m: number, p: number) {
-  return (o + 4 * m + p) / 6;
-}
 
 function autoSelectSlugs(lead: Lead): Set<string> {
   return computeAutoSelectSlugs(lead);
 }
 
-function buildPertRows(modules: Module[], selectedSlugs: Set<string>): PertRow[] {
-  return modules.map((mod) => ({
-    slug: mod.slug,
-    label: mod.label,
-    o: mod.horas_min,
-    m: Math.round((mod.horas_min + mod.horas_max) / 2),
-    p: mod.horas_max,
-    selected: selectedSlugs.has(mod.slug),
-  }));
-}
 
-function ReadField({ label, value, accent }: { label: string; value: string | null | undefined; accent?: boolean }) {
-  return (
-    <div style={{ marginBottom: 14 }}>
-      <p style={{ ...s.label, marginBottom: 3 }}>{label}</p>
-      <p style={{
-        fontSize: 14, color: '#e2e8f0', margin: 0, lineHeight: 1.6,
-        whiteSpace: 'pre-wrap',
-        ...(accent ? { borderLeft: '3px solid #00d4d4', paddingLeft: 12 } : {}),
-      }}>
-        {value || '—'}
-      </p>
-    </div>
-  );
-}
 
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -144,7 +64,7 @@ export default function LeadDetailPage() {
   const [diagSaved, setDiagSaved] = useState(false);
 
   // Budget calculator
-  const [allModules, setAllModules] = useState<Module[]>([]);
+  const [allModules, setAllModules] = useState<LeadModule[]>([]);
   const [rateConfig, setRateConfig] = useState<RateConfig>({ tarifa_hora: 35, buffer_pct: 20 });
   const [pertRows, setPertRows] = useState<PertRow[]>([]);
   const [budgetSaved, setBudgetSaved] = useState(false);
@@ -214,7 +134,7 @@ export default function LeadDetailPage() {
   // Fetch modules and config for budget calculator
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/modulos').then((r) => r.json()) as Promise<{ modulos: Module[] }>,
+      fetch('/api/admin/modulos').then((r) => r.json()) as Promise<{ modulos: LeadModule[] }>,
       fetch('/api/admin/config').then((r) => r.json()) as Promise<{ config: RateConfig }>,
     ]).then(([modData, cfgData]) => {
       setAllModules(modData.modulos ?? []);
@@ -557,73 +477,28 @@ export default function LeadDetailPage() {
       {/* Read-only: Formulario */}
       <LeadSection title="Formulario" defaultOpen={openSections.formulario}>
 
-        <ReadField label="Negocio" value={lead.que_construir} />
-        <ReadField label="Problema / Oportunidad" value={lead.problema} accent />
-        <ReadField label="Tipo de proyecto" value={lead.tipo_proyecto} />
-        <ReadField label="Secciones" value={lead.secciones} />
-        <ReadField label="Login de usuarios" value={bool(lead.tiene_login)} />
-        <ReadField label="Pagos" value={bool(lead.tiene_pagos)} />
-        <ReadField label="Panel admin" value={lead.tiene_admin} />
-        <ReadField label="Integraciones" value={lead.integraciones?.join(', ') || '—'} />
-        <ReadField label="Idiomas" value={lead.idiomas?.toString() ?? '—'} />
-        <ReadField label="Tiene marca" value={bool(lead.tiene_marca)} />
-        <ReadField label="Tiene contenido" value={bool(lead.tiene_contenido)} />
-
-        <div style={s.divider} />
-
-        <ReadField label="Presupuesto" value={lead.presupuesto_rango} />
-        <ReadField label="Plazo" value={lead.plazo} />
-        <ReadField label="Canal de llamada" value={lead.canal_llamada} />
+        <LeadFormFields lead={lead} />
       </LeadSection>
 
       {/* Service Details — task 8.1 */}
       {(lead.service || lead.service_data) && (
         <LeadSection title="Detalles del servicio" defaultOpen={openSections.servicio}>
-          {lead.service && (
-            <div style={{ marginBottom: 14 }}>
-              <p style={s.label}>Servicio</p>
-              <p style={{ fontSize: 14, color: '#00d4d4', margin: 0, fontFamily: 'monospace' }}>
-                {lead.service}
-              </p>
-            </div>
-          )}
-          {lead.service_data && (
-            <div>
-              <p style={{ ...s.label, marginBottom: 10 }}>Datos de intake</p>
-              {Object.entries(lead.service_data).map(([key, val]) => (
-                <div key={key} style={{ marginBottom: 10 }}>
-                  <p style={s.label}>{key}</p>
-                  <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, whiteSpace: 'pre-wrap' }}>
-                    {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val ?? '—')}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
+          <LeadServiceDetails service={lead.service} serviceData={lead.service_data} />
         </LeadSection>
       )}
 
       {/* Send Questionnaire — task 8.3 */}
       <LeadSection title="Cuestionario" defaultOpen={openSections.cuestionario}>
-        <p style={s.hint}>
-          Enviá un cuestionario al cliente para recopilar información detallada sobre su proyecto.
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
-          <button
-            style={{
-              ...s.btn,
-              background: questionnaireSending ? '#334155' : '#0ea5e9',
-              opacity: questionnaireSending ? 0.7 : 1,
-              cursor: questionnaireSending ? 'not-allowed' : 'pointer',
-            }}
-            onClick={sendQuestionnaire}
-            disabled={questionnaireSending}
-          >
-            {questionnaireSending ? 'Enviando...' : 'Enviar cuestionario'}
-          </button>
-          {questionnaireSent && <p style={s.successText}>Cuestionario enviado</p>}
-          {questionnaireError && <p style={s.errorText}>{questionnaireError}</p>}
-        </div>
+        <LeadActionButton
+          hint="Enviá un cuestionario al cliente para recopilar información detallada sobre su proyecto."
+          label="Enviar cuestionario"
+          tone="#0ea5e9"
+          busy={questionnaireSending}
+          done={questionnaireSent}
+          doneLabel="Cuestionario enviado"
+          error={questionnaireError}
+          onClick={sendQuestionnaire}
+        />
       </LeadSection>
 
       {/* Transcription */}
@@ -641,265 +516,66 @@ export default function LeadDetailPage() {
 
       {/* Editable: Datos del cliente */}
       <LeadSection title="Datos del cliente" defaultOpen={openSections.cliente}>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Titular</label>
-          <input style={s.input} value={titular} onChange={(e) => setTitular(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Localidad</label>
-          <input style={s.input} value={localidad} onChange={(e) => setLocalidad(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>País</label>
-          <input style={s.input} value={pais} onChange={(e) => setPais(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Estado</label>
-          <select value={estado} onChange={(e) => setEstado(e.target.value)}
-            style={{ ...s.input, appearance: 'auto' as React.CSSProperties['appearance'] }}>
-            {ESTADOS.map((e) => (
-              <option key={e} value={e}>{labelForState(e)}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Notas de llamada</label>
-          <textarea style={{ ...s.input, minHeight: 100, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={notasLlamada} onChange={(e) => setNotasLlamada(e.target.value)} />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button style={s.btn} onClick={saveClient}>Guardar</button>
-          {clientSaved && <p style={s.successText}>Guardado</p>}
-        </div>
+        <LeadEditableForm
+          onSave={saveClient}
+          saved={clientSaved}
+          fields={[
+            { kind: 'text', key: 'titular', label: 'Titular', value: titular, onChange: setTitular },
+            { kind: 'text', key: 'localidad', label: 'Localidad', value: localidad, onChange: setLocalidad },
+            { kind: 'text', key: 'pais', label: 'País', value: pais, onChange: setPais },
+            {
+              kind: 'select', key: 'estado', label: 'Estado', value: estado, onChange: setEstado,
+              options: ESTADOS.map((value) => ({ value, label: labelForState(value) })),
+            },
+            { kind: 'textarea', key: 'notas', label: 'Notas de llamada', value: notasLlamada, onChange: setNotasLlamada, minHeight: 100 },
+          ]}
+        />
       </LeadSection>
 
       {/* Editable: Diagnóstico */}
       <LeadSection title="Diagnóstico de la llamada" defaultOpen={openSections.diagnostico}>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Objetivo — ¿Cómo se ve en 6 meses?</label>
-          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={diagObjetivo} onChange={(e) => setDiagObjetivo(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Situación — Dolor detectado</label>
-          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={diagSituacion} onChange={(e) => setDiagSituacion(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Requerimiento — Mi traducción a solución</label>
-          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={diagRequerimiento} onChange={(e) => setDiagRequerimiento(e.target.value)} />
-        </div>
-
-        <div style={s.divider} />
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Dolor — ¿Qué le duele hoy?</label>
-          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={diagDolor} onChange={(e) => setDiagDolor(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Deseo — ¿Qué quiere lograr?</label>
-          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={diagDeseo} onChange={(e) => setDiagDeseo(e.target.value)} />
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <label style={s.label}>Preocupaciones — ¿Qué le preocupa?</label>
-          <textarea style={{ ...s.input, minHeight: 80, resize: 'vertical' as React.CSSProperties['resize'] }}
-            value={diagPreocupaciones} onChange={(e) => setDiagPreocupaciones(e.target.value)} />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button style={s.btn} onClick={saveDiagnosis}>Guardar</button>
-          {diagSaved && <p style={s.successText}>Guardado</p>}
-        </div>
+        <LeadEditableForm
+          onSave={saveDiagnosis}
+          saved={diagSaved}
+          fields={[
+            { kind: 'textarea', key: 'objetivo', label: 'Objetivo — ¿Cómo se ve en 6 meses?', value: diagObjetivo, onChange: setDiagObjetivo },
+            { kind: 'textarea', key: 'situacion', label: 'Situación — Dolor detectado', value: diagSituacion, onChange: setDiagSituacion },
+            { kind: 'textarea', key: 'requerimiento', label: 'Requerimiento — Mi traducción a solución', value: diagRequerimiento, onChange: setDiagRequerimiento },
+            { kind: 'divider', key: 'corte' },
+            { kind: 'textarea', key: 'dolor', label: 'Dolor — ¿Qué le duele hoy?', value: diagDolor, onChange: setDiagDolor },
+            { kind: 'textarea', key: 'deseo', label: 'Deseo — ¿Qué quiere lograr?', value: diagDeseo, onChange: setDiagDeseo },
+            { kind: 'textarea', key: 'preocupaciones', label: 'Preocupaciones — ¿Qué le preocupa?', value: diagPreocupaciones, onChange: setDiagPreocupaciones },
+          ]}
+        />
       </LeadSection>
 
       {/* Budget Calculator */}
       <LeadSection title="Calculadora de presupuesto" defaultOpen={openSections.presupuesto}>
-        <p style={s.hint}>
-          PERT = (O + 4M + P) / 6 · Buffer {rateConfig.buffer_pct}% · ${rateConfig.tarifa_hora}/hr
-        </p>
-
-        {/* Service Context panel — task 8.5 */}
-        {lead.service_data && (
-          <div style={{
-            background: 'rgba(0,212,212,0.04)',
-            border: '1px solid rgba(0,212,212,0.2)',
-            borderRadius: 8,
-            padding: '14px 16px',
-            marginTop: 16,
-            marginBottom: 8,
-          }}>
-            <p style={{ ...s.label, color: '#00d4d4', marginBottom: 10 }}>Contexto del servicio</p>
-            {lead.service && (
-              <p style={{ fontSize: 13, color: '#00d4d4', fontFamily: 'monospace', margin: '0 0 8px' }}>
-                {lead.service}
-              </p>
-            )}
-            {Object.entries(lead.service_data).slice(0, 5).map(([key, val]) => (
-              <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace', minWidth: 120 }}>
-                  {key}
-                </span>
-                <span style={{ fontSize: 12, color: '#94a3b8' }}>
-                  {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Base modules */}
-        {baseModules.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            <p style={{ ...s.label, marginBottom: 10, color: '#94a3b8' }}>Base</p>
-            {baseModules.map((row) => (
-              <PertModuleRow key={row.slug} row={row} onChange={updatePertRow} />
-            ))}
-          </div>
-        )}
-
-        {/* Feature modules */}
-        {featureModules.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            <p style={{ ...s.label, marginBottom: 10, color: '#94a3b8' }}>Módulos</p>
-            {featureModules.map((row) => (
-              <PertModuleRow key={row.slug} row={row} onChange={updatePertRow} />
-            ))}
-          </div>
-        )}
-
-        {/* Summary */}
-        <div style={{ marginTop: 24, borderTop: '1px solid #1e293b', paddingTop: 18 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 360 }}>
-            <div>
-              <p style={{ ...s.label, marginBottom: 2 }}>Horas PERT</p>
-              <p style={{ fontSize: 18, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>
-                {totalPertHours.toFixed(1)}h
-              </p>
-            </div>
-            <div>
-              <p style={{ ...s.label, marginBottom: 2 }}>Con buffer ({rateConfig.buffer_pct}%)</p>
-              <p style={{ fontSize: 18, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>
-                {bufferedHours.toFixed(1)}h
-              </p>
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <p style={{ ...s.label, marginBottom: 2 }}>Total estimado</p>
-              <p style={{ fontSize: 26, fontWeight: 700, color: '#00d4d4', margin: 0 }}>
-                ${totalPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
-            <button style={s.btn} onClick={saveBudget}>Guardar presupuesto</button>
-            {budgetSaved && <p style={s.successText}>Guardado</p>}
-          </div>
-
-          {lead.monto_presupuestado != null && (
-            <p style={{ ...s.hint, marginTop: 8 }}>
-              Último guardado: ${lead.monto_presupuestado.toLocaleString('en-US')} ({lead.horas_calculadas}h)
-            </p>
-          )}
-
-          {lead.monto_presupuestado != null && (
-            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
-              {/* Download Proposal — task 8.4 */}
-              <div style={{ marginBottom: 16 }}>
-                <button
-                  style={{
-                    ...s.btn,
-                    background: proposalLoading ? '#334155' : '#00d4d4',
-                    opacity: proposalLoading ? 0.7 : 1,
-                    cursor: proposalLoading ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={downloadProposal}
-                  disabled={proposalLoading}
-                >
-                  {proposalLoading ? 'Generando...' : 'Descargar propuesta'}
-                </button>
-                <p style={{ ...s.hint, marginTop: 6 }}>
-                  Descarga la propuesta en formato .docx.
-                </p>
-              </div>
-
-              {/* Send Proposal Email — task 8.4 */}
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button
-                    style={{
-                      ...s.btn,
-                      background: proposalSending ? '#334155' : '#0ea5e9',
-                      opacity: proposalSending ? 0.7 : 1,
-                      cursor: proposalSending ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={sendProposalEmail}
-                    disabled={proposalSending}
-                  >
-                    {proposalSending ? 'Enviando...' : 'Enviar propuesta'}
-                  </button>
-                  {proposalEmailSent && <p style={s.successText}>Propuesta enviada</p>}
-                  {proposalEmailError && <p style={s.errorText}>{proposalEmailError}</p>}
-                </div>
-                {lead.proposal_sent_at && (
-                  <p style={{ ...s.hint, marginTop: 6 }}>
-                    Enviada el {fmt(lead.proposal_sent_at)}
-                  </p>
-                )}
-              </div>
-
-              {/* Send Contract / Download Contract — task 8.4 */}
-              <div style={{ marginBottom: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button
-                    style={{
-                      ...s.btn,
-                      background: contractLoading ? '#6366f1' : '#818cf8',
-                      opacity: contractLoading ? 0.7 : 1,
-                      cursor: contractLoading ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={downloadContract}
-                    disabled={contractLoading}
-                  >
-                    {contractLoading ? 'Generando...' : 'Generar contrato'}
-                  </button>
-                  <button
-                    style={{
-                      ...s.btn,
-                      background: contractSending ? '#334155' : '#7c3aed',
-                      opacity: contractSending ? 0.7 : 1,
-                      cursor: contractSending ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={sendContractEmail}
-                    disabled={contractSending}
-                  >
-                    {contractSending ? 'Enviando...' : 'Enviar contrato'}
-                  </button>
-                  {contractEmailSent && <p style={s.successText}>Contrato enviado</p>}
-                  {contractEmailError && <p style={s.errorText}>{contractEmailError}</p>}
-                </div>
-                {lead.contract_sent_at && (
-                  <p style={{ ...s.hint, marginTop: 6 }}>
-                    Enviado el {fmt(lead.contract_sent_at)}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <LeadBudgetSection
+          lead={lead}
+          rateConfig={rateConfig}
+          baseModules={baseModules}
+          featureModules={featureModules}
+          totalPertHours={totalPertHours}
+          bufferedHours={bufferedHours}
+          totalPrice={totalPrice}
+          updatePertRow={updatePertRow}
+          saveBudget={saveBudget}
+          budgetSaved={budgetSaved}
+          downloadProposal={downloadProposal}
+          proposalLoading={proposalLoading}
+          downloadContract={downloadContract}
+          contractLoading={contractLoading}
+          sendProposalEmail={sendProposalEmail}
+          proposalSending={proposalSending}
+          proposalEmailSent={proposalEmailSent}
+          proposalEmailError={proposalEmailError}
+          sendContractEmail={sendContractEmail}
+          contractSending={contractSending}
+          contractEmailSent={contractEmailSent}
+          contractEmailError={contractEmailError}
+          fmt={fmt}
+        />
       </LeadSection>
 
       {/* Proposal Prompt Generator */}
@@ -946,50 +622,3 @@ export default function LeadDetailPage() {
   );
 }
 
-function PertModuleRow({
-  row,
-  onChange,
-}: {
-  row: PertRow;
-  onChange: (slug: string, field: keyof Pick<PertRow, 'o' | 'm' | 'p' | 'selected'>, value: number | boolean) => void;
-}) {
-  const pert = pertHours(row.o, row.m, row.p);
-
-  const numInput: React.CSSProperties = {
-    ...s.input,
-    width: 64,
-    padding: '6px 8px',
-    textAlign: 'center',
-    fontSize: 13,
-  };
-
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10,
-      opacity: row.selected ? 1 : 0.4,
-      padding: '8px 10px',
-      background: row.selected ? 'rgba(0,212,212,0.04)' : 'transparent',
-      borderRadius: 8,
-      transition: 'opacity 0.15s',
-    }}>
-      <input
-        type="checkbox"
-        checked={row.selected}
-        onChange={(e) => onChange(row.slug, 'selected', e.target.checked)}
-        style={{ accentColor: '#00d4d4' }}
-      />
-      <span style={{ fontSize: 13, color: '#e2e8f0', width: 180, flexShrink: 0 }}>
-        {row.label}
-      </span>
-      <input type="number" min={0} value={row.o} style={numInput}
-        onChange={(e) => onChange(row.slug, 'o', Number(e.target.value) || 0)} title="Optimista" />
-      <input type="number" min={0} value={row.m} style={numInput}
-        onChange={(e) => onChange(row.slug, 'm', Number(e.target.value) || 0)} title="Más probable" />
-      <input type="number" min={0} value={row.p} style={numInput}
-        onChange={(e) => onChange(row.slug, 'p', Number(e.target.value) || 0)} title="Pesimista" />
-      <span style={{ fontSize: 12, color: c.textDim, width: 52, textAlign: 'right', fontFamily: 'monospace' }}>
-        {row.selected ? `${pert.toFixed(1)}h` : '—'}
-      </span>
-    </div>
-  );
-}
