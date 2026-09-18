@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { advanceOn } from '@/lib/leads/pipeline';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,8 +113,17 @@ export async function POST(req: NextRequest) {
       break;
     }
     case 'BOOKING_PAID': {
-      updates = { pago_estado: 'pagado' };
-      action = 'pago_confirmado';
+      // `pago_estado` sigue guardando el detalle del cobro, pero ya no corre
+      // por su cuenta: hasta acá el lead podía estar cobrado y seguir
+      // figurando como «en conversación». Dos máquinas de estado en paralelo
+      // que nunca se hablaban.
+      const { data: current } = await supabase
+        .from('leads').select('estado').eq('email', email).maybeSingle();
+
+      const nextState = advanceOn('pago_recibido', current?.estado ?? '');
+
+      updates = { pago_estado: 'pagado', ...(nextState ? { estado: nextState } : {}) };
+      action = nextState ? 'pago_confirmado_y_cerrado' : 'pago_confirmado';
       break;
     }
     case 'FORM_SUBMITTED': {

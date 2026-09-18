@@ -14,8 +14,13 @@
 /** Cuánto puede esperar un lead nuevo antes de que sea un problema. */
 export const LEAD_SILENCE_HOURS = 48;
 
-/** Cuánto aguanta una propuesta enviada sin respuesta antes de reclamar. */
-export const PROPOSAL_SILENCE_DAYS = 7;
+/**
+ * Cuánto aguanta una propuesta enviada sin respuesta antes de reclamar.
+ *
+ * Cinco días es el número de Silvano, no una convención: al sexto día una
+ * propuesta sin contestar ya se enfrió y el seguimiento llega tarde.
+ */
+export const PROPOSAL_SILENCE_DAYS = 5;
 
 /**
  * La medianoche de hoy en la zona del negocio, como ISO UTC.

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
+import { PIPELINE, DEAD_ENDS } from '@/lib/leads/pipeline';
 
 type Lead = {
   id: string;
@@ -16,17 +17,41 @@ type Lead = {
   estado: string;
 };
 
-const ESTADOS = ['nuevo', 'llamada_agendada', 'no_show', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
+/**
+ * La lista sale del recorrido, no de una copia local. Cuando el pipeline gana
+ * un estado, el filtro lo muestra sin que haya que acordarse de agregarlo acá.
+ */
+const ESTADOS = [...PIPELINE, ...DEAD_ENDS];
 
+/** Verde es plata cobrada, cian en juego, ámbar hablando, rojo perdido. */
 const ESTADO_COLORS: Record<string, string> = {
-  nuevo: '#00d4d4',
-  llamada_agendada: '#4ade80',
-  no_show: '#f87171',
-  'en conversación': '#f59e0b',
+  nuevo: c.ready,
+  llamada_agendada: c.published,
+  no_show: c.late,
+  'en conversación': c.incomplete,
   presupuestado: '#818cf8',
-  cerrado: '#4ade80',
-  descartado: '#475569',
+  contrato_enviado: '#818cf8',
+  cerrado: c.published,
+  facturado: c.published,
+  entregado: c.published,
+  descartado: c.hairline,
 };
+
+/** Etiquetas legibles: la base guarda snake_case, la pantalla no lo muestra. */
+const ESTADO_LABEL: Record<string, string> = {
+  nuevo: 'Nuevo',
+  llamada_agendada: 'Llamada agendada',
+  no_show: 'No apareció',
+  'en conversación': 'En conversación',
+  presupuestado: 'Propuesta enviada',
+  contrato_enviado: 'Contrato enviado',
+  cerrado: 'Ganado',
+  facturado: 'Facturado',
+  entregado: 'Entregado',
+  descartado: 'Perdido',
+};
+
+const labelFor = (estado: string) => ESTADO_LABEL[estado] ?? estado;
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {
@@ -78,9 +103,9 @@ export default function LeadsPage() {
         </div>
         <p style={{ color: c.textDim, fontSize: 13 }}>
           {leads.length} total
-          {ESTADOS.map((e) => {
-            const c = countByEstado(e);
-            return c > 0 ? ` · ${c} ${e}` : '';
+          {ESTADOS.map((estado) => {
+            const count = countByEstado(estado);
+            return count > 0 ? ` · ${count} ${labelFor(estado).toLowerCase()}` : '';
           }).join('')}
         </p>
       </div>
@@ -96,7 +121,7 @@ export default function LeadsPage() {
               color: filter === f ? c.ready : c.textDim,
               borderColor: filter === f ? c.ready : c.border,
             }}>
-            {f === 'all' ? 'Todos' : f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === 'all' ? 'Todos' : labelFor(f)}
           </button>
         ))}
       </div>
@@ -142,7 +167,7 @@ export default function LeadsPage() {
                       display: 'inline-block', textAlign: 'center',
                       whiteSpace: 'nowrap',
                     }}>
-                      {lead.estado}
+                      {labelFor(lead.estado)}
                     </span>
                   </div>
                 ))}

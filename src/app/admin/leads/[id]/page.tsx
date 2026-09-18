@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
 import { autoSelectSlugs as computeAutoSelectSlugs } from '@/lib/auto-select-slugs';
+import { PIPELINE, DEAD_ENDS } from '@/lib/leads/pipeline';
 
 type Lead = {
   id: string;
@@ -68,7 +69,9 @@ type PertRow = {
   selected: boolean;
 };
 
-const ESTADOS = ['nuevo', 'llamada_agendada', 'no_show', 'en conversación', 'presupuestado', 'cerrado', 'descartado'] as const;
+// El selector de estado usa el recorrido real, no una copia que se olvida
+// de los estados nuevos. Ver src/lib/leads/pipeline.ts.
+const ESTADOS = [...PIPELINE, ...DEAD_ENDS];
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {

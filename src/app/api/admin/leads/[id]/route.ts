@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
+import { isKnownState } from '@/lib/leads/pipeline';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +68,15 @@ export async function PATCH(
         }
         updates[key] = v;
       }
+    }
+
+    // La columna `estado` es text libre: sin esto, un typo entra a la base y
+    // crea un estado fantasma que ninguna pantalla sabe mostrar. El recorrido
+    // definido en pipeline.ts es la única lista válida.
+    if (typeof updates.estado === 'string' && !isKnownState(updates.estado)) {
+      return NextResponse.json({
+        error: `Estado desconocido: "${updates.estado}".`,
+      }, { status: 400 });
     }
 
     if (Object.keys(updates).length === 0) {

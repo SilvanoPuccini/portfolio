@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { contractReadyHtml } from '@/lib/email-templates/contract-ready';
+import { advanceOn } from '@/lib/leads/pipeline';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export async function POST(
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('nombre, email')
+      .select('nombre, email, estado')
       .eq('id', id)
       .single();
 
@@ -38,15 +39,22 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to send contract email.' }, { status: 502 });
     }
 
-    // Update contract_sent_at only after successful email send
+    // Igual que la propuesta: la fecha sola no alcanzaba. El lead se movía
+    // en la realidad y no en el panel, y ese desfasaje es lo que volvía
+    // inservible la lista.
+    const nextState = advanceOn('contrato_enviado', lead.estado ?? '');
+
     const { error: updateError } = await getSupabaseAdmin()
       .from('leads')
-      .update({ contract_sent_at: new Date().toISOString() })
+      .update({
+        contract_sent_at: new Date().toISOString(),
+        ...(nextState ? { estado: nextState } : {}),
+      })
       .eq('id', id);
 
     if (updateError) throw updateError;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, ...(nextState ? { estado: nextState } : {}) });
   } catch (err) {
     console.error('[admin/leads/[id]/send-contract] POST error:', err);
     return NextResponse.json({ error: 'Error sending contract.' }, { status: 500 });

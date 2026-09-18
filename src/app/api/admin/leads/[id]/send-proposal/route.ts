@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
+import { advanceOn } from '@/lib/leads/pipeline';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export async function POST(
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('nombre, email')
+      .select('nombre, email, estado')
       .eq('id', id)
       .single();
 
@@ -38,15 +39,23 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to send proposal email.' }, { status: 502 });
     }
 
-    // Update proposal_sent_at only after successful email send
+    // La fecha y el estado se guardan juntos, y solo después de que el correo
+    // salió. Antes se guardaba únicamente la fecha: el lead quedaba en «en
+    // conversación» con una propuesta ya mandada, y había que acordarse de
+    // moverlo a mano. Nadie se acuerda siempre, y por eso la lista mentía.
+    const nextState = advanceOn('propuesta_enviada', lead.estado ?? '');
+
     const { error: updateError } = await getSupabaseAdmin()
       .from('leads')
-      .update({ proposal_sent_at: new Date().toISOString() })
+      .update({
+        proposal_sent_at: new Date().toISOString(),
+        ...(nextState ? { estado: nextState } : {}),
+      })
       .eq('id', id);
 
     if (updateError) throw updateError;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, ...(nextState ? { estado: nextState } : {}) });
   } catch (err) {
     console.error('[admin/leads/[id]/send-proposal] POST error:', err);
     return NextResponse.json({ error: 'Error sending proposal.' }, { status: 500 });
