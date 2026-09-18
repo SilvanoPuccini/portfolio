@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
+import { buildProposalDoc } from '@/lib/leads/documents';
 import { advanceOn } from '@/lib/leads/pipeline';
 
 export const dynamic = 'force-dynamic';
@@ -28,11 +29,21 @@ export async function POST(
       return NextResponse.json({ error: 'Lead not found.' }, { status: 404 });
     }
 
+    // El correo anuncia un adjunto, así que sin el adjunto no sale. Antes se
+    // mandaba igual y el cliente recibía «mirá el adjunto» sin nada que mirar.
+    const doc = await buildProposalDoc(id);
+    if (!doc) {
+      return NextResponse.json({
+        error: 'Guardá el presupuesto antes de mandar la propuesta: sin monto ni horas el documento sale vacío.',
+      }, { status: 400 });
+    }
+
     try {
       await sendCrmEmail(
         lead.email,
-        'Your proposal is ready',
+        'Tu propuesta está lista',
         proposalReadyHtml({ name: lead.nombre, email: lead.email }),
+        [{ filename: doc.filename, content: doc.buffer }],
       );
     } catch (emailErr) {
       console.error('[send-proposal] Resend error:', emailErr);

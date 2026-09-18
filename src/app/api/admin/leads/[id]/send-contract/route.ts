@@ -3,7 +3,16 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { contractReadyHtml } from '@/lib/email-templates/contract-ready';
+import { buildContractDoc } from '@/lib/leads/documents';
+
 import { advanceOn } from '@/lib/leads/pipeline';
+
+/** La cláusula por defecto. El correo no pide una a medida: costaría una
+ *  llamada al modelo por envío y el contrato ya viaja con las condiciones. */
+const LEGAL_FALLBACK =
+  'Este contrato se regirá por las leyes de la República Argentina. ' +
+  'Para cualquier controversia, las partes se someten a la jurisdicción de los ' +
+  'tribunales ordinarios de la Ciudad Autónoma de Buenos Aires.';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,11 +37,18 @@ export async function POST(
       return NextResponse.json({ error: 'Lead not found.' }, { status: 404 });
     }
 
+    // Sin el contrato adjunto no hay nada que firmar: el correo no sale.
+    const doc = await buildContractDoc(id, LEGAL_FALLBACK);
+    if (!doc) {
+      return NextResponse.json({ error: 'No se pudo generar el contrato.' }, { status: 500 });
+    }
+
     try {
       await sendCrmEmail(
         lead.email,
-        'Your contract is ready',
+        'Tu contrato está listo para firmar',
         contractReadyHtml({ name: lead.nombre, email: lead.email }),
+        [{ filename: doc.filename, content: doc.buffer }],
       );
     } catch (emailErr) {
       console.error('[send-contract] Resend error:', emailErr);

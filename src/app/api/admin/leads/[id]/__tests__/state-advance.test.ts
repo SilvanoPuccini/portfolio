@@ -6,9 +6,15 @@ vi.mock('@/lib/admin-auth', () => ({ isAuthorized: vi.fn().mockReturnValue(true)
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 vi.mock('@/lib/email-templates/proposal-ready', () => ({ proposalReadyHtml: () => '<p>ok</p>' }));
 vi.mock('@/lib/email-templates/contract-ready', () => ({ contractReadyHtml: () => '<p>ok</p>' }));
+// El envio ahora exige el documento: sin adjunto, el correo no sale.
+vi.mock('@/lib/leads/documents', () => ({
+  buildProposalDoc: vi.fn(),
+  buildContractDoc: vi.fn(),
+}));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
+import { buildProposalDoc, buildContractDoc } from '@/lib/leads/documents';
 import { POST as sendProposal } from '@/app/api/admin/leads/[id]/send-proposal/route';
 import { POST as sendContract } from '@/app/api/admin/leads/[id]/send-contract/route';
 
@@ -38,6 +44,9 @@ describe('mandar propuesta y contrato mueve el estado del lead', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(sendCrmEmail).mockResolvedValue(undefined as never);
+    const doc = { buffer: Buffer.from('docx'), filename: 'doc.docx' };
+    vi.mocked(buildProposalDoc).mockResolvedValue(doc);
+    vi.mocked(buildContractDoc).mockResolvedValue(doc);
   });
 
   it('la propuesta deja el lead en presupuestado', async () => {

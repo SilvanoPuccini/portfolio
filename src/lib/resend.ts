@@ -2,13 +2,39 @@ import { Resend } from 'resend';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
 // ─── CRM email wrapper ────────────────────────────────────────────────────────
-export async function sendCrmEmail(to: string, subject: string, html: string): Promise<void> {
+
+/** Un archivo que viaja con el correo. `content` son los bytes del documento. */
+export interface CrmAttachment {
+  filename: string;
+  content: Buffer;
+}
+
+/**
+ * Manda un correo del CRM, con sus adjuntos si los lleva.
+ *
+ * El parámetro de adjuntos no existía, y las plantillas de propuesta y
+ * contrato anunciaban un archivo adjunto que nunca viajaba: el cliente recibía
+ * «mirá el adjunto» y no había nada que mirar. El documento se generaba de
+ * verdad, pero solo al apretar Descargar, y bajaba a la máquina de Silvano.
+ */
+export async function sendCrmEmail(
+  to: string,
+  subject: string,
+  html: string,
+  attachments?: CrmAttachment[],
+): Promise<void> {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const FROM = process.env.RESEND_FROM_EMAIL
     ? `Silvano Puccini Dev <${process.env.RESEND_FROM_EMAIL}>`
     : 'Silvano Puccini Dev <onboarding@resend.dev>';
 
-  await resend.emails.send({ from: FROM, to, subject, html });
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject,
+    html,
+    ...(attachments?.length ? { attachments } : {}),
+  });
 }
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
