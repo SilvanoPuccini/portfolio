@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 
 type Lead = {
   id: string;
@@ -75,7 +76,7 @@ export default function LeadsPage() {
           <p style={s.eyebrow}>CRM</p>
           <h1 style={{ ...s.heading, marginBottom: 0, fontSize: 24 }}>Leads</h1>
         </div>
-        <p style={{ color: '#475569', fontSize: 13 }}>
+        <p style={{ color: c.textDim, fontSize: 13 }}>
           {leads.length} total
           {ESTADOS.map((e) => {
             const c = countByEstado(e);
@@ -100,12 +101,12 @@ export default function LeadsPage() {
         ))}
       </div>
 
-      {loading && <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>}
+      {loading && <p style={{ color: c.textDim, fontSize: 13 }}>Cargando...</p>}
 
       {!loading && (
         <div style={s.card}>
           {filtered.length === 0
-            ? <p style={{ color: '#475569', fontSize: 13 }}>Sin leads.</p>
+            ? <p style={{ color: c.textDim, fontSize: 13 }}>Sin leads.</p>
             : (
               <>
                 {/* Table header */}
@@ -129,7 +130,7 @@ export default function LeadsPage() {
                     onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,212,212,0.04)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <span style={{ fontSize: 12, color: '#475569' }}>{fmt(lead.created_at)}</span>
+                    <span style={{ fontSize: 12, color: c.textDim }}>{fmt(lead.created_at)}</span>
                     <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 500 }}>{lead.nombre}</span>
                     <span style={{ fontSize: 12, color: '#94a3b8' }}>{lead.tipo_proyecto ?? '—'}</span>
                     <span style={{ fontSize: 12, color: '#94a3b8' }}>{lead.presupuesto_rango ?? '—'}</span>
@@ -153,7 +154,7 @@ export default function LeadsPage() {
                       style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>
                       ← Ant.
                     </button>
-                    <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>
+                    <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace' }}>
                       {page} / {totalPages} · {filtered.length} total
                     </span>
                     <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}

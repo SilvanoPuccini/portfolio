@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 
 type Subscriber = { id: string; email: string; name: string | null; status: string; created_at: string };
 type Filter = 'all' | 'active' | 'unsubscribed';
@@ -104,13 +105,13 @@ export default function SubscribersPage() {
 
       {/* Table */}
       <div style={s.card}>
-        {loading && <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>}
-        {!loading && filtered.length === 0 && <p style={{ color: '#475569', fontSize: 13 }}>Sin resultados.</p>}
+        {loading && <p style={{ color: c.textDim, fontSize: 13 }}>Cargando...</p>}
+        {!loading && filtered.length === 0 && <p style={{ color: c.textDim, fontSize: 13 }}>Sin resultados.</p>}
         {!loading && totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1e293b' }}>
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
               style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
-            <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
+            <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
             <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
               style={{ background: 'none', border: 'none', color: page === totalPages ? '#2a3a50' : '#475569', cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
           </div>
@@ -119,7 +120,7 @@ export default function SubscribersPage() {
           <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1e293b' }}>
             <div>
               <p style={{ fontSize: 13, color: '#e2e8f0', margin: '0 0 2px' }}>{sub.email}</p>
-              <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{fmt(sub.created_at)}</p>
+              <p style={{ fontSize: 11, color: c.textDim, margin: 0 }}>{fmt(sub.created_at)}</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{

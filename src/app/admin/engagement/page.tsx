@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 import type { AdminEngagementResponse, EngagementSummary } from '@/app/api/admin/engagement/route';
 
 const numberFormatter = new Intl.NumberFormat('es-AR');
@@ -78,7 +79,7 @@ export default function EngagementPage() {
             <thead>
               <tr style={{ borderBottom: '1px solid #1e293b', textAlign: 'left' }}>
                 {['Post', 'Fecha', 'Me gusta', 'No me gusta', 'Vistas', 'Compartidos', 'Reacciones', 'Tasa'].map((label) => (
-                  <th key={label} style={{ color: '#64748b', fontWeight: 600, padding: '13px 14px' }}>{label}</th>
+                  <th key={label} style={{ color: c.textDim, fontWeight: 600, padding: '13px 14px' }}>{label}</th>
                 ))}
               </tr>
             </thead>
@@ -91,7 +92,7 @@ export default function EngagementPage() {
                     </span>
                     {post.title}
                   </td>
-                  <td style={{ color: '#64748b', padding: '14px', whiteSpace: 'nowrap' }}>
+                  <td style={{ color: c.textDim, padding: '14px', whiteSpace: 'nowrap' }}>
                     {new Date(post.date).toLocaleDateString('es-AR')}
                   </td>
                   <td style={{ color: '#94a3b8', padding: '14px' }}>{post.likes}</td>

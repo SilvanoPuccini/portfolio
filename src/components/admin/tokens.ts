@@ -23,6 +23,10 @@ export const c = {
   surface: '#111827',
   /** Elevación para la semana en curso: se distingue sin pedir otro color. */
   surfaceWeek: 'rgba(255,255,255,0.028)',
+  /** Fondo hundido de un campo editable: se distingue de la tarjeta que lo contiene. */
+  field: '#0f172a',
+  /** La barra de navegación, un punto más oscura que la tarjeta. */
+  chrome: '#0d1117',
   border: '#1e293b',
   borderSoft: 'rgba(255,255,255,0.07)',
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 import type { CrmStats } from '@/app/api/admin/crm-stats/route';
 
 type Stats = { subscribers: number; totalMessages: number; unreadMessages: number; totalPosts: number };
@@ -84,7 +85,7 @@ export default function DashboardPage() {
       )}
 
       {loading && !stats && (
-        <p style={{ color: '#475569', fontSize: 13 }}>Cargando datos...</p>
+        <p style={{ color: c.textDim, fontSize: 13 }}>Cargando datos...</p>
       )}
 
       {/* Stats */}
@@ -109,11 +110,11 @@ export default function DashboardPage() {
         <div style={s.card}>
           <p style={{ ...s.eyebrow, marginBottom: 14 }}>Últimos suscriptores</p>
           {recentSubs.length === 0
-            ? <p style={{ color: '#475569', fontSize: 13 }}>Sin suscriptores aún.</p>
+            ? <p style={{ color: c.textDim, fontSize: 13 }}>Sin suscriptores aún.</p>
             : recentSubs.map((sub) => (
               <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1e293b' }}>
                 <p style={{ fontSize: 13, color: '#e2e8f0', margin: 0 }}>{sub.email}</p>
-                <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{fmt(sub.created_at)}</p>
+                <p style={{ fontSize: 11, color: c.textDim, margin: 0 }}>{fmt(sub.created_at)}</p>
               </div>
             ))}
         </div>
@@ -121,7 +122,7 @@ export default function DashboardPage() {
         <div style={s.card}>
           <p style={{ ...s.eyebrow, marginBottom: 14 }}>Últimos mensajes</p>
           {recentMsgs.length === 0
-            ? <p style={{ color: '#475569', fontSize: 13 }}>Sin mensajes aún.</p>
+            ? <p style={{ color: c.textDim, fontSize: 13 }}>Sin mensajes aún.</p>
             : recentMsgs.map((msg) => (
               <div key={msg.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1e293b' }}>
                 <div>
@@ -129,9 +130,9 @@ export default function DashboardPage() {
                     {!msg.read && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#00d4d4', marginRight: 6, verticalAlign: 'middle' }} />}
                     {msg.name}
                   </p>
-                  <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{msg.subject}</p>
+                  <p style={{ fontSize: 11, color: c.textDim, margin: 0 }}>{msg.subject}</p>
                 </div>
-                <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{fmt(msg.created_at)}</p>
+                <p style={{ fontSize: 11, color: c.textDim, margin: 0 }}>{fmt(msg.created_at)}</p>
               </div>
             ))}
         </div>
@@ -183,7 +184,7 @@ export default function DashboardPage() {
               <p style={{ ...s.eyebrow, marginBottom: 16 }}>Embudo de conversión</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                 {[
-                  { label: 'Leads', rate: null, color: '#475569' },
+                  { label: 'Leads', rate: null, color: c.textDim },
                   { label: 'Llamada', rate: crmStats.leads_to_call_rate, color: '#0ea5e9' },
                   { label: 'Propuesta', rate: crmStats.call_to_proposal_rate, color: '#f59e0b' },
                   { label: 'Cierre', rate: crmStats.proposal_to_close_rate, color: '#4ade80' },
@@ -198,7 +199,7 @@ export default function DashboardPage() {
                       border: '1px solid #1e293b',
                     }}
                   >
-                    <p style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
+                    <p style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
                       {stage.label}
                     </p>
                     {stage.rate != null ? (
@@ -235,13 +236,13 @@ export default function DashboardPage() {
                     </p>
                     <div style={{ display: 'flex', gap: 20 }}>
                       <div style={{ textAlign: 'right' as const }}>
-                        <p style={{ fontSize: 11, color: '#475569', margin: '0 0 2px' }}>Leads</p>
+                        <p style={{ fontSize: 11, color: c.textDim, margin: '0 0 2px' }}>Leads</p>
                         <p style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>
                           {trend.lead_count}
                         </p>
                       </div>
                       <div style={{ textAlign: 'right' as const }}>
-                        <p style={{ fontSize: 11, color: '#475569', margin: '0 0 2px' }}>Cerrados</p>
+                        <p style={{ fontSize: 11, color: c.textDim, margin: '0 0 2px' }}>Cerrados</p>
                         <p style={{ fontSize: 14, fontWeight: 700, color: '#4ade80', margin: 0 }}>
                           {trend.closed_count}
                         </p>

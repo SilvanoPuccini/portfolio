@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 
 type Message = { id: string; name: string; email: string; subject: string; message: string; read: boolean; created_at: string };
 
@@ -65,7 +66,7 @@ export default function MessagesPage() {
           <p style={s.eyebrow}>Contacto</p>
           <h1 style={{ ...s.heading, marginBottom: 0, fontSize: 24 }}>Mensajes</h1>
         </div>
-        <p style={{ color: '#475569', fontSize: 13 }}>{unread > 0 ? `${unread} sin leer` : 'Todo leído'} · {messages.length} total</p>
+        <p style={{ color: c.textDim, fontSize: 13 }}>{unread > 0 ? `${unread} sin leer` : 'Todo leído'} · {messages.length} total</p>
       </div>
 
       {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
@@ -80,20 +81,20 @@ export default function MessagesPage() {
         ))}
       </div>
 
-      {loading && <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>}
+      {loading && <p style={{ color: c.textDim, fontSize: 13 }}>Cargando...</p>}
 
       {!loading && (
         <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 1fr' : '1fr', gap: 16 }}>
           {/* Lista */}
           <div style={s.card}>
             {filtered.length === 0
-              ? <p style={{ color: '#475569', fontSize: 13 }}>Sin mensajes.</p>
+              ? <p style={{ color: c.textDim, fontSize: 13 }}>Sin mensajes.</p>
               : (<>
                 {totalPages > 1 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1e293b' }}>
                     <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
                       style={{ background: 'none', border: 'none', color: page === 1 ? '#2a3a50' : '#475569', cursor: page === 1 ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>← Ant.</button>
-                    <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
+                    <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace' }}>{page} / {totalPages} · {filtered.length} total</span>
                     <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
                       style={{ background: 'none', border: 'none', color: page === totalPages ? '#2a3a50' : '#475569', cursor: page === totalPages ? 'default' : 'pointer', fontSize: 12, padding: '2px 6px' }}>Sig. →</button>
                   </div>
@@ -112,9 +113,9 @@ export default function MessagesPage() {
                         {!msg.read && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#00d4d4', marginRight: 6, verticalAlign: 'middle' }} />}
                         {msg.name}
                       </p>
-                      <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>{msg.subject}</p>
+                      <p style={{ fontSize: 12, color: c.textDim, margin: 0 }}>{msg.subject}</p>
                     </div>
-                    <p style={{ fontSize: 11, color: '#334155', whiteSpace: 'nowrap', marginLeft: 8 }}>{fmt(msg.created_at)}</p>
+                    <p style={{ fontSize: 11, color: c.textDim, whiteSpace: 'nowrap', marginLeft: 8 }}>{fmt(msg.created_at)}</p>
                   </div>
                 </button>
               ))}
@@ -126,11 +127,11 @@ export default function MessagesPage() {
             <div style={{ ...s.card, position: 'sticky', top: 72, alignSelf: 'flex-start' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div>
-                  <p style={{ ...s.eyebrow, color: '#475569' }}>{fmt(selected.created_at)}</p>
+                  <p style={{ ...s.eyebrow, color: c.textDim }}>{fmt(selected.created_at)}</p>
                   <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: '4px 0 2px' }}>{selected.name}</h2>
-                  <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>{selected.email}</p>
+                  <p style={{ fontSize: 13, color: c.textDim, margin: 0 }}>{selected.email}</p>
                 </div>
-                <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 20 }}>×</button>
+                <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: c.textDim, cursor: 'pointer', fontSize: 20 }}>×</button>
               </div>
               <p style={{ ...s.label, marginBottom: 4 }}>Asunto</p>
               <p style={{ fontSize: 14, color: '#e2e8f0', marginBottom: 18 }}>{selected.subject}</p>

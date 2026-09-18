@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 
 type Results = Record<string, string>;
 
@@ -35,7 +36,7 @@ export default function DebugPage() {
       {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
       <div style={{ ...s.card, maxWidth: 520 }}>
-        <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+        <p style={{ fontSize: 13, color: c.textDim, marginBottom: 20 }}>
           Prueba cada modelo de Gemini disponible con tu API key, y el fallback de cuota en Groq. La clave nunca sale del servidor.
         </p>
 
@@ -44,7 +45,7 @@ export default function DebugPage() {
         </button>
 
         {loading && (
-          <p style={{ fontSize: 12, color: '#475569', marginTop: 14, fontFamily: 'monospace' }}>
+          <p style={{ fontSize: 12, color: c.textDim, marginTop: 14, fontFamily: 'monospace' }}>
             Esto puede tardar ~30s mientras prueba cada modelo...
           </p>
         )}

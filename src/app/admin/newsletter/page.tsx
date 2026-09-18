@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 
 type Post = {
   slug: string; title: string; excerpt: string; date: string;
@@ -106,7 +107,7 @@ export default function NewsletterPage() {
           {/* Preview — HTML exacto del envío real, renderizado en iframe */}
           {selected && (
             previewLoading ? (
-              <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Generando vista previa…</p>
+              <p style={{ color: c.textDim, fontSize: 13, margin: 0 }}>Generando vista previa…</p>
             ) : previewHtml ? (
               <div style={{ background: '#050810', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                 <iframe
@@ -133,14 +134,14 @@ export default function NewsletterPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <p style={{ ...s.sectionTitle, margin: 0 }}>Historial enviados</p>
             {history.length > 0 && (
-              <span style={{ fontSize: 11, color: '#475569' }}>
+              <span style={{ fontSize: 11, color: c.textDim }}>
                 {history.length} envío{history.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
 
           {history.length === 0
-            ? <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Todavía no enviaste ningún newsletter.</p>
+            ? <p style={{ color: c.textDim, fontSize: 13, margin: 0 }}>Todavía no enviaste ningún newsletter.</p>
             : (() => {
                 const totalPages = Math.ceil(history.length / PAGE_SIZE);
                 const page = history.slice(histPage * PAGE_SIZE, (histPage + 1) * PAGE_SIZE);
@@ -154,7 +155,7 @@ export default function NewsletterPage() {
                             {n.recipients_count} dest.
                           </span>
                         </div>
-                        <p style={{ fontSize: 10, color: '#475569', margin: 0 }}>{fmt(n.sent_at)}</p>
+                        <p style={{ fontSize: 10, color: c.textDim, margin: 0 }}>{fmt(n.sent_at)}</p>
                       </div>
                     ))}
 
@@ -167,7 +168,7 @@ export default function NewsletterPage() {
                         >
                           ← Ant.
                         </button>
-                        <span style={{ fontSize: 11, color: '#475569' }}>
+                        <span style={{ fontSize: 11, color: c.textDim }}>
                           {histPage + 1} / {totalPages}
                         </span>
                         <button

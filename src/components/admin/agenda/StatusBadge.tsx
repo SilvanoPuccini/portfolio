@@ -1,4 +1,5 @@
 import type { PostPublicationStatus } from '@/lib/post-publications/types';
+import { c, tint } from './../tokens';
 
 export const STATUS_LABELS: Record<PostPublicationStatus, string> = {
   planificado: 'Planificado',
@@ -6,10 +7,15 @@ export const STATUS_LABELS: Record<PostPublicationStatus, string> = {
   publicado: 'Publicado',
 };
 
+/**
+ * El color dice el estado y nada más. Los tonos salen de la capa semántica;
+ * el fondo es el mismo tono al 10-12 %, para que la pastilla se lea sin pedir
+ * un color propio.
+ */
 export const STATUS_COLORS: Record<PostPublicationStatus, { bg: string; color: string }> = {
-  planificado: { bg: 'rgba(100,116,139,0.12)', color: '#64748b' },
-  preaprobado: { bg: 'rgba(0,212,212,0.1)', color: '#00d4d4' },
-  publicado: { bg: 'rgba(74,222,128,0.1)', color: '#4ade80' },
+  planificado: { bg: tint(c.planned, '1f'), color: c.textDim },
+  preaprobado: { bg: tint(c.ready, '1a'), color: c.ready },
+  publicado: { bg: tint(c.published, '1a'), color: c.published },
 };
 
 export function StatusBadge({ status }: { status: PostPublicationStatus }) {

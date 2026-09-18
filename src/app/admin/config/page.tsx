@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 
 type RateConfig = { tarifa_hora: number; buffer_pct: number };
 
@@ -47,7 +48,7 @@ export default function ConfigPage() {
     }
   }
 
-  if (loading) return <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>;
+  if (loading) return <p style={{ color: c.textDim, fontSize: 13 }}>Cargando...</p>;
 
   return (
     <div>

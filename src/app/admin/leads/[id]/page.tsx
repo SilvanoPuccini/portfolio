@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
+import { c } from '@/components/admin/tokens';
 import { autoSelectSlugs as computeAutoSelectSlugs } from '@/lib/auto-select-slugs';
 
 type Lead = {
@@ -435,7 +436,7 @@ export default function LeadDetailPage() {
     setTimeout(() => setBudgetSaved(false), 3000);
   }
 
-  if (loading) return <p style={{ color: '#475569', fontSize: 13 }}>Cargando...</p>;
+  if (loading) return <p style={{ color: c.textDim, fontSize: 13 }}>Cargando...</p>;
   if (!lead) return <p style={s.errorText}>Lead no encontrado.</p>;
 
   const baseModules = pertRows.filter((r) => allModules.find((m) => m.slug === r.slug)?.categoria === 'base');
@@ -519,10 +520,10 @@ export default function LeadDetailPage() {
       <div style={{ marginBottom: 24 }}>
         <p style={s.eyebrow}>Lead</p>
         <h1 style={{ ...s.heading, fontSize: 24, marginBottom: 4 }}>{lead.nombre}</h1>
-        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+        <p style={{ fontSize: 13, color: c.textDim, margin: 0 }}>
           {lead.email}{lead.telefono ? ` · ${lead.telefono}` : ''}
         </p>
-        <p style={{ fontSize: 12, color: '#475569', margin: '4px 0 0' }}>{fmt(lead.created_at)}</p>
+        <p style={{ fontSize: 12, color: c.textDim, margin: '4px 0 0' }}>{fmt(lead.created_at)}</p>
       </div>
 
       {/* Read-only: Formulario */}
@@ -728,7 +729,7 @@ export default function LeadDetailPage() {
             )}
             {Object.entries(lead.service_data).slice(0, 5).map(([key, val]) => (
               <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace', minWidth: 120 }}>
+                <span style={{ fontSize: 11, color: c.textDim, fontFamily: 'monospace', minWidth: 120 }}>
                   {key}
                 </span>
                 <span style={{ fontSize: 12, color: '#94a3b8' }}>
@@ -966,7 +967,7 @@ function PertModuleRow({
         onChange={(e) => onChange(row.slug, 'm', Number(e.target.value) || 0)} title="Más probable" />
       <input type="number" min={0} value={row.p} style={numInput}
         onChange={(e) => onChange(row.slug, 'p', Number(e.target.value) || 0)} title="Pesimista" />
-      <span style={{ fontSize: 12, color: '#64748b', width: 52, textAlign: 'right', fontFamily: 'monospace' }}>
+      <span style={{ fontSize: 12, color: c.textDim, width: 52, textAlign: 'right', fontFamily: 'monospace' }}>
         {row.selected ? `${pert.toFixed(1)}h` : '—'}
       </span>
     </div>
