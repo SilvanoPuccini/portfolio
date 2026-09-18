@@ -97,3 +97,30 @@ describe('Migration 007: Questionnaires table', () => {
     expect(sql).toContain('idx_questionnaires_token');
   });
 });
+
+describe('Migration 022: X autopilot setting', () => {
+  const sql = readMigration('022_x_autopilot_setting.sql');
+
+  it('creates the site_settings singleton table', () => {
+    expect(sql).toContain('CREATE TABLE IF NOT EXISTS site_settings');
+    expect(sql).toContain('CHECK (id = 1)');
+  });
+
+  it('defaults the autopilot to off so a deploy never auto-publishes', () => {
+    expect(sql).toContain('x_autopilot    boolean NOT NULL DEFAULT false');
+  });
+
+  it('seeds the singleton row idempotently', () => {
+    expect(sql).toContain('INSERT INTO site_settings');
+    expect(sql).toContain('ON CONFLICT (id) DO NOTHING');
+  });
+
+  it('locks the table behind RLS', () => {
+    expect(sql).toContain('ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY');
+    expect(sql).toContain("auth.role() = 'service_role'");
+  });
+
+  it('keeps updated_at on the row', () => {
+    expect(sql).toContain('updated_at');
+  });
+});

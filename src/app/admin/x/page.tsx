@@ -50,6 +50,55 @@ function Tile({ tone, value, label, active, onClick }: {
   </button>;
 }
 
+/**
+ * El interruptor que separa los dos circuitos.
+ *
+ * No es una acción más de la barra: cambia lo que hace el sistema mientras
+ * nadie mira, así que se muestra como estado permanente con su consecuencia
+ * escrita al lado, no como un botón suelto que hay que recordar qué hace.
+ */
+function AutopilotSwitch({ value, busy, note, onToggle }: {
+  value: boolean | null; busy: boolean; note: string; onToggle: () => void;
+}) {
+  const unknown = value === null;
+  const tone = unknown ? c.late : value ? c.ready : c.textSoft;
+  const label = unknown ? 'Sin configurar' : value ? 'Piloto automático' : 'Modo manual';
+  const detail = unknown
+    ? 'El cron queda pausado hasta que el interruptor exista en la base.'
+    : value
+      ? 'El cron escribe los hilos que faltan y los publica en X por API cuando llega la fecha.'
+      : 'La IA escribe cuando apretás "Escribir". Vos copiás el hilo, lo subís a X y lo marcás publicado.';
+
+  return <div style={{
+    display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+    marginBottom: 14, padding: '10px 14px', borderRadius: 10,
+    background: c.surface, border: `1px solid ${c.border}`, borderLeft: `3px solid ${tone}`,
+  }}>
+    <button type="button" role="switch" aria-checked={value === true} aria-label="Piloto automático de X"
+      onClick={onToggle} disabled={busy || unknown}
+      title={unknown ? 'No hay dónde guardar el modo todavía' : 'Cambia entre circuito automático y manual'}
+      className="transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d4d4]"
+      style={{
+        flexShrink: 0, width: 42, height: 22, padding: 2, borderRadius: 999,
+        border: `1px solid ${tint(tone, '73')}`, background: value ? tint(tone, '33') : 'transparent',
+        cursor: busy || unknown ? 'not-allowed' : 'pointer', opacity: unknown ? .5 : 1,
+        display: 'flex', justifyContent: value ? 'flex-end' : 'flex-start', alignItems: 'center',
+      }}>
+      <span aria-hidden style={{ width: 16, height: 16, borderRadius: '50%', background: tone }} />
+    </button>
+
+    <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+      <div style={{
+        fontFamily: 'monospace', fontSize: 10, letterSpacing: '0.12em',
+        textTransform: 'uppercase', color: tone,
+      }}>{busy ? 'Cambiando...' : label}</div>
+      <div style={{ marginTop: 3, fontSize: 12, color: c.textDim, lineHeight: 1.5 }}>{detail}</div>
+    </div>
+
+    {note && <span role="alert" style={{ fontSize: 11, color: c.late, flex: '1 1 100%' }}>{note}</span>}
+  </div>;
+}
+
 function XPageContent() {
   const searchParams = useSearchParams();
   const requestedThreadId = searchParams.get('thread');
@@ -73,8 +122,12 @@ function XPageContent() {
   const [importDate, setImportDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
   const [importText, setImportText] = useState('');
   const [importReport, setImportReport] = useState('');
+  // null = el interruptor todavía no se pudo leer (falta la migración o falló
+  // la red). Se distingue de `false` a propósito: "manual" y "no sé" no son lo
+  // mismo, y mostrarlos igual haría creer que el modo está configurado.
   const [autopilot, setAutopilot] = useState<boolean | null>(null);
   const [autopilotBusy, setAutopilotBusy] = useState(false);
+  const [autopilotNote, setAutopilotNote] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,9 +153,17 @@ function XPageContent() {
 
     // Carga el estado del piloto automático en paralelo — no bloquea la lista.
     fetch('/api/admin/x-autopilot')
-      .then((r) => r.json())
-      .then((j) => { if (typeof j.autopilot === 'boolean') setAutopilot(j.autopilot); })
-      .catch(() => { /* silencioso: el panel sigue funcionando */ });
+      .then((response) => response.json())
+      .then((json: { autopilot?: boolean; available?: boolean; detail?: string }) => {
+        if (json.available === false) {
+          setAutopilot(null);
+          setAutopilotNote('El interruptor no está en la base: corré la migración 022 en Supabase.');
+          return;
+        }
+        setAutopilot(Boolean(json.autopilot));
+        setAutopilotNote('');
+      })
+      .catch(() => setAutopilotNote('No se pudo leer el estado del piloto automático.'));
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -256,6 +317,22 @@ function XPageContent() {
     await load();
   }, []);
 
+  const toggleAutopilot = useCallback(async () => {
+    if (autopilot === null) return;
+    setAutopilotBusy(true);
+    setAutopilotNote('');
+    const response = await fetch('/api/admin/x-autopilot', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ autopilot: !autopilot }),
+    });
+    const json = await response.json().catch(() => ({})) as { autopilot?: boolean; error?: string };
+    setAutopilotBusy(false);
+    // Si la base rechazó el cambio, el switch NO se mueve: mostrar el modo
+    // nuevo sin haberlo guardado es peor que no cambiarlo.
+    if (!response.ok) return setAutopilotNote(json.error ?? 'No se pudo cambiar el modo');
+    setAutopilot(Boolean(json.autopilot));
+  }, [autopilot]);
+
   return <div>
     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
       <div>
@@ -296,6 +373,9 @@ function XPageContent() {
         </button>
       </div>
     </header>
+
+    <AutopilotSwitch value={autopilot} busy={autopilotBusy} note={autopilotNote}
+      onToggle={() => void toggleAutopilot()} />
 
     {importOpen && <div style={{
       marginBottom: 16, padding: 16, borderRadius: 12,
@@ -455,6 +535,7 @@ function XPageContent() {
               expanded={openId === item.id}
               full={full[item.id]}
               busy={busyId === item.id}
+              autopilot={autopilot === true}
               warning={warnings[item.id] ? warnings[item.id] : null}
               onToggle={() => open(item.id)}
               onGenerate={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/generate`, { method: 'POST' }))}

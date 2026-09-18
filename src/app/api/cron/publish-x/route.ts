@@ -42,8 +42,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ paused: true, reason: 'env', published: 0, generated: 0 });
   }
 
-  const { data: settings } = await getSupabaseAdmin()
-    .from('site_settings').select('x_autopilot').eq('id', 1).single();
+  const { data: settings, error: settingsError } = await getSupabaseAdmin()
+    .from('site_settings').select('x_autopilot').eq('id', 1).maybeSingle();
+
+  // Si el interruptor no se puede leer, el cron NO asume que puede publicar.
+  // Pausa igual, pero diciendo por qué: un `manual_mode` silencioso taparía
+  // una migración sin correr y nadie se enteraría hasta que falte un hilo.
+  if (settingsError) {
+    console.error(`[x/cron] No se pudo leer el interruptor: ${settingsError.message}`);
+    return NextResponse.json({
+      paused: true, reason: 'settings_unavailable', detail: settingsError.message,
+      published: 0, generated: 0,
+    });
+  }
 
   if (!settings?.x_autopilot) {
     return NextResponse.json({ paused: true, reason: 'manual_mode', published: 0, generated: 0 });

@@ -33,7 +33,12 @@ function item(status: XThreadListItem['status'], overrides: Partial<XThreadListI
   };
 }
 
-function renderRow(status: XThreadListItem['status'], onChangeStatus = vi.fn(), overrides: Partial<XThreadListItem> = {}) {
+function renderRow(
+  status: XThreadListItem['status'],
+  onChangeStatus = vi.fn(),
+  overrides: Partial<XThreadListItem> = {},
+  autopilot = true,
+) {
   render(<XThreadRow
     item={item(status, overrides)}
     expanded={false}
@@ -46,6 +51,7 @@ function renderRow(status: XThreadListItem['status'], onChangeStatus = vi.fn(), 
     onDelete={vi.fn()}
     onMarkRemoved={vi.fn()}
     busy={false}
+    autopilot={autopilot}
   />);
   return onChangeStatus;
 }
@@ -57,6 +63,20 @@ describe('XThreadRow status controls', () => {
     expect(screen.getByRole('button', { name: 'Publicar ahora' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'Marcar publicado' }));
     expect(onChangeStatus).toHaveBeenCalledWith('publicado');
+  });
+
+  it('hides API publishing in manual mode but keeps writing and manual marking', () => {
+    const onChangeStatus = renderRow('preaprobado', vi.fn(), {}, false);
+
+    expect(screen.queryByRole('button', { name: 'Publicar ahora' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Marcar publicado' }));
+    expect(onChangeStatus).toHaveBeenCalledWith('publicado');
+  });
+
+  it('keeps the AI writing button available with the autopilot off', () => {
+    renderRow('planificado', vi.fn(), {}, false);
+
+    expect(screen.getByRole('button', { name: 'Escribir' })).toBeEnabled();
   });
 
   it('lets a published thread return to pre-approved without losing its publication guard', () => {

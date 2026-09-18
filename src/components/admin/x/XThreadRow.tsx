@@ -69,7 +69,7 @@ function TweetBox({ index, value, onChange, onRemove }: {
  * Una fila por turno de publicación. Igual que en la agenda: todo lo que se le
  * puede hacer al hilo se hace acá, sin ir a otra pantalla.
  */
-export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onSave, onSaveDate, onPublish, onChangeStatus, onDelete, onMarkRemoved, busy }: {
+export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onSave, onSaveDate, onPublish, onChangeStatus, onDelete, onMarkRemoved, busy, autopilot }: {
   item: XThreadListItem;
   expanded: boolean;
   full?: XThread;
@@ -84,6 +84,12 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
   onDelete: () => void | Promise<unknown>;
   onMarkRemoved: () => void | Promise<unknown>;
   busy: boolean;
+  /**
+   * Con el piloto apagado la publicación es manual: el botón que llama a la
+   * API de X se esconde para que no queden dos caminos abiertos al mismo
+   * tiempo. La escritura con IA sigue disponible en los dos modos.
+   */
+  autopilot: boolean;
 }) {
   const [draft, setDraft] = useState<string[] | null>(null);
   const [reply, setReply] = useState<string | null>(null);
@@ -159,10 +165,14 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
           verdad contra la API de X y guarda la URL; el otro declara que ya
           salió a mano, afuera del panel. El segundo es el que evita que el
           cron publique dos veces lo mismo.
+
+          Con el piloto apagado sobrevive solo el segundo: en modo manual la
+          API de X no se toca desde el panel, y un botón que promete publicar
+          cuando el circuito está en manual es una trampa.
         */}
         {item.status === 'preaprobado' && (
           <>
-            {actionButton('Publicar ahora', onPublish, c.published, {
+            {autopilot && actionButton('Publicar ahora', onPublish, c.published, {
               disabled: dirty,
               title: dirty ? 'Guardá los cambios antes de publicar' : 'Publica en X con la API y guarda la URL del hilo',
             })}
