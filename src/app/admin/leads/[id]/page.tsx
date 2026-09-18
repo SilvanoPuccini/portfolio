@@ -7,6 +7,8 @@ import { c } from '@/components/admin/tokens';
 import { autoSelectSlugs as computeAutoSelectSlugs } from '@/lib/auto-select-slugs';
 import { PIPELINE, DEAD_ENDS, labelForState } from '@/lib/leads/pipeline';
 import { LeadAdvanceBar } from '@/components/admin/leads/LeadAdvanceBar';
+import { LeadSection } from '@/components/admin/leads/LeadSection';
+import { sectionsFor, type SectionId } from '@/lib/leads/sections';
 
 type Lead = {
   id: string;
@@ -194,6 +196,20 @@ export default function LeadDetailPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  /**
+   * Qué sección de la ficha viene abierta.
+   *
+   * Se recalcula con el estado, así que apenas se manda la propuesta o entra
+   * el cobro, la ficha reacomoda sola lo que corresponde mirar. Nada se
+   * esconde: cualquier sección se abre con un clic.
+   */
+  const openSections = useMemo(() => {
+    const byId = Object.fromEntries(
+      sectionsFor(lead?.estado ?? 'nuevo').map((section) => [section.id, section.open]),
+    ) as Record<SectionId, boolean>;
+    return byId;
+  }, [lead?.estado]);
 
   // Fetch modules and config for budget calculator
   useEffect(() => {
@@ -539,8 +555,7 @@ export default function LeadDetailPage() {
       />
 
       {/* Read-only: Formulario */}
-      <div style={{ ...s.card, marginBottom: 20 }}>
-        <p style={s.sectionTitle}>Formulario</p>
+      <LeadSection title="Formulario" defaultOpen={openSections.formulario}>
 
         <ReadField label="Negocio" value={lead.que_construir} />
         <ReadField label="Problema / Oportunidad" value={lead.problema} accent />
@@ -559,12 +574,11 @@ export default function LeadDetailPage() {
         <ReadField label="Presupuesto" value={lead.presupuesto_rango} />
         <ReadField label="Plazo" value={lead.plazo} />
         <ReadField label="Canal de llamada" value={lead.canal_llamada} />
-      </div>
+      </LeadSection>
 
       {/* Service Details — task 8.1 */}
       {(lead.service || lead.service_data) && (
-        <div style={{ ...s.card, marginBottom: 20 }}>
-          <p style={s.sectionTitle}>Detalles del servicio</p>
+        <LeadSection title="Detalles del servicio" defaultOpen={openSections.servicio}>
           {lead.service && (
             <div style={{ marginBottom: 14 }}>
               <p style={s.label}>Servicio</p>
@@ -586,12 +600,11 @@ export default function LeadDetailPage() {
               ))}
             </div>
           )}
-        </div>
+        </LeadSection>
       )}
 
       {/* Send Questionnaire — task 8.3 */}
-      <div style={{ ...s.card, marginBottom: 20 }}>
-        <p style={s.sectionTitle}>Cuestionario</p>
+      <LeadSection title="Cuestionario" defaultOpen={openSections.cuestionario}>
         <p style={s.hint}>
           Enviá un cuestionario al cliente para recopilar información detallada sobre su proyecto.
         </p>
@@ -611,12 +624,11 @@ export default function LeadDetailPage() {
           {questionnaireSent && <p style={s.successText}>Cuestionario enviado</p>}
           {questionnaireError && <p style={s.errorText}>{questionnaireError}</p>}
         </div>
-      </div>
+      </LeadSection>
 
       {/* Transcription */}
       {lead.transcripcion && (
-        <div style={{ ...s.card, marginBottom: 20 }}>
-          <p style={s.sectionTitle}>Transcripción de la llamada</p>
+        <LeadSection title="Transcripción de la llamada" defaultOpen={openSections.transcripcion}>
           <pre style={{
             fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.7,
             whiteSpace: 'pre-wrap', fontFamily: 'inherit',
@@ -624,12 +636,11 @@ export default function LeadDetailPage() {
           }}>
             {lead.transcripcion}
           </pre>
-        </div>
+        </LeadSection>
       )}
 
       {/* Editable: Datos del cliente */}
-      <div style={{ ...s.card, marginBottom: 20 }}>
-        <p style={s.sectionTitle}>Datos del cliente</p>
+      <LeadSection title="Datos del cliente" defaultOpen={openSections.cliente}>
 
         <div style={{ marginBottom: 14 }}>
           <label style={s.label}>Titular</label>
@@ -666,11 +677,10 @@ export default function LeadDetailPage() {
           <button style={s.btn} onClick={saveClient}>Guardar</button>
           {clientSaved && <p style={s.successText}>Guardado</p>}
         </div>
-      </div>
+      </LeadSection>
 
       {/* Editable: Diagnóstico */}
-      <div style={{ ...s.card, marginBottom: 20 }}>
-        <p style={s.sectionTitle}>Diagnóstico de la llamada</p>
+      <LeadSection title="Diagnóstico de la llamada" defaultOpen={openSections.diagnostico}>
 
         <div style={{ marginBottom: 14 }}>
           <label style={s.label}>Objetivo — ¿Cómo se ve en 6 meses?</label>
@@ -714,11 +724,10 @@ export default function LeadDetailPage() {
           <button style={s.btn} onClick={saveDiagnosis}>Guardar</button>
           {diagSaved && <p style={s.successText}>Guardado</p>}
         </div>
-      </div>
+      </LeadSection>
 
       {/* Budget Calculator */}
-      <div style={{ ...s.card, marginBottom: 20 }}>
-        <p style={s.sectionTitle}>Calculadora de presupuesto</p>
+      <LeadSection title="Calculadora de presupuesto" defaultOpen={openSections.presupuesto}>
         <p style={s.hint}>
           PERT = (O + 4M + P) / 6 · Buffer {rateConfig.buffer_pct}% · ${rateConfig.tarifa_hora}/hr
         </p>
@@ -891,12 +900,11 @@ export default function LeadDetailPage() {
             </div>
           )}
         </div>
-      </div>
+      </LeadSection>
 
       {/* Proposal Prompt Generator */}
       {lead.monto_presupuestado != null && (
-        <div style={{ ...s.card, marginBottom: 20 }}>
-          <p style={s.sectionTitle}>Prompt para propuesta</p>
+        <LeadSection title="Prompt para propuesta" defaultOpen={openSections.propuesta}>
           <p style={s.hint}>
             Compilá los datos del lead en un prompt listo para generar la propuesta visual.
           </p>
@@ -932,7 +940,7 @@ export default function LeadDetailPage() {
               }}
             />
           )}
-        </div>
+        </LeadSection>
       )}
     </div>
   );
