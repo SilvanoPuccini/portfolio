@@ -124,3 +124,24 @@ describe('Migration 022: X autopilot setting', () => {
     expect(sql).toContain('updated_at');
   });
 });
+
+describe('Migration 023: AI secretary', () => {
+  const sql = readMigration('023_ai_secretary.sql');
+
+  it('defaults the secretary to off so a deploy never starts calling the model', () => {
+    expect(sql).toContain('ai_secretary          boolean NOT NULL DEFAULT false');
+  });
+
+  it('caches the summary so opening the panel twice does not pay twice', () => {
+    expect(sql).toContain('secretary_summary     text');
+    expect(sql).toContain('secretary_summary_at  timestamptz');
+  });
+
+  it('records which provider wrote it', () => {
+    expect(sql).toContain('secretary_provider    text');
+  });
+
+  it('is idempotent', () => {
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS');
+  });
+});

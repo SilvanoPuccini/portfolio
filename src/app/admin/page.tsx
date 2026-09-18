@@ -45,6 +45,17 @@ function AlertRow({ alert }: { alert: Alert }) {
   );
 }
 
+type Secretary = {
+  enabled: boolean;
+  available?: boolean;
+  summary?: string | null;
+  writtenAt?: string | null;
+  provider?: string | null;
+  /** El modelo falló y esto es lo último que alcanzó a escribir. */
+  stale?: boolean;
+  detail?: string;
+};
+
 type Stats = { subscribers: number; totalMessages: number; unreadMessages: number; totalPosts: number };
 type Subscriber = { id: string; email: string; created_at: string };
 type Message = { id: string; name: string; subject: string; created_at: string; read: boolean };
@@ -63,6 +74,8 @@ export default function DashboardPage() {
   const [crmError, setCrmError] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [alertsIncomplete, setAlertsIncomplete] = useState<string[]>([]);
+  const [secretary, setSecretary] = useState<Secretary | null>(null);
+  const [secretaryBusy, setSecretaryBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,6 +99,13 @@ export default function DashboardPage() {
       } else {
         setAlerts([]);
       }
+
+      // El secretario va aparte y en segundo plano: si el modelo tarda o se
+      // queda sin cuota, el tablero ya se dibujó con sus avisos.
+      fetch('/api/admin/secretary')
+        .then((response) => response.json())
+        .then((data: Secretary) => setSecretary(data))
+        .catch(() => setSecretary({ enabled: false }));
 
       if (!statsRes.ok || !subsRes.ok || !msgsRes.ok) {
         const failedRes = !statsRes.ok ? statsRes : !subsRes.ok ? subsRes : msgsRes;
@@ -118,6 +138,26 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  /** Prende o apaga el secretario, o le vuelve a pedir el resumen de hoy. */
+  const askSecretary = useCallback(async (body: { enabled?: boolean; refresh?: boolean }) => {
+    setSecretaryBusy(true);
+    const response = await fetch('/api/admin/secretary', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json().catch(() => ({})) as Secretary & { error?: string };
+    setSecretaryBusy(false);
+    if (!response.ok) return setSecretary((current) => ({ ...current, enabled: current?.enabled ?? false, detail: data.error }));
+    setSecretary(data);
+    // Al prenderlo no hay resumen todavía: se pide en la misma tanda.
+    if (data.enabled && !data.summary) {
+      setSecretaryBusy(true);
+      const fresh = await fetch('/api/admin/secretary').then((r) => r.json()).catch(() => null);
+      setSecretaryBusy(false);
+      if (fresh) setSecretary(fresh as Secretary);
+    }
+  }, []);
 
   return (
     <div>
@@ -174,6 +214,65 @@ export default function DashboardPage() {
             <p role="status" style={{ marginTop: 9, fontSize: 11.5, color: c.incomplete }}>
               No se pudo revisar: {alertsIncomplete.join(', ')}. La lista puede estar incompleta.
             </p>
+          )}
+
+          {/* El secretario va DEBAJO de los avisos, y no al revés: las reglas
+              son el piso y la IA el techo. Si esto no carga, arriba sigue
+              estando todo lo que hay que hacer. */}
+          {secretary && (
+            secretary.enabled ? (
+              <div style={{
+                marginTop: 12, padding: '12px 14px', borderRadius: 8,
+                border: `1px dashed ${tint(c.ready, '60')}`,
+                background: tint(c.ready, '08'),
+              }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 5 }}>
+                  <span style={{
+                    fontFamily: 'monospace', fontSize: 9.5, letterSpacing: '0.16em',
+                    textTransform: 'uppercase', color: c.ready, fontWeight: 700,
+                  }}>Resumen del secretario</span>
+                  {secretary.provider && (
+                    <span style={{ fontFamily: 'monospace', fontSize: 10, color: c.textDim }}>
+                      {secretary.provider}
+                    </span>
+                  )}
+                  <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                    <button type="button" disabled={secretaryBusy}
+                      onClick={() => void askSecretary({ refresh: true })}
+                      style={{ ...s.btnGhost, padding: '3px 9px', fontSize: 11 }}>
+                      {secretaryBusy ? 'Pensando...' : 'Actualizar'}
+                    </button>
+                    <button type="button" disabled={secretaryBusy}
+                      onClick={() => void askSecretary({ enabled: false })}
+                      style={{ ...s.btnGhost, padding: '3px 9px', fontSize: 11 }}>
+                      Apagar
+                    </button>
+                  </span>
+                </div>
+
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: c.text }}>
+                  {secretary.summary ?? 'Todavía no escribió nada.'}
+                </p>
+
+                {secretary.stale && (
+                  <p role="status" style={{ margin: '6px 0 0', fontSize: 11, color: c.incomplete }}>
+                    Este resumen es viejo: no se pudo pedir uno nuevo. Los avisos de arriba están al día.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <button type="button" disabled={secretaryBusy || secretary.available === false}
+                onClick={() => void askSecretary({ enabled: true })}
+                title={secretary.available === false
+                  ? 'Falta correr la migración 023 en Supabase'
+                  : 'Una llamada por día que resume estos avisos'}
+                style={{
+                  ...s.btnGhost, marginTop: 10, fontSize: 11.5,
+                  opacity: secretary.available === false ? .5 : 1,
+                }}>
+                {secretaryBusy ? 'Activando...' : 'Activar el secretario'}
+              </button>
+            )
           )}
         </section>
       )}
