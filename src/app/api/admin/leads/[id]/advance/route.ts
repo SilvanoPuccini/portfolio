@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { advanceOn, isManualEvent, type ManualEvent } from '@/lib/leads/pipeline';
+import { sendCrmEmail } from '@/lib/resend';
+import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
+import { paymentReceivedHtml } from '@/lib/email-templates/payment-received';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +38,12 @@ interface Body {
   sena_pct?: number;
   sena_monto?: number;
   pago_unico?: boolean;
+  /** En false, registra el hecho sin avisarle al cliente. */
+  notify?: boolean;
+  /** Los pasos que van en el correo de agradecimiento. */
+  nextSteps?: string[];
+  /** Cuándo tiene la primera novedad concreta. */
+  firstUpdate?: string;
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -92,7 +101,75 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { error } = await db.from('leads').update(updates).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // El correo va DESPUÉS de guardar, y su fallo no revierte el hecho: el
+  // contrato se firmó y el pago entró aunque el mail no haya salido. Se
+  // informa aparte para poder reintentarlo.
+  const notified = body.notify === false ? null : await notifyClient(event, id, body);
+
   // `estado` ausente significa que la venta ya estaba más adelante: el hecho
   // quedó registrado y nada retrocedió.
-  return NextResponse.json({ ...(nextState ? { estado: nextState } : {}), registrado: event });
+  return NextResponse.json({
+    ...(nextState ? { estado: nextState } : {}),
+    registrado: event,
+    ...(notified ? { correo: notified } : {}),
+  });
 }
+
+/**
+ * El correo que le toca al cliente en cada paso, si corresponde alguno.
+ *
+ * Devuelve qué pasó con el envío —nunca lanza—: que el correo no salga no
+ * puede deshacer una firma ni un cobro que ya ocurrieron. El panel muestra el
+ * resultado y permite reintentar.
+ */
+async function notifyClient(event: ManualEvent, id: string, body: Body) {
+  const { data: lead } = await getSupabaseAdmin()
+    .from('leads')
+    .select('nombre, email, monto_presupuestado, sena_pct, sena_monto, pago_unico, factura_numero')
+    .eq('id', id).maybeSingle();
+
+  if (!lead?.email) return { ok: false, detail: 'El lead no tiene correo' };
+
+  try {
+    if (event === 'contrato_firmado') {
+      const total = lead.monto_presupuestado ?? 0;
+      const pct = lead.sena_pct ?? 50;
+      const single = lead.pago_unico === true;
+
+      await sendCrmEmail(lead.email, 'Datos para el pago', paymentRequestHtml({
+        name: lead.nombre,
+        amount: single ? total : (lead.sena_monto ?? Math.round(total * pct) / 100),
+        total,
+        pct: single ? 100 : pct,
+        singlePayment: single,
+        paymentInstructions: process.env.PAYMENT_INSTRUCTIONS
+          ?? 'Te paso los datos de transferencia por este mismo medio.',
+      }));
+      return { ok: true, tipo: 'pedido_de_pago' };
+    }
+
+    if (event === 'pago_recibido') {
+      await sendCrmEmail(lead.email, 'Pago recibido — arrancamos', paymentReceivedHtml({
+        name: lead.nombre,
+        amount: body.sena_monto ?? lead.sena_monto ?? lead.monto_presupuestado ?? 0,
+        invoiceNumber: lead.factura_numero,
+        nextSteps: body.nextSteps?.length ? body.nextSteps : DEFAULT_NEXT_STEPS,
+        firstUpdate: body.firstUpdate ?? 'dentro de la primera semana',
+      }));
+      return { ok: true, tipo: 'pago_recibido' };
+    }
+
+    return null;
+  } catch (reason) {
+    const detail = reason instanceof Error ? reason.message : String(reason);
+    console.warn(`[leads/advance] El correo de ${event} no salió:`, detail);
+    return { ok: false, detail };
+  }
+}
+
+/** Lo mínimo que baja la ansiedad de alguien que acaba de pagar. */
+const DEFAULT_NEXT_STEPS = [
+  'Arranco con el proyecto esta semana',
+  'Te muestro el primer avance para que lo revises',
+  'Ajustamos sobre tu devolución y seguimos hasta la entrega',
+];

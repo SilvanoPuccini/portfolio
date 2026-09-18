@@ -3,9 +3,11 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/admin-auth', () => ({ isAuthorized: vi.fn().mockReturnValue(true) }));
+vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
+import { sendCrmEmail } from '@/lib/resend';
 import { POST } from '@/app/api/admin/leads/[id]/advance/route';
 
 function supabaseWithLead(estado: string | null) {
@@ -126,5 +128,103 @@ describe('POST /api/admin/leads/[id]/advance', () => {
   it('devuelve 404 si el lead no existe', async () => {
     supabaseWithLead(null);
     expect((await post({ event: 'entregado' })).status).toBe(404);
+  });
+});
+
+/**
+ * Los correos del cierre.
+ *
+ * El pedido de pago va DESPUÉS de la firma, no antes: el contrato es lo que
+ * respalda la venta, y firmar no le cuesta plata al cliente, así que hay mucha
+ * menos fricción en ese orden. El agradecimiento va apenas entra el pago, que
+ * es el momento de mayor ansiedad — acaba de soltar plata y no vio nada.
+ */
+describe('los correos que salen al avanzar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(isAuthorized).mockReturnValue(true);
+    vi.mocked(sendCrmEmail).mockResolvedValue(undefined as never);
+  });
+
+  /** La ficha completa que lee notifyClient para armar el correo. */
+  function supabaseWithFullLead(estado: string, extra: Record<string, unknown> = {}) {
+    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const from = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: {
+              estado, nombre: 'Ferrelon', email: 'hola@ferrelon.com',
+              monto_presupuestado: 4800, sena_pct: null, sena_monto: null,
+              pago_unico: null, factura_numero: null, ...extra,
+            },
+            error: null,
+          }),
+        }),
+      }),
+      update,
+    });
+    vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);
+    return update;
+  }
+
+  it('la firma dispara el pedido de pago', async () => {
+    supabaseWithFullLead('contrato_enviado');
+
+    const body = await (await post({ event: 'contrato_firmado' })).json();
+
+    expect(sendCrmEmail).toHaveBeenCalledOnce();
+    expect(vi.mocked(sendCrmEmail).mock.calls[0][1]).toContain('pago');
+    expect(body.correo).toMatchObject({ ok: true, tipo: 'pedido_de_pago' });
+  });
+
+  it('el cobro dispara el agradecimiento con los pasos que siguen', async () => {
+    supabaseWithFullLead('contrato_firmado');
+
+    const body = await (await post({ event: 'pago_recibido', sena_monto: 2400 })).json();
+
+    const html = vi.mocked(sendCrmEmail).mock.calls[0][2];
+    expect(html).toContain('Gracias, Ferrelon');
+    expect(html).toContain('Qué pasa ahora');
+    expect(body.correo).toMatchObject({ ok: true, tipo: 'pago_recibido' });
+  });
+
+  it('respeta los pasos que se escriban a mano', async () => {
+    supabaseWithFullLead('contrato_firmado');
+
+    await post({ event: 'pago_recibido', nextSteps: ['Arranco el lunes con el catálogo'] });
+
+    expect(vi.mocked(sendCrmEmail).mock.calls[0][2]).toContain('Arranco el lunes con el catálogo');
+  });
+
+  it('permite registrar el hecho sin avisarle al cliente', async () => {
+    supabaseWithFullLead('contrato_enviado');
+
+    const body = await (await post({ event: 'contrato_firmado', notify: false })).json();
+
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+    expect(body.estado).toBe('contrato_firmado');
+  });
+
+  it('facturar y entregar no le mandan nada al cliente', async () => {
+    supabaseWithFullLead('cerrado');
+
+    await post({ event: 'facturado', factura_numero: 'A-0001' });
+
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+
+  it('si el correo falla, el hecho queda registrado igual', async () => {
+    // Un mail caído no puede deshacer un cobro que ya ocurrió.
+    supabaseWithFullLead('contrato_firmado');
+    vi.mocked(sendCrmEmail).mockRejectedValue(new Error('Resend caído'));
+
+    const response = await post({ event: 'pago_recibido' });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.estado).toBe('cerrado');
+    expect(body.correo).toMatchObject({ ok: false });
+    expect(body.correo.detail).toContain('Resend caído');
   });
 });
