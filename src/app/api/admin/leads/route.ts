@@ -14,7 +14,9 @@ export async function GET(req: NextRequest) {
 
     let query = getSupabaseAdmin()
       .from('leads')
-      .select('id, created_at, nombre, email, tipo_proyecto, presupuesto_rango, plazo, estado')
+      // La lista operativa necesita saber hace cuánto pasó cada cosa: sin las
+      // fechas de propuesta y contrato, la fila no puede decir «hace 9 días».
+      .select('id, created_at, nombre, email, tipo_proyecto, presupuesto_rango, plazo, estado, monto_presupuestado, proposal_sent_at, contract_sent_at, fecha_llamada')
       .order('created_at', { ascending: false });
 
     if (estado) {
