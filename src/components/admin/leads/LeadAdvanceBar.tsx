@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { c, tint } from '@/components/admin/tokens';
 import { labelForState, NEXT_ACTION, phaseIndex, PIPELINE } from '@/lib/leads/pipeline';
 import { suggestDeposit, depositAt } from '@/lib/leads/deposit';
+import { PROPOSAL_SILENCE_DAYS } from '@/lib/admin/alerts';
 
 /**
  * El paso siguiente de una venta, y solo ese.
@@ -21,11 +22,16 @@ interface Props {
   estado: string;
   /** El total presupuestado, para sugerir la seña. */
   monto: number | null;
+  /**
+   * Cuándo salió la propuesta. Decide si ofrecer el seguimiento: escribirlo al
+   * día siguiente es apurar, y el botón no tiene por qué invitar a eso.
+   */
+  proposalSentAt?: string | null;
   onAdvanced: () => void;
   leadId: string;
 }
 
-export function LeadAdvanceBar({ estado, monto, onAdvanced, leadId }: Props) {
+export function LeadAdvanceBar({ estado, monto, proposalSentAt, onAdvanced, leadId }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [asking, setAsking] = useState<'cobro' | 'factura' | 'perdido' | null>(null);
@@ -39,6 +45,49 @@ export function LeadAdvanceBar({ estado, monto, onAdvanced, leadId }: Props) {
   const next = NEXT_ACTION[estado];
   const done = phaseIndex(estado) >= phaseIndex('entregado');
   const lost = estado === 'descartado';
+
+  const coldProposal = proposalSentAt
+    ? (Date.now() - new Date(proposalSentAt).getTime()) / 86400000 >= PROPOSAL_SILENCE_DAYS
+    : false;
+
+  const [draft, setDraft] = useState<{ subject: string; body: string; provider?: string } | null>(null);
+
+  /** Pide el borrador. La IA escribe acá; el envío es otro botón, a propósito. */
+  async function loadDraft() {
+    setBusy(true);
+    setError('');
+    const response = await fetch(`/api/admin/leads/${leadId}/followup`);
+    const json = await response.json().catch(() => ({})) as typeof draft & { error?: string };
+    setBusy(false);
+    if (!response.ok) return setError(json?.error ?? 'No se pudo escribir el borrador');
+    setDraft(json);
+  }
+
+  async function sendDraft() {
+    if (!draft) return;
+    setBusy(true);
+    setError('');
+    const response = await fetch(`/api/admin/leads/${leadId}/followup`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: draft.subject, body: draft.body }),
+    });
+    const json = await response.json().catch(() => ({})) as { error?: string };
+    setBusy(false);
+    if (!response.ok) return setError(json.error ?? 'No se pudo enviar');
+    setDraft(null);
+    onAdvanced();
+  }
+
+  async function rebook() {
+    setBusy(true);
+    setError('');
+    const response = await fetch(`/api/admin/leads/${leadId}/rebook`, { method: 'POST' });
+    const json = await response.json().catch(() => ({})) as { error?: string };
+    setBusy(false);
+    if (!response.ok) return setError(json.error ?? 'No se pudo enviar el link');
+    setError('');
+    onAdvanced();
+  }
 
   async function send(body: Record<string, unknown>) {
     setBusy(true);
@@ -94,6 +143,13 @@ export function LeadAdvanceBar({ estado, monto, onAdvanced, leadId }: Props) {
         </span>
 
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {/* Un no-show no es un callejón: es plata parada esperando un link. */}
+          {estado === 'no_show' && button('Mandar link para reagendar', () => void rebook())}
+
+          {/* El seguimiento aparece solo cuando la propuesta ya se enfrió. */}
+          {estado === 'presupuestado' && coldProposal &&
+            button('Escribir seguimiento', () => void loadDraft(), c.incomplete)}
+
           {!lost && !done && next && button(next.label, () => {
             if (next.event === 'pago_recibido') return setAsking('cobro');
             if (next.event === 'facturado') return setAsking('factura');
@@ -162,6 +218,35 @@ export function LeadAdvanceBar({ estado, monto, onAdvanced, leadId }: Props) {
             placeholder="¿Por qué se perdió? Sirve para la próxima propuesta"
             style={{ ...field, flex: '1 1 260px' }} />
           {button('Marcar perdida', () => void send({ event: 'perdido', motivo }), c.late)}
+        </div>
+      )}
+
+      {/* El borrador se muestra editable: sale lo que vos aprobás, no lo que
+          escribió el modelo. Es la misma frontera del secretario. */}
+      {draft && (
+        <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+            <span style={{
+              fontFamily: 'monospace', fontSize: 9.5, letterSpacing: '0.15em',
+              textTransform: 'uppercase', color: c.incomplete, fontWeight: 700,
+            }}>Borrador — revisalo antes de mandar</span>
+            {draft.provider && (
+              <span style={{ fontFamily: 'monospace', fontSize: 10, color: c.textDim }}>{draft.provider}</span>
+            )}
+          </div>
+
+          <input value={draft.subject} aria-label="Asunto del seguimiento"
+            onChange={(event) => setDraft({ ...draft, subject: event.target.value })}
+            style={field} />
+
+          <textarea value={draft.body} aria-label="Texto del seguimiento"
+            onChange={(event) => setDraft({ ...draft, body: event.target.value })}
+            style={{ ...field, minHeight: 150, lineHeight: 1.6, resize: 'vertical' }} />
+
+          <div style={{ display: 'flex', gap: 7 }}>
+            {button('Enviar seguimiento', () => void sendDraft())}
+            {button('Descartar', () => setDraft(null), c.textDim)}
+          </div>
         </div>
       )}
 
