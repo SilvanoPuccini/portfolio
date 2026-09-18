@@ -83,16 +83,61 @@ export function fingerprint(tweets: string[], replyWithLink: string): string {
  * Los fixes acumulados de toda la historia persistida. Es lo que el escritor
  * recibe en el primer intento de una corrida nueva: si la corrida anterior
  * dejó problemas sin resolver, el modelo ya los conoce.
+ *
+ * Las entradas bloqueadas aportan sus `reasons`, no sus `fixes`. Cuando una
+ * vuelta termina en `blocked` se persiste con los fixes VIEJOS (todavía no hay
+ * correcciones nuevas: el crítico cortó) y el motivo real del rechazo queda en
+ * `reasons`. Leyendo solo `fixes`, la devolución que causó el bloqueo no
+ * llegaba nunca al escritor: la fila quedaba en `error`, se apretaba
+ * "Reescribir" y el modelo arrancaba sin saber por qué lo habían rechazado.
  */
 function accumulatedFixes(history: XRewriteHistoryEntry[] | undefined): string[] {
   const seen = new Set<string>();
   const fixes: string[] = [];
+  const push = (fix: string) => {
+    if (!seen.has(fix)) { seen.add(fix); fixes.push(fix); }
+  };
   for (const entry of history ?? []) {
-    for (const fix of entry.fixes) {
-      if (!seen.has(fix)) { seen.add(fix); fixes.push(fix); }
-    }
+    for (const fix of entry.fixes) push(fix);
+    if (entry.verdict === 'blocked') for (const reason of entry.reasons ?? []) push(reason);
   }
   return fixes.slice(-MAX_REWRITE_HISTORY * 4);
+}
+
+/**
+ * Cuánto se acepta dormir esperando que se recupere la cuota.
+ *
+ * El request tiene 300s de presupuesto (maxDuration), así que un minuto entra
+ * de sobra. Más que eso ya no es esperar: es rifar la corrida entera contra el
+ * reloj de la función.
+ */
+const MAX_QUOTA_WAIT_SECONDS = 60;
+
+/** Los segundos que pidió el proveedor, si pidió alguno que valga la pena. */
+function quotaWait(error: unknown): number | null {
+  if (!(error instanceof Error) || error.name !== 'ProviderFailoverError') return null;
+  const seconds = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;
+  if (typeof seconds !== 'number' || seconds <= 0 || seconds >= MAX_QUOTA_WAIT_SECONDS) return null;
+  return seconds;
+}
+
+/**
+ * Una llamada al modelo que sobrevive a un límite de cuota.
+ *
+ * Si el proveedor dice "esperá N segundos", se espera y se reintenta UNA vez.
+ * Un segundo 429 sube: insistir contra una cuota agotada es lo que nos hacía
+ * gastar la API sin escribir nada.
+ */
+async function withQuotaRetry<T>(label: string, call: () => Promise<T>): Promise<T> {
+  try {
+    return await call();
+  } catch (error) {
+    const wait = quotaWait(error);
+    if (wait === null) throw error;
+    console.warn(`[x/orchestrate] ${label}: durmiendo ${wait}s por límite de cuota.`);
+    await new Promise((resolve) => setTimeout(resolve, wait * 1000 + 500));
+    return call();
+  }
 }
 
 export async function orchestrateThread(params: OrchestrateParams): Promise<OrchestrateResult> {
@@ -102,23 +147,7 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
   let lastDraft: XDraft | null = null;
 
   const attempt = async (n: number): Promise<OrchestrateResult> => {
-    let written;
-    try {
-      written = await writeThread({ ...params, fixes });
-    } catch (error) {
-      if (error instanceof Error && error.name === 'ProviderFailoverError' && (error as any).retryAfterSeconds) {
-        const wait = (error as any).retryAfterSeconds;
-        if (wait < 60) {
-          console.warn(`[x/orchestrate] Salvando loop: durmiendo ${wait}s por límite de cuota.`);
-          await new Promise((resolve) => setTimeout(resolve, wait * 1000 + 500));
-          written = await writeThread({ ...params, fixes });
-        } else {
-          throw error;
-        }
-      } else {
-        throw error;
-      }
-    }
+    const written = await withQuotaRetry('escritura', () => writeThread({ ...params, fixes }));
 
     tokens += written.tokens;
     provider = written.provider;
@@ -140,39 +169,15 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
 
     const validation = validateThread(draft.tweets, draft.reply_with_link, params.allowedUrls);
 
-    let reviewed;
-    try {
-      reviewed = await critique({
-        draft,
-        articleTitle: params.articleTitle,
-        articleText: params.articleText,
-        angles: params.angles,
-        selectedAngleId: params.selectedAngleId,
-        publishedThisWeek: params.publishedThisWeek,
-        validationReport: validation,
-      });
-    } catch (error) {
-      if (error instanceof Error && error.name === 'ProviderFailoverError' && (error as any).retryAfterSeconds) {
-        const wait = (error as any).retryAfterSeconds;
-        if (wait < 60) {
-          console.warn(`[x/orchestrate] Salvando loop crítico: durmiendo ${wait}s por límite de cuota.`);
-          await new Promise((resolve) => setTimeout(resolve, wait * 1000 + 500));
-          reviewed = await critique({
-            draft,
-            articleTitle: params.articleTitle,
-            articleText: params.articleText,
-            angles: params.angles,
-            selectedAngleId: params.selectedAngleId,
-            publishedThisWeek: params.publishedThisWeek,
-            validationReport: validation,
-          });
-        } else {
-          throw error;
-        }
-      } else {
-        throw error;
-      }
-    }
+    const reviewed = await withQuotaRetry('crítica', () => critique({
+      draft,
+      articleTitle: params.articleTitle,
+      articleText: params.articleText,
+      angles: params.angles,
+      selectedAngleId: params.selectedAngleId,
+      publishedThisWeek: params.publishedThisWeek,
+      validationReport: validation,
+    }));
     tokens += reviewed.tokens;
     const verdict = reviewed.data;
 

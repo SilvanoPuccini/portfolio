@@ -185,9 +185,13 @@ REVISIÓN
    hipotéticos narrados como hechos.
 5. Verificá que el post 1 se entienda solo y que su primera línea tenga entre
    1 y 9 palabras. Verificá que el hilo cumpla lo que el gancho promete.
-6. Compará contra los hilos ya publicados y en cola. Cambiar palabras no
-   vuelve nuevo un mismo ángulo con un mismo ejemplo. X prohíbe el contenido
-   sustancialmente similar y lo sanciona con suspensión: esto no es estilo.
+6. Compará contra already_published_this_week, que trae SOLO hilos ya
+   aprobados. Los cuatro hilos de la semana salen del MISMO artículo: compartir
+   tema, fuente, vocabulario o encuadre general NO es repetir. Marcá REPETITION
+   únicamente si el borrador sostiene la misma tesis con el mismo ejemplo y el
+   mismo remate que uno de esa lista. X prohíbe el contenido sustancialmente
+   similar y lo sanciona con suspensión: por eso el listón es "sustancialmente
+   igual", no "parecido".
 7. Revisá la voz contra los patrones del autor: reencuadre, "lo que te da / lo
    que te cobra", cuándo sirve y cuándo no, ejemplo concreto, límite declarado.
    No exijas anécdota ni primera persona en cada post.
@@ -198,7 +202,11 @@ DECISIÓN
 · approved — listo para publicar.
 · rewrite — hay problemas resolubles con las fuentes existentes.
 · blocked — falta una fuente, hay una contradicción central sin resolver, o el
-  ángulo no es suficientemente distinto de otro ya publicado.
+  borrador es sustancialmente igual a uno ya aprobado.
+
+Ante la duda entre rewrite y blocked, elegí rewrite. Un "blocked" descarta el
+ángulo entero de la semana; un "rewrite" con tus correcciones concretas le da
+al escritor lo que necesita para arreglarlo.
 
 No publiques, no reescribas el hilo y no consideres tu aprobación una garantía
 de verdad absoluta.

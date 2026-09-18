@@ -40,13 +40,26 @@ export async function getThread(id: string): Promise<XThread | null> {
 }
 
 /**
- * Los hilos ya escritos de la misma semana del post. Es lo que recibe el
+ * Los hilos APROBADOS de la misma semana del post. Es lo que recibe el
  * generador para no repetirse: X sanciona el contenido sustancialmente
  * similar, así que esto no es una preferencia de estilo.
+ *
+ * Solo `preaprobado` y `publicado`. Un borrador en `planificado` todavía no
+ * dice nada, y uno en `error` es texto que el crítico YA rechazó: la fila lo
+ * guarda para poder mirarlo, no para competir con nadie.
+ *
+ * Sin este filtro el circuito se muerde la cola. Cada intento fallido dejaba
+ * su borrador en la fila; la vuelta siguiente lo leía como "ya publicado" y el
+ * crítico marcaba REPETITION; eso quemaba el ángulo y dejaba otro borrador
+ * fallido. Cuantas más veces se apretaba "Escribir", más imposible se volvía
+ * escribir. El loop no era del modelo: se lo servíamos nosotros.
  */
 export async function siblingsOf(postSlug: string, exceptId?: string): Promise<string[]> {
   const { data, error } = await getSupabaseAdmin()
-    .from('x_threads').select('id, tweets').eq('post_slug', postSlug).is('deleted_at', null);
+    .from('x_threads').select('id, tweets')
+    .eq('post_slug', postSlug)
+    .in('status', ['preaprobado', 'publicado'])
+    .is('deleted_at', null);
   if (error) throw new Error(error.message);
   return (data ?? [])
     .filter((row) => row.id !== exceptId)

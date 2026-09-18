@@ -306,10 +306,18 @@ export async function generateThread(thread: XThread) {
     // Repetición: se prueba el siguiente ángulo del plan, sin quemar la fila.
   }
 
+  // El mensaje tiene que decir cuántos ángulos se probaron DE VERDAD. Una fila
+  // sin `plan` persistido (importada, o anterior al snapshot) cae acá después
+  // de intentar un único ángulo reconstruido, y anunciar "todos los ángulos"
+  // mandaba a replanificar un guion que nunca existió.
+  const hasStoredPlan = Boolean(thread.plan && thread.plan.length > 0);
+
   return updateThread(thread.id, {
     status: 'error',
     generation_attempts: thread.generation_attempts + totalAttempts,
-    last_error: 'Todos los ángulos del plan ya están cubiertos por hilos publicables de la semana. Replanificá u otro post.',
+    last_error: hasStoredPlan
+      ? `Los ${planOrder.length} ángulos del plan ya están cubiertos por hilos aprobados de la semana. Replanificá la semana o usá otro post.`
+      : 'Esta fila no tiene el guion de la semana guardado: se probó un solo ángulo reconstruido desde su resumen. Replanificá la semana del post para que tenga los cuatro ángulos.',
     tweets: [],
     approved_fingerprint: null,
   });
