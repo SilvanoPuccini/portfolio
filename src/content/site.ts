@@ -392,7 +392,7 @@ const contact: ContactContent = {
       { label: "LinkedIn", href: "https://www.linkedin.com/in/silvano-puccini/" },
     ],
     en: [
-      { label: "Send email", href: "mailto:silvano.jm.puccini@gmail.com" },
+      { label: "Send email", href: "mailto:hola@silvanopuccini.dev" },
       { label: "LinkedIn", href: "https://www.linkedin.com/in/silvano-puccini/" },
     ],
   },
@@ -422,7 +422,7 @@ export const siteContent: SiteContent = {
       es: "Tomando proyectos nuevos",
       en: "Taking on new projects",
     },
-    email: "silvano.jm.puccini@gmail.com",
+    email: "hola@silvanopuccini.dev",
     phone: "+54 9 249 4309584",
     cv: {
       fileName: "CV_Silvano_Puccini-FullStack.pdf",
@@ -437,7 +437,7 @@ export const siteContent: SiteContent = {
         href: "https://www.linkedin.com/in/silvano-puccini/",
       },
       { platform: "x", label: "X", href: "https://x.com/silvanopuccini" },
-      { platform: "email", label: "Email", href: "mailto:silvano.jm.puccini@gmail.com" },
+      { platform: "email", label: "Email", href: "mailto:hola@silvanopuccini.dev" },
       { platform: "discord", label: "Discord", href: "https://discord.com/users/925401070388256778" },
       { platform: "portfolio", label: "Portfolio", href: "https://silvanopuccini.github.io/portfolio/" },
     ],
