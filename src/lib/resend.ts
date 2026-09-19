@@ -1,6 +1,28 @@
 import { Resend } from 'resend';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
+// ─── Reply-to ─────────────────────────────────────────────────────────────────
+
+/**
+ * A dónde van las respuestas de quien recibe nuestros correos.
+ *
+ * Sin esto, responder un pedido de pago o el newsletter iba al remitente, y
+ * el dominio no tenía buzón: la respuesta rebotaba justo en el momento en que
+ * el cliente quería hablar. REPLY_TO_EMAIL se activa recién cuando esa
+ * dirección recibe de verdad (reenvío a Gmail probado): configurarla antes
+ * mandaría las respuestas a un lugar que no existe.
+ */
+export function replyToAddress(): string | undefined {
+  const address = process.env.REPLY_TO_EMAIL?.trim();
+  return address || undefined;
+}
+
+/** El campo listo para mezclar en un envío: vacío si no hay reply-to configurado. */
+export function replyToField(): { replyTo?: string } {
+  const address = replyToAddress();
+  return address ? { replyTo: address } : {};
+}
+
 // ─── CRM email wrapper ────────────────────────────────────────────────────────
 
 /** Un archivo que viaja con el correo. `content` son los bytes del documento. */
@@ -33,6 +55,7 @@ export async function sendCrmEmail(
     to,
     subject,
     html,
+    ...replyToField(),
     ...(attachments?.length ? { attachments } : {}),
   });
 }
@@ -239,5 +262,6 @@ export async function sendWelcomeEmail(email: string) {
     to: email,
     subject: 'Bienvenido a El Radar',
     html,
+    ...replyToField(),
   });
 }

@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getAllBlogPosts } from '@/lib/mdx';
-import { CATEGORY_COLOR } from '@/lib/resend';
+import { CATEGORY_COLOR, replyToField } from '@/lib/resend';
 import { VERSUS_PATTERN, parseVersus } from '@/components/blog/tech-icons';
 import { generateUnsubToken } from '@/lib/unsub-token';
 
@@ -232,6 +232,7 @@ export async function sendPostNewsletter(slug: string): Promise<SendPostNewslett
 
   const emails = subscribers.map((s) => ({
     from: 'Silvano Puccini <hola@silvanopuccini.dev>',
+    ...replyToField(),
     to: s.email,
     subject: `El Radar · ${issueLabel} — ${post.title}`,
       html: buildEmail({
