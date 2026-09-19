@@ -20,6 +20,8 @@ export interface LeadRow {
   monto_presupuestado: number | null;
   proposal_sent_at: string | null;
   contract_sent_at: string | null;
+  /** Documenso lo dio por vencido sin firma. */
+  contrato_vencido_at?: string | null;
   fecha_llamada: string | null;
 }
 
@@ -81,6 +83,9 @@ export function rowSummary(lead: LeadRow, now = new Date()): RowSummary {
     }
 
     case 'contrato_enviado':
+      if (lead.contrato_vencido_at) {
+        return { line: 'Contrato vencido sin firmar · reenviar', risk: true };
+      }
       return {
         line: lead.contract_sent_at
           ? `Contrato hace ${days(daysBetween(lead.contract_sent_at, now))} · espera firma`

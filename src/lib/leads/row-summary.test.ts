@@ -65,6 +65,14 @@ describe('rowSummary', () => {
     expect(line).toContain('No apareció');
   });
 
+  it('un contrato vencido sin firmar reclama acción', () => {
+    const { line, risk } = rowSummary(
+      lead({ estado: 'contrato_enviado', contrato_vencido_at: daysAgo(1) }), NOW,
+    );
+    expect(risk).toBe(true);
+    expect(line).toContain('vencido');
+  });
+
   it('una venta ganada pide facturar, no espera', () => {
     const { line, risk } = rowSummary(lead({ estado: 'cerrado' }), NOW);
     expect(risk).toBe(false);

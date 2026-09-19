@@ -63,6 +63,8 @@ export interface AlertInput {
   sentProposals: { id: string; proposal_sent_at: string }[];
   /** Hilos de X que quedaron en `error`. */
   failedThreads: number;
+  /** Contratos que Documenso dio por vencidos sin firma. */
+  expiredContracts: number;
   /** Piezas cuya fecha ya pasó y siguen sin publicar. */
   latePieces: number;
   /** Posts publicados cuyo correo a suscriptores nunca salió. */
@@ -126,6 +128,18 @@ export function buildAlerts(input: AlertInput): Alert[] {
       text: `${plural(input.unsentNewsletters.length, 'post publicado', 'posts publicados')} sin correo a suscriptores`,
       href: '/admin/newsletter',
       count: input.unsentNewsletters.length,
+    });
+  }
+
+  // Un contrato vencido es una venta que estaba por cerrarse y se cayó sin
+  // que nadie dijera nada. Cuesta plata igual que un lead olvidado.
+  if (input.expiredContracts > 0) {
+    alerts.push({
+      id: 'contratos-vencidos',
+      severity: 'urgent',
+      text: `${plural(input.expiredContracts, 'contrato vencido', 'contratos vencidos')} sin firmar`,
+      href: '/admin/leads',
+      count: input.expiredContracts,
     });
   }
 

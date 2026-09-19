@@ -27,11 +27,17 @@ interface Props {
    * día siguiente es apurar, y el botón no tiene por qué invitar a eso.
    */
   proposalSentAt?: string | null;
+  /** Documenso lo dio por vencido: hay que reenviarlo, no esperar más. */
+  contratoVencido?: boolean;
+  /** Hay un PDF firmado guardado en Storage. */
+  contratoArchivado?: boolean;
   onAdvanced: () => void;
   leadId: string;
 }
 
-export function LeadAdvanceBar({ estado, monto, proposalSentAt, onAdvanced, leadId }: Props) {
+export function LeadAdvanceBar({
+  estado, monto, proposalSentAt, contratoVencido, contratoArchivado, onAdvanced, leadId,
+}: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [asking, setAsking] = useState<'cobro' | 'factura' | 'perdido' | null>(null);
@@ -158,6 +164,22 @@ export function LeadAdvanceBar({ estado, monto, proposalSentAt, onAdvanced, lead
           {!lost && !done && button('Se perdió', () => setAsking('perdido'), c.late)}
         </span>
       </div>
+
+      {estado === 'contrato_enviado' && contratoVencido && (
+        <p role="status" style={{ margin: '9px 0 0', fontSize: 12, color: c.late }}>
+          El contrato venció sin firmar. Reenvialo desde Documenso: al salir, la venta vuelve a contar desde cero.
+        </p>
+      )}
+
+      {contratoArchivado && (
+        <p style={{ margin: '9px 0 0', fontSize: 12 }}>
+          <a href={`/api/admin/leads/${leadId}/contract-pdf`} target="_blank" rel="noopener noreferrer"
+            style={{ color: c.ready, textDecoration: 'none' }}>
+            Ver contrato firmado ↗
+          </a>
+          <span style={{ color: c.textDim }}> · con su registro de auditoría guardado aparte</span>
+        </p>
+      )}
 
       {done && <p style={{ margin: '9px 0 0', fontSize: 12, color: c.textDim }}>
         Entregado. El recorrido terminó.

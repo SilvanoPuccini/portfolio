@@ -28,7 +28,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
   const nowIso = now.toISOString();
 
   const [
-    unread, subsToday, newLeads, proposals, threads, late, pendingMail,
+    unread, subsToday, newLeads, proposals, threads, late, pendingMail, expired,
   ] = await Promise.all([
     db.from('messages').select('id', { count: 'exact', head: true }).eq('read', false),
 
@@ -50,6 +50,11 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     db.from('post_publications').select('post_slug, notify_error')
       .eq('status', 'publicado').eq('notify_subscribers', true)
       .is('notified_at', null).is('deleted_at', null),
+
+    // Documenso lo dio por vencido y el lead sigue esperando una firma que ya
+    // no puede llegar.
+    db.from('leads').select('id', { count: 'exact', head: true })
+      .eq('estado', 'contrato_enviado').not('contrato_vencido_at', 'is', null),
   ]);
 
   const alerts = buildAlerts({
@@ -59,6 +64,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     newLeads: (newLeads.data ?? []) as { id: string; created_at: string }[],
     sentProposals: (proposals.data ?? []) as { id: string; proposal_sent_at: string }[],
     failedThreads: threads.count ?? 0,
+    expiredContracts: expired.count ?? 0,
     latePieces: late.count ?? 0,
     unsentNewsletters: (pendingMail.data ?? []) as { post_slug: string; notify_error: string | null }[],
   });
@@ -66,7 +72,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
   const incomplete = ([
     ['mensajes', unread.error], ['suscriptores', subsToday.error],
     ['leads', newLeads.error], ['propuestas', proposals.error],
-    ['hilos', threads.error], ['agenda', late.error], ['newsletter', pendingMail.error],
+    ['hilos', threads.error], ['agenda', late.error], ['newsletter', pendingMail.error], ['contratos', expired.error],
   ] as const).filter(([, error]) => error).map(([name]) => name);
 
   return { alerts, incomplete: [...incomplete], now };

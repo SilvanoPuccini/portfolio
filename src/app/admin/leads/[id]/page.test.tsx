@@ -187,3 +187,50 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     expect(screen.getByRole('option', { name: 'Propuesta enviada' })).toBeInTheDocument();
   });
 });
+
+describe('Ficha del lead — la barra recibe lo que necesita', () => {
+  it('ofrece el seguimiento cuando la propuesta ya se enfrió', async () => {
+    // Este cableado estuvo roto: la ficha no le pasaba la fecha de la
+    // propuesta a la barra y el botón no aparecía nunca, aunque la API del
+    // seguimiento funcionara. Se prueba desde la pantalla, no desde la API.
+    mockFetch({
+      '/api/admin/leads/lead-1': {
+        lead: {
+          ...LEAD,
+          estado: 'presupuestado',
+          proposal_sent_at: new Date(Date.now() - 9 * 86_400_000).toISOString(),
+        },
+      },
+    });
+
+    render(<LeadDetailPage />);
+    await screen.findByText('Ferrelon');
+
+    expect(screen.getByRole('button', { name: 'Escribir seguimiento' })).toBeInTheDocument();
+  });
+
+  it('avisa que el contrato venció y muestra el firmado cuando está archivado', async () => {
+    mockFetch({
+      '/api/admin/leads/lead-1': {
+        lead: { ...LEAD, estado: 'contrato_enviado', contrato_vencido_at: '2026-09-10T00:00:00.000Z' },
+      },
+    });
+
+    render(<LeadDetailPage />);
+    await screen.findByText('Ferrelon');
+    expect(screen.getByText(/venció sin firmar/)).toBeInTheDocument();
+  });
+
+  it('muestra el link al contrato firmado archivado', async () => {
+    mockFetch({
+      '/api/admin/leads/lead-1': {
+        lead: { ...LEAD, estado: 'contrato_firmado', contrato_pdf_path: 'lead-1/env_1/contrato-firmado.pdf' },
+      },
+    });
+
+    render(<LeadDetailPage />);
+    await screen.findByText('Ferrelon');
+    expect(screen.getByRole('link', { name: /Ver contrato firmado/ }))
+      .toHaveAttribute('href', '/api/admin/leads/lead-1/contract-pdf');
+  });
+});

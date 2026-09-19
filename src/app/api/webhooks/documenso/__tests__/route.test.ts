@@ -3,9 +3,11 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
+vi.mock('@/lib/leads/contract-archive', () => ({ archiveSignedContract: vi.fn() }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
+import { archiveSignedContract } from '@/lib/leads/contract-archive';
 import { POST } from '@/app/api/webhooks/documenso/route';
 
 const SECRET = 'secreto-documenso';
@@ -87,7 +89,8 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
 
     expect(looked).toEqual(['silvano@ejemplo.com', 'hola@ferrelon.com']);
     expect(vi.mocked(sendCrmEmail).mock.calls[0][0]).toBe('hola@ferrelon.com');
-    expect(body.action).toBe('firmado_y_pago_pedido');
+    expect(body.action).toBe('contrato_firmado');
+    expect(body.mail).toBe('enviado');
   });
 
   beforeEach(() => {
@@ -117,7 +120,8 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
       contrato_firmado_at: expect.any(String),
     }));
     expect(sendCrmEmail).toHaveBeenCalledOnce();
-    expect(body.action).toBe('firmado_y_pago_pedido');
+    expect(body.action).toBe('contrato_firmado');
+    expect(body.mail).toBe('enviado');
   });
 
   it('usa la seña acordada y no la de la plantilla', async () => {
@@ -173,7 +177,8 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
 
     // Firmó de verdad: eso no se deshace porque el mail no salió.
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ estado: 'contrato_firmado' }));
-    expect(body.action).toBe('firmado_sin_correo');
+    expect(body.action).toBe('contrato_firmado');
+    expect(body.mail).toContain('Resend caído');
   });
 
   it('rechaza un aviso sin correo de firmante', async () => {
@@ -182,5 +187,86 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
     const response = await POST(signed({ event: 'DOCUMENT_COMPLETED', payload: { recipients: [] } }));
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe('webhook de Documenso — envío, vencimiento y archivo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.DOCUMENSO_WEBHOOK_SECRET = SECRET;
+    vi.mocked(sendCrmEmail).mockResolvedValue(undefined as never);
+    vi.mocked(archiveSignedContract).mockResolvedValue({
+      ok: true, paths: ['lead-1/env_1/contrato-firmado.pdf', 'lead-1/env_1/registro-de-auditoria.pdf'],
+    });
+  });
+
+  const event = (name: string, extra: Record<string, unknown> = {}) => ({
+    event: name,
+    payload: { recipients: [{ email: 'hola@ferrelon.com' }], ...extra },
+  });
+
+  it('el envío mueve la venta a «contrato enviado» sin mandar ningún mail', async () => {
+    // El cliente ya recibe el de Documenso: un segundo mail lo confundiría.
+    const update = supabaseWithLead('presupuestado');
+
+    const body = await (await POST(signed(event('DOCUMENT_SENT')))).json();
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      estado: 'contrato_enviado',
+      contract_sent_at: expect.any(String),
+      contrato_vencido_at: null,
+    }));
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+    expect(body.action).toBe('contrato_enviado');
+  });
+
+  it('marca el contrato vencido sin cambiar el estado', async () => {
+    const update = supabaseWithLead('contrato_enviado');
+
+    const body = await (await POST(signed(event('RECIPIENT_EXPIRED')))).json();
+
+    expect(update).toHaveBeenCalledWith({ contrato_vencido_at: expect.any(String) });
+    expect(body.action).toBe('contrato_vencido');
+  });
+
+  it('no marca vencido un contrato que ya se firmó', async () => {
+    const update = supabaseWithLead('contrato_firmado');
+
+    const body = await (await POST(signed(event('RECIPIENT_EXPIRED')))).json();
+
+    expect(update).not.toHaveBeenCalled();
+    expect(body.action).toBe('ignored_not_pending');
+  });
+
+  it('archiva el PDF firmado y guarda dónde quedó', async () => {
+    const update = supabaseWithLead('contrato_enviado');
+
+    const body = await (await POST(signed(event('DOCUMENT_COMPLETED', { envelopeId: 'env_1' })))).json();
+
+    expect(archiveSignedContract).toHaveBeenCalledWith('env_1', 'lead-1');
+    expect(update).toHaveBeenCalledWith({ contrato_pdf_path: 'lead-1/env_1/contrato-firmado.pdf' });
+    expect(body.archivo).toBe('guardado');
+  });
+
+  it('no vuelve a bajar un contrato ya archivado', async () => {
+    supabaseWithLead('contrato_firmado', { contrato_pdf_path: 'lead-1/env_1/contrato-firmado.pdf' });
+
+    const body = await (await POST(signed(event('DOCUMENT_COMPLETED', { envelopeId: 'env_1' })))).json();
+
+    expect(archiveSignedContract).not.toHaveBeenCalled();
+    expect(body.archivo).toBe('ya_archivado');
+  });
+
+  it('si el archivo falla, la firma y el pedido de pago quedan igual', async () => {
+    const update = supabaseWithLead('contrato_enviado');
+    vi.mocked(archiveSignedContract).mockResolvedValue({ ok: false, detail: 'Falta DOCUMENSO_API_TOKEN' });
+
+    const response = await POST(signed(event('DOCUMENT_COMPLETED', { envelopeId: 'env_1' })));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ estado: 'contrato_firmado' }));
+    expect(sendCrmEmail).toHaveBeenCalledOnce();
+    expect(body.archivo).toContain('DOCUMENSO_API_TOKEN');
   });
 });

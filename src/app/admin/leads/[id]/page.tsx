@@ -471,6 +471,9 @@ export default function LeadDetailPage() {
         leadId={lead.id}
         estado={lead.estado}
         monto={lead.monto_presupuestado}
+        proposalSentAt={lead.proposal_sent_at}
+        contratoVencido={Boolean(lead.contrato_vencido_at)}
+        contratoArchivado={Boolean(lead.contrato_pdf_path)}
         onAdvanced={() => void load()}
       />
 

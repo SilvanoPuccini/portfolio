@@ -47,6 +47,10 @@ export interface Lead {
   service_data: Record<string, unknown> | null;
   proposal_sent_at: string | null;
   contract_sent_at: string | null;
+  /** Documenso lo dio por vencido sin firma. */
+  contrato_vencido_at?: string | null;
+  /** Dónde quedó archivado el PDF firmado en Storage. */
+  contrato_pdf_path?: string | null;
 }
 
 export interface LeadModule {

@@ -183,3 +183,22 @@ describe('Migration 024: cierre del circuito de venta', () => {
     expect(sql).not.toContain('NOT NULL');
   });
 });
+
+describe('Migration 025: contratos vencidos y archivo del PDF firmado', () => {
+  const sql = readMigration('025_contract_archive.sql');
+
+  it('marca el vencimiento y guarda dónde quedó el PDF', () => {
+    expect(sql).toContain('contrato_vencido_at  timestamptz');
+    expect(sql).toContain('contrato_pdf_path    text');
+  });
+
+  it('crea el bucket de contratos PRIVADO', () => {
+    // Contratos con datos personales y montos: nunca un link público.
+    expect(sql).toContain("VALUES ('contratos', 'contratos', false)");
+  });
+
+  it('es idempotente', () => {
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS');
+    expect(sql).toContain('ON CONFLICT (id) DO NOTHING');
+  });
+});
