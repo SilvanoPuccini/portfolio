@@ -4,6 +4,10 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 vi.mock('@/lib/leads/contract-archive', () => ({ archiveSignedContract: vi.fn() }));
+vi.mock('@/content/packages', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/content/packages')>()),
+  packageForTemplate: vi.fn().mockReturnValue(null),
+}));
 vi.mock('@/lib/leads/exchange-rate', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/leads/exchange-rate')>()),
   quoteFor: vi.fn().mockResolvedValue(null),
@@ -13,7 +17,9 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
 import { archiveSignedContract } from '@/lib/leads/contract-archive';
 import { quoteFor } from '@/lib/leads/exchange-rate';
+import { packageForTemplate } from '@/content/packages';
 import { POST } from '@/app/api/webhooks/documenso/route';
+import type { FixedPackage } from '@/content/packages';
 
 const SECRET = 'secreto-documenso';
 
@@ -345,5 +351,104 @@ describe('webhook de Documenso — apertura y rechazo', () => {
       contrato_rechazado_at: null,
       contrato_rechazo_motivo: null,
     }));
+  });
+});
+
+/**
+ * Paquetes de precio fijo: el cliente firma desde un link directo, sin haber
+ * pasado por el formulario. No hay lead: el webhook lo crea con el precio del
+ * paquete y sigue el circuito normal.
+ */
+describe('webhook de Documenso — link directo de un paquete', () => {
+  const PKG = {
+    slug: 'auditoria-express', name: { es: 'Auditoría técnica express', en: 'Express audit' },
+    summary: { es: 'Revisión completa', en: 'Full review' }, priceUsd: 250, singlePayment: true,
+  } as unknown as FixedPackage;
+
+  const directLinkCompleted = (source = 'TEMPLATE_DIRECT_LINK') => ({
+    event: 'DOCUMENT_COMPLETED',
+    payload: {
+      source, templateId: 42, envelopeId: 'env-1',
+      recipients: [{ email: 'Nueva@Cliente.com', name: 'Ana Nueva', signingStatus: 'SIGNED' }],
+    },
+  });
+
+  function supabaseWithoutLead() {
+    const created = {
+      id: 'lead-new', nombre: 'Ana Nueva', email: 'nueva@cliente.com', pais: null,
+      estado: 'contrato_enviado', monto_presupuestado: 250, sena_pct: null, sena_monto: null,
+      pago_unico: true, contrato_pdf_path: null, contrato_abierto_at: null,
+    };
+    const insert = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue({ data: created, error: null }) }),
+    });
+    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const from = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }),
+      }),
+      insert,
+      update,
+    });
+    vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);
+    return { insert, update };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.DOCUMENSO_WEBHOOK_SECRET = SECRET;
+    vi.mocked(sendCrmEmail).mockResolvedValue(undefined as never);
+  });
+
+  it('crea la venta con el precio del paquete y pide el pago completo', async () => {
+    vi.mocked(packageForTemplate).mockReturnValue(PKG);
+    const { insert, update } = supabaseWithoutLead();
+
+    const body = await (await POST(signed(directLinkCompleted()))).json();
+
+    expect(packageForTemplate).toHaveBeenCalledWith(42);
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+      nombre: 'Ana Nueva',
+      email: 'nueva@cliente.com',
+      tipo_proyecto: 'Auditoría técnica express',
+      estado: 'contrato_enviado',
+      monto_presupuestado: 250,
+      pago_unico: true,
+    }));
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ estado: 'contrato_firmado' }));
+    const html = vi.mocked(sendCrmEmail).mock.calls[0][2];
+    expect(html).toContain('USD 250');
+    expect(html).toContain('Pago único');
+    expect(body.action).toBe('contrato_firmado');
+    expect(body.origen).toBe('paquete:auditoria-express');
+  });
+
+  it('un documento normal de alguien desconocido no crea nada', async () => {
+    vi.mocked(packageForTemplate).mockReturnValue(PKG);
+    const { insert } = supabaseWithoutLead();
+
+    const body = await (await POST(signed(directLinkCompleted('DOCUMENT')))).json();
+
+    expect(insert).not.toHaveBeenCalled();
+    expect(body.action).toBe('lead_not_found');
+  });
+
+  it('una plantilla que no es de un paquete activo no crea nada', async () => {
+    vi.mocked(packageForTemplate).mockReturnValue(null);
+    const { insert } = supabaseWithoutLead();
+
+    const body = await (await POST(signed(directLinkCompleted()))).json();
+
+    expect(insert).not.toHaveBeenCalled();
+    expect(body.action).toBe('lead_not_found');
+  });
+
+  it('abrir el link directo sin firmar no crea nada', async () => {
+    vi.mocked(packageForTemplate).mockReturnValue(PKG);
+    const { insert } = supabaseWithoutLead();
+
+    await POST(signed({ ...directLinkCompleted(), event: 'DOCUMENT_OPENED' }));
+
+    expect(insert).not.toHaveBeenCalled();
   });
 });

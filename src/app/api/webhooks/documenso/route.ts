@@ -7,6 +7,7 @@ import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
 import { archiveSignedContract } from '@/lib/leads/contract-archive';
+import { packageForTemplate, type FixedPackage } from '@/content/packages';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -34,6 +35,7 @@ export const maxDuration = 60;
 
 interface DocumensoRecipient {
   email?: string;
+  name?: string;
   signingStatus?: string;
   readStatus?: string;
   rejectionReason?: string | null;
@@ -44,6 +46,9 @@ type DocumensoPayload = {
   payload?: {
     id?: number | string;
     envelopeId?: string;
+    /** «TEMPLATE_DIRECT_LINK» cuando se firmó desde el link directo de una plantilla. */
+    source?: string;
+    templateId?: number | string | null;
     recipients?: DocumensoRecipient[];
   };
 };
@@ -128,8 +133,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No signer email' }, { status: 400 });
   }
 
-  const { lead, error } = await findLead(emails);
-  if (error) return NextResponse.json({ error }, { status: 500 });
+  const found = await findLead(emails);
+  if (found.error) return NextResponse.json({ error: found.error }, { status: 500 });
+  let lead = found.lead;
+
+  // Un paquete de precio fijo se firma sin haber pasado por el formulario: no
+  // hay lead. Se crea solo al completar la firma, y solo si la plantilla es la
+  // de un paquete activo; abrir el link o firmar otro documento no crea nada.
+  let origen: string | undefined;
+  if (!lead && kind === 'DOCUMENT_COMPLETED' && event.payload?.source === 'TEMPLATE_DIRECT_LINK') {
+    const pkg = packageForTemplate(event.payload.templateId);
+    if (pkg) {
+      const created = await createLeadFromPackage(pkg, event.payload.recipients ?? []);
+      if (created.error) return NextResponse.json({ error: created.error }, { status: 500 });
+      lead = created.lead;
+      origen = `paquete:${pkg.slug}`;
+    }
+  }
   if (!lead) return NextResponse.json({ ok: true, action: 'lead_not_found' });
 
   // El firmante que corresponde al lead: sus estados son los que importan, no
@@ -141,7 +161,39 @@ export async function POST(req: NextRequest) {
   if (kind === 'RECIPIENT_EXPIRED') return onExpired(lead);
   if (kind === 'DOCUMENT_OPENED') return onOpened(lead, recipient);
   if (kind === 'DOCUMENT_REJECTED') return onRejected(lead, recipient);
-  return onCompleted(lead, event.payload?.envelopeId);
+  return onCompleted(lead, event.payload?.envelopeId, origen);
+}
+
+/**
+ * La venta de un paquete: nace en «contrato enviado» para que la firma la
+ * avance como a cualquier otra, con el precio del paquete y no uno a mano.
+ */
+async function createLeadFromPackage(
+  pkg: FixedPackage,
+  recipients: DocumensoRecipient[],
+): Promise<{ lead: LeadForSignature | null; error?: string }> {
+  const signer = recipients.find((r) => r.email) ?? {};
+  const email = (signer.email ?? '').trim().toLowerCase();
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('leads')
+    .insert({
+      nombre: signer.name?.trim() || email,
+      email,
+      tipo_proyecto: pkg.name.es,
+      que_construir: pkg.summary.es,
+      estado: 'contrato_enviado',
+      monto_presupuestado: pkg.priceUsd,
+      pago_unico: pkg.singlePayment,
+    })
+    .select(LEAD_COLUMNS)
+    .single();
+
+  if (error) {
+    console.error('[webhook/documenso] No se pudo crear la venta del paquete:', error);
+    return { lead: null, error: error.message };
+  }
+  return { lead: data as LeadForSignature };
 }
 
 const HANDLED = [
@@ -227,7 +279,7 @@ async function onExpired(lead: LeadForSignature) {
   return NextResponse.json({ ok: true, action: 'contrato_vencido' });
 }
 
-async function onCompleted(lead: LeadForSignature, envelopeId: string | undefined) {
+async function onCompleted(lead: LeadForSignature, envelopeId: string | undefined, origen?: string) {
   const nextState = advanceOn('contrato_firmado', lead.estado ?? '');
 
   const error = await update(lead.id, {
@@ -290,5 +342,6 @@ async function onCompleted(lead: LeadForSignature, envelopeId: string | undefine
     action: nextState ? 'contrato_firmado' : 'firma_registrada',
     mail,
     archivo,
+    ...(origen ? { origen } : {}),
   });
 }

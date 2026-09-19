@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import ServiceFormFlow from "@/components/blocks/ServiceFormFlow";
+import PackageBanner from "@/components/site/PackageBanner";
 import type { ServiceCardData } from "@/components/blocks/ServiceFormFlow";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
@@ -474,6 +475,7 @@ export default async function ServicesPage({
         containerClassName="py-10 sm:py-12 lg:py-16"
         surface="plain"
       >
+        <PackageBanner locale={currentLocale} />
         <ServiceFormFlow locale={currentLocale} cards={serviceCards} />
 
         {/* Aviso de alcance: fija que los precios son punto de partida y que el
