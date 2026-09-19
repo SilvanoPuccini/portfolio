@@ -22,6 +22,10 @@ export interface LeadRow {
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */
   contrato_vencido_at?: string | null;
+  /** La primera vez que el cliente abrió el contrato en Documenso. */
+  contrato_abierto_at?: string | null;
+  /** El cliente rechazó el contrato; el motivo va aparte. */
+  contrato_rechazado_at?: string | null;
   fecha_llamada: string | null;
 }
 
@@ -33,6 +37,9 @@ export interface RowSummary {
 }
 
 const DAY = 86_400_000;
+
+/** Días que puede pasar un contrato abierto sin firma antes de reclamar. */
+export const OPENED_SILENCE_DAYS = 2;
 
 function daysBetween(iso: string, now: Date): number {
   const moment = new Date(iso).getTime();
@@ -83,8 +90,18 @@ export function rowSummary(lead: LeadRow, now = new Date()): RowSummary {
     }
 
     case 'contrato_enviado':
+      if (lead.contrato_rechazado_at) {
+        return { line: 'Rechazó el contrato · llamalo para negociar', risk: true };
+      }
       if (lead.contrato_vencido_at) {
         return { line: 'Contrato vencido sin firmar · reenviar', risk: true };
+      }
+      if (lead.contrato_abierto_at) {
+        // Lo leyó y no firma: a los dos días ya es una duda que no escribió.
+        const since = daysBetween(lead.contrato_abierto_at, now);
+        return since >= OPENED_SILENCE_DAYS
+          ? { line: `Lo abrió hace ${days(since)} y no firma · llamalo`, risk: true }
+          : { line: `Lo abrió hace ${days(since)} · espera firma`, risk: false };
       }
       return {
         line: lead.contract_sent_at

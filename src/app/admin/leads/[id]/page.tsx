@@ -474,6 +474,7 @@ export default function LeadDetailPage() {
         proposalSentAt={lead.proposal_sent_at}
         contratoVencido={Boolean(lead.contrato_vencido_at)}
         contratoArchivado={Boolean(lead.contrato_pdf_path)}
+        rechazoMotivo={lead.contrato_rechazado_at ? (lead.contrato_rechazo_motivo ?? null) : undefined}
         onAdvanced={() => void load()}
       />
 

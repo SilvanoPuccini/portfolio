@@ -148,11 +148,11 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
     expect(body.action).toBe('firma_registrada');
   });
 
-  it('ignora los eventos que no son la firma completa', async () => {
+  it('ignora los eventos que el panel no usa', async () => {
     const update = supabaseWithLead('contrato_enviado');
 
     const body = await (await POST(signed({
-      event: 'DOCUMENT_OPENED', payload: { recipients: [{ email: 'hola@ferrelon.com' }] },
+      event: 'DOCUMENT_CREATED', payload: { recipients: [{ email: 'hola@ferrelon.com' }] },
     }))).json();
 
     expect(body.action).toBe('ignored');
@@ -268,5 +268,64 @@ describe('webhook de Documenso — envío, vencimiento y archivo', () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ estado: 'contrato_firmado' }));
     expect(sendCrmEmail).toHaveBeenCalledOnce();
     expect(body.archivo).toContain('DOCUMENSO_API_TOKEN');
+  });
+});
+
+describe('webhook de Documenso — apertura y rechazo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.DOCUMENSO_WEBHOOK_SECRET = SECRET;
+  });
+
+  const withRecipient = (name: string, recipient: Record<string, unknown>) => ({
+    event: name,
+    payload: { recipients: [{ email: 'hola@ferrelon.com', ...recipient }] },
+  });
+
+  it('registra la primera vez que el cliente abre el contrato', async () => {
+    const update = supabaseWithLead('contrato_enviado');
+
+    const body = await (await POST(signed(withRecipient('DOCUMENT_OPENED', { readStatus: 'OPENED' })))).json();
+
+    expect(update).toHaveBeenCalledWith({ contrato_abierto_at: expect.any(String) });
+    expect(body.action).toBe('contrato_abierto');
+  });
+
+  it('no corre el reloj en cada reapertura', async () => {
+    // La pregunta es «hace cuánto lo leyó y no firma»: reabrirlo no la cambia.
+    const update = supabaseWithLead('contrato_enviado', { contrato_abierto_at: '2026-09-15T10:00:00.000Z' });
+
+    const body = await (await POST(signed(withRecipient('DOCUMENT_OPENED', { readStatus: 'OPENED' })))).json();
+
+    expect(update).not.toHaveBeenCalled();
+    expect(body.action).toBe('apertura_ya_registrada');
+  });
+
+  it('un rechazo guarda el motivo y NO da la venta por perdida', async () => {
+    const update = supabaseWithLead('contrato_enviado');
+
+    const body = await (await POST(signed(withRecipient('DOCUMENT_REJECTED', {
+      signingStatus: 'REJECTED', rejectionReason: 'No estoy de acuerdo con la cláusula 7',
+    })))).json();
+
+    expect(update).toHaveBeenCalledWith({
+      contrato_rechazado_at: expect.any(String),
+      contrato_rechazo_motivo: 'No estoy de acuerdo con la cláusula 7',
+    });
+    // Un rechazo con motivo es una negociación: el estado no se toca.
+    expect(update).not.toHaveBeenCalledWith(expect.objectContaining({ estado: expect.anything() }));
+    expect(body.action).toBe('contrato_rechazado');
+  });
+
+  it('un reenvío limpia la apertura y el rechazo anteriores', async () => {
+    const update = supabaseWithLead('contrato_enviado');
+
+    await POST(signed({ event: 'DOCUMENT_SENT', payload: { recipients: [{ email: 'hola@ferrelon.com' }] } }));
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      contrato_abierto_at: null,
+      contrato_rechazado_at: null,
+      contrato_rechazo_motivo: null,
+    }));
   });
 });

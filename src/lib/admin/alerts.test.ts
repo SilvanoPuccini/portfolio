@@ -16,6 +16,7 @@ function quiet(overrides: Partial<AlertInput> = {}): AlertInput {
     sentProposals: [],
     failedThreads: 0,
     expiredContracts: 0,
+    rejectedContracts: 0,
     latePieces: 0,
     unsentNewsletters: [],
     ...overrides,
@@ -109,6 +110,15 @@ describe('buildAlerts', () => {
       expect(alert.id).toBe('contratos-vencidos');
       expect(alert.severity).toBe('urgent');
       expect(alert.text).toBe('1 contrato vencido sin firmar');
+    });
+  });
+
+  describe('el contrato rechazado', () => {
+    it('es urgente y pide llamar, no dar la venta por perdida', () => {
+      const [alert] = buildAlerts(quiet({ rejectedContracts: 1 }));
+      expect(alert.id).toBe('contratos-rechazados');
+      expect(alert.severity).toBe('urgent');
+      expect(alert.text).toContain('llamá');
     });
   });
 

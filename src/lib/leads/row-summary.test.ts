@@ -73,6 +73,25 @@ describe('rowSummary', () => {
     expect(line).toContain('vencido');
   });
 
+  it('un contrato rechazado pide llamar para negociar', () => {
+    const { line, risk } = rowSummary(
+      lead({ estado: 'contrato_enviado', contrato_rechazado_at: daysAgo(1) }), NOW,
+    );
+    expect(risk).toBe(true);
+    expect(line).toContain('Rechazó');
+  });
+
+  it('abierto hace un día todavía no reclama', () => {
+    const { risk } = rowSummary(lead({ estado: 'contrato_enviado', contrato_abierto_at: daysAgo(1) }), NOW);
+    expect(risk).toBe(false);
+  });
+
+  it('abierto hace días sin firmar pide llamar', () => {
+    const { line, risk } = rowSummary(lead({ estado: 'contrato_enviado', contrato_abierto_at: daysAgo(3) }), NOW);
+    expect(risk).toBe(true);
+    expect(line).toContain('Lo abrió hace 3 días');
+  });
+
   it('una venta ganada pide facturar, no espera', () => {
     const { line, risk } = rowSummary(lead({ estado: 'cerrado' }), NOW);
     expect(risk).toBe(false);

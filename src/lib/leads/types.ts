@@ -51,6 +51,9 @@ export interface Lead {
   contrato_vencido_at?: string | null;
   /** Dónde quedó archivado el PDF firmado en Storage. */
   contrato_pdf_path?: string | null;
+  contrato_abierto_at?: string | null;
+  contrato_rechazado_at?: string | null;
+  contrato_rechazo_motivo?: string | null;
 }
 
 export interface LeadModule {

@@ -65,6 +65,8 @@ export interface AlertInput {
   failedThreads: number;
   /** Contratos que Documenso dio por vencidos sin firma. */
   expiredContracts: number;
+  /** Contratos que el cliente rechazó en Documenso y siguen sin resolver. */
+  rejectedContracts: number;
   /** Piezas cuya fecha ya pasó y siguen sin publicar. */
   latePieces: number;
   /** Posts publicados cuyo correo a suscriptores nunca salió. */
@@ -140,6 +142,18 @@ export function buildAlerts(input: AlertInput): Alert[] {
       text: `${plural(input.expiredContracts, 'contrato vencido', 'contratos vencidos')} sin firmar`,
       href: '/admin/leads',
       count: input.expiredContracts,
+    });
+  }
+
+  // Un rechazo casi siempre trae un motivo concreto: es una negociación
+  // abierta, y se enfría rápido si nadie llama.
+  if (input.rejectedContracts > 0) {
+    alerts.push({
+      id: 'contratos-rechazados',
+      severity: 'urgent',
+      text: `${plural(input.rejectedContracts, 'contrato rechazado', 'contratos rechazados')} — llamá para negociar`,
+      href: '/admin/leads',
+      count: input.rejectedContracts,
     });
   }
 

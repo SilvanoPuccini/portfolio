@@ -19,6 +19,11 @@ export const maxDuration = 60;
  *                         respaldo.
  *   RECIPIENT_EXPIRED  → marca el contrato como vencido sin firmar. Sin esto
  *                         el lead quedaba en «Contrato enviado» para siempre.
+ *   DOCUMENT_OPENED    → el cliente lo leyó. Si pasan días sin firma, es el
+ *                         momento de llamar: tiene una duda que no escribió.
+ *   DOCUMENT_REJECTED  → dijo que no, con su motivo. NO es una venta perdida:
+ *                         muchas veces es una negociación. Se guarda el motivo
+ *                         y el tablero lo reclama; perderla lo decide Silvano.
  *   DOCUMENT_COMPLETED → «Contrato firmado», pedido de pago y archivo del PDF
  *                         firmado con su registro de auditoría.
  *
@@ -26,12 +31,19 @@ export const maxDuration = 60;
  * sistemas comparten sin guardar un id de Documenso en cada fila.
  */
 
+interface DocumensoRecipient {
+  email?: string;
+  signingStatus?: string;
+  readStatus?: string;
+  rejectionReason?: string | null;
+}
+
 type DocumensoPayload = {
   event?: string;
   payload?: {
     id?: number | string;
     envelopeId?: string;
-    recipients?: { email?: string; signingStatus?: string }[];
+    recipients?: DocumensoRecipient[];
   };
 };
 
@@ -46,10 +58,11 @@ interface LeadForSignature {
   sena_monto: number | null;
   pago_unico: boolean | null;
   contrato_pdf_path: string | null;
+  contrato_abierto_at: string | null;
 }
 
 const LEAD_COLUMNS =
-  'id, nombre, email, pais, estado, monto_presupuestado, sena_pct, sena_monto, pago_unico, contrato_pdf_path';
+  'id, nombre, email, pais, estado, monto_presupuestado, sena_pct, sena_monto, pago_unico, contrato_pdf_path, contrato_abierto_at';
 
 /**
  * Documenso NO firma el cuerpo: manda el secreto configurado, tal cual, en
@@ -102,7 +115,7 @@ export async function POST(req: NextRequest) {
 
   // Documenso lo manda en mayúsculas; se acepta también «document.completed».
   const kind = (event.event ?? '').toUpperCase().replace('.', '_');
-  if (!['DOCUMENT_SENT', 'RECIPIENT_EXPIRED', 'DOCUMENT_COMPLETED'].includes(kind)) {
+  if (!HANDLED.includes(kind)) {
     return NextResponse.json({ ok: true, action: 'ignored' });
   }
 
@@ -118,9 +131,59 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error }, { status: 500 });
   if (!lead) return NextResponse.json({ ok: true, action: 'lead_not_found' });
 
+  // El firmante que corresponde al lead: sus estados son los que importan, no
+  // los de Silvano si también figura en el sobre.
+  const recipient = (event.payload?.recipients ?? [])
+    .find((r) => r.email?.trim().toLowerCase() === lead.email.trim().toLowerCase());
+
   if (kind === 'DOCUMENT_SENT') return onSent(lead);
   if (kind === 'RECIPIENT_EXPIRED') return onExpired(lead);
+  if (kind === 'DOCUMENT_OPENED') return onOpened(lead, recipient);
+  if (kind === 'DOCUMENT_REJECTED') return onRejected(lead, recipient);
   return onCompleted(lead, event.payload?.envelopeId);
+}
+
+const HANDLED = [
+  'DOCUMENT_SENT', 'RECIPIENT_EXPIRED', 'DOCUMENT_OPENED', 'DOCUMENT_REJECTED', 'DOCUMENT_COMPLETED',
+];
+
+/**
+ * Lo abrió. Se guarda solo la primera vez: la pregunta que importa es «hace
+ * cuánto lo leyó y no firma», y cada reapertura correría ese reloj.
+ */
+async function onOpened(lead: LeadForSignature, recipient: DocumensoRecipient | undefined) {
+  // Si quien lo abrió fue otro firmante, el cliente no lo leyó todavía.
+  if (recipient?.readStatus && recipient.readStatus !== 'OPENED') {
+    return NextResponse.json({ ok: true, action: 'ignored_not_client' });
+  }
+  if (lead.contrato_abierto_at || lead.estado !== 'contrato_enviado') {
+    return NextResponse.json({ ok: true, action: 'apertura_ya_registrada' });
+  }
+
+  const error = await update(lead.id, { contrato_abierto_at: new Date().toISOString() });
+  if (error) return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+
+  return NextResponse.json({ ok: true, action: 'contrato_abierto' });
+}
+
+/**
+ * Lo rechazó. El estado queda en «contrato enviado»: un rechazo con motivo
+ * suele ser una negociación («cambiemos la cláusula 7»), y darla por perdida
+ * automáticamente cerraría una venta que todavía se puede salvar.
+ */
+async function onRejected(lead: LeadForSignature, recipient: DocumensoRecipient | undefined) {
+  if (recipient?.signingStatus && recipient.signingStatus !== 'REJECTED') {
+    return NextResponse.json({ ok: true, action: 'ignored_not_client' });
+  }
+
+  const motivo = recipient?.rejectionReason?.trim() || null;
+  const error = await update(lead.id, {
+    contrato_rechazado_at: new Date().toISOString(),
+    contrato_rechazo_motivo: motivo,
+  });
+  if (error) return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+
+  return NextResponse.json({ ok: true, action: 'contrato_rechazado' });
 }
 
 async function update(leadId: string, fields: Record<string, unknown>) {
@@ -133,10 +196,14 @@ async function update(leadId: string, fields: Record<string, unknown>) {
 async function onSent(lead: LeadForSignature) {
   const nextState = advanceOn('contrato_enviado', lead.estado ?? '');
 
-  // Un reenvío después de vencido vuelve a contar desde cero.
+  // Un reenvío —después de vencido o de un rechazo negociado— vuelve a
+  // contar desde cero: lo que hizo con el contrato anterior ya no aplica.
   const error = await update(lead.id, {
     contract_sent_at: new Date().toISOString(),
     contrato_vencido_at: null,
+    contrato_abierto_at: null,
+    contrato_rechazado_at: null,
+    contrato_rechazo_motivo: null,
     ...(nextState ? { estado: nextState } : {}),
   });
   if (error) return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
@@ -165,6 +232,7 @@ async function onCompleted(lead: LeadForSignature, envelopeId: string | undefine
   const error = await update(lead.id, {
     contrato_firmado_at: new Date().toISOString(),
     contrato_vencido_at: null,
+    contrato_rechazado_at: null,
     ...(nextState ? { estado: nextState } : {}),
   });
   if (error) return NextResponse.json({ error: 'DB update failed' }, { status: 500 });

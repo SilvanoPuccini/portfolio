@@ -202,3 +202,17 @@ describe('Migration 025: contratos vencidos y archivo del PDF firmado', () => {
     expect(sql).toContain('ON CONFLICT (id) DO NOTHING');
   });
 });
+
+describe('Migration 026: apertura y rechazo del contrato', () => {
+  const sql = readMigration('026_contract_engagement.sql');
+
+  it('guarda cuándo lo abrió, cuándo lo rechazó y por qué', () => {
+    expect(sql).toContain('contrato_abierto_at      timestamptz');
+    expect(sql).toContain('contrato_rechazado_at    timestamptz');
+    expect(sql).toContain('contrato_rechazo_motivo  text');
+  });
+
+  it('es idempotente', () => {
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS');
+  });
+});

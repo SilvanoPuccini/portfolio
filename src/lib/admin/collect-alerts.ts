@@ -28,7 +28,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
   const nowIso = now.toISOString();
 
   const [
-    unread, subsToday, newLeads, proposals, threads, late, pendingMail, expired,
+    unread, subsToday, newLeads, proposals, threads, late, pendingMail, expired, rejected,
   ] = await Promise.all([
     db.from('messages').select('id', { count: 'exact', head: true }).eq('read', false),
 
@@ -55,6 +55,10 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     // no puede llegar.
     db.from('leads').select('id', { count: 'exact', head: true })
       .eq('estado', 'contrato_enviado').not('contrato_vencido_at', 'is', null),
+
+    // Lo rechazó y nadie resolvió todavía: sigue en «contrato enviado».
+    db.from('leads').select('id', { count: 'exact', head: true })
+      .eq('estado', 'contrato_enviado').not('contrato_rechazado_at', 'is', null),
   ]);
 
   const alerts = buildAlerts({
@@ -65,6 +69,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     sentProposals: (proposals.data ?? []) as { id: string; proposal_sent_at: string }[],
     failedThreads: threads.count ?? 0,
     expiredContracts: expired.count ?? 0,
+    rejectedContracts: rejected.count ?? 0,
     latePieces: late.count ?? 0,
     unsentNewsletters: (pendingMail.data ?? []) as { post_slug: string; notify_error: string | null }[],
   });
@@ -72,7 +77,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
   const incomplete = ([
     ['mensajes', unread.error], ['suscriptores', subsToday.error],
     ['leads', newLeads.error], ['propuestas', proposals.error],
-    ['hilos', threads.error], ['agenda', late.error], ['newsletter', pendingMail.error], ['contratos', expired.error],
+    ['hilos', threads.error], ['agenda', late.error], ['newsletter', pendingMail.error], ['contratos', expired.error ?? rejected.error],
   ] as const).filter(([, error]) => error).map(([name]) => name);
 
   return { alerts, incomplete: [...incomplete], now };

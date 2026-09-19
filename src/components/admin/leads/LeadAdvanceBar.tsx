@@ -31,12 +31,17 @@ interface Props {
   contratoVencido?: boolean;
   /** Hay un PDF firmado guardado en Storage. */
   contratoArchivado?: boolean;
+  /**
+   * El cliente rechazó el contrato en Documenso. Vale null si no dejó motivo,
+   * y undefined si no hubo rechazo.
+   */
+  rechazoMotivo?: string | null;
   onAdvanced: () => void;
   leadId: string;
 }
 
 export function LeadAdvanceBar({
-  estado, monto, proposalSentAt, contratoVencido, contratoArchivado, onAdvanced, leadId,
+  estado, monto, proposalSentAt, contratoVencido, contratoArchivado, rechazoMotivo, onAdvanced, leadId,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -164,6 +169,15 @@ export function LeadAdvanceBar({
           {!lost && !done && button('Se perdió', () => setAsking('perdido'), c.late)}
         </span>
       </div>
+
+      {/* Un rechazo no se marca como venta perdida: suele ser una negociación.
+          Lo que hace falta es el motivo a la vista antes de llamar. */}
+      {estado === 'contrato_enviado' && rechazoMotivo !== undefined && (
+        <p role="status" style={{ margin: '9px 0 0', fontSize: 12, color: c.late, lineHeight: 1.5 }}>
+          Rechazó el contrato{rechazoMotivo ? <>: <q>{rechazoMotivo}</q></> : ' sin dejar motivo'}.
+          {' '}Llamalo para negociar; si ajustás el contrato y lo reenviás, vuelve a contar desde cero.
+        </p>
+      )}
 
       {estado === 'contrato_enviado' && contratoVencido && (
         <p role="status" style={{ margin: '9px 0 0', fontSize: 12, color: c.late }}>
