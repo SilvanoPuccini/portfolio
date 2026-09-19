@@ -25,7 +25,7 @@ export interface PaymentRequestData {
   paymentInstructions: string;
 }
 
-const money = (value: number) => `$${value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+const money = (value: number) => `USD ${value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
 export function paymentRequestHtml(data: PaymentRequestData): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';

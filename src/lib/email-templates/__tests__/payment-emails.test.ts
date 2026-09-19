@@ -13,13 +13,13 @@ describe('paymentRequestHtml', () => {
   };
 
   it('pone el monto a pagar en primer plano', () => {
-    expect(paymentRequestHtml(base)).toContain('$2.400');
+    expect(paymentRequestHtml(base)).toContain('USD 2.400');
   });
 
   it('explica de dónde sale ese número', () => {
     const html = paymentRequestHtml(base);
     expect(html).toContain('Seña del 50%');
-    expect(html).toContain('$4.800');
+    expect(html).toContain('USD 4.800');
     expect(html).toContain('50% restante');
   });
 
@@ -59,7 +59,7 @@ describe('paymentReceivedHtml', () => {
   it('agradece y confirma el monto acreditado', () => {
     const html = paymentReceivedHtml(base);
     expect(html).toContain('Gracias, Ferrelon');
-    expect(html).toContain('$2.400');
+    expect(html).toContain('USD 2.400');
   });
 
   it('nombra la factura cuando ya existe', () => {
