@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { timingSafeEqual } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { advanceOn } from '@/lib/leads/pipeline';
 import { sendCrmEmail } from '@/lib/resend';
@@ -28,28 +28,43 @@ type DocumensoPayload = {
   };
 };
 
+interface LeadForSignature {
+  id: string;
+  nombre: string;
+  email: string;
+  estado: string | null;
+  monto_presupuestado: number | null;
+  sena_pct: number | null;
+  sena_monto: number | null;
+  pago_unico: boolean | null;
+}
+
 /** Los avisos que significan «está firmado por todos». */
 const COMPLETED_EVENTS = ['DOCUMENT_COMPLETED', 'document.completed'];
 
-function verifySignature(body: string, signature: string | null): boolean {
+/**
+ * Documenso NO firma el cuerpo: manda el secreto configurado, tal cual, en
+ * `X-Documenso-Secret`. Distinto de Cal.com, que manda un HMAC. La primera
+ * versión de esto calculaba un HMAC y habría rechazado todos los avisos reales.
+ * La comparación sigue siendo en tiempo constante.
+ */
+function verifySecret(received: string | null): boolean {
   const secret = process.env.DOCUMENSO_WEBHOOK_SECRET;
-  if (!secret || !signature) return false;
+  if (!secret || !received) return false;
 
-  const expected = createHmac('sha256', secret).update(body).digest('hex');
-  const received = Buffer.from(signature);
-  const computed = Buffer.from(expected);
-  if (received.length !== computed.length) return false;
-  return timingSafeEqual(received, computed);
+  const a = Buffer.from(received);
+  const b = Buffer.from(secret);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
-  const signature = req.headers.get('x-documenso-secret') ?? req.headers.get('x-documenso-signature');
 
-  // Este webhook mueve una venta y dispara un correo a un cliente: sin firma
-  // válida no se procesa, igual que el de Cal.com.
-  if (!verifySignature(rawBody, signature)) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  // Este webhook mueve una venta y dispara un correo a un cliente: sin el
+  // secreto correcto no se procesa, igual que el de Cal.com.
+  if (!verifySecret(req.headers.get('x-documenso-secret'))) {
+    return NextResponse.json({ error: 'Invalid secret' }, { status: 401 });
   }
 
   let event: DocumensoPayload;
@@ -63,20 +78,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, action: 'ignored' });
   }
 
-  // El firmante es el cliente: Silvano no está entre los recipients del
-  // contrato que manda a firmar.
-  const email = event.payload?.recipients?.find((r) => r.email)?.email;
-  if (!email) {
+  const emails = (event.payload?.recipients ?? [])
+    .map((recipient) => recipient.email?.trim().toLowerCase())
+    .filter((email): email is string => Boolean(email));
+
+  if (emails.length === 0) {
     return NextResponse.json({ error: 'No signer email' }, { status: 400 });
   }
 
+  // Un contrato puede tener más de un firmante — Silvano mismo, por ejemplo.
+  // Tomar el primero de la lista podía caer en el correo equivocado: se busca
+  // el que corresponda a un lead.
   const db = getSupabaseAdmin();
-  const { data: lead, error } = await db
-    .from('leads')
-    .select('id, nombre, email, estado, monto_presupuestado, sena_pct, sena_monto, pago_unico')
-    .eq('email', email).maybeSingle();
+  let lead: LeadForSignature | null = null;
+  for (const email of emails) {
+    const { data, error } = await db
+      .from('leads')
+      .select('id, nombre, email, estado, monto_presupuestado, sena_pct, sena_monto, pago_unico')
+      .eq('email', email).maybeSingle();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (data) { lead = data as LeadForSignature; break; }
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!lead) return NextResponse.json({ ok: true, action: 'lead_not_found' });
 
   const nextState = advanceOn('contrato_firmado', lead.estado ?? '');

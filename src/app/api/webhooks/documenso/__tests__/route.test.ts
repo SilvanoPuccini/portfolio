@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createHmac } from 'crypto';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
@@ -37,7 +36,8 @@ function signed(body: unknown, secret = SECRET) {
   return new NextRequest('http://localhost/api/webhooks/documenso', {
     method: 'POST',
     headers: {
-      'x-documenso-secret': createHmac('sha256', secret).update(raw).digest('hex'),
+      // Documenso manda el secreto tal cual, no un HMAC del cuerpo.
+      'x-documenso-secret': secret,
       'Content-Type': 'application/json',
     },
     body: raw,
@@ -50,6 +50,46 @@ const completed = (email = 'hola@ferrelon.com') => ({
 });
 
 describe('webhook de Documenso — la firma mueve la venta sola', () => {
+  it('acepta el secreto en texto plano, como lo manda Documenso', async () => {
+    supabaseWithLead('contrato_enviado');
+    const response = await POST(signed(completed()));
+    expect(response.status).toBe(200);
+  });
+
+  it('encuentra al cliente aunque no sea el primer firmante', async () => {
+    // Si Silvano también firma y figura primero, no puede tomarse su correo:
+    // la base solo reconoce el del cliente.
+    const looked: string[] = [];
+    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const from = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn((_col: string, email: string) => {
+          looked.push(email);
+          return {
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: email === 'hola@ferrelon.com'
+                ? { id: 'lead-1', nombre: 'Ferrelon', email, estado: 'contrato_enviado',
+                    monto_presupuestado: 4800, sena_pct: null, sena_monto: null, pago_unico: null }
+                : null,
+              error: null,
+            }),
+          };
+        }),
+      }),
+      update,
+    });
+    vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);
+
+    const body = await (await POST(signed({
+      event: 'DOCUMENT_COMPLETED',
+      payload: { recipients: [{ email: 'silvano@ejemplo.com' }, { email: 'hola@ferrelon.com' }] },
+    }))).json();
+
+    expect(looked).toEqual(['silvano@ejemplo.com', 'hola@ferrelon.com']);
+    expect(vi.mocked(sendCrmEmail).mock.calls[0][0]).toBe('hola@ferrelon.com');
+    expect(body.action).toBe('firmado_y_pago_pedido');
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.DOCUMENSO_WEBHOOK_SECRET = SECRET;
