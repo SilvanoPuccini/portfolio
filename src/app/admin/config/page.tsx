@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
+import FxComparison from '@/components/admin/config/FxComparison';
 
 type RateConfig = { tarifa_hora: number; buffer_pct: number };
 
@@ -92,6 +93,8 @@ export default function ConfigPage() {
           {saved && <p style={s.successText}>Guardado</p>}
         </div>
       </div>
+
+      <FxComparison />
     </div>
   );
 }

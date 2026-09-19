@@ -4,10 +4,15 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 vi.mock('@/lib/leads/contract-archive', () => ({ archiveSignedContract: vi.fn() }));
+vi.mock('@/lib/leads/exchange-rate', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/leads/exchange-rate')>()),
+  quoteFor: vi.fn().mockResolvedValue(null),
+}));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
 import { archiveSignedContract } from '@/lib/leads/contract-archive';
+import { quoteFor } from '@/lib/leads/exchange-rate';
 import { POST } from '@/app/api/webhooks/documenso/route';
 
 const SECRET = 'secreto-documenso';
@@ -131,7 +136,20 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
 
     const html = vi.mocked(sendCrmEmail).mock.calls[0][2];
     expect(html).toContain('Seña del 30%');
-    expect(html).toContain('$1.440');
+    expect(html).toContain('USD 1.440');
+  });
+
+  it('a un cliente de Argentina le pasa el monto en pesos', async () => {
+    supabaseWithLead('contrato_enviado', { pais: 'Argentina' });
+    vi.mocked(quoteFor).mockResolvedValueOnce({
+      currency: 'ARS', rate: 1540.1, amount: 3_710_000, source: 'Dólar MEP',
+      updatedAt: null, validUntil: '2026-09-22T15:00:00.000Z',
+    });
+
+    await POST(signed(completed()));
+
+    expect(quoteFor).toHaveBeenCalledWith('Argentina', 2400);
+    expect(vi.mocked(sendCrmEmail).mock.calls[0][2]).toContain('ARS 3.710.000');
   });
 
   it('un aviso repetido no vuelve a pedirle plata al cliente', async () => {

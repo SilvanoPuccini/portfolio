@@ -5,6 +5,7 @@ import { advanceOn, isManualEvent, type ManualEvent } from '@/lib/leads/pipeline
 import { sendCrmEmail } from '@/lib/resend';
 import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
+import { quoteFor } from '@/lib/leads/exchange-rate';
 import { paymentReceivedHtml } from '@/lib/email-templates/payment-received';
 
 export const dynamic = 'force-dynamic';
@@ -137,13 +138,18 @@ async function notifyClient(event: ManualEvent, id: string, body: Body) {
       const pct = lead.sena_pct ?? 50;
       const single = lead.pago_unico === true;
 
+      const amount = single ? total : (lead.sena_monto ?? Math.round(total * pct) / 100);
+      // En pesos para Argentina y Chile; si la cotización no llega, sale solo en USD.
+      const localQuote = await quoteFor(lead.pais, amount);
+
       await sendCrmEmail(lead.email, 'Datos para el pago', paymentRequestHtml({
         name: lead.nombre,
-        amount: single ? total : (lead.sena_monto ?? Math.round(total * pct) / 100),
+        amount,
         total,
         pct: single ? 100 : pct,
         singlePayment: single,
         paymentInstructions: paymentInstructionsFor(lead.pais),
+        localQuote,
       }));
       return { ok: true, tipo: 'pedido_de_pago' };
     }

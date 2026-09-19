@@ -1,4 +1,5 @@
 import { escapeHtml } from '@/lib/html-escape';
+import { FX_MARGIN, type LocalQuote } from '@/lib/leads/exchange-rate';
 
 /**
  * El pedido de pago, después de la firma.
@@ -23,9 +24,28 @@ export interface PaymentRequestData {
   singlePayment: boolean;
   /** Cómo pagar: alias, CBU, link. Sale de la configuración del panel. */
   paymentInstructions: string;
+  /** El equivalente en pesos para Argentina y Chile. Sin él, el mail va solo en USD. */
+  localQuote?: LocalQuote | null;
 }
 
 const money = (value: number) => `USD ${value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+
+/** Hasta cuándo vale el monto en pesos, en hora argentina: «lunes 22/09, 12:00». */
+function validUntilLabel(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    weekday: 'long', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).replace(/(\d{2})-(\d{2})/, '$1/$2');
+}
+
+function localQuoteHtml(quote: LocalQuote): string {
+  const amount = `${quote.currency} ${quote.amount.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+  const note = `Cotización ${quote.source} + ${Math.round(FX_MARGIN * 100)}%, redondeada. `
+    + `Vale hasta el ${validUntilLabel(quote.validUntil)} (hora de Argentina); después, pedime el monto actualizado.`;
+  return `
+        <p style="font-size:20px;color:#f0f0f0;margin:0 0 4px;font-weight:600;">= ${escapeHtml(amount)}</p>
+        <p style="font-size:12px;color:#64748b;margin:0 0 10px;line-height:1.5;">${escapeHtml(note)}</p>`;
+}
 
 export function paymentRequestHtml(data: PaymentRequestData): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
@@ -55,7 +75,7 @@ export function paymentRequestHtml(data: PaymentRequestData): string {
 
       <div style="border:1px solid rgba(0,212,212,0.24);border-radius:8px;padding:20px;background:rgba(0,212,212,0.04);margin-bottom:24px;">
         <p style="font-size:11px;color:#64748b;margin:0 0 6px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">A abonar ahora</p>
-        <p style="font-size:30px;color:#00d4d4;margin:0 0 10px;font-weight:700;">${money(data.amount)}</p>
+        <p style="font-size:30px;color:#00d4d4;margin:0 0 10px;font-weight:700;">${money(data.amount)}</p>${data.localQuote ? localQuoteHtml(data.localQuote) : ''}
         <p style="font-size:13px;color:#94a3b8;margin:0;line-height:1.6;">${escapeHtml(detail)}</p>
       </div>
 

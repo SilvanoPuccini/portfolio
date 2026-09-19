@@ -23,6 +23,30 @@ describe('paymentRequestHtml', () => {
     expect(html).toContain('50% restante');
   });
 
+  describe('con monto en pesos', () => {
+    const localQuote = {
+      currency: 'ARS' as const, amount: 3_810_000, rate: 1540.1,
+      source: 'Dólar MEP', updatedAt: null, validUntil: '2026-09-22T15:00:00.000Z',
+    };
+
+    it('muestra el equivalente en pesos debajo del monto en USD', () => {
+      const html = paymentRequestHtml({ ...base, localQuote });
+      expect(html).toContain('USD 2.400');
+      expect(html).toContain('ARS 3.810.000');
+    });
+
+    it('explica la cotización y hasta cuándo vale, en hora argentina', () => {
+      const html = paymentRequestHtml({ ...base, localQuote });
+      expect(html).toContain('Dólar MEP');
+      expect(html).toContain('22/09');
+      expect(html).toContain('12:00');
+    });
+
+    it('sin cotización queda solo en USD', () => {
+      expect(paymentRequestHtml(base)).not.toContain('ARS');
+    });
+  });
+
   it('en un pago único no habla de saldo restante', () => {
     const html = paymentRequestHtml({ ...base, singlePayment: true, pct: 100, amount: 300, total: 300 });
     expect(html).toContain('Pago único');
