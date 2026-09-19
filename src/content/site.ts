@@ -415,7 +415,7 @@ export const siteContent: SiteContent = {
       es: "Portfolio bilingüe con foco en producto, automatización y desarrollo full stack basado en contenido real verificable.",
       en: "Bilingual portfolio focused on product, automation, and full stack development backed by verifiable real content.",
     },
-    siteUrl: "https://silvanopuccini.github.io/portfolio/",
+    siteUrl: "https://www.silvanopuccini.dev",
     defaultLocale: "es",
     location: "Pucón, Chile",
     availability: {
@@ -439,7 +439,6 @@ export const siteContent: SiteContent = {
       { platform: "x", label: "X", href: "https://x.com/silvanopuccini" },
       { platform: "email", label: "Email", href: "mailto:hola@silvanopuccini.dev" },
       { platform: "discord", label: "Discord", href: "https://discord.com/users/925401070388256778" },
-      { platform: "portfolio", label: "Portfolio", href: "https://silvanopuccini.github.io/portfolio/" },
     ],
     sourceUrls: [
       "/cv/CV_Silvano_Puccini_FullStack.pdf",

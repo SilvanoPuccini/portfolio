@@ -148,7 +148,7 @@ Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 ### Demo en Vivo
 
-### 🔗 **[Ver Portfolio v1](https://silvanopuccini.github.io/portfolio/)**
+### 🔗 **[silvanopuccini.dev](https://www.silvanopuccini.dev)**
 
 ---
 
