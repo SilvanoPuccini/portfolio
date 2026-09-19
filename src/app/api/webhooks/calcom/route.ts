@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { advanceOn } from '@/lib/leads/pipeline';
+import { calcomEventOutcome } from '@/lib/leads/calcom-events';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,89 +49,18 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabaseAdmin();
 
-  type UpdateData = {
-    estado?: string;
-    fecha_llamada?: string | null;
-    grabacion_url?: string;
-    transcripcion?: string;
-    pago_estado?: string;
-  };
-  let updates: UpdateData | null = null;
-  let action = 'ignored';
+  // La etapa del lead decide qué puede cambiar este aviso: una reunión con
+  // alguien que ya firmó no es la llamada de venta. Ver calcom-events.ts.
+  const { data: lead, error: readError } = await supabase
+    .from('leads').select('estado').eq('email', email).maybeSingle();
 
-  switch (event.triggerEvent) {
-    case 'BOOKING_CREATED': {
-      const fecha = event.payload.startTime ?? new Date().toISOString();
-      updates = { estado: 'llamada_agendada', fecha_llamada: fecha };
-      action = 'llamada_agendada';
-      break;
-    }
-    case 'BOOKING_RESCHEDULED': {
-      const fecha = event.payload.startTime ?? new Date().toISOString();
-      updates = { fecha_llamada: fecha };
-      action = 'rescheduled';
-      break;
-    }
-    case 'BOOKING_CANCELLED':
-    case 'BOOKING_REJECTED': {
-      updates = { estado: 'nuevo', fecha_llamada: null };
-      action = 'reverted_to_nuevo';
-      break;
-    }
-    case 'BOOKING_NO_SHOW': {
-      updates = { estado: 'no_show' };
-      action = 'no_show';
-      break;
-    }
-    case 'MEETING_ENDED': {
-      updates = { estado: 'en conversación' };
-      action = 'en_conversacion';
-      break;
-    }
-    case 'RECORDING_DOWNLOAD_LINK_READY': {
-      const url = event.payload.downloadLink;
-      if (url) {
-        updates = { grabacion_url: url };
-        action = 'recording_saved';
-      }
-      break;
-    }
-    case 'TRANSCRIPTION_GENERATED': {
-      const segments = event.payload.transcription;
-      if (segments?.length) {
-        const text = segments.map((s) => s.text ?? '').join('\n').trim();
-        if (text) {
-          updates = { transcripcion: text };
-          action = 'transcription_saved';
-        }
-      }
-      break;
-    }
-    case 'BOOKING_PAYMENT_INITIATED': {
-      updates = { pago_estado: 'iniciado' };
-      action = 'pago_iniciado';
-      break;
-    }
-    case 'BOOKING_PAID': {
-      // `pago_estado` sigue guardando el detalle del cobro, pero ya no corre
-      // por su cuenta: hasta acá el lead podía estar cobrado y seguir
-      // figurando como «en conversación». Dos máquinas de estado en paralelo
-      // que nunca se hablaban.
-      const { data: current } = await supabase
-        .from('leads').select('estado').eq('email', email).maybeSingle();
-
-      const nextState = advanceOn('pago_recibido', current?.estado ?? '');
-
-      updates = { pago_estado: 'pagado', ...(nextState ? { estado: nextState } : {}) };
-      action = nextState ? 'pago_confirmado_y_cerrado' : 'pago_confirmado';
-      break;
-    }
-    case 'FORM_SUBMITTED': {
-      // Cal.com routing form — log for now, lead already exists by email
-      action = 'form_received';
-      break;
-    }
+  if (readError) {
+    console.error(`[webhook/calcom] ${event.triggerEvent} read error:`, readError);
+    return NextResponse.json({ error: 'DB read failed' }, { status: 500 });
   }
+  if (!lead) return NextResponse.json({ ok: true, action: 'lead_not_found' });
+
+  const { updates, action } = calcomEventOutcome(event.triggerEvent, lead.estado ?? '', event.payload);
 
   if (!updates) {
     return NextResponse.json({ ok: true, action });

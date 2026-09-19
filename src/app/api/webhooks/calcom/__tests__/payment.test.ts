@@ -221,3 +221,28 @@ describe('webhook de Cal.com — el resto del circuito de la llamada', () => {
     expect(response.status).toBe(400);
   });
 });
+
+describe('webhook de Cal.com — reuniones con clientes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.CALCOM_WEBHOOK_SECRET = SECRET;
+  });
+
+  it('un cliente firmado que agenda el kickoff no hace retroceder la venta', async () => {
+    const update = supabaseWithLead('contrato_firmado');
+
+    const body = await (await POST(eventRequest('BOOKING_CREATED', { startTime: '2026-10-01T15:00:00.000Z' }))).json();
+
+    expect(update).not.toHaveBeenCalled();
+    expect(body.action).toBe('reunion_de_cliente');
+  });
+
+  it('no toca nada si el mail no corresponde a ningún lead', async () => {
+    const update = supabaseWithLead(null);
+
+    const body = await (await POST(eventRequest('BOOKING_CREATED'))).json();
+
+    expect(update).not.toHaveBeenCalled();
+    expect(body.action).toBe('lead_not_found');
+  });
+});
