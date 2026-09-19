@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { advanceOn } from '@/lib/leads/pipeline';
 import { sendCrmEmail } from '@/lib/resend';
 import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
+import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,7 @@ interface LeadForSignature {
   sena_pct: number | null;
   sena_monto: number | null;
   pago_unico: boolean | null;
+  pais: string | null;
 }
 
 /** Los avisos que significan «está firmado por todos». */
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
   for (const email of emails) {
     const { data, error } = await db
       .from('leads')
-      .select('id, nombre, email, estado, monto_presupuestado, sena_pct, sena_monto, pago_unico')
+      .select('id, nombre, email, pais, estado, monto_presupuestado, sena_pct, sena_monto, pago_unico')
       .eq('email', email).maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (data) { lead = data as LeadForSignature; break; }
@@ -132,8 +134,7 @@ export async function POST(req: NextRequest) {
       total,
       pct: single ? 100 : pct,
       singlePayment: single,
-      paymentInstructions: process.env.PAYMENT_INSTRUCTIONS
-        ?? 'Te paso los datos de transferencia por este mismo medio.',
+      paymentInstructions: paymentInstructionsFor(lead.pais),
     }));
   } catch (reason) {
     // La firma ocurrió: no se deshace porque el correo falló. Queda para

@@ -4,6 +4,7 @@ import { isAuthorized } from '@/lib/admin-auth';
 import { advanceOn, isManualEvent, type ManualEvent } from '@/lib/leads/pipeline';
 import { sendCrmEmail } from '@/lib/resend';
 import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
+import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { paymentReceivedHtml } from '@/lib/email-templates/payment-received';
 
 export const dynamic = 'force-dynamic';
@@ -125,7 +126,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 async function notifyClient(event: ManualEvent, id: string, body: Body) {
   const { data: lead } = await getSupabaseAdmin()
     .from('leads')
-    .select('nombre, email, monto_presupuestado, sena_pct, sena_monto, pago_unico, factura_numero')
+    .select('nombre, email, pais, monto_presupuestado, sena_pct, sena_monto, pago_unico, factura_numero')
     .eq('id', id).maybeSingle();
 
   if (!lead?.email) return { ok: false, detail: 'El lead no tiene correo' };
@@ -142,8 +143,7 @@ async function notifyClient(event: ManualEvent, id: string, body: Body) {
         total,
         pct: single ? 100 : pct,
         singlePayment: single,
-        paymentInstructions: process.env.PAYMENT_INSTRUCTIONS
-          ?? 'Te paso los datos de transferencia por este mismo medio.',
+        paymentInstructions: paymentInstructionsFor(lead.pais),
       }));
       return { ok: true, tipo: 'pedido_de_pago' };
     }
