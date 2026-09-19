@@ -417,7 +417,7 @@ export const siteContent: SiteContent = {
     },
     siteUrl: "https://www.silvanopuccini.dev",
     defaultLocale: "es",
-    location: "Pucón, Chile",
+    location: "Buenos Aires, Argentina",
     availability: {
       es: "Tomando proyectos nuevos",
       en: "Taking on new projects",

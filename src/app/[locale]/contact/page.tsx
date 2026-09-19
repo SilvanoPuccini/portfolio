@@ -56,7 +56,7 @@ const copy = {
       phone: "WhatsApp / Teléfono",
       phoneHeading: "¿Listo para estructurar tu próximo proyecto?",
       emailDetail: "Canal principal para propuestas, consultas y colaboración.",
-      locationDetail: "Base en Pucón, Chile con trabajo remoto.",
+      locationDetail: "Base en Buenos Aires, Argentina, con trabajo remoto.",
       phoneDetail: "Canal útil para coordinar rápido y seguimiento.",
       phoneCta: "Agenda tu llamada",
     },
@@ -79,7 +79,7 @@ const copy = {
       title: "",
       description: "",
       mapEyebrow: "",
-      mapDetail: "Vista embebida de Pucón con datos cartográficos reales vía OpenStreetMap.",
+      mapDetail: "Vista embebida de Buenos Aires con datos cartográficos reales vía OpenStreetMap.",
       openMap: "Abrir mapa",
       labels: {
         availability: "Disponibilidad",
@@ -130,7 +130,7 @@ const copy = {
       phone: "WhatsApp / Phone",
       phoneHeading: "Ready to structure your next project?",
       emailDetail: "Primary channel for proposals, questions, and collaboration.",
-      locationDetail: "Based in Pucon, Chile with remote work.",
+      locationDetail: "Based in Buenos Aires, Argentina, working remotely.",
       phoneDetail: "Useful channel for quick coordination and follow-up.",
       phoneCta: "Schedule your call",
     },
@@ -153,7 +153,7 @@ const copy = {
       title: "",
       description: "",
       mapEyebrow: "",
-      mapDetail: "Embedded view of Pucon using real cartographic data via OpenStreetMap.",
+      mapDetail: "Embedded view of Buenos Aires using real cartographic data via OpenStreetMap.",
       openMap: "Open map",
       labels: {
         availability: "Availability",
@@ -239,11 +239,13 @@ export default async function ContactPage({
     socialEmailHref ? { label: labels.methods.email, href: socialEmailHref, icon: Mail } : null,
     discordHref ? { label: labels.methods.discord, href: discordHref, icon: DiscordIcon, accent: "secondary" as const } : null,
   ].filter((item): item is NonNullable<typeof item> => Boolean(item));
-  const puconLatitude = "-39.2731173";
-  const puconLongitude = "-71.9777605";
-  const puconEmbedSrc =
-    "https://www.openstreetmap.org/export/embed.html?bbox=-72.03%2C-39.33%2C-71.92%2C-39.22&layer=mapnik&marker=-39.2731173%2C-71.9777605";
-  const puconMapHref = `https://www.openstreetmap.org/?mlat=${puconLatitude}&mlon=${puconLongitude}#map=12/${puconLatitude}/${puconLongitude}`;
+  // Centro de Buenos Aires (el Obelisco). El recuadro abarca la ciudad, no
+  // un barrio: la ubicación es la base de trabajo, no una dirección.
+  const mapLatitude = "-34.6037389";
+  const mapLongitude = "-58.3815704";
+  const mapEmbedSrc =
+    "https://www.openstreetmap.org/export/embed.html?bbox=-58.53%2C-34.70%2C-58.33%2C-34.53&layer=mapnik&marker=-34.6037389%2C-58.3815704";
+  const mapHref = `https://www.openstreetmap.org/?mlat=${mapLatitude}&mlon=${mapLongitude}#map=12/${mapLatitude}/${mapLongitude}`;
 
   return (
     <>
@@ -341,7 +343,7 @@ export default async function ContactPage({
                 </div>
 
                 <a
-                  href={puconMapHref}
+                  href={mapHref}
                   target="_blank"
                   rel="noreferrer"
                   className="button-secondary min-h-10 px-4 py-2 text-[11px] tracking-[0.16em] sm:w-fit lg:self-start"
@@ -355,7 +357,7 @@ export default async function ContactPage({
                   <div className="relative aspect-[16/10] w-full sm:aspect-[18/9] lg:aspect-[21/8]">
                     <iframe
                       title={`Map of ${content.metadata.location}`}
-                      src={puconEmbedSrc}
+                      src={mapEmbedSrc}
                       className="h-full w-full border-0"
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
