@@ -7,7 +7,7 @@
  * viernes LinkedIn, sábado X.
  */
 
-export const EDITORIAL_TIME_ZONE = 'America/Santiago';
+export const EDITORIAL_TIME_ZONE = 'America/Argentina/Buenos_Aires';
 
 /** Días de X, como offset en días desde el domingo del post. */
 const X_DAYS = [

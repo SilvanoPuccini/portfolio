@@ -3,7 +3,7 @@ import { ANGLES_PER_WEEK, xDayLabel, xScheduleFor } from './scheduling';
 
 /** Qué día de la semana cae, en la zona editorial. */
 function weekdayIn(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Santiago', weekday: 'long' });
+  return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Argentina/Buenos_Aires', weekday: 'long' });
 }
 
 describe('xScheduleFor', () => {
@@ -32,11 +32,11 @@ describe('xScheduleFor', () => {
   });
 
   it('keeps the same local hour on both sides of a daylight saving change', () => {
-    // Chile mueve la hora en septiembre; la hora local de publicación no.
+    // Argentina no cambia de hora; si algún día vuelve a hacerlo, la hora local de publicación tiene que mantenerse.
     const before = xScheduleFor('2026-08-30T13:00:00.000Z');
     const after = xScheduleFor('2026-10-11T13:00:00.000Z');
     const localHour = (iso: string) =>
-      new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Santiago', hour: '2-digit', hourCycle: 'h23' });
+      new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', hourCycle: 'h23' });
     expect(localHour(before[0])).toBe(localHour(after[0]));
   });
 

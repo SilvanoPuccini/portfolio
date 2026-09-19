@@ -1,6 +1,6 @@
 import type { LinkedInSlot } from './types';
 
-export const EDITORIAL_TIME_ZONE = 'America/Santiago';
+export const EDITORIAL_TIME_ZONE = 'America/Argentina/Buenos_Aires';
 
 function zonedParts(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-CA', {
