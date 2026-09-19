@@ -119,7 +119,7 @@ Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 ## Contacto
 
-- silvano.jm.puccini@gmail.com
+- hola@silvanopuccini.dev
 - [LinkedIn](https://www.linkedin.com/in/silvano-puccini/)
 - [GitHub](https://github.com/SilvanoPuccini)
 
