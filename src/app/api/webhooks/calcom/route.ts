@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { calcomEventOutcome } from '@/lib/leads/calcom-events';
+import { fetchTranscript, transcriptLink } from '@/lib/leads/calcom-transcript';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,9 +10,10 @@ type CalWebhookPayload = {
   triggerEvent: string;
   payload: {
     startTime?: string;
-    attendees?: { email: string }[];
+    attendees?: { email: string; noShow?: boolean }[];
     downloadLink?: string;
     transcription?: { text?: string }[];
+    downloadLinks?: { transcription?: { format?: string; link?: string }[] };
     metadata?: Record<string, unknown>;
     responses?: Record<string, { value: string }>;
   };
@@ -60,7 +62,16 @@ export async function POST(req: NextRequest) {
   }
   if (!lead) return NextResponse.json({ ok: true, action: 'lead_not_found' });
 
-  const { updates, action } = calcomEventOutcome(event.triggerEvent, lead.estado ?? '', event.payload);
+  // La transcripción llega como links de descarga, no como texto: se baja el
+  // .txt antes de decidir, porque es lo que el panel guarda y lee la IA.
+  const payload = event.payload;
+  if (event.triggerEvent === 'RECORDING_TRANSCRIPTION_GENERATED' && !payload.transcription) {
+    const link = transcriptLink(payload);
+    const text = link ? await fetchTranscript(link) : null;
+    if (text) payload.transcription = [{ text }];
+  }
+
+  const { updates, action } = calcomEventOutcome(event.triggerEvent, lead.estado ?? '', payload);
 
   if (!updates) {
     return NextResponse.json({ ok: true, action });

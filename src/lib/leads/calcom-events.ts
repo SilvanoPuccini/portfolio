@@ -22,7 +22,19 @@ export interface CalcomPayload {
   startTime?: string;
   downloadLink?: string;
   transcription?: { text?: string }[];
+  attendees?: { email?: string; noShow?: boolean }[];
 }
+
+/**
+ * Los nombres que el panel escuchaba no son los que Cal.com manda: el no-show,
+ * la grabación y la transcripción llegaban con otro nombre y se ignoraban en
+ * silencio. Se traducen los viejos para no romper nada que los use.
+ */
+const LEGACY_TRIGGERS: Record<string, string> = {
+  BOOKING_NO_SHOW: 'BOOKING_NO_SHOW_UPDATED',
+  RECORDING_DOWNLOAD_LINK_READY: 'RECORDING_READY',
+  TRANSCRIPTION_GENERATED: 'RECORDING_TRANSCRIPTION_GENERATED',
+};
 
 export interface LeadUpdate {
   estado?: string;
@@ -54,8 +66,9 @@ export function isSalesCallStage(estado: string): boolean {
 
 const CLIENT_MEETING: CalcomOutcome = { updates: null, action: 'reunion_de_cliente' };
 
-export function calcomEventOutcome(trigger: string, estado: string, payload: CalcomPayload): CalcomOutcome {
+export function calcomEventOutcome(rawTrigger: string, estado: string, payload: CalcomPayload): CalcomOutcome {
   const sales = isSalesCallStage(estado);
+  const trigger = LEGACY_TRIGGERS[rawTrigger] ?? rawTrigger;
 
   switch (trigger) {
     case 'BOOKING_CREATED': {
@@ -86,9 +99,18 @@ export function calcomEventOutcome(trigger: string, estado: string, payload: Cal
       return { updates: { estado: 'nuevo', fecha_llamada: null }, action: 'reverted_to_nuevo' };
     }
 
-    case 'BOOKING_NO_SHOW': {
-      if (estado !== 'llamada_agendada') return { updates: null, action: 'no_show_sin_efecto' };
-      return { updates: { estado: 'no_show' }, action: 'no_show' };
+    case 'BOOKING_NO_SHOW_UPDATED': {
+      // El aviso sirve para marcar Y para desmarcar: trae `noShow` por asistente.
+      if (!sales) return CLIENT_MEETING;
+      const marked = (payload.attendees ?? []).some((a) => a.noShow === true);
+
+      if (marked) {
+        if (estado !== 'llamada_agendada') return { updates: null, action: 'no_show_sin_efecto' };
+        return { updates: { estado: 'no_show' }, action: 'no_show' };
+      }
+      // Desmarcado: se marcó por error y la llamada sigue en pie.
+      if (estado !== 'no_show') return { updates: null, action: 'no_show_sin_efecto' };
+      return { updates: { estado: 'llamada_agendada' }, action: 'no_show_revertido' };
     }
 
     case 'MEETING_ENDED': {
@@ -98,14 +120,14 @@ export function calcomEventOutcome(trigger: string, estado: string, payload: Cal
       return { updates: { estado: 'en conversación' }, action: 'en_conversacion' };
     }
 
-    case 'RECORDING_DOWNLOAD_LINK_READY': {
+    case 'RECORDING_READY': {
       if (!sales) return CLIENT_MEETING;
       return payload.downloadLink
         ? { updates: { grabacion_url: payload.downloadLink }, action: 'recording_saved' }
         : { updates: null, action: 'ignored' };
     }
 
-    case 'TRANSCRIPTION_GENERATED': {
+    case 'RECORDING_TRANSCRIPTION_GENERATED': {
       if (!sales) return CLIENT_MEETING;
       const text = (payload.transcription ?? []).map((s) => s.text ?? '').join('\n').trim();
       return text

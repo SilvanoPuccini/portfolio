@@ -64,7 +64,9 @@ describe('calcomEventOutcome — una reunión con un cliente no toca la venta', 
   });
 
   it('faltar al kickoff no la marca como no-show', () => {
-    expect(calcomEventOutcome('BOOKING_NO_SHOW', FIRMADO, {}).updates).toBeNull();
+    expect(calcomEventOutcome('BOOKING_NO_SHOW_UPDATED', FIRMADO, {
+      attendees: [{ email: 'lucia@example.com', noShow: true }],
+    }).updates).toBeNull();
   });
 
   it('terminar el kickoff no la devuelve a «en conversación»', () => {
@@ -76,16 +78,54 @@ describe('calcomEventOutcome — una reunión con un cliente no toca la venta', 
   });
 
   it('la grabación de la reunión no pisa la de la llamada de venta', () => {
-    expect(calcomEventOutcome('RECORDING_DOWNLOAD_LINK_READY', 'facturado', {
+    expect(calcomEventOutcome('RECORDING_READY', 'facturado', {
       downloadLink: 'https://cal.com/rec/kickoff',
     }).updates).toBeNull();
   });
 
   it('la transcripción de la reunión no pisa la de la llamada de venta', () => {
     // Es la que usa la IA para escribir el seguimiento.
-    expect(calcomEventOutcome('TRANSCRIPTION_GENERATED', 'presupuestado', {
+    expect(calcomEventOutcome('RECORDING_TRANSCRIPTION_GENERATED', 'presupuestado', {
       transcription: [{ text: 'Charla del kickoff' }],
     }).updates).toBeNull();
+  });
+});
+
+describe('calcomEventOutcome — los nombres que Cal.com manda de verdad', () => {
+  // Cal.com manda BOOKING_NO_SHOW_UPDATED, RECORDING_READY y
+  // RECORDING_TRANSCRIPTION_GENERATED. El panel escuchaba otros tres nombres,
+  // así que el no-show, la grabación y la transcripción se ignoraban en silencio.
+  const noShow = (marked: boolean) => ({ attendees: [{ email: 'lucia@example.com', noShow: marked }] });
+
+  it('marcar el no-show en Cal.com mueve el estado', () => {
+    expect(calcomEventOutcome('BOOKING_NO_SHOW_UPDATED', 'llamada_agendada', noShow(true)).updates)
+      .toEqual({ estado: 'no_show' });
+  });
+
+  it('desmarcarlo lo devuelve a «llamada agendada»', () => {
+    // Se marca por error más seguido de lo que parece.
+    expect(calcomEventOutcome('BOOKING_NO_SHOW_UPDATED', 'no_show', noShow(false)))
+      .toEqual({ updates: { estado: 'llamada_agendada' }, action: 'no_show_revertido' });
+  });
+
+  it('desmarcar a alguien que no estaba en no-show no cambia nada', () => {
+    expect(calcomEventOutcome('BOOKING_NO_SHOW_UPDATED', 'presupuestado', noShow(false)).updates).toBeNull();
+  });
+
+  it('un no-show sobre una reunión de cliente no toca la venta', () => {
+    expect(calcomEventOutcome('BOOKING_NO_SHOW_UPDATED', 'contrato_firmado', noShow(true)).updates).toBeNull();
+  });
+
+  it('guarda la grabación que llega como RECORDING_READY', () => {
+    expect(calcomEventOutcome('RECORDING_READY', 'llamada_agendada', {
+      downloadLink: 'https://app.cal.com/api/video/recording?token=abc',
+    }).updates).toEqual({ grabacion_url: 'https://app.cal.com/api/video/recording?token=abc' });
+  });
+
+  it('guarda la transcripción que llega como RECORDING_TRANSCRIPTION_GENERATED', () => {
+    expect(calcomEventOutcome('RECORDING_TRANSCRIPTION_GENERATED', 'en conversación', {
+      transcription: [{ text: 'Charla de venta' }],
+    }).updates).toEqual({ transcripcion: 'Charla de venta' });
   });
 });
 

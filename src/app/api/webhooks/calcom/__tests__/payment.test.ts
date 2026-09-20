@@ -150,9 +150,37 @@ describe('webhook de Cal.com — el resto del circuito de la llamada', () => {
   it('marca el no-show cuando el cliente no aparece', async () => {
     const update = supabaseWithLead('llamada_agendada');
 
-    await POST(eventRequest('BOOKING_NO_SHOW'));
+    // Cal.com manda BOOKING_NO_SHOW_UPDATED con `noShow` por asistente.
+    await POST(eventRequest('BOOKING_NO_SHOW_UPDATED', {
+      attendees: [{ email: 'lucia@example.com', noShow: true }],
+    }));
 
     expect(update).toHaveBeenCalledWith({ estado: 'no_show' });
+  });
+
+  it('baja la transcripción y la guarda como texto', async () => {
+    const update = supabaseWithLead('en conversación');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: async () => 'Charla de venta' }));
+
+    await POST(eventRequest('RECORDING_TRANSCRIPTION_GENERATED', {
+      downloadLinks: { transcription: [{ format: 'txt', link: 'https://s3/x.txt' }] },
+    }));
+
+    expect(update).toHaveBeenCalledWith({ transcripcion: 'Charla de venta' });
+    vi.unstubAllGlobals();
+  });
+
+  it('si la transcripción no se puede bajar, no guarda nada', async () => {
+    const update = supabaseWithLead('en conversación');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('link vencido')));
+
+    const body = await (await POST(eventRequest('RECORDING_TRANSCRIPTION_GENERATED', {
+      downloadLinks: { transcription: [{ format: 'txt', link: 'https://s3/x.txt' }] },
+    }))).json();
+
+    expect(update).not.toHaveBeenCalled();
+    expect(body.action).toBe('ignored');
+    vi.unstubAllGlobals();
   });
 
   it('pasa a «en conversación» cuando termina la reunión', async () => {
@@ -167,7 +195,7 @@ describe('webhook de Cal.com — el resto del circuito de la llamada', () => {
   it('guarda el link de la grabación', async () => {
     const update = supabaseWithLead('en conversación');
 
-    await POST(eventRequest('RECORDING_DOWNLOAD_LINK_READY', {
+    await POST(eventRequest('RECORDING_READY', {
       downloadLink: 'https://cal.com/rec/abc123',
     }));
 
@@ -177,7 +205,7 @@ describe('webhook de Cal.com — el resto del circuito de la llamada', () => {
   it('une los segmentos de la transcripción en un solo texto', async () => {
     const update = supabaseWithLead('en conversación');
 
-    await POST(eventRequest('TRANSCRIPTION_GENERATED', {
+    await POST(eventRequest('RECORDING_TRANSCRIPTION_GENERATED', {
       transcription: [{ text: 'Hola, contame' }, { text: 'Necesito un catálogo' }],
     }));
 
@@ -189,7 +217,7 @@ describe('webhook de Cal.com — el resto del circuito de la llamada', () => {
   it('no guarda una transcripción vacía', async () => {
     const update = supabaseWithLead('en conversación');
 
-    const body = await (await POST(eventRequest('TRANSCRIPTION_GENERATED', {
+    const body = await (await POST(eventRequest('RECORDING_TRANSCRIPTION_GENERATED', {
       transcription: [{ text: '  ' }],
     }))).json();
 
