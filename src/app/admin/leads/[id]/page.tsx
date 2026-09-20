@@ -15,6 +15,7 @@ import {
 } from '@/lib/leads/types';
 import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/LeadReadOnlySections';
 import { LeadEditableForm } from '@/components/admin/leads/LeadEditableForm';
+import { CallGuide } from '@/components/admin/leads/CallGuide';
 import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
 import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
 
@@ -533,6 +534,30 @@ export default function LeadDetailPage() {
             },
             { kind: 'textarea', key: 'notas', label: 'Notas de llamada', value: notasLlamada, onChange: setNotasLlamada, minHeight: 100 },
           ]}
+        />
+      </LeadSection>
+
+      {/* La guía de la llamada: las mismas seis respuestas, pero en el orden
+          de la conversación y con las preguntas al lado. Se abre cuando la
+          llamada es lo que toca. */}
+      <LeadSection title="Guía de la llamada" defaultOpen={openSections.diagnostico}>
+        <CallGuide
+          leadId={lead.id}
+          form={lead}
+          values={{
+            objetivo: diagObjetivo, situacion: diagSituacion, requerimiento: diagRequerimiento,
+            dolor: diagDolor, deseo: diagDeseo, preocupaciones: diagPreocupaciones,
+          }}
+          onChange={(field, value) => {
+            const setters = {
+              objetivo: setDiagObjetivo, situacion: setDiagSituacion,
+              requerimiento: setDiagRequerimiento, dolor: setDiagDolor,
+              deseo: setDiagDeseo, preocupaciones: setDiagPreocupaciones,
+            };
+            setters[field](value);
+          }}
+          onSave={() => void saveDiagnosis()}
+          saved={diagSaved}
         />
       </LeadSection>
 
