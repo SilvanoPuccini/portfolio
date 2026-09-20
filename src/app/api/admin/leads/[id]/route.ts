@@ -50,7 +50,7 @@ export async function PATCH(
       'diagnostico_dolor', 'diagnostico_deseo', 'diagnostico_preocupaciones',
       'proposal_sent_at', 'ultimo_contacto_at', 'propuesta_respuesta', 'propuesta_rechazo_motivo', 'guia_respuestas', 'contract_sent_at',
     ];
-    const allowedNumbers = ['monto_presupuestado', 'horas_calculadas'];
+    const allowedNumbers = ['monto_presupuestado', 'horas_calculadas', 'mantenimiento_mensual'];
 
 
     const updates: Record<string, unknown> = {};

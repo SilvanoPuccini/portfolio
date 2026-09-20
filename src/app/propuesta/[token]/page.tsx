@@ -1,109 +1,168 @@
-'use client';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
-import { use, useState } from 'react';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { ProposalDecision } from '@/components/propuesta/ProposalDecision';
+import type { DiagnosisDoc } from '@/lib/leads/diagnosis-doc';
 
 /**
- * Donde el cliente contesta la propuesta.
+ * El diagnóstico y la propuesta, como los ve el cliente.
  *
- * Los botones del correo traen la respuesta preseleccionada, pero la decisión
- * se confirma acá con un clic: un link de correo lo abre cualquier filtro de
- * seguridad, y aceptar una propuesta dispara un contrato.
+ * Antes esto era un .docx adjunto: el cliente lo abría en el celular, lo veía
+ * deformado y lo perdía en el correo. Una página se lee en cualquier lado, se
+ * puede corregir sin reenviar nada, y termina donde tiene que terminar: en la
+ * decisión.
  *
- * Es pública y sin sesión —el cliente no tiene cuenta— y por eso no muestra
- * nada del lead: solo confirma lo que la persona ya tiene en su correo.
+ * Muestra la FOTO guardada al enviarla, no el estado actual del presupuesto.
+ * Lo que el cliente leyó y lo que acepta tienen que ser lo mismo.
  */
 
+export const dynamic = 'force-dynamic';
+
 type Params = Promise<{ token: string }>;
-type Query = Promise<{ r?: string }>;
 
-export default function PropuestaPage({ params, searchParams }: { params: Params; searchParams: Query }) {
-  const { token } = use(params);
-  const { r } = use(searchParams);
+export const metadata: Metadata = {
+  title: 'Tu propuesta | Silvano Puccini',
+  robots: { index: false, follow: false },
+};
 
-  const [motivo, setMotivo] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<'aceptada' | 'rechazada' | null>(null);
-  const [error, setError] = useState('');
+const money = (value: number) => `USD ${Math.round(value).toLocaleString('es-AR')}`;
 
-  const rejecting = r === 'rechazar';
+async function loadProposal(token: string) {
+  const { data } = await getSupabaseAdmin()
+    .from('leads')
+    .select('propuesta_snapshot, propuesta_respuesta')
+    .eq('propuesta_token', token)
+    .maybeSingle();
 
-  async function answer(respuesta: 'aceptada' | 'rechazada') {
-    setBusy(true);
-    setError('');
-    const response = await fetch('/api/propuesta', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, respuesta, motivo }),
-    });
-    const json = await response.json().catch(() => ({})) as { error?: string; yaRespondida?: boolean };
-    setBusy(false);
+  if (!data?.propuesta_snapshot) return null;
+  return {
+    doc: data.propuesta_snapshot as DiagnosisDoc,
+    answered: (data.propuesta_respuesta as string | null) ?? null,
+  };
+}
 
-    if (json.yaRespondida) return setError('Esta propuesta ya fue respondida. Si querés cambiar algo, escribime y lo vemos.');
-    if (!response.ok) return setError(json.error ?? 'No se pudo registrar tu respuesta. Probá de nuevo o respondé el correo.');
-    setDone(respuesta);
-  }
+export default async function PropuestaPage({ params }: { params: Params }) {
+  const { token } = await params;
+  const proposal = await loadProposal(token);
+
+  // Un link vencido o inventado no dice qué pasó: no hay nada que filtrar.
+  if (!proposal) notFound();
+
+  const { doc, answered } = proposal;
 
   return (
-    <main className="site-container flex min-h-[70vh] items-center justify-center py-16">
-      <div className="surface-panel w-full max-w-lg border border-outline-ghost/10 px-6 py-10 sm:px-10">
-        {done === 'aceptada' && (
-          <>
-            <h1 className="text-2xl font-semibold text-text-primary">Listo, gracias</h1>
-            <p className="mt-4 text-base leading-7 text-text-secondary">
-              En unos minutos te llega el contrato para firmar. Cuando esté firmado, te mando los datos de pago.
-            </p>
-          </>
-        )}
+    <main className="site-container max-w-3xl py-12 sm:py-16">
+      <header className="border-b border-outline-ghost/10 pb-8">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary">
+          Propuesta de trabajo
+        </p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
+          {doc.cliente}, esto es lo que propongo
+        </h1>
+        <p className="mt-3 text-sm text-text-tertiary">
+          Preparada a partir de lo que hablamos. Si algo no coincide con lo que necesitás, decímelo y lo ajusto.
+        </p>
+      </header>
 
-        {done === 'rechazada' && (
-          <>
-            <h1 className="text-2xl font-semibold text-text-primary">Gracias por avisar</h1>
-            <p className="mt-4 text-base leading-7 text-text-secondary">
-              Queda anotado. Si más adelante cambia algo, escribime y lo retomamos donde lo dejamos.
-            </p>
-          </>
-        )}
+      {doc.problema && (
+        <section className="mt-10">
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+            Lo que detectamos
+          </h2>
+          <p className="mt-3 text-lg leading-8 text-text-primary">{doc.problema}</p>
+        </section>
+      )}
 
-        {!done && (
-          <>
-            <h1 className="text-2xl font-semibold text-text-primary">
-              {rejecting ? '¿Lo dejamos para más adelante?' : '¿Avanzamos con la propuesta?'}
-            </h1>
-            <p className="mt-4 text-base leading-7 text-text-secondary">
-              {rejecting
-                ? 'Si me contás por qué, me sirve para saber si hay algo que se pueda ajustar.'
-                : 'Si aceptás, te mando el contrato para firmar. Todavía no se paga nada.'}
-            </p>
+      {doc.solucion && (
+        <section className="mt-9">
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+            Lo que propongo
+          </h2>
+          <p className="mt-3 text-lg leading-8 text-text-primary">{doc.solucion}</p>
+        </section>
+      )}
 
-            {rejecting && (
-              <textarea
-                aria-label="Por qué no avanzamos"
-                value={motivo}
-                onChange={(event) => setMotivo(event.target.value)}
-                placeholder="El precio, los tiempos, se pospuso el proyecto…"
-                className="mt-6 min-h-[110px] w-full rounded-[var(--radius-soft)] border border-outline-ghost/20 bg-[rgb(var(--background)/0.4)] p-3 text-sm text-text-primary"
-              />
-            )}
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {!rejecting && (
-                <button className="button-primary" disabled={busy} onClick={() => void answer('aceptada')}>
-                  {busy ? 'Un segundo…' : 'Acepto, mandame el contrato'}
-                </button>
-              )}
-              <button
-                className={rejecting ? 'button-primary' : 'font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary hover:text-text-primary'}
-                disabled={busy}
-                onClick={() => void answer('rechazada')}
+      {doc.incluye.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold text-text-primary">Qué incluye</h2>
+          <ul className="mt-5 space-y-3">
+            {doc.incluye.map((item) => (
+              <li
+                key={item.titulo}
+                className="surface-panel flex flex-wrap items-baseline justify-between gap-3 border border-outline-ghost/10 px-5 py-4"
               >
-                {rejecting ? 'Enviar' : 'No por ahora'}
-              </button>
-            </div>
+                <div className="max-w-xl">
+                  <p className="text-base font-medium text-text-primary">{item.titulo}</p>
+                  {item.detalle && (
+                    <p className="mt-1 text-sm leading-6 text-text-secondary">{item.detalle}</p>
+                  )}
+                </div>
+                <span className="font-mono text-sm text-text-tertiary">{item.horas} h</span>
+              </li>
+            ))}
+          </ul>
+          {doc.horas > 0 && (
+            <p className="mt-3 text-sm text-text-tertiary">{doc.horas} horas de trabajo estimadas en total.</p>
+          )}
+        </section>
+      )}
 
-            {error && <p role="alert" className="mt-6 text-sm text-[rgb(var(--danger))]">{error}</p>}
-          </>
-        )}
-      </div>
+      {doc.masAdelante.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold text-text-primary">Para más adelante</h2>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            Esto no entra ahora, a propósito: primero resolvemos lo que te está costando plata hoy.
+          </p>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {doc.masAdelante.map((item) => (
+              <li
+                key={item}
+                className="rounded-full border border-outline-ghost/15 px-4 py-1.5 text-sm text-text-secondary"
+              >{item}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-text-primary">La inversión</h2>
+
+        <div className="surface-panel mt-5 border border-brand-primary/20 bg-brand-primary/5 px-6 py-7">
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Total del proyecto</p>
+          <p className="mt-1 font-mono text-4xl font-semibold text-brand-primary">{money(doc.inversion.total)}</p>
+
+          <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-sm text-text-tertiary">Para arrancar ({doc.inversion.pct}%)</dt>
+              <dd className="mt-1 font-mono text-lg text-text-primary">{money(doc.inversion.sena)}</dd>
+            </div>
+            {doc.inversion.saldo > 0 && (
+              <div>
+                <dt className="text-sm text-text-tertiary">Contra entrega</dt>
+                <dd className="mt-1 font-mono text-lg text-text-primary">{money(doc.inversion.saldo)}</dd>
+              </div>
+            )}
+          </dl>
+
+          {doc.mantenimiento != null && (
+            <p className="mt-6 border-t border-outline-ghost/10 pt-5 text-sm leading-6 text-text-secondary">
+              <strong className="text-text-primary">Mantenimiento: {money(doc.mantenimiento)} por mes.</strong>{' '}
+              Incluye hosting, actualizaciones de seguridad, copias de respaldo y cambios chicos. Es opcional y se
+              puede dar de baja cuando quieras.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <ProposalDecision token={token} answered={answered} />
+      </section>
+
+      <footer className="mt-10 border-t border-outline-ghost/10 pt-6 text-sm text-text-tertiary">
+        ¿Dudas antes de decidir? Respondé el correo o escribime a{' '}
+        <a href="mailto:hola@silvanopuccini.dev" className="text-brand-primary">hola@silvanopuccini.dev</a>.
+      </footer>
     </main>
   );
 }

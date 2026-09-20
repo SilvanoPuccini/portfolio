@@ -50,6 +50,9 @@ export interface Lead {
   propuesta_respuesta: string | null;
   modulos_seleccionados: unknown;
   guia_respuestas: unknown;
+  mantenimiento_mensual: number | null;
+  propuesta_snapshot: unknown;
+  propuesta_token: string | null;
   /** Los hitos de la venta, para el historial de la ficha. */
   propuesta_respondida_at: string | null;
   contrato_firmado_at: string | null;

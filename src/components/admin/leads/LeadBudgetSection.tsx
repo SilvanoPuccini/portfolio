@@ -24,6 +24,11 @@ export function LeadBudgetSection(props: {
   updatePertRow: (slug: string, field: 'o' | 'm' | 'p' | 'selected', value: number | boolean) => void;
   saveBudget: () => void;
   budgetSaved: boolean;
+  /** Lo que se cobra por mes después de entregar. Va aparte del proyecto. */
+  mantenimiento: string;
+  onMantenimiento: (value: string) => void;
+  /** El link a la propuesta tal como la ve el cliente, si ya se mandó. */
+  propuestaUrl?: string | null;
   downloadProposal: () => void;
   proposalLoading: boolean;
   downloadContract: () => void;
@@ -40,7 +45,8 @@ export function LeadBudgetSection(props: {
 }) {
   const {
     lead, rateConfig, baseModules, featureModules, totalPertHours, bufferedHours,
-    totalPrice, updatePertRow, saveBudget, budgetSaved, downloadProposal,
+    totalPrice, updatePertRow, saveBudget, budgetSaved, mantenimiento, onMantenimiento,
+    propuestaUrl, downloadProposal,
     proposalLoading, downloadContract, contractLoading, sendProposalEmail,
     proposalSending, proposalEmailSent, proposalEmailError, sendContractEmail,
     contractSending, contractEmailSent, contractEmailError, fmt,
@@ -117,6 +123,23 @@ export function LeadBudgetSection(props: {
             </p>
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="mantenimiento" style={{ ...s.label, marginBottom: 4 }}>
+              Mantenimiento mensual (USD, opcional)
+            </label>
+            <input
+              id="mantenimiento"
+              type="number"
+              min={0}
+              style={{ ...s.input, maxWidth: 160 }}
+              value={mantenimiento}
+              onChange={(event) => onMantenimiento(event.target.value)}
+            />
+            <p style={s.hint}>
+              Hosting, seguridad, backups y cambios chicos. Va aparte del proyecto y sale en la propuesta.
+            </p>
+          </div>
+
+          <div style={{ gridColumn: '1 / -1' }}>
             <p style={{ ...s.label, marginBottom: 2 }}>Total estimado</p>
             <p style={{ fontSize: 26, fontWeight: 700, color: '#00d4d4', margin: 0 }}>
               ${totalPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -126,6 +149,12 @@ export function LeadBudgetSection(props: {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
           <button style={s.btn} onClick={saveBudget}>Guardar presupuesto</button>
+          {propuestaUrl && (
+            <a href={propuestaUrl} target="_blank" rel="noopener noreferrer"
+              style={{ ...s.btnGhost, textDecoration: 'none' }}>
+              Ver como lo ve el cliente ↗
+            </a>
+          )}
           {budgetSaved && <p style={s.successText}>Guardado</p>}
         </div>
 

@@ -12,17 +12,20 @@ type LeadContact = {
   responseUrl?: string;
 };
 
-/** Los dos botones. Decir que no también tiene que ser fácil: un «no» a tiempo
- *  vale más que un silencio de dos semanas. */
+/**
+  * Un botón, a la página.
+  *
+  * El correo no intenta ser la propuesta: los clientes de correo rompen todo
+  * lo que no sea un párrafo, y un .docx adjunto en el celular se ve deformado.
+  * La propuesta vive en una página que se lee en cualquier lado y termina en
+  * la decisión.
+  */
 function responseButtons(url: string): string {
   return `
       <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
         <tr>
-          <td style="padding-right:10px;">
-            <a href="${url}?r=aceptar" style="display:inline-block;background:#00d4d4;color:#050810;font-size:14px;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:8px;">Acepto, mandame el contrato</a>
-          </td>
           <td>
-            <a href="${url}?r=rechazar" style="display:inline-block;color:#94a3b8;font-size:13px;text-decoration:none;padding:12px 16px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;">No por ahora</a>
+            <a href="${url}" style="display:inline-block;background:#00d4d4;color:#050810;font-size:14px;font-weight:700;text-decoration:none;padding:13px 24px;border-radius:8px;">Ver tu propuesta</a>
           </td>
         </tr>
       </table>`;
@@ -47,10 +50,10 @@ export function proposalReadyHtml(lead: LeadContact): string {
         Hola, ${escapeHtml(lead.name)}
       </h1>
       <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 12px;">
-        Preparé tu propuesta con el detalle completo del proyecto, los módulos incluidos, el timeline estimado y la inversión.
+        Preparé tu propuesta con lo que hablamos: qué detecté, qué propongo, qué incluye y cuánto sale.
       </p>
       <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
-        Leéla cuando tengas un momento y avisame si querés ajustar algo antes de avanzar.
+        Leéla cuando tengas un momento. Al final vas a poder aceptarla o decirme que no, ahí mismo.
       </p>
       <div style="border:1px solid rgba(0,212,212,0.2);border-radius:8px;padding:16px 20px;background:rgba(0,212,212,0.04);margin-bottom:24px;">
         <p style="font-size:12px;color:#64748b;margin:0 0 4px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Adjunto</p>

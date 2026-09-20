@@ -6,6 +6,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
 import { buildProposalDoc } from '@/lib/leads/documents';
 import { advanceOn } from '@/lib/leads/pipeline';
+import { buildDiagnosisDoc } from '@/lib/leads/diagnosis-doc';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,7 @@ export async function POST(
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('nombre, email, estado')
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -42,6 +43,9 @@ export async function POST(
     // Un token por envío: si después se manda una propuesta corregida, el
     // link viejo deja de servir y nadie acepta una versión que ya no existe.
     const token = randomUUID();
+    // La foto del diagnóstico: lo que el cliente abra va a decir esto, aunque
+    // después se toque el presupuesto en el panel.
+    const snapshot = buildDiagnosisDoc(lead);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
 
     try {
@@ -71,6 +75,7 @@ export async function POST(
       .update({
         proposal_sent_at: new Date().toISOString(),
         propuesta_token: token,
+        propuesta_snapshot: snapshot,
         // La propuesta nueva se responde de cero: lo contestado era de la anterior.
         propuesta_respuesta: null,
         propuesta_respondida_at: null,

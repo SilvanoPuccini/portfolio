@@ -62,6 +62,7 @@ export default function LeadDetailPage() {
 
   // Editable diagnosis fields
   const [guideAnswers, setGuideAnswers] = useState<GuideAnswers>({});
+  const [mantenimiento, setMantenimiento] = useState('');
   const [diagObjetivo, setDiagObjetivo] = useState('');
   const [diagSituacion, setDiagSituacion] = useState('');
   const [diagRequerimiento, setDiagRequerimiento] = useState('');
@@ -114,6 +115,7 @@ export default function LeadDetailPage() {
     setEstado(l.estado ?? 'nuevo');
     setNotasLlamada(l.notas_llamada ?? '');
     setGuideAnswers(parseAnswers(l.guia_respuestas));
+    setMantenimiento(l.mantenimiento_mensual != null ? String(l.mantenimiento_mensual) : '');
     setDiagObjetivo(l.diagnostico_objetivo ?? '');
     setDiagSituacion(l.diagnostico_situacion ?? '');
     setDiagRequerimiento(l.diagnostico_requerimiento ?? '');
@@ -387,6 +389,7 @@ export default function LeadDetailPage() {
       body: JSON.stringify({
         horas_calculadas: Math.round(bufferedHours * 10) / 10,
         monto_presupuestado: Math.round(totalPrice),
+        mantenimiento_mensual: mantenimiento.trim() ? Number(mantenimiento) : null,
         // El alcance se guarda con el total: es lo que después lista la
         // propuesta, con el nombre y las horas del día que se cotizó.
         modulos_seleccionados: pertRows
@@ -592,6 +595,9 @@ export default function LeadDetailPage() {
           updatePertRow={updatePertRow}
           saveBudget={saveBudget}
           budgetSaved={budgetSaved}
+          mantenimiento={mantenimiento}
+          onMantenimiento={setMantenimiento}
+          propuestaUrl={lead.propuesta_token ? `/propuesta/${lead.propuesta_token}` : null}
           downloadProposal={downloadProposal}
           proposalLoading={proposalLoading}
           downloadContract={downloadContract}
