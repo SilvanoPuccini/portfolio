@@ -85,6 +85,8 @@ export interface AlertInput {
   unpaidSigned: { id: string; contrato_firmado_at: string | null }[];
   /** Cobrados sin factura emitida. */
   uninvoiced: { id: string; cobrado_at: string | null }[];
+  /** Clientes que pidieron tiempo y eligieron cuándo retomar. */
+  thinking: { id: string; propuesta_recordar_at: string | null }[];
   /** Piezas cuya fecha ya pasó y siguen sin publicar. */
   latePieces: number;
   /** Posts publicados cuyo correo a suscriptores nunca salió. */
@@ -196,6 +198,21 @@ export function buildAlerts(input: AlertInput): Alert[] {
       text: `${plural(unpaid.length, 'contrato firmado', 'contratos firmados')} sin cobrar hace más de ${SIGNED_UNPAID_DAYS} días`,
       href: '/admin/leads',
       count: unpaid.length,
+    });
+  }
+
+  // El cliente eligió la fecha: escribirle antes es apurarlo, después es
+  // perderlo. El aviso salta justo cuando él dijo.
+  const dueThinking = input.thinking.filter(
+    (lead) => olderThanOrSkip(lead.propuesta_recordar_at, input.now, 0),
+  );
+  if (dueThinking.length > 0) {
+    alerts.push({
+      id: 'pidieron-tiempo',
+      severity: 'urgent',
+      text: `${plural(dueThinking.length, 'cliente', 'clientes')} pidió tiempo y ya se cumplió el plazo`,
+      href: '/admin/leads',
+      count: dueThinking.length,
     });
   }
 

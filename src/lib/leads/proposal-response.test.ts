@@ -106,4 +106,53 @@ describe('recordProposalResponse', () => {
 
     expect(await recordProposalResponse('tok-1', 'aceptada')).toMatchObject({ ok: true });
   });
+
+  describe('«dejámelo pensar»: la tercera salida', () => {
+    it('agenda la fecha que eligió el cliente y NO manda contrato', async () => {
+      const update = supabase(LEAD);
+
+      const result = await recordProposalResponse('tok-1', 'pensando', 'Lo hablo con mi socio', '2026-10-01T12:00:00.000Z');
+
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({
+        propuesta_respuesta: 'pensando',
+        propuesta_recordar_at: '2026-10-01T12:00:00.000Z',
+        propuesta_rechazo_motivo: 'Lo hablo con mi socio',
+      }));
+      expect(sendContractToLead).not.toHaveBeenCalled();
+      expect(result).toMatchObject({ ok: true, answer: 'pensando' });
+    });
+
+    it('le avisa a Silvano con la fecha, no como si fuera un no', async () => {
+      supabase(LEAD);
+
+      await recordProposalResponse('tok-1', 'pensando', undefined, '2026-10-01T12:00:00.000Z');
+
+      expect(vi.mocked(sendCrmEmail).mock.calls[0][1]).toContain('se lo está pensando');
+    });
+
+    it('quien lo estaba pensando puede volver y aceptar', async () => {
+      // Si «lo pienso» cerrara la puerta, el botón sería una trampa.
+      supabase({ ...LEAD, propuesta_respuesta: 'pensando' });
+
+      const result = await recordProposalResponse('tok-1', 'aceptada');
+
+      expect(sendContractToLead).toHaveBeenCalledWith('lead-1');
+      expect(result).toMatchObject({ ok: true, contrato: 'enviado' });
+    });
+
+    it('pero un sí o un no ya dados no se cambian solos', async () => {
+      supabase({ ...LEAD, propuesta_respuesta: 'rechazada' });
+
+      expect(await recordProposalResponse('tok-1', 'aceptada'))
+        .toMatchObject({ ok: false, reason: 'already_answered' });
+    });
+
+    it('aceptar limpia la fecha de recordatorio', async () => {
+      const update = supabase({ ...LEAD, propuesta_respuesta: 'pensando' });
+
+      await recordProposalResponse('tok-1', 'aceptada');
+
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({ propuesta_recordar_at: null }));
+    });
+  });
 });

@@ -28,7 +28,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
   const nowIso = now.toISOString();
 
   const [
-    unread, subsToday, newLeads, proposals, unpaidSigned, pendingKickoffs, uninvoiced,
+    unread, subsToday, newLeads, proposals, unpaidSigned, pendingKickoffs, uninvoiced, thinking,
     threads, late, pendingMail, expired, rejected,
   ] = await Promise.all([
     db.from('messages').select('id', { count: 'exact', head: true }).eq('read', false),
@@ -48,6 +48,9 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
       .eq('estado', 'contrato_firmado').is('kickoff_at', null),
 
     db.from('leads').select('id, cobrado_at').eq('estado', 'cerrado'),
+
+    db.from('leads').select('id, propuesta_recordar_at')
+      .eq('propuesta_respuesta', 'pensando').not('propuesta_recordar_at', 'is', null),
 
     db.from('x_threads').select('id', { count: 'exact', head: true })
       .eq('status', 'error').is('deleted_at', null),
@@ -80,6 +83,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     unpaidSigned: (unpaidSigned.data ?? []) as { id: string; contrato_firmado_at: string | null }[],
     pendingKickoffs: (pendingKickoffs.data ?? []) as { id: string; contrato_firmado_at: string | null }[],
     uninvoiced: (uninvoiced.data ?? []) as { id: string; cobrado_at: string | null }[],
+    thinking: (thinking.data ?? []) as { id: string; propuesta_recordar_at: string | null }[],
     failedThreads: threads.count ?? 0,
     expiredContracts: expired.count ?? 0,
     rejectedContracts: rejected.count ?? 0,

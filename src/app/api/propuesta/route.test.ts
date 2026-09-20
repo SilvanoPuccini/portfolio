@@ -24,7 +24,7 @@ describe('POST /api/propuesta', () => {
   it('registra la aceptación y avisa que el contrato salió', async () => {
     const body = await (await post({ token: 'tok-1', respuesta: 'aceptada' })).json();
 
-    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'aceptada', undefined);
+    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'aceptada', undefined, undefined);
     expect(body).toMatchObject({ ok: true, contrato: 'enviado' });
   });
 
@@ -33,7 +33,7 @@ describe('POST /api/propuesta', () => {
 
     await post({ token: 'tok-1', respuesta: 'rechazada', motivo: 'Se pospuso' });
 
-    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'rechazada', 'Se pospuso');
+    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'rechazada', 'Se pospuso', undefined);
   });
 
   it('rechaza una respuesta que no es ni sí ni no', async () => {
@@ -75,5 +75,26 @@ describe('POST /api/propuesta', () => {
     for (let i = 0; i < 10; i += 1) await post({ token: `t${i}`, respuesta: 'aceptada' }, ip);
 
     expect((await post({ token: 't11', respuesta: 'aceptada' }, ip)).status).toBe(429);
+  });
+
+  it('agenda el recordatorio que pidió el cliente', async () => {
+    vi.mocked(recordProposalResponse).mockResolvedValue({ ok: true, answer: 'pensando', contrato: 'no_corresponde' });
+    const enUnaSemana = new Date(Date.now() + 7 * 86_400_000).toISOString();
+
+    await post({ token: 'tok-1', respuesta: 'pensando', recordar: enUnaSemana });
+
+    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'pensando', undefined, enUnaSemana);
+  });
+
+  it('una fecha imposible no pierde el lead en silencio', async () => {
+    // Ayer, o dentro de dos años, no son recordatorios: se cae a una semana.
+    vi.mocked(recordProposalResponse).mockResolvedValue({ ok: true, answer: 'pensando', contrato: 'no_corresponde' });
+
+    await post({ token: 'tok-1', respuesta: 'pensando', recordar: '2020-01-01T00:00:00.000Z' });
+
+    const [, , , remindAt] = vi.mocked(recordProposalResponse).mock.calls[0];
+    const days = (Date.parse(remindAt as string) - Date.now()) / 86_400_000;
+    expect(days).toBeGreaterThan(6);
+    expect(days).toBeLessThan(8);
   });
 });

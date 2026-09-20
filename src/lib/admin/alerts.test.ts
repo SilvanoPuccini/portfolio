@@ -23,6 +23,7 @@ function quiet(overrides: Partial<AlertInput> = {}): AlertInput {
     latePieces: 0,
     unsentNewsletters: [],
     pendingKickoffs: [],
+    thinking: [],
     unpaidSigned: [],
     uninvoiced: [],
     ...overrides,
@@ -250,5 +251,21 @@ describe('buildAlerts — lo que queda después de la firma', () => {
     // Sin fecha no hay forma de saber si está atrasada: reclamarla igual sería
     // ruido, y el ruido es lo que hace que se dejen de mirar los avisos.
     expect(idsOf(quiet({ uninvoiced: [{ id: 'l1', cobrado_at: null }] }))).toEqual([]);
+  });
+
+  it('reclama al cliente que pidió tiempo cuando se cumple el plazo', async () => {
+    const [alert] = buildAlerts(quiet({
+      thinking: [{ id: 'l1', propuesta_recordar_at: daysAgo(1) }],
+    }));
+
+    expect(alert.id).toBe('pidieron-tiempo');
+    expect(alert.severity).toBe('urgent');
+  });
+
+  it('no lo apura antes de la fecha que eligió', async () => {
+    // Escribirle antes de tiempo es apurarlo; después, perderlo.
+    const enTresDias = new Date(NOW.getTime() + 3 * 86_400_000).toISOString();
+
+    expect(idsOf(quiet({ thinking: [{ id: 'l1', propuesta_recordar_at: enTresDias }] }))).toEqual([]);
   });
 });

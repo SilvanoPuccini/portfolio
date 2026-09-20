@@ -16,7 +16,10 @@ export const maxDuration = 60;
  * una propuesta no puede aceptarse porque un antivirus pasó por encima.
  */
 
-const ANSWERS: ProposalAnswer[] = ['aceptada', 'rechazada'];
+const ANSWERS: ProposalAnswer[] = ['aceptada', 'rechazada', 'pensando'];
+
+/** Cuánto se puede postergar: más de un mes no es pensarlo, es un no. */
+const MAX_REMIND_DAYS = 30;
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -25,7 +28,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({})) as {
-    token?: string; respuesta?: string; motivo?: string;
+    token?: string; respuesta?: string; motivo?: string; recordar?: string;
   };
 
   const token = body.token?.trim();
@@ -35,7 +38,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falta el token o la respuesta.' }, { status: 400 });
   }
 
-  const result = await recordProposalResponse(token, respuesta, body.motivo);
+  // La fecha la propone el cliente, así que se valida: una fecha pasada o a
+  // dos años no es un recordatorio, es perder el lead en silencio.
+  let remindAt: string | undefined;
+  if (respuesta === 'pensando') {
+    const asked = body.recordar ? Date.parse(body.recordar) : NaN;
+    const max = Date.now() + MAX_REMIND_DAYS * 86_400_000;
+    remindAt = Number.isNaN(asked) || asked < Date.now() || asked > max
+      ? new Date(Date.now() + 7 * 86_400_000).toISOString()
+      : new Date(asked).toISOString();
+  }
+
+  const result = await recordProposalResponse(token, respuesta, body.motivo, remindAt);
 
   if (!result.ok) {
     if (result.reason === 'already_answered') {

@@ -2,19 +2,20 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { getSupabaseAdmin } from '@/lib/supabase';
+import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import { ProposalDecision } from '@/components/propuesta/ProposalDecision';
 import type { DiagnosisDoc } from '@/lib/leads/diagnosis-doc';
 
 /**
  * El diagnóstico y la propuesta, como los ve el cliente.
  *
- * Antes esto era un .docx adjunto: el cliente lo abría en el celular, lo veía
- * deformado y lo perdía en el correo. Una página se lee en cualquier lado, se
- * puede corregir sin reenviar nada, y termina donde tiene que terminar: en la
- * decisión.
+ * Antes era un .docx adjunto: se abría deformado en el celular y se perdía en
+ * el correo. Esto es una página del sitio —mismo tipo, mismo motion, mismos
+ * colores—, porque el documento que cierra una venta de software es la primera
+ * muestra del trabajo. Si la propuesta se ve mal, el argumento ya perdió.
  *
- * Muestra la FOTO guardada al enviarla, no el estado actual del presupuesto.
- * Lo que el cliente leyó y lo que acepta tienen que ser lo mismo.
+ * Muestra la FOTO guardada al enviarla, no el estado actual del presupuesto:
+ * lo que el cliente leyó y lo que acepta tienen que ser lo mismo.
  */
 
 export const dynamic = 'force-dynamic';
@@ -28,10 +29,13 @@ export const metadata: Metadata = {
 
 const money = (value: number) => `USD ${Math.round(value).toLocaleString('es-AR')}`;
 
+/** Los cuatro pasos, para que se vea desde el principio lo que falta. */
+const STEPS = ['Leer', 'Firmar', 'Pagar la seña', 'Arrancamos'];
+
 async function loadProposal(token: string) {
   const { data } = await getSupabaseAdmin()
     .from('leads')
-    .select('propuesta_snapshot, propuesta_respuesta')
+    .select('propuesta_snapshot, propuesta_respuesta, propuesta_recordar_at')
     .eq('propuesta_token', token)
     .maybeSingle();
 
@@ -50,119 +54,191 @@ export default async function PropuestaPage({ params }: { params: Params }) {
   if (!proposal) notFound();
 
   const { doc, answered } = proposal;
+  const firmado = answered === 'aceptada';
 
   return (
-    <main className="site-container max-w-3xl py-12 sm:py-16">
-      <header className="border-b border-outline-ghost/10 pb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand-primary">
-          Propuesta de trabajo
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
-          {doc.cliente}, esto es lo que propongo
-        </h1>
-        <p className="mt-3 text-sm text-text-tertiary">
-          Preparada a partir de lo que hablamos. Si algo no coincide con lo que necesitás, decímelo y lo ajusto.
-        </p>
+    <main className="pb-24">
+      {/* ── Portada ───────────────────────────────────────────────── */}
+      <header className="relative overflow-hidden border-b border-outline-ghost/10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-40 h-[26rem] bg-[radial-gradient(60%_60%_at_50%_50%,rgb(var(--brand-glow)/0.16),transparent_70%)]"
+        />
+        <div className="site-container relative max-w-4xl py-16 sm:py-20">
+          <RevealGroup>
+            <Reveal as="p" className="eyebrow">Propuesta de trabajo</Reveal>
+            <Reveal className="mt-4">
+              <h1 className="text-balance font-display text-4xl leading-[1.06] tracking-editorial text-text-primary sm:text-5xl lg:text-6xl">
+                {doc.cliente}, esto es lo que propongo
+              </h1>
+            </Reveal>
+            <Reveal as="p" className="mt-5 max-w-2xl text-base leading-8 text-text-secondary sm:text-lg">
+              Salió de lo que hablamos en la llamada. Si algo no coincide con lo que necesitás, decímelo y lo ajusto:
+              todavía estamos a tiempo de cambiarlo.
+            </Reveal>
+
+            {/* Los pasos, para que sepa desde el principio qué sigue. */}
+            <Reveal as="ul" className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+              {STEPS.map((step, i) => (
+                <li key={step} className="flex items-center gap-3">
+                  <span
+                    className={`flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] ${
+                      i === 0 ? 'text-brand-primary' : 'text-text-tertiary'
+                    }`}
+                  >
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                        i === 0 ? 'border-brand-primary/50 bg-brand-primary/10' : 'border-outline-ghost/20'
+                      }`}
+                    >{i + 1}</span>
+                    {step}
+                  </span>
+                  {i < STEPS.length - 1 && <span aria-hidden className="text-outline-ghost/40">·</span>}
+                </li>
+              ))}
+            </Reveal>
+          </RevealGroup>
+        </div>
       </header>
 
-      {doc.problema && (
-        <section className="mt-10">
-          <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
-            Lo que detectamos
-          </h2>
-          <p className="mt-3 text-lg leading-8 text-text-primary">{doc.problema}</p>
-        </section>
-      )}
-
-      {doc.solucion && (
-        <section className="mt-9">
-          <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
-            Lo que propongo
-          </h2>
-          <p className="mt-3 text-lg leading-8 text-text-primary">{doc.solucion}</p>
-        </section>
-      )}
-
-      {doc.incluye.length > 0 && (
-        <section className="mt-12">
-          <h2 className="text-xl font-semibold text-text-primary">Qué incluye</h2>
-          <ul className="mt-5 space-y-3">
-            {doc.incluye.map((item) => (
-              <li
-                key={item.titulo}
-                className="surface-panel flex flex-wrap items-baseline justify-between gap-3 border border-outline-ghost/10 px-5 py-4"
-              >
-                <div className="max-w-xl">
-                  <p className="text-base font-medium text-text-primary">{item.titulo}</p>
-                  {item.detalle && (
-                    <p className="mt-1 text-sm leading-6 text-text-secondary">{item.detalle}</p>
-                  )}
-                </div>
-                <span className="font-mono text-sm text-text-tertiary">{item.horas} h</span>
-              </li>
-            ))}
-          </ul>
-          {doc.horas > 0 && (
-            <p className="mt-3 text-sm text-text-tertiary">{doc.horas} horas de trabajo estimadas en total.</p>
-          )}
-        </section>
-      )}
-
-      {doc.masAdelante.length > 0 && (
-        <section className="mt-12">
-          <h2 className="text-xl font-semibold text-text-primary">Para más adelante</h2>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            Esto no entra ahora, a propósito: primero resolvemos lo que te está costando plata hoy.
-          </p>
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {doc.masAdelante.map((item) => (
-              <li
-                key={item}
-                className="rounded-full border border-outline-ghost/15 px-4 py-1.5 text-sm text-text-secondary"
-              >{item}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="mt-12">
-        <h2 className="text-xl font-semibold text-text-primary">La inversión</h2>
-
-        <div className="surface-panel mt-5 border border-brand-primary/20 bg-brand-primary/5 px-6 py-7">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Total del proyecto</p>
-          <p className="mt-1 font-mono text-4xl font-semibold text-brand-primary">{money(doc.inversion.total)}</p>
-
-          <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm text-text-tertiary">Para arrancar ({doc.inversion.pct}%)</dt>
-              <dd className="mt-1 font-mono text-lg text-text-primary">{money(doc.inversion.sena)}</dd>
-            </div>
-            {doc.inversion.saldo > 0 && (
-              <div>
-                <dt className="text-sm text-text-tertiary">Contra entrega</dt>
-                <dd className="mt-1 font-mono text-lg text-text-primary">{money(doc.inversion.saldo)}</dd>
-              </div>
+      <div className="site-container max-w-4xl">
+        {/* ── El diagnóstico ──────────────────────────────────────── */}
+        {(doc.problema || doc.solucion) && (
+          <RevealGroup className="mt-16 grid gap-10 sm:mt-20 sm:grid-cols-2">
+            {doc.problema && (
+              <Reveal className="border-l-2 border-outline-ghost/20 pl-6">
+                <p className="technical-label">Lo que detectamos</p>
+                <p className="mt-4 text-xl leading-9 text-text-primary">{doc.problema}</p>
+              </Reveal>
             )}
-          </dl>
+            {doc.solucion && (
+              <Reveal className="border-l-2 border-brand-primary/60 pl-6">
+                <p className="technical-label text-brand-primary">Lo que propongo</p>
+                <p className="mt-4 text-xl leading-9 text-text-primary">{doc.solucion}</p>
+              </Reveal>
+            )}
+          </RevealGroup>
+        )}
 
-          {doc.mantenimiento != null && (
-            <p className="mt-6 border-t border-outline-ghost/10 pt-5 text-sm leading-6 text-text-secondary">
-              <strong className="text-text-primary">Mantenimiento: {money(doc.mantenimiento)} por mes.</strong>{' '}
-              Incluye hosting, actualizaciones de seguridad, copias de respaldo y cambios chicos. Es opcional y se
-              puede dar de baja cuando quieras.
+        {/* ── Qué incluye ─────────────────────────────────────────── */}
+        {doc.incluye.length > 0 && (
+          <section className="mt-20 sm:mt-24">
+            <Reveal><h2 className="section-title-sm">Qué incluye</h2></Reveal>
+            <RevealGroup className="mt-8 grid gap-3">
+              {doc.incluye.map((item) => (
+                <Reveal
+                  key={item.titulo}
+                  as="article"
+                  className="surface-panel group flex flex-wrap items-baseline justify-between gap-4 border border-outline-ghost/10 px-6 py-5 transition-colors hover:border-brand-primary/30"
+                >
+                  <div className="max-w-xl">
+                    <h3 className="text-lg font-medium text-text-primary">{item.titulo}</h3>
+                    {item.detalle && (
+                      <p className="mt-1.5 text-sm leading-6 text-text-secondary">{item.detalle}</p>
+                    )}
+                  </div>
+                  <span className="font-mono text-sm text-text-tertiary">{item.horas} h</span>
+                </Reveal>
+              ))}
+            </RevealGroup>
+            {doc.horas > 0 && (
+              <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+                {doc.horas} horas de trabajo estimadas
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* ── Para más adelante ───────────────────────────────────── */}
+        {doc.masAdelante.length > 0 && (
+          <section className="mt-16">
+            <Reveal>
+              <h2 className="section-title-sm">Para más adelante</h2>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-text-secondary">
+                Esto queda afuera a propósito. Primero resolvemos lo que te está costando plata hoy; lo demás se suma
+                cuando el sistema ya esté funcionando.
+              </p>
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {doc.masAdelante.map((item) => (
+                  <li
+                    key={item}
+                    className="rounded-full border border-outline-ghost/15 px-4 py-1.5 text-sm text-text-secondary"
+                  >{item}</li>
+                ))}
+              </ul>
+            </Reveal>
+          </section>
+        )}
+
+        {/* ── La inversión ────────────────────────────────────────── */}
+        <section className="mt-20 sm:mt-24">
+          <Reveal><h2 className="section-title-sm">La inversión</h2></Reveal>
+
+          <Reveal className="surface-panel relative mt-8 overflow-hidden border border-brand-primary/25 px-7 py-9 sm:px-10">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(var(--brand-primary)/0.6),transparent)]"
+            />
+            <p className="technical-label">Total del proyecto</p>
+            <p className="mt-2 font-mono text-5xl font-semibold tracking-tight text-brand-primary sm:text-6xl">
+              {money(doc.inversion.total)}
             </p>
-          )}
+
+            <dl className="mt-9 grid gap-6 border-t border-outline-ghost/10 pt-7 sm:grid-cols-2">
+              <div>
+                <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+                  Para arrancar · {doc.inversion.pct}%
+                </dt>
+                <dd className="mt-2 font-mono text-2xl text-text-primary">{money(doc.inversion.sena)}</dd>
+              </div>
+              {doc.inversion.saldo > 0 && (
+                <div>
+                  <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+                    Contra entrega
+                  </dt>
+                  <dd className="mt-2 font-mono text-2xl text-text-primary">{money(doc.inversion.saldo)}</dd>
+                </div>
+              )}
+            </dl>
+
+            {doc.mantenimiento != null && (
+              <p className="mt-7 border-t border-outline-ghost/10 pt-6 text-sm leading-7 text-text-secondary">
+                <strong className="font-medium text-text-primary">
+                  Mantenimiento: {money(doc.mantenimiento)} por mes.
+                </strong>{' '}
+                Hosting, actualizaciones de seguridad, copias de respaldo y cambios chicos. Es opcional y se da de baja
+                cuando quieras.
+              </p>
+            )}
+          </Reveal>
+        </section>
+
+        {/* ── La decisión ─────────────────────────────────────────── */}
+        <section id="decidir" className="mt-20 scroll-mt-10 sm:mt-24">
+          <ProposalDecision token={token} answered={answered} />
+        </section>
+
+        <footer className="mt-14 border-t border-outline-ghost/10 pt-7 text-sm leading-7 text-text-tertiary">
+          ¿Dudas antes de decidir? Respondé el correo o escribime a{' '}
+          <a href="mailto:hola@silvanopuccini.dev" className="text-brand-primary hover:underline">
+            hola@silvanopuccini.dev
+          </a>
+          . Prefiero una pregunta ahora que un malentendido en la entrega.
+        </footer>
+      </div>
+
+      {/* Barra fija: el precio y el botón siempre a mano, sin scrollear. */}
+      {!firmado && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-outline-ghost/10 bg-[rgb(var(--background)/0.92)] backdrop-blur">
+          <div className="site-container flex max-w-4xl items-center justify-between gap-4 py-3">
+            <span className="font-mono text-sm text-text-secondary">
+              {money(doc.inversion.total)}
+              <span className="hidden text-text-tertiary sm:inline"> · seña {money(doc.inversion.sena)}</span>
+            </span>
+            <a href="#decidir" className="button-primary px-5 py-2 text-sm">Decidir</a>
+          </div>
         </div>
-      </section>
-
-      <section className="mt-12">
-        <ProposalDecision token={token} answered={answered} />
-      </section>
-
-      <footer className="mt-10 border-t border-outline-ghost/10 pt-6 text-sm text-text-tertiary">
-        ¿Dudas antes de decidir? Respondé el correo o escribime a{' '}
-        <a href="mailto:hola@silvanopuccini.dev" className="text-brand-primary">hola@silvanopuccini.dev</a>.
-      </footer>
+      )}
     </main>
   );
 }

@@ -46,7 +46,8 @@ describe('la propuesta que ve el cliente', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('Ferrelon');
     expect(screen.getByText(/Pierden pedidos/)).toBeTruthy();
     expect(screen.getByText('Catálogo de productos')).toBeTruthy();
-    expect(screen.getByText('USD 4.800')).toBeTruthy();
+    // El total está en el bloque de inversión y repetido en la barra fija.
+    expect(screen.getAllByText('USD 4.800').length).toBeGreaterThan(0);
     // Con una seña del 50 % la seña y el saldo son el mismo número: tienen
     // que estar los dos, para que el cliente sepa qué paga y cuándo.
     expect(screen.getAllByText('USD 2.400')).toHaveLength(2);
@@ -96,5 +97,30 @@ describe('la propuesta que ve el cliente', () => {
     supabase({ propuesta_snapshot: null, propuesta_respuesta: null });
 
     await expect(view()).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('deja el precio y la decisión a mano sin scrollear', async () => {
+    supabase({ propuesta_snapshot: DOC, propuesta_respuesta: null });
+
+    await view();
+
+    expect(screen.getByRole('link', { name: /Decidir/i })).toHaveAttribute('href', '#decidir');
+  });
+
+  it('una vez aceptada, la barra de decidir desaparece', async () => {
+    supabase({ propuesta_snapshot: DOC, propuesta_respuesta: 'aceptada' });
+
+    await view();
+
+    expect(screen.queryByRole('link', { name: /Decidir/i })).toBeNull();
+  });
+
+  it('muestra los pasos que vienen después de aceptar', async () => {
+    supabase({ propuesta_snapshot: DOC, propuesta_respuesta: null });
+
+    await view();
+
+    expect(screen.getByText('Firmar')).toBeTruthy();
+    expect(screen.getByText('Pagar la seña')).toBeTruthy();
   });
 });

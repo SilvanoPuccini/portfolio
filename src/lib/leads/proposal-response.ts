@@ -15,7 +15,14 @@ import { sendContractToLead } from './send-contract';
  * puede recibir, y casi siempre es una negociación, no un final.
  */
 
-export type ProposalAnswer = 'aceptada' | 'rechazada';
+export type ProposalAnswer = 'aceptada' | 'rechazada' | 'pensando';
+
+/**
+ * «Lo estoy pensando» no cierra nada: es la única respuesta que se puede
+ * cambiar. Quien pidió tiempo tiene que poder volver al mismo link y aceptar
+ * sin escribirle a nadie — si no, el botón sería una trampa.
+ */
+const FINAL_ANSWERS = ['aceptada', 'rechazada'];
 
 export type ResponseResult =
   | { ok: true; answer: ProposalAnswer; contrato: 'enviado' | 'con_problema' | 'no_corresponde'; detail?: string }
@@ -29,17 +36,24 @@ interface LeadRow {
 }
 
 /** Le avisa a Silvano. Que falle el aviso no invalida la respuesta del cliente. */
-async function notifyOwner(lead: LeadRow, answer: ProposalAnswer, motivo?: string) {
+async function notifyOwner(lead: LeadRow, answer: ProposalAnswer, motivo?: string, remindAt?: string) {
   const to = process.env.ADMIN_EMAIL;
   if (!to) return;
 
-  const title = answer === 'aceptada'
-    ? `${lead.nombre} aceptó la propuesta`
-    : `${lead.nombre} dijo que no por ahora`;
+  const titles: Record<ProposalAnswer, string> = {
+    aceptada: `${lead.nombre} aceptó la propuesta`,
+    rechazada: `${lead.nombre} dijo que no por ahora`,
+    pensando: `${lead.nombre} se lo está pensando`,
+  };
+  const title = titles[answer];
 
-  const body = answer === 'aceptada'
-    ? 'El contrato salió automáticamente. Revisá la ficha por si hay que ajustar algo.'
-    : `Motivo: ${motivo?.trim() || 'no dejó motivo'}. La venta sigue abierta: llamalo.`;
+  const bodies: Record<ProposalAnswer, string> = {
+    aceptada: 'El contrato salió automáticamente. Revisá la ficha por si hay que ajustar algo.',
+    rechazada: `Motivo: ${motivo?.trim() || 'no dejó motivo'}. La venta sigue abierta: llamalo.`,
+    pensando: `Pidió que le escribas ${remindAt ? `el ${new Date(remindAt).toLocaleDateString('es-AR')}` : 'más adelante'}.`
+      + ` ${motivo?.trim() ? `Dijo: ${motivo.trim()}` : 'No dejó detalle.'} Queda agendado en el panel.`,
+  };
+  const body = bodies[answer];
 
   try {
     await sendCrmEmail(to, title, `<p>${escapeHtml(title)}.</p><p>${escapeHtml(body)}</p>`);
@@ -49,7 +63,7 @@ async function notifyOwner(lead: LeadRow, answer: ProposalAnswer, motivo?: strin
 }
 
 export async function recordProposalResponse(
-  token: string, answer: ProposalAnswer, motivo?: string,
+  token: string, answer: ProposalAnswer, motivo?: string, remindAt?: string,
 ): Promise<ResponseResult> {
   const db = getSupabaseAdmin();
 
@@ -64,8 +78,9 @@ export async function recordProposalResponse(
 
   const lead = data as LeadRow;
 
-  // Dos clics en el mismo botón no mandan dos contratos.
-  if (lead.propuesta_respuesta) {
+  // Dos clics en el mismo botón no mandan dos contratos. Un «lo pienso» sí se
+  // puede cambiar: es una pausa, no una respuesta.
+  if (lead.propuesta_respuesta && FINAL_ANSWERS.includes(lead.propuesta_respuesta)) {
     return { ok: false, reason: 'already_answered', answer: lead.propuesta_respuesta as ProposalAnswer };
   }
 
@@ -74,14 +89,17 @@ export async function recordProposalResponse(
     .update({
       propuesta_respuesta: answer,
       propuesta_respondida_at: new Date().toISOString(),
-      propuesta_rechazo_motivo: answer === 'rechazada' ? (motivo?.trim() || null) : null,
+      propuesta_rechazo_motivo: answer !== 'aceptada' ? (motivo?.trim() || null) : null,
+      // La fecha que el cliente eligió: el seguimiento va cuando él dijo, no
+      // cuando al vendedor se le ocurre.
+      propuesta_recordar_at: answer === 'pensando' ? (remindAt ?? null) : null,
     })
     .eq('id', lead.id);
 
   if (updateError) return { ok: false, reason: 'db_failed', detail: updateError.message };
 
-  if (answer === 'rechazada') {
-    await notifyOwner(lead, answer, motivo);
+  if (answer !== 'aceptada') {
+    await notifyOwner(lead, answer, motivo, remindAt);
     return { ok: true, answer, contrato: 'no_corresponde' };
   }
 

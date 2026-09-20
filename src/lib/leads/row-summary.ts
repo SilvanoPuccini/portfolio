@@ -24,6 +24,8 @@ export interface LeadRow {
   ultimo_contacto_at?: string | null;
   /** Lo que el cliente contestó desde el correo de la propuesta. */
   propuesta_respuesta?: string | null;
+  /** Si pidió tiempo, cuándo quiere que le escriban. */
+  propuesta_recordar_at?: string | null;
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */
   contrato_vencido_at?: string | null;
@@ -91,6 +93,14 @@ export function rowSummary(lead: LeadRow, now = new Date()): RowSummary {
       // algo concreto que resolver y no un silencio que esperar.
       if (lead.propuesta_respuesta === 'rechazada') {
         return { line: 'Dijo que no a la propuesta · llamalo para ajustar', risk: true };
+      }
+      // Pidió tiempo y eligió la fecha: antes de esa fecha no hay nada que
+      // hacer, y después hay algo concreto, no un silencio que interpretar.
+      if (lead.propuesta_respuesta === 'pensando' && lead.propuesta_recordar_at) {
+        const falta = daysBetween(now.toISOString(), new Date(lead.propuesta_recordar_at));
+        return falta > 0
+          ? { line: `Lo está pensando · te contesta en ${days(falta)}`, risk: false }
+          : { line: 'Pidió tiempo y ya se cumplió · escribile', risk: true };
       }
       const contacted = lastContactAt(lead);
       if (!contacted) return { line: 'Propuesta pendiente de envío', risk: false };
