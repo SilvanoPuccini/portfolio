@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       .from('leads')
       // La lista operativa necesita saber hace cuánto pasó cada cosa: sin las
       // fechas de propuesta y contrato, la fila no puede decir «hace 9 días».
-      .select('id, created_at, nombre, email, tipo_proyecto, presupuesto_rango, plazo, estado, monto_presupuestado, proposal_sent_at, contract_sent_at, contrato_vencido_at, contrato_abierto_at, contrato_rechazado_at, fecha_llamada')
+      .select('id, created_at, nombre, email, tipo_proyecto, presupuesto_rango, plazo, estado, monto_presupuestado, proposal_sent_at, ultimo_contacto_at, contract_sent_at, contrato_vencido_at, contrato_abierto_at, contrato_rechazado_at, fecha_llamada')
       .order('created_at', { ascending: false });
 
     if (estado) {

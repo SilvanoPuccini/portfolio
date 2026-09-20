@@ -36,7 +36,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
 
     db.from('leads').select('id, created_at').eq('estado', 'nuevo'),
 
-    db.from('leads').select('id, proposal_sent_at')
+    db.from('leads').select('id, proposal_sent_at, ultimo_contacto_at')
       .not('proposal_sent_at', 'is', null).not('estado', 'in', `(${CLOSED_STATES.join(',')})`),
 
     db.from('x_threads').select('id', { count: 'exact', head: true })
@@ -66,7 +66,7 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     unreadMessages: unread.count ?? 0,
     newSubscribersToday: subsToday.count ?? 0,
     newLeads: (newLeads.data ?? []) as { id: string; created_at: string }[],
-    sentProposals: (proposals.data ?? []) as { id: string; proposal_sent_at: string }[],
+    sentProposals: (proposals.data ?? []) as { id: string; proposal_sent_at: string; ultimo_contacto_at: string | null }[],
     failedThreads: threads.count ?? 0,
     expiredContracts: expired.count ?? 0,
     rejectedContracts: rejected.count ?? 0,

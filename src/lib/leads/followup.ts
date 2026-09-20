@@ -33,6 +33,8 @@ export interface FollowupContext {
   pain: string | null;
   /** Lo que dijo que le preocupaba: casi siempre es el motivo del silencio. */
   concerns: string | null;
+  /** Los seguimientos ya enviados, del más viejo al más nuevo. */
+  previous?: { sentAt: string; body: string }[];
 }
 
 export function followupSystemPrompt(): string {
@@ -55,6 +57,9 @@ REGLAS
    "no dude en contactarme".
 7. No cierres con una pregunta de sí o no sobre la compra. Preguntá algo que
    se pueda contestar sin decidir.
+8. Si te paso seguimientos anteriores, NO repitas lo que ya se dijo: ni el
+   mismo argumento ni la misma pregunta. Cambiá el enfoque. Un segundo correo
+   igual al primero es lo que hace que dejen de contestar.
 
 SALIDA
 Solo JSON: { "subject": "...", "body": "..." }
@@ -72,6 +77,7 @@ export function followupInput(context: FollowupContext): string {
     lo_que_necesitaba: context.requirement ?? undefined,
     lo_que_le_duele: context.pain ?? undefined,
     lo_que_le_preocupaba: context.concerns ?? undefined,
+    seguimientos_ya_enviados: context.previous?.length ? context.previous : undefined,
   }, null, 2);
 }
 

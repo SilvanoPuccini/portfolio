@@ -15,16 +15,34 @@ import { sendCrmEmail } from '@/lib/resend';
 import { draftFollowup } from '@/lib/leads/followup';
 import { GET, POST } from '@/app/api/admin/leads/[id]/followup/route';
 
-function supabaseWithLead(lead: Record<string, unknown> | null) {
+/**
+ * `leads` responde la ficha; `lead_followups` el historial de lo ya enviado y
+ * recibe los envíos nuevos.
+ */
+function supabaseWithLead(lead: Record<string, unknown> | null, previous: unknown[] = []) {
   const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
-  const from = vi.fn().mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: lead, error: null }) }),
-    }),
-    update,
-  });
+  const insert = vi.fn().mockResolvedValue({ error: null });
+
+  const from = vi.fn((table: string) => (table === 'lead_followups'
+    ? {
+      insert,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: previous, error: null }),
+          }),
+        }),
+      }),
+    }
+    : {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: lead, error: null }) }),
+      }),
+      update,
+    }));
+
   vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);
-  return update;
+  return { update, insert };
 }
 
 const LEAD = {
@@ -113,20 +131,102 @@ describe('el borrador de seguimiento', () => {
     expect(sendCrmEmail).not.toHaveBeenCalled();
   });
 
-  it('reinicia el reloj del silencio al enviar', async () => {
-    // Si no, el aviso quedaría clavado en rojo aunque hayas hecho el
-    // seguimiento: el silencio se cuenta desde el último contacto.
-    const update = supabaseWithLead(LEAD);
+  it('reinicia el reloj sin pisar la fecha de la propuesta', async () => {
+    // El silencio se cuenta desde el último contacto. Antes esto sobrescribía
+    // `proposal_sent_at` y se perdía cuándo salió la propuesta de verdad.
+    const { update } = supabaseWithLead(LEAD);
 
     await post({ subject: 'Asunto', body: 'Texto' });
 
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ proposal_sent_at: expect.any(String) }),
-    );
+    const fields = update.mock.calls[0][0] as Record<string, unknown>;
+    expect(fields.ultimo_contacto_at).toEqual(expect.any(String));
+    expect(fields).not.toHaveProperty('proposal_sent_at');
+  });
+
+  it('escapa el HTML del texto en vez de meterlo crudo en el correo', async () => {
+    supabaseWithLead(LEAD);
+
+    await post({ subject: 'Asunto', body: 'Cuesta <1000 & "vale la pena"' });
+
+    const html = vi.mocked(sendCrmEmail).mock.calls[0][2];
+    expect(html).toContain('&lt;1000');
+    expect(html).not.toContain('<1000');
+  });
+
+  it('guarda el seguimiento enviado para no repetirlo después', async () => {
+    const { insert } = supabaseWithLead(LEAD);
+
+    await post({ subject: 'Asunto', body: 'Texto' });
+
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+      lead_id: 'lead-1', subject: 'Asunto', body: 'Texto',
+    }));
+  });
+
+  it('le pasa al modelo los seguimientos anteriores', async () => {
+    supabaseWithLead(LEAD, [{ body: 'Te escribí la semana pasada', sent_at: '2026-09-10T12:00:00.000Z' }]);
+
+    await get();
+
+    expect(draftFollowup).toHaveBeenCalledWith(expect.objectContaining({
+      previous: [{ body: 'Te escribí la semana pasada', sentAt: '2026-09-10T12:00:00.000Z' }],
+    }));
+  });
+
+  it('no le escribe a un lead descartado', async () => {
+    supabaseWithLead({ ...LEAD, estado: 'descartado' });
+
+    const response = await post({ subject: 'Asunto', body: 'Texto' });
+
+    expect(response.status).toBe(409);
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+
+  it('no le pide plata dos veces a alguien que ya pagó', async () => {
+    supabaseWithLead({ ...LEAD, estado: 'facturado' });
+
+    expect((await get()).status).toBe(409);
+    expect(draftFollowup).not.toHaveBeenCalled();
+  });
+
+  it('reusa el último borrador en vez de quemar cuota en cada click', async () => {
+    supabaseWithLead({ ...LEAD, followup_draft: { subject: 'Ya escrito', body: 'Guardado' } });
+
+    const body = await (await get()).json();
+
+    expect(draftFollowup).not.toHaveBeenCalled();
+    expect(body.subject).toBe('Ya escrito');
+  });
+
+  it('con refresh escribe uno nuevo', async () => {
+    supabaseWithLead({ ...LEAD, followup_draft: { subject: 'Ya escrito', body: 'Guardado' } });
+
+    const response = await GET(new NextRequest('http://localhost/x?refresh=1'), { params });
+
+    expect(draftFollowup).toHaveBeenCalled();
+    expect((await response.json()).subject).toBe('¿Seguimos con el catálogo?');
+  });
+
+  it('guarda el borrador nuevo para la próxima vez', async () => {
+    const { update } = supabaseWithLead(LEAD);
+
+    await get();
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      followup_draft: expect.objectContaining({ subject: '¿Seguimos con el catálogo?' }),
+    }));
+  });
+
+  it('al enviar borra el borrador guardado', async () => {
+    const { update } = supabaseWithLead(LEAD);
+
+    await post({ subject: 'Asunto', body: 'Texto' });
+
+    expect(update.mock.calls[0][0]).toEqual(expect.objectContaining({ followup_draft: null }));
   });
 
   it('no reinicia el reloj si el correo no salió', async () => {
-    const update = supabaseWithLead(LEAD);
+    const { update } = supabaseWithLead(LEAD);
     vi.mocked(sendCrmEmail).mockRejectedValue(new Error('Resend caído'));
 
     const response = await post({ subject: 'Asunto', body: 'Texto' });

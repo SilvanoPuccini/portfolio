@@ -63,11 +63,14 @@ export function LeadAdvanceBar({
 
   const [draft, setDraft] = useState<{ subject: string; body: string; provider?: string } | null>(null);
 
-  /** Pide el borrador. La IA escribe acá; el envío es otro botón, a propósito. */
-  async function loadDraft() {
+  /**
+   * Pide el borrador. La IA escribe acá; el envío es otro botón, a propósito.
+   * Sin `refresh` devuelve el último escrito: cada borrador nuevo gasta cuota.
+   */
+  async function loadDraft(refresh = false) {
     setBusy(true);
     setError('');
-    const response = await fetch(`/api/admin/leads/${leadId}/followup`);
+    const response = await fetch(`/api/admin/leads/${leadId}/followup${refresh ? '?refresh=1' : ''}`);
     const json = await response.json().catch(() => ({})) as typeof draft & { error?: string };
     setBusy(false);
     if (!response.ok) return setError(json?.error ?? 'No se pudo escribir el borrador');
@@ -281,6 +284,7 @@ export function LeadAdvanceBar({
 
           <div style={{ display: 'flex', gap: 7 }}>
             {button('Enviar seguimiento', () => void sendDraft())}
+            {button('Escribir otro', () => void loadDraft(true), c.incomplete)}
             {button('Descartar', () => setDraft(null), c.textDim)}
           </div>
         </div>

@@ -11,6 +11,8 @@
  * silencio sin tocar el reloj del sistema.
  */
 
+import { lastContactAt } from '@/lib/leads/last-contact';
+
 /** Cuánto puede esperar un lead nuevo antes de que sea un problema. */
 export const LEAD_SILENCE_HOURS = 48;
 
@@ -60,7 +62,7 @@ export interface AlertInput {
   /** Leads en estado `nuevo`: los que todavía no se contactaron. */
   newLeads: { id: string; created_at: string }[];
   /** Leads con propuesta mandada y sin cerrar ni descartar. */
-  sentProposals: { id: string; proposal_sent_at: string }[];
+  sentProposals: { id: string; proposal_sent_at: string; ultimo_contacto_at?: string | null }[];
   /** Hilos de X que quedaron en `error`. */
   failedThreads: number;
   /** Contratos que Documenso dio por vencidos sin firma. */
@@ -108,7 +110,11 @@ export function buildAlerts(input: AlertInput): Alert[] {
   }
 
   const silentProposals = input.sentProposals.filter(
-    (proposal) => olderThan(proposal.proposal_sent_at, input.now, PROPOSAL_SILENCE_DAYS * 86_400_000),
+    // Desde el último contacto: un seguimiento ya enviado reinicia el reloj
+    // sin pisar la fecha real de la propuesta.
+    (proposal) => olderThan(
+      lastContactAt(proposal) ?? proposal.proposal_sent_at, input.now, PROPOSAL_SILENCE_DAYS * 86_400_000,
+    ),
   );
   if (silentProposals.length > 0) {
     alerts.push({

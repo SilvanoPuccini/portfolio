@@ -1,5 +1,6 @@
 import { PROPOSAL_SILENCE_DAYS, LEAD_SILENCE_HOURS } from '@/lib/admin/alerts';
 import { phaseIndex } from './pipeline';
+import { lastContactAt } from './last-contact';
 
 /**
  * Qué decir de cada venta en una línea.
@@ -19,6 +20,8 @@ export interface LeadRow {
   tipo_proyecto: string | null;
   monto_presupuestado: number | null;
   proposal_sent_at: string | null;
+  /** El último seguimiento enviado. El silencio se mide desde acá. */
+  ultimo_contacto_at?: string | null;
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */
   contrato_vencido_at?: string | null;
@@ -82,8 +85,9 @@ export function rowSummary(lead: LeadRow, now = new Date()): RowSummary {
       return { line: 'Hablaron · falta la propuesta', risk: false };
 
     case 'presupuestado': {
-      if (!lead.proposal_sent_at) return { line: 'Propuesta pendiente de envío', risk: false };
-      const waited = daysBetween(lead.proposal_sent_at, now);
+      const contacted = lastContactAt(lead);
+      if (!contacted) return { line: 'Propuesta pendiente de envío', risk: false };
+      const waited = daysBetween(contacted, now);
       return waited >= PROPOSAL_SILENCE_DAYS
         ? { line: `Propuesta hace ${days(waited)} · sin respuesta`, risk: true }
         : { line: `Propuesta hace ${days(waited)}`, risk: false };
