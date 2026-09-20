@@ -561,25 +561,16 @@ export default function LeadDetailPage() {
             };
             setters[field](value);
           }}
+          service={lead.tipo_proyecto}
           onSave={() => void saveDiagnosis()}
           saved={diagSaved}
-        />
-      </LeadSection>
-
-      {/* Editable: Diagnóstico */}
-      <LeadSection title="Diagnóstico de la llamada" defaultOpen={openSections.diagnostico}>
-        <LeadEditableForm
-          onSave={saveDiagnosis}
-          saved={diagSaved}
-          fields={[
-            { kind: 'textarea', key: 'objetivo', label: 'Objetivo — ¿Cómo se ve en 6 meses?', value: diagObjetivo, onChange: setDiagObjetivo },
-            { kind: 'textarea', key: 'situacion', label: 'Situación — Dolor detectado', value: diagSituacion, onChange: setDiagSituacion },
-            { kind: 'textarea', key: 'requerimiento', label: 'Requerimiento — Mi traducción a solución', value: diagRequerimiento, onChange: setDiagRequerimiento },
-            { kind: 'divider', key: 'corte' },
-            { kind: 'textarea', key: 'dolor', label: 'Dolor — ¿Qué le duele hoy?', value: diagDolor, onChange: setDiagDolor },
-            { kind: 'textarea', key: 'deseo', label: 'Deseo — ¿Qué quiere lograr?', value: diagDeseo, onChange: setDiagDeseo },
-            { kind: 'textarea', key: 'preocupaciones', label: 'Preocupaciones — ¿Qué le preocupa?', value: diagPreocupaciones, onChange: setDiagPreocupaciones },
-          ]}
+          onApplyModules={(slugs) => {
+            // Lo que la IA recomendó queda tildado en la calculadora: el salto
+            // entre «esto le ofrezco» y «esto cotizo» era a mano y se perdía.
+            setPertRows((rows) => rows.map((row) => (
+              slugs.includes(row.slug) ? { ...row, selected: true } : row
+            )));
+          }}
         />
       </LeadSection>
 

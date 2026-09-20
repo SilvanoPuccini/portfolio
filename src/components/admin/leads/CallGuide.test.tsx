@@ -23,14 +23,40 @@ function setup(overrides: Partial<Parameters<typeof CallGuide>[0]> = {}) {
 afterEach(() => { vi.unstubAllGlobals(); });
 
 describe('CallGuide', () => {
-  it('arranca por la apertura, no por el alcance', () => {
+  it('muestra un bloque por vez, empezando por la apertura', () => {
+    // Ocho bloques abiertos son una lista; uno solo es una conversación.
     setup();
 
     expect(screen.getByText(/Contame en qué andás/i)).toBeTruthy();
     expect(screen.queryByText(/qué es lo mínimo que te cambia el día/i)).toBeNull();
   });
 
-  it('muestra qué escuchar y las señales de alerta del bloque abierto', () => {
+  it('se avanza y se retrocede entre bloques', () => {
+    setup();
+
+    fireEvent.click(screen.getByRole('button', { name: /Siguiente/i }));
+    expect(screen.getByText(/¿Cómo lo resolvés hoy, sin sistema\?/i)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: /Anterior/i }));
+    expect(screen.getByText(/Contame en qué andás/i)).toBeTruthy();
+  });
+
+  it('se puede saltar a un bloque puntual', () => {
+    setup();
+
+    fireEvent.click(screen.getByRole('button', { name: /Ir a Decisión, plata y plazos/i }));
+
+    expect(screen.getByText(/¿Además de vos, quién decide esto\?/i)).toBeTruthy();
+  });
+
+  it('muestra lo que el cliente ya contestó para no repreguntarlo', () => {
+    setup();
+
+    expect(screen.getByText(/no lo repreguntes/i)).toBeTruthy();
+    expect(screen.getByText(/Un catálogo con stock/i)).toBeTruthy();
+  });
+
+  it('muestra qué escuchar y las señales de alerta del bloque actual', () => {
     setup();
 
     expect(screen.getByText(/Las primeras tres frases/i)).toBeTruthy();
@@ -41,7 +67,7 @@ describe('CallGuide', () => {
     // La guía no guarda nada aparte: es la misma ficha, en otro orden.
     const { onChange } = setup();
 
-    fireEvent.click(screen.getByRole('button', { name: /La situación de hoy/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Ir a La situación de hoy/i }));
     fireEvent.change(screen.getByLabelText(/Anotar La situación de hoy/i), {
       target: { value: 'Toman pedidos por WhatsApp' },
     });
@@ -52,7 +78,7 @@ describe('CallGuide', () => {
   it('avisa qué no contestó el cliente en el formulario', () => {
     setup();
 
-    expect(screen.getByText(/No lo contestó en el formulario/i)).toBeTruthy();
+    expect(screen.getByText(/Averiguá:/i)).toBeTruthy();
     expect(screen.getByText(/Con qué presupuesto se maneja/i)).toBeTruthy();
   });
 
@@ -94,5 +120,25 @@ describe('CallGuide', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Sin cuota');
     expect(screen.getByText(/Contame en qué andás/i)).toBeTruthy();
+  });
+
+  it('carga en el presupuesto los módulos que la IA recomendó', async () => {
+    // El salto de «esto le ofrezco» a «esto cotizo» era a mano y se perdía.
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        problema: 'x', solucion: 'y', confianza: 'alta', falta_preguntar: [],
+        no_ofrecer: [], objeciones: [],
+        modulos: [{ slug: 'catalogo', porque: 'Resuelve el problema' }],
+      }),
+    }));
+    const onApplyModules = vi.fn();
+    setup({ onApplyModules });
+
+    fireEvent.click(screen.getByRole('button', { name: /Qué ofrecerle/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Cargar en el presupuesto/i }));
+
+    expect(onApplyModules).toHaveBeenCalledWith(['catalogo']);
+    expect(screen.getByRole('button', { name: /Cargados en el presupuesto/i })).toBeTruthy();
   });
 });

@@ -1,44 +1,105 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
 import {
   CALL_GUIDE, GUIDE_MINUTES, guideProgress, isBlockDone, missingFromForm,
-  type DiagnosisField, type FormAnswers,
+  type DiagnosisField, type FormAnswers, type GuideBlock,
 } from '@/lib/leads/call-guide';
 import type { Recommendation } from '@/lib/leads/recommendation';
 
 /**
- * La guía de la llamada, para tener abierta mientras se habla.
+ * La guía de la llamada: la única pantalla que se mira mientras se habla.
  *
- * No es un formulario nuevo: cada bloque escribe en el campo de diagnóstico
- * que ya existía. Lo único que agrega es el orden de la conversación, las
- * preguntas y qué escuchar — que hasta ahora vivían en la cabeza de quien
- * atendía la llamada.
+ * Reemplaza a la vieja sección «Diagnóstico», que eran los mismos seis campos
+ * sin preguntas. Tenerlas separadas obligaba a elegir entre anotar y leer, y
+ * dejaba dos lugares para lo mismo.
+ *
+ * Muestra un bloque por vez a propósito. Ocho bloques abiertos son una lista;
+ * uno solo, con su reloj y sus preguntas, es una conversación.
  */
 
 type Values = Partial<Record<DiagnosisField, string>>;
 
-export function CallGuide({ leadId, form, values, onChange, onSave, saved }: {
+/** El minuto de la llamada manda: el bloque que toca es el del reloj. */
+function blockAtMinute(minute: number): number {
+  const index = CALL_GUIDE.findIndex((block) => minute >= block.from && minute < block.to);
+  return index === -1 ? CALL_GUIDE.length - 1 : index;
+}
+
+/** Lo que el cliente ya contestó, para no volver a preguntarlo. */
+function ClientContext({ form, service }: { form: FormAnswers; service?: string | null }) {
+  const rows: [string, string][] = [
+    ['Negocio', form.que_construir ?? ''],
+    ['Problema', form.problema ?? ''],
+    ['Servicio', service ?? ''],
+    ['Presupuesto', form.presupuesto_rango ?? ''],
+    ['Plazo', form.plazo ?? ''],
+  ].filter((row): row is [string, string] => Boolean(row[1]?.trim()));
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div style={{
+      border: `1px solid ${c.border}`, borderRadius: 8, padding: '10px 12px',
+      background: 'rgba(255,255,255,0.02)', display: 'grid', gap: 6,
+    }}>
+      <p style={{ ...s.label, marginBottom: 0 }}>Ya te lo contestó — no lo repreguntes</p>
+      {rows.map(([label, value]) => (
+        <p key={label} style={{ margin: 0, fontSize: 12.5, color: c.textSoft, lineHeight: 1.5 }}>
+          <span style={{ color: c.textDim }}>{label}:</span> {value}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+export function CallGuide({ leadId, form, service, values, onChange, onSave, saved, onApplyModules }: {
   leadId: string;
   form: FormAnswers;
+  service?: string | null;
   values: Values;
   onChange: (field: DiagnosisField, value: string) => void;
   onSave: () => void;
   saved: boolean;
+  /** Tilda en la calculadora los módulos que la IA recomendó. */
+  onApplyModules?: (slugs: string[]) => void;
 }) {
-  const [open, setOpen] = useState<string>(CALL_GUIDE[0].id);
+  const [index, setIndex] = useState(0);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [minute, setMinute] = useState(0);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [applied, setApplied] = useState(false);
+  const followClock = useRef(true);
 
+  // El reloj corre solo y arrastra el bloque, salvo que hayas navegado a mano:
+  // si estiraste una pregunta, la guía no puede pasar de tema sola.
+  useEffect(() => {
+    if (startedAt === null) return;
+    const id = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 60_000);
+      setMinute(elapsed);
+      if (followClock.current) setIndex(blockAtMinute(elapsed));
+    }, 5_000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+
+  const block: GuideBlock = CALL_GUIDE[index];
   const progress = guideProgress(values);
   const missing = missingFromForm(form);
+
+  function goTo(next: number) {
+    followClock.current = false;
+    setIndex(Math.max(0, Math.min(CALL_GUIDE.length - 1, next)));
+  }
 
   async function loadRecommendation(refresh = false) {
     setBusy(true);
     setError('');
+    setApplied(false);
     const response = await fetch(`/api/admin/leads/${leadId}/recommendation${refresh ? '?refresh=1' : ''}`);
     const json = await response.json().catch(() => ({})) as Recommendation & { error?: string };
     setBusy(false);
@@ -46,107 +107,104 @@ export function CallGuide({ leadId, form, values, onChange, onSave, saved }: {
     setRecommendation(json);
   }
 
-  const field = { ...s.input, minHeight: 70, lineHeight: 1.55, resize: 'vertical' as const };
+  const field = { ...s.input, minHeight: 90, lineHeight: 1.55, resize: 'vertical' as const };
+  const chip = (done: boolean, current: boolean) => ({
+    width: 26, height: 26, borderRadius: 6, cursor: 'pointer', fontSize: 11,
+    fontFamily: 'monospace', fontWeight: 700,
+    border: `1px solid ${current ? c.ready : c.border}`,
+    background: current ? c.ready : 'transparent',
+    color: current ? c.page : (done ? c.published : c.textDim),
+  });
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        <span style={{ ...s.label, marginBottom: 0 }}>
-          {progress.filled} de {progress.total} cargados · {GUIDE_MINUTES} min
+    <div style={{ display: 'grid', gap: 12 }}>
+      {/* Barra de control: el reloj, el avance y el paso entre bloques. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <button style={s.btn} onClick={() => { setStartedAt(Date.now()); setMinute(0); followClock.current = true; setIndex(0); }}>
+          {startedAt === null ? 'Empezar la llamada' : 'Reiniciar'}
+        </button>
+        <span style={{ fontFamily: 'monospace', fontSize: 13, color: startedAt === null ? c.textDim : c.ready }}>
+          {startedAt === null ? `${GUIDE_MINUTES} min` : `minuto ${minute} de ${GUIDE_MINUTES}`}
         </span>
-        <button style={{ ...s.btnGhost }} onClick={onSave}>Guardar lo anotado</button>
-        {saved && <span style={s.successText}>Guardado</span>}
+        <span style={{ ...s.label, marginBottom: 0 }}>{progress.filled} de {progress.total} cargados</span>
+
+        <span style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+          {CALL_GUIDE.map((candidate, i) => (
+            <button
+              key={candidate.id}
+              aria-label={`Ir a ${candidate.title}`}
+              title={candidate.title}
+              style={chip(isBlockDone(candidate, values), i === index)}
+              onClick={() => goTo(i)}
+            >{i + 1}</button>
+          ))}
+        </span>
       </div>
 
-      {/* Lo que el cliente no contestó en la web es justo lo que hay que
-          averiguar hablando. Lo que sí contestó no se vuelve a preguntar. */}
+      <ClientContext form={form} service={service} />
+
+      {/* Lo que no contestó en la web es lo que hay que averiguar hablando. */}
       {missing.length > 0 && (
-        <div style={{
-          border: `1px solid ${c.border}`, borderRadius: 8, padding: '10px 12px',
-          marginBottom: 12, background: 'rgba(255,255,255,0.02)',
-        }}>
-          <p style={{ ...s.label, marginBottom: 6 }}>No lo contestó en el formulario — averigualo</p>
-          <p style={{ margin: 0, fontSize: 12.5, color: c.textSoft, lineHeight: 1.6 }}>
-            {missing.join(' · ')}
-          </p>
-        </div>
+        <p style={{ margin: 0, fontSize: 12, color: c.incomplete, lineHeight: 1.6 }}>
+          <strong>Averiguá:</strong> {missing.join(' · ')}
+        </p>
       )}
 
-      <div style={{ display: 'grid', gap: 8 }}>
-        {CALL_GUIDE.map((block) => {
-          const isOpen = open === block.id;
-          const done = isBlockDone(block, values);
+      {/* El bloque que toca, solo. */}
+      <section style={{ border: `1px solid ${c.ready}`, borderRadius: 10, padding: 14, display: 'grid', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 11, color: c.ready }}>{block.from}–{block.to}′</span>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: c.text }}>{block.title}</h3>
+        </div>
 
-          return (
-            <section key={block.id} style={{ border: `1px solid ${c.border}`, borderRadius: 8 }}>
-              <button
-                onClick={() => setOpen(isOpen ? '' : block.id)}
-                aria-expanded={isOpen}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  padding: '10px 12px', textAlign: 'left', color: c.text,
-                }}
-              >
-                <span style={{ fontFamily: 'monospace', fontSize: 11, color: c.textDim }}>
-                  {block.from}–{block.to}′
-                </span>
-                <span style={{ fontSize: 13.5, fontWeight: 600 }}>{block.title}</span>
-                {done && <span style={{ fontSize: 11, color: c.published }}>✓</span>}
-              </button>
+        <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
+          {block.questions.map((question) => (
+            <li key={question} style={{ fontSize: 14, color: c.text, lineHeight: 1.55 }}>{question}</li>
+          ))}
+        </ul>
 
-              {isOpen && (
-                <div style={{ padding: '0 12px 12px', display: 'grid', gap: 8 }}>
-                  <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 5 }}>
-                    {block.questions.map((question) => (
-                      <li key={question} style={{ fontSize: 13.5, color: c.text, lineHeight: 1.55 }}>{question}</li>
-                    ))}
-                  </ul>
+        <p style={{ margin: 0, fontSize: 12.5, color: c.textSoft, lineHeight: 1.55 }}>
+          <strong style={{ color: c.textDim }}>Escuchá:</strong> {block.listenFor}
+        </p>
 
-                  <p style={{ margin: 0, fontSize: 12, color: c.textSoft, lineHeight: 1.55 }}>
-                    <strong style={{ color: c.textDim }}>Escuchá:</strong> {block.listenFor}
-                  </p>
+        {block.flags.map((flag) => (
+          <p key={flag} style={{ margin: 0, fontSize: 12.5, color: c.incomplete, lineHeight: 1.55 }}>⚠ {flag}</p>
+        ))}
 
-                  {block.flags.map((flag) => (
-                    <p key={flag} style={{ margin: 0, fontSize: 12, color: c.incomplete, lineHeight: 1.55 }}>
-                      ⚠ {flag}
-                    </p>
-                  ))}
+        {block.field && (
+          <textarea
+            aria-label={`Anotar ${block.title}`}
+            placeholder="Anotá la respuesta con sus palabras…"
+            style={field}
+            value={values[block.field] ?? ''}
+            onChange={(event) => onChange(block.field as DiagnosisField, event.target.value)}
+          />
+        )}
 
-                  {block.field && (
-                    <textarea
-                      aria-label={`Anotar ${block.title}`}
-                      placeholder="Anotá la respuesta con sus palabras…"
-                      style={field}
-                      value={values[block.field] ?? ''}
-                      onChange={(event) => onChange(block.field as DiagnosisField, event.target.value)}
-                    />
-                  )}
-                </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button style={s.btnGhost} onClick={() => goTo(index - 1)} disabled={index === 0}>← Anterior</button>
+          <button style={s.btnGhost} onClick={() => goTo(index + 1)} disabled={index === CALL_GUIDE.length - 1}>
+            Siguiente →
+          </button>
+          <button style={s.btn} onClick={onSave}>Guardar lo anotado</button>
+          {saved && <span style={s.successText}>Guardado</span>}
+        </div>
+      </section>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button style={s.btn} disabled={busy} onClick={() => void loadRecommendation()}>
           {busy ? 'Pensando…' : 'Qué ofrecerle'}
         </button>
         {recommendation && (
-          <button style={s.btnGhost} disabled={busy} onClick={() => void loadRecommendation(true)}>
-            Rehacer
-          </button>
+          <button style={s.btnGhost} disabled={busy} onClick={() => void loadRecommendation(true)}>Rehacer</button>
         )}
       </div>
 
-      {error && <p role="alert" style={{ ...s.errorText, marginTop: 10 }}>{error}</p>}
+      {error && <p role="alert" style={s.errorText}>{error}</p>}
 
       {recommendation && (
-        <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-          <p style={{ ...s.label, marginBottom: 0 }}>
-            Recomendación · confianza {recommendation.confianza}
-          </p>
+        <div style={{ display: 'grid', gap: 10, border: `1px solid ${c.border}`, borderRadius: 10, padding: 14 }}>
+          <p style={{ ...s.label, marginBottom: 0 }}>Recomendación · confianza {recommendation.confianza}</p>
 
           <p style={{ margin: 0, fontSize: 13.5, color: c.text, lineHeight: 1.6 }}>
             <strong>Problema:</strong> {recommendation.problema}
@@ -155,9 +213,8 @@ export function CallGuide({ leadId, form, values, onChange, onSave, saved }: {
             <strong>Solución:</strong> {recommendation.solucion}
           </p>
 
-          {/* Lo que falta preguntar va ARRIBA de los módulos a propósito: si el
-              diagnóstico está flojo, lo que hay que hacer es volver a preguntar,
-              no elegir módulos. */}
+          {/* Lo que falta preguntar va primero: con el diagnóstico flojo, lo que
+              toca es volver a preguntar, no elegir módulos. */}
           {recommendation.falta_preguntar?.length > 0 && (
             <div>
               <p style={{ ...s.label, marginBottom: 4, color: c.incomplete }}>Te falta preguntar</p>
@@ -179,6 +236,17 @@ export function CallGuide({ leadId, form, values, onChange, onSave, saved }: {
                   </li>
                 ))}
               </ul>
+              {onApplyModules && (
+                <button
+                  style={{ ...s.btnGhost, marginTop: 8 }}
+                  onClick={() => {
+                    onApplyModules(recommendation.modulos.map((mod) => mod.slug));
+                    setApplied(true);
+                  }}
+                >
+                  {applied ? '✓ Cargados en el presupuesto' : 'Cargar en el presupuesto'}
+                </button>
+              )}
             </div>
           )}
 

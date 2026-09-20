@@ -112,7 +112,8 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     await screen.findByText('Ferrelon');
 
     // En «en conversación» toca el diagnóstico, no el formulario de captación.
-    expect(screen.getByRole('button', { name: /Diagnóstico de la llamada/ })).toHaveAttribute('aria-expanded', 'true');
+    // El diagnóstico ahora se carga desde la guía: es la misma sección.
+    expect(screen.getByRole('button', { name: /Guía de la llamada/ })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('button', { name: /^.?Cuestionario/ })).toHaveAttribute('aria-expanded', 'false');
   });
 
@@ -139,12 +140,17 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     });
   });
 
-  it('guarda el diagnóstico con sus seis campos', async () => {
+  it('guarda el diagnóstico que se anotó en la guía', async () => {
+    // Los seis campos viven en un solo lugar: la guía de la llamada. Antes
+    // estaban duplicados en una sección aparte, sin las preguntas al lado.
     render(<LeadDetailPage />);
     await screen.findByText('Ferrelon');
 
-    fireEvent.change(screen.getByDisplayValue('Pierden pedidos'), { target: { value: 'Pierden clientes' } });
-    fireEvent.click(screen.getAllByText('Guardar')[1]);
+    fireEvent.click(screen.getByRole('button', { name: /Ir a El problema y lo que cuesta/i }));
+    fireEvent.change(screen.getByLabelText(/Anotar El problema y lo que cuesta/i), {
+      target: { value: 'Pierden clientes' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Guardar lo anotado/i }));
 
     await waitFor(() => expect(patchesTo('/api/admin/leads/lead-1').length).toBeGreaterThan(0));
     const sent = bodyOf(patchesTo('/api/admin/leads/lead-1')[0]);
@@ -167,7 +173,9 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
 
     // Que el módulo esté en pantalla prueba que la calculadora se construyó
     // con /api/admin/modulos y no con una lista escrita a mano.
-    expect(await screen.findByText('Catálogo')).toBeInTheDocument();
+    // «Catálogo» también aparece como dato del formulario del cliente: se
+    // busca el de la calculadora, que es el que prueba de dónde salió.
+    expect((await screen.findAllByText('Catálogo')).length).toBeGreaterThan(0);
     expect(screen.getByText('Horas PERT')).toBeInTheDocument();
   });
 
