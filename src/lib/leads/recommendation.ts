@@ -77,6 +77,8 @@ export interface RecommendationContext {
   diagnostico: Record<string, string | null | undefined>;
   /** Lo que falta del formulario: huecos conocidos, no supuestos. */
   huecos: string[];
+  /** Lo anotado en la llamada, pregunta por pregunta. */
+  respuestas?: Record<string, string>;
   catalogo: CatalogModule[];
 }
 
@@ -137,6 +139,8 @@ export function recommendationInput(context: RecommendationContext): string {
   return JSON.stringify({
     formulario: clean(context.formulario),
     diagnostico_de_la_llamada: clean(context.diagnostico),
+    respuestas_de_la_llamada: context.respuestas && Object.keys(context.respuestas).length
+      ? context.respuestas : undefined,
     huecos_del_formulario: context.huecos.length ? context.huecos : undefined,
   }, null, 2);
 }

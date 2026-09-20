@@ -49,6 +49,7 @@ export interface Lead {
   ultimo_contacto_at: string | null;
   propuesta_respuesta: string | null;
   modulos_seleccionados: unknown;
+  guia_respuestas: unknown;
   propuesta_rechazo_motivo: string | null;
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */

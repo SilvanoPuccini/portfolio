@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { isKnownState } from '@/lib/leads/pipeline';
 import { parseSelectedModules } from '@/lib/leads/selected-modules';
+import { parseAnswers } from '@/lib/leads/call-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export async function PATCH(
       'titular', 'localidad', 'pais', 'notas_llamada', 'estado',
       'diagnostico_objetivo', 'diagnostico_situacion', 'diagnostico_requerimiento',
       'diagnostico_dolor', 'diagnostico_deseo', 'diagnostico_preocupaciones',
-      'proposal_sent_at', 'ultimo_contacto_at', 'propuesta_respuesta', 'propuesta_rechazo_motivo', 'contract_sent_at',
+      'proposal_sent_at', 'ultimo_contacto_at', 'propuesta_respuesta', 'propuesta_rechazo_motivo', 'guia_respuestas', 'contract_sent_at',
     ];
     const allowedNumbers = ['monto_presupuestado', 'horas_calculadas'];
 
@@ -70,6 +71,16 @@ export async function PATCH(
         }
         updates[key] = v;
       }
+    }
+
+    // Las respuestas de la llamada, una por pregunta. Los seis campos del
+    // diagnóstico viajan aparte, ya resumidos por la guía.
+    if ('guia_respuestas' in body) {
+      const value = body.guia_respuestas;
+      if (value !== null && (typeof value !== 'object' || Array.isArray(value))) {
+        return NextResponse.json({ error: 'Field "guia_respuestas" must be an object.' }, { status: 400 });
+      }
+      updates.guia_respuestas = value === null ? null : parseAnswers(value);
     }
 
     // El alcance cotizado viaja junto con el presupuesto: lo que se guarda es

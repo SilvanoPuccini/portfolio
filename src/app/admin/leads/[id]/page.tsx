@@ -16,6 +16,7 @@ import {
 import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/LeadReadOnlySections';
 import { LeadEditableForm } from '@/components/admin/leads/LeadEditableForm';
 import { CallGuide } from '@/components/admin/leads/CallGuide';
+import { diagnosisFromAnswers, parseAnswers, type GuideAnswers } from '@/lib/leads/call-guide';
 import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
 import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
 
@@ -56,6 +57,7 @@ export default function LeadDetailPage() {
   const [clientSaved, setClientSaved] = useState(false);
 
   // Editable diagnosis fields
+  const [guideAnswers, setGuideAnswers] = useState<GuideAnswers>({});
   const [diagObjetivo, setDiagObjetivo] = useState('');
   const [diagSituacion, setDiagSituacion] = useState('');
   const [diagRequerimiento, setDiagRequerimiento] = useState('');
@@ -107,6 +109,7 @@ export default function LeadDetailPage() {
     setPais(l.pais ?? '');
     setEstado(l.estado ?? 'nuevo');
     setNotasLlamada(l.notas_llamada ?? '');
+    setGuideAnswers(parseAnswers(l.guia_respuestas));
     setDiagObjetivo(l.diagnostico_objetivo ?? '');
     setDiagSituacion(l.diagnostico_situacion ?? '');
     setDiagRequerimiento(l.diagnostico_requerimiento ?? '');
@@ -193,13 +196,22 @@ export default function LeadDetailPage() {
     await fetch(`/api/admin/leads/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      // Las respuestas crudas y, derivados de ellas, los seis campos del
+      // diagnóstico: lo que ya los lee (propuesta, seguimiento, recomendación)
+      // sigue funcionando sin enterarse del cambio.
       body: JSON.stringify({
-        diagnostico_objetivo: diagObjetivo,
-        diagnostico_situacion: diagSituacion,
-        diagnostico_requerimiento: diagRequerimiento,
-        diagnostico_dolor: diagDolor,
-        diagnostico_deseo: diagDeseo,
-        diagnostico_preocupaciones: diagPreocupaciones,
+        guia_respuestas: guideAnswers,
+        ...(() => {
+          const diagnosis = diagnosisFromAnswers(guideAnswers);
+          return {
+            diagnostico_objetivo: diagnosis.objetivo,
+            diagnostico_situacion: diagnosis.situacion,
+            diagnostico_requerimiento: diagnosis.requerimiento,
+            diagnostico_dolor: diagnosis.dolor,
+            diagnostico_deseo: diagnosis.deseo,
+            diagnostico_preocupaciones: diagnosis.preocupaciones,
+          };
+        })(),
       }),
     });
     setDiagSaved(true);
@@ -549,18 +561,8 @@ export default function LeadDetailPage() {
         <CallGuide
           leadId={lead.id}
           form={lead}
-          values={{
-            objetivo: diagObjetivo, situacion: diagSituacion, requerimiento: diagRequerimiento,
-            dolor: diagDolor, deseo: diagDeseo, preocupaciones: diagPreocupaciones,
-          }}
-          onChange={(field, value) => {
-            const setters = {
-              objetivo: setDiagObjetivo, situacion: setDiagSituacion,
-              requerimiento: setDiagRequerimiento, dolor: setDiagDolor,
-              deseo: setDiagDeseo, preocupaciones: setDiagPreocupaciones,
-            };
-            setters[field](value);
-          }}
+          answers={guideAnswers}
+          onAnswer={(questionId, value) => setGuideAnswers((prev) => ({ ...prev, [questionId]: value }))}
           service={lead.tipo_proyecto}
           onSave={() => void saveDiagnosis()}
           saved={diagSaved}

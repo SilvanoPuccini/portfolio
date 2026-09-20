@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
-import { missingFromForm } from '@/lib/leads/call-guide';
+import { missingFromForm, parseAnswers } from '@/lib/leads/call-guide';
 import { draftRecommendation, type CatalogModule } from '@/lib/leads/recommendation';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ const LEAD_COLUMNS = [
   'plazo', 'integraciones', 'idiomas', 'tiene_login', 'tiene_pagos', 'tiene_admin',
   'tiene_marca', 'tiene_contenido', 'notas_llamada', 'recomendacion',
   'diagnostico_objetivo', 'diagnostico_situacion', 'diagnostico_requerimiento',
-  'diagnostico_dolor', 'diagnostico_deseo', 'diagnostico_preocupaciones',
+  'diagnostico_dolor', 'diagnostico_deseo', 'diagnostico_preocupaciones', 'guia_respuestas',
 ].join(', ');
 
 type LeadRow = Record<string, unknown> & { recomendacion?: unknown };
@@ -62,6 +62,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       formulario,
       diagnostico,
       huecos: missingFromForm(formulario),
+      // Lo crudo de la llamada: pregunta por pregunta, sin el resumen de por medio.
+      respuestas: parseAnswers(lead.guia_respuestas),
       catalogo: (modules ?? []) as CatalogModule[],
     });
 

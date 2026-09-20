@@ -140,25 +140,26 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     });
   });
 
-  it('guarda el diagnóstico que se anotó en la guía', async () => {
-    // Los seis campos viven en un solo lugar: la guía de la llamada. Antes
-    // estaban duplicados en una sección aparte, sin las preguntas al lado.
+  it('guarda lo anotado en la guía y arma los seis campos solo', async () => {
+    // Se anota pregunta por pregunta; los seis campos del diagnóstico —que
+    // leen la propuesta, el seguimiento y la recomendación— se completan con
+    // el resumen de cada etapa, sin que nadie los escriba a mano.
     render(<LeadDetailPage />);
     await screen.findByText('Ferrelon');
 
     fireEvent.click(screen.getByRole('button', { name: /Ir a El problema y lo que cuesta/i }));
-    fireEvent.change(screen.getByLabelText(/Anotar El problema y lo que cuesta/i), {
-      target: { value: 'Pierden clientes' },
+    fireEvent.change(screen.getByLabelText(/¿Cuánto te cuesta eso por mes/i), {
+      target: { value: 'Pierden 3 pedidos por semana' },
     });
     fireEvent.click(screen.getByRole('button', { name: /Guardar lo anotado/i }));
 
     await waitFor(() => expect(patchesTo('/api/admin/leads/lead-1').length).toBeGreaterThan(0));
-    const sent = bodyOf(patchesTo('/api/admin/leads/lead-1')[0]);
-    expect(sent).toMatchObject({
-      diagnostico_objetivo: 'Vender online',
-      diagnostico_dolor: 'Pierden clientes',
-      diagnostico_preocupaciones: 'El costo',
-    });
+    const sent = bodyOf(patchesTo('/api/admin/leads/lead-1')[0]) as {
+      guia_respuestas: Record<string, string>; diagnostico_dolor: string;
+    };
+
+    expect(sent.guia_respuestas['problema.costo']).toBe('Pierden 3 pedidos por semana');
+    expect(sent.diagnostico_dolor).toContain('Pierden 3 pedidos por semana');
   });
 
   it('muestra la transcripción de la llamada', async () => {
