@@ -3,10 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 vi.mock('./send-contract', () => ({ sendContractToLead: vi.fn() }));
+vi.mock('./documenso-contract', () => ({ createContract: vi.fn() }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
 import { sendContractToLead } from './send-contract';
+import { createContract } from './documenso-contract';
 import { recordProposalResponse } from './proposal-response';
 
 const LEAD = {
@@ -31,14 +33,40 @@ describe('recordProposalResponse', () => {
     process.env.ADMIN_EMAIL = 'silvano@ejemplo.com';
     vi.mocked(sendCrmEmail).mockResolvedValue(undefined as never);
     vi.mocked(sendContractToLead).mockResolvedValue({ ok: true, estado: 'contrato_enviado' });
+    vi.mocked(createContract).mockResolvedValue({
+      envelopeId: 'env_1', signingUrl: 'https://app.documenso.com/sign/abc', token: 'abc',
+    });
   });
 
-  it('aceptar manda el contrato solo', async () => {
-    const update = supabase(LEAD);
+  it('aceptar crea el contrato y lo deja listo para firmar ahí mismo', async () => {
+    // El hueco entre el «sí» y la firma es donde se enfría una venta.
+    const update = supabase({
+      ...LEAD,
+      propuesta_snapshot: { inversion: { total: 4800 }, incluye: [{ titulo: 'Catálogo' }] },
+    });
+
+    const result = await recordProposalResponse('tok-1', 'aceptada', undefined, undefined, 'https://x/propuesta/tok-1');
+
+    expect(createContract).toHaveBeenCalledWith(
+      { nombre: 'Ferrelon', email: 'hola@ferrelon.com', total: 4800, alcance: 'Catálogo' },
+      'https://x/propuesta/tok-1',
+    );
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      contrato_firma_token: 'abc',
+      contrato_signing_url: 'https://app.documenso.com/sign/abc',
+      estado: 'contrato_enviado',
+    }));
+    expect(sendContractToLead).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: true, contrato: 'para_firmar' });
+  });
+
+  it('si Documenso falla, cae al correo con el contrato adjunto', async () => {
+    // Que Documenso esté caído no puede costar la venta.
+    supabase(LEAD);
+    vi.mocked(createContract).mockRejectedValue(new Error('Documenso 500'));
 
     const result = await recordProposalResponse('tok-1', 'aceptada');
 
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({ propuesta_respuesta: 'aceptada' }));
     expect(sendContractToLead).toHaveBeenCalledWith('lead-1');
     expect(result).toMatchObject({ ok: true, contrato: 'enviado' });
   });
@@ -92,6 +120,7 @@ describe('recordProposalResponse', () => {
   it('si el contrato no sale, la aceptación igual queda registrada', async () => {
     // Es un dato del cliente: no se pierde porque falle un envío nuestro.
     const update = supabase(LEAD);
+    vi.mocked(createContract).mockRejectedValue(new Error('Documenso caído'));
     vi.mocked(sendContractToLead).mockResolvedValue({ ok: false, reason: 'no_document' });
 
     const result = await recordProposalResponse('tok-1', 'aceptada');
@@ -136,8 +165,8 @@ describe('recordProposalResponse', () => {
 
       const result = await recordProposalResponse('tok-1', 'aceptada');
 
-      expect(sendContractToLead).toHaveBeenCalledWith('lead-1');
-      expect(result).toMatchObject({ ok: true, contrato: 'enviado' });
+      expect(createContract).toHaveBeenCalled();
+      expect(result).toMatchObject({ ok: true, contrato: 'para_firmar' });
     });
 
     it('pero un sí o un no ya dados no se cambian solos', async () => {

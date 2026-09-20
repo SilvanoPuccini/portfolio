@@ -2,7 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
-vi.mock('next/navigation', () => ({ notFound: vi.fn(() => { throw new Error('NEXT_NOT_FOUND'); }) }));
+vi.mock('next/navigation', () => ({
+  notFound: vi.fn(() => { throw new Error('NEXT_NOT_FOUND'); }),
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+// El embed de Documenso carga un iframe a su dominio: en un test alcanza con
+// saber que se renderiza con el token correcto.
+vi.mock('@documenso/embed-react', () => ({
+  EmbedSignDocument: ({ token }: { token: string }) => <div data-testid="firma" data-token={token} />,
+}));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import PropuestaPage from './page';
@@ -78,13 +86,37 @@ describe('la propuesta que ve el cliente', () => {
     expect(screen.getByRole('button', { name: /No por ahora/i })).toBeTruthy();
   });
 
-  it('si ya respondió no vuelve a ofrecerle decidir', async () => {
-    supabase({ propuesta_snapshot: DOC, propuesta_respuesta: 'aceptada' });
+  it('al aceptar, lo que toca ya no es decidir sino firmar', async () => {
+    supabase({
+      propuesta_snapshot: DOC, propuesta_respuesta: 'aceptada',
+      contrato_firma_token: 'abc', contrato_signing_url: 'https://app.documenso.com/sign/abc',
+    });
 
     await view();
 
     expect(screen.queryByRole('button', { name: /Acepto/i })).toBeNull();
-    expect(screen.getByText(/te llega el contrato para firmar/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /Firmá el contrato/i })).toBeTruthy();
+    expect(screen.getByTestId('firma').getAttribute('data-token')).toBe('abc');
+  });
+
+  it('el link a Documenso queda a la vista: embeber no puede ser una jaula', async () => {
+    supabase({
+      propuesta_snapshot: DOC, propuesta_respuesta: 'aceptada',
+      contrato_firma_token: 'abc', contrato_signing_url: 'https://app.documenso.com/sign/abc',
+    });
+
+    await view();
+
+    expect(screen.getByRole('link', { name: /pestaña nueva/i }))
+      .toHaveAttribute('href', 'https://app.documenso.com/sign/abc');
+  });
+
+  it('si el contrato todavía no está, lo dice sin dejarlo en blanco', async () => {
+    supabase({ propuesta_snapshot: DOC, propuesta_respuesta: 'aceptada', contrato_firma_token: null });
+
+    await view();
+
+    expect(screen.getByText(/te llega el contrato por mail/i)).toBeTruthy();
   });
 
   it('un link que no existe no dice nada de nadie', async () => {

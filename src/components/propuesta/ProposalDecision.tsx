@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 /**
  * La decisión, al pie de la propuesta.
@@ -31,6 +32,7 @@ export function ProposalDecision({ token, answered }: { token: string; answered?
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(answered ?? null);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   async function answer(respuesta: Answer, days?: number) {
     setBusy(true);
@@ -51,6 +53,9 @@ export function ProposalDecision({ token, answered }: { token: string; answered?
     if (json.yaRespondida) return setError('Esta propuesta ya fue respondida. Si querés cambiar algo, escribime y lo vemos.');
     if (!response.ok) return setError(json.error ?? 'No se pudo registrar tu respuesta. Probá de nuevo o respondé el correo.');
     setDone(respuesta);
+    // Al aceptar, el contrato ya existe del lado del servidor: recargar la
+    // página lo trae para firmarlo acá mismo, sin esperar ningún correo.
+    if (respuesta === 'aceptada') router.refresh();
   }
 
   if (done === 'aceptada' || done === 'rechazada') {

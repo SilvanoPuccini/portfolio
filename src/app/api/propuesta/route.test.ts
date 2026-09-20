@@ -24,7 +24,9 @@ describe('POST /api/propuesta', () => {
   it('registra la aceptación y avisa que el contrato salió', async () => {
     const body = await (await post({ token: 'tok-1', respuesta: 'aceptada' })).json();
 
-    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'aceptada', undefined, undefined);
+    expect(recordProposalResponse).toHaveBeenCalledWith(
+      'tok-1', 'aceptada', undefined, undefined, expect.stringContaining('/propuesta/tok-1'),
+    );
     expect(body).toMatchObject({ ok: true, contrato: 'enviado' });
   });
 
@@ -33,7 +35,9 @@ describe('POST /api/propuesta', () => {
 
     await post({ token: 'tok-1', respuesta: 'rechazada', motivo: 'Se pospuso' });
 
-    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'rechazada', 'Se pospuso', undefined);
+    expect(recordProposalResponse).toHaveBeenCalledWith(
+      'tok-1', 'rechazada', 'Se pospuso', undefined, expect.any(String),
+    );
   });
 
   it('rechaza una respuesta que no es ni sí ni no', async () => {
@@ -83,7 +87,9 @@ describe('POST /api/propuesta', () => {
 
     await post({ token: 'tok-1', respuesta: 'pensando', recordar: enUnaSemana });
 
-    expect(recordProposalResponse).toHaveBeenCalledWith('tok-1', 'pensando', undefined, enUnaSemana);
+    expect(recordProposalResponse).toHaveBeenCalledWith(
+      'tok-1', 'pensando', undefined, enUnaSemana, expect.any(String),
+    );
   });
 
   it('una fecha imposible no pierde el lead en silencio', async () => {

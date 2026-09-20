@@ -20,6 +20,7 @@
     "og:home": "node scripts/og-home.mjs"
   },
   "dependencies": {
+    "@documenso/embed-react": "^0.6.2",
     "@google/generative-ai": "^0.24.1",
     "@next/mdx": "^16.2.3",
     "@supabase/supabase-js": "^2.103.3",

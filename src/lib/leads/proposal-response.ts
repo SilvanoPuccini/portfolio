@@ -2,6 +2,8 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
 import { escapeHtml } from '@/lib/html-escape';
 import { sendContractToLead } from './send-contract';
+import { createContract } from './documenso-contract';
+import { advanceOn } from './pipeline';
 
 /**
  * Lo que pasa cuando el cliente contesta la propuesta desde el correo.
@@ -25,7 +27,12 @@ export type ProposalAnswer = 'aceptada' | 'rechazada' | 'pensando';
 const FINAL_ANSWERS = ['aceptada', 'rechazada'];
 
 export type ResponseResult =
-  | { ok: true; answer: ProposalAnswer; contrato: 'enviado' | 'con_problema' | 'no_corresponde'; detail?: string }
+  | {
+    ok: true; answer: ProposalAnswer;
+    /** `para_firmar` es el camino bueno: el contrato ya existe y se firma sin salir. */
+    contrato: 'para_firmar' | 'enviado' | 'con_problema' | 'no_corresponde';
+    detail?: string;
+  }
   | { ok: false; reason: 'not_found' | 'already_answered' | 'db_failed'; answer?: ProposalAnswer; detail?: string };
 
 interface LeadRow {
@@ -33,6 +40,7 @@ interface LeadRow {
   nombre: string;
   email: string;
   propuesta_respuesta: string | null;
+  propuesta_snapshot: { incluye?: { titulo?: string }[]; inversion?: { total?: number } } | null;
 }
 
 /** Le avisa a Silvano. Que falle el aviso no invalida la respuesta del cliente. */
@@ -64,12 +72,14 @@ async function notifyOwner(lead: LeadRow, answer: ProposalAnswer, motivo?: strin
 
 export async function recordProposalResponse(
   token: string, answer: ProposalAnswer, motivo?: string, remindAt?: string,
+  /** Adónde vuelve el cliente después de firmar: su misma propuesta. */
+  redirectUrl?: string,
 ): Promise<ResponseResult> {
   const db = getSupabaseAdmin();
 
   const { data, error } = await db
     .from('leads')
-    .select('id, nombre, email, propuesta_respuesta')
+    .select('id, nombre, email, propuesta_respuesta, propuesta_snapshot')
     .eq('propuesta_token', token)
     .maybeSingle();
 
@@ -101,6 +111,37 @@ export async function recordProposalResponse(
   if (answer !== 'aceptada') {
     await notifyOwner(lead, answer, motivo, remindAt);
     return { ok: true, answer, contrato: 'no_corresponde' };
+  }
+
+  // El camino bueno: el contrato se crea en Documenso con el precio y el
+  // alcance de ESTA propuesta, y el cliente lo firma sin salir de la página.
+  try {
+    const snapshot = lead.propuesta_snapshot ?? {};
+    const contract = await createContract({
+      nombre: lead.nombre,
+      email: lead.email,
+      total: Math.round(snapshot.inversion?.total ?? 0),
+      alcance: (snapshot.incluye ?? [])
+        .map((item) => item?.titulo ?? '')
+        .filter(Boolean)
+        .join(', '),
+    }, redirectUrl);
+
+    await db.from('leads').update({
+      contrato_signing_url: contract.signingUrl,
+      contrato_firma_token: contract.token,
+      contrato_envelope_id: contract.envelopeId,
+      contract_sent_at: new Date().toISOString(),
+      estado: advanceOn('contrato_enviado', 'presupuestado') ?? undefined,
+    }).eq('id', lead.id);
+
+    await notifyOwner(lead, answer);
+    return { ok: true, answer, contrato: 'para_firmar' };
+  } catch (reason) {
+    // Documenso caído o sin configurar no puede costar la venta: se cae al
+    // correo con el contrato adjunto, que es lo que funcionaba hasta ahora.
+    console.warn('[proposal-response] Documenso no pudo crear el contrato:',
+      reason instanceof Error ? reason.message : reason);
   }
 
   const sent = await sendContractToLead(lead.id);

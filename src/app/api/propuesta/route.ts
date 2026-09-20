@@ -49,7 +49,10 @@ export async function POST(req: NextRequest) {
       : new Date(asked).toISOString();
   }
 
-  const result = await recordProposalResponse(token, respuesta, body.motivo, remindAt);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+  const result = await recordProposalResponse(
+    token, respuesta, body.motivo, remindAt, `${siteUrl}/propuesta/${token}`,
+  );
 
   if (!result.ok) {
     if (result.reason === 'already_answered') {

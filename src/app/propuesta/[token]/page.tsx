@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import { ProposalDecision } from '@/components/propuesta/ProposalDecision';
+import { ContractStep } from '@/components/propuesta/ContractStep';
 import type { DiagnosisDoc } from '@/lib/leads/diagnosis-doc';
 
 /**
@@ -35,7 +36,7 @@ const STEPS = ['Leer', 'Firmar', 'Pagar la seña', 'Arrancamos'];
 async function loadProposal(token: string) {
   const { data } = await getSupabaseAdmin()
     .from('leads')
-    .select('propuesta_snapshot, propuesta_respuesta, propuesta_recordar_at')
+    .select('propuesta_snapshot, propuesta_respuesta, contrato_firma_token, contrato_signing_url')
     .eq('propuesta_token', token)
     .maybeSingle();
 
@@ -43,6 +44,10 @@ async function loadProposal(token: string) {
   return {
     doc: data.propuesta_snapshot as DiagnosisDoc,
     answered: (data.propuesta_respuesta as string | null) ?? null,
+    firma: {
+      token: (data.contrato_firma_token as string | null) ?? null,
+      url: (data.contrato_signing_url as string | null) ?? null,
+    },
   };
 }
 
@@ -53,8 +58,10 @@ export default async function PropuestaPage({ params }: { params: Params }) {
   // Un link vencido o inventado no dice qué pasó: no hay nada que filtrar.
   if (!proposal) notFound();
 
-  const { doc, answered } = proposal;
+  const { doc, answered, firma } = proposal;
   const firmado = answered === 'aceptada';
+  // El paso encendido sale del estado real, no de haber scrolleado.
+  const pasoActual = firmado ? 1 : 0;
 
   return (
     <main className="pb-24">
@@ -83,12 +90,14 @@ export default async function PropuestaPage({ params }: { params: Params }) {
                 <li key={step} className="flex items-center gap-3">
                   <span
                     className={`flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] ${
-                      i === 0 ? 'text-brand-primary' : 'text-text-tertiary'
+                      i === pasoActual ? 'text-brand-primary' : 'text-text-tertiary'
                     }`}
                   >
                     <span
                       className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-                        i === 0 ? 'border-brand-primary/50 bg-brand-primary/10' : 'border-outline-ghost/20'
+                        i === pasoActual ? 'border-brand-primary/50 bg-brand-primary/10'
+                          : i < pasoActual ? 'border-brand-primary/25 text-brand-primary/70'
+                          : 'border-outline-ghost/20'
                       }`}
                     >{i + 1}</span>
                     {step}
@@ -214,8 +223,11 @@ export default async function PropuestaPage({ params }: { params: Params }) {
         </section>
 
         {/* ── La decisión ─────────────────────────────────────────── */}
+        {/* Aceptó: lo que toca ya no es decidir, es firmar. */}
         <section id="decidir" className="mt-20 scroll-mt-10 sm:mt-24">
-          <ProposalDecision token={token} answered={answered} />
+          {firmado
+            ? <ContractStep token={firma.token} signingUrl={firma.url} />
+            : <ProposalDecision token={token} answered={answered} />}
         </section>
 
         <footer className="mt-14 border-t border-outline-ghost/10 pt-7 text-sm leading-7 text-text-tertiary">

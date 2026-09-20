@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ProposalDecision } from './ProposalDecision';
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
 function mockApi(body: Record<string, unknown> = { ok: true }, ok = true) {
   const fetchMock = vi.fn().mockResolvedValue({ ok, json: async () => body });
   vi.stubGlobal('fetch', fetchMock);

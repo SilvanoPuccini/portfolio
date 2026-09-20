@@ -1,0 +1,132 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createContract, prefillFor, signerOf } from './documenso-contract';
+
+const DATA = {
+  nombre: 'Ferrelon', email: 'hola@ferrelon.com', total: 4800,
+  alcance: 'Catálogo de productos, Pagos online',
+};
+
+describe('prefillFor', () => {
+  it('llena los campos que la plantilla etiquetó', () => {
+    const fields = [
+      { id: 1, type: 'text', fieldMeta: { label: 'Cliente' } },
+      { id: 2, type: 'text', fieldMeta: { label: 'PRECIO' } },
+      { id: 3, type: 'text', fieldMeta: { label: 'alcance' } },
+    ];
+
+    expect(prefillFor(fields, DATA)).toEqual([
+      { id: 1, type: 'text', value: 'Ferrelon' },
+      { id: 2, type: 'text', value: 'USD 4.800' },
+      { id: 3, type: 'text', value: 'Catálogo de productos, Pagos online' },
+    ]);
+  });
+
+  it('ignora los campos que no sabe llenar, sin romper el contrato', () => {
+    // Una plantilla puede tener campos que solo llena el firmante.
+    const fields = [
+      { id: 1, fieldMeta: { label: 'Firma del cliente' } },
+      { id: 2, fieldMeta: null },
+      { id: 3 },
+    ];
+
+    expect(prefillFor(fields, DATA)).toEqual([]);
+  });
+});
+
+describe('signerOf', () => {
+  it('elige al primero que firma, no al que revisa', () => {
+    expect(signerOf([
+      { id: 9, role: 'VIEWER', signingOrder: 1 },
+      { id: 4, role: 'SIGNER', signingOrder: 2 },
+      { id: 7, role: 'SIGNER', signingOrder: 3 },
+    ])).toMatchObject({ id: 4 });
+  });
+
+  it('sin firmantes devuelve null en vez de inventar uno', () => {
+    expect(signerOf([{ id: 1, role: 'VIEWER' }])).toBeNull();
+    expect(signerOf([])).toBeNull();
+  });
+});
+
+describe('createContract', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.DOCUMENSO_API_TOKEN = 'api_test';
+    process.env.DOCUMENSO_TEMPLATE_ID = '42';
+  });
+
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  function mockDocumenso(overrides: { created?: unknown; templateOk?: boolean } = {}) {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: overrides.templateOk ?? true,
+        json: async () => ({
+          fields: [{ id: 2, type: 'text', fieldMeta: { label: 'precio' } }],
+          recipients: [{ id: 5, role: 'SIGNER', signingOrder: 1 }],
+        }),
+        text: async () => 'no existe',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => overrides.created ?? {
+          envelopeId: 'env_1',
+          recipients: [{ signingUrl: 'https://app.documenso.com/sign/abc', token: 'abc' }],
+        },
+        text: async () => '',
+      });
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  }
+
+  it('crea el contrato con el precio ya cargado y devuelve dónde firmar', async () => {
+    const fetchMock = mockDocumenso();
+
+    const result = await createContract(DATA, 'https://silvanopuccini.dev/propuesta/tok-1');
+
+    const body = JSON.parse(fetchMock.mock.calls[1][1].body as string);
+    expect(body.recipients).toEqual([{ id: 5, email: 'hola@ferrelon.com', name: 'Ferrelon' }]);
+    expect(body.prefillFields).toEqual([{ id: 2, type: 'text', value: 'USD 4.800' }]);
+    expect(body.override.redirectUrl).toContain('/propuesta/tok-1');
+    expect(result).toEqual({
+      envelopeId: 'env_1', signingUrl: 'https://app.documenso.com/sign/abc', token: 'abc',
+    });
+  });
+
+  it('también lo manda por mail: si cierra la pestaña, el link le llega igual', async () => {
+    const fetchMock = mockDocumenso();
+
+    await createContract(DATA);
+
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string).distributeDocument).toBe(true);
+  });
+
+  it('sin configuración no inventa nada', async () => {
+    delete process.env.DOCUMENSO_TEMPLATE_ID;
+    await expect(createContract(DATA)).rejects.toThrow('DOCUMENSO_TEMPLATE_ID');
+
+    process.env.DOCUMENSO_TEMPLATE_ID = '42';
+    delete process.env.DOCUMENSO_API_TOKEN;
+    await expect(createContract(DATA)).rejects.toThrow('DOCUMENSO_API_TOKEN');
+  });
+
+  it('avisa si la plantilla no tiene firmante', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => ({ fields: [], recipients: [] }), text: async () => '',
+    }));
+
+    await expect(createContract(DATA)).rejects.toThrow('firmante');
+  });
+
+  it('avisa si Documenso no devuelve el link', async () => {
+    mockDocumenso({ created: { envelopeId: 'env_1', recipients: [] } });
+
+    await expect(createContract(DATA)).rejects.toThrow('link de firma');
+  });
+
+  it('propaga el error de Documenso con su código', async () => {
+    mockDocumenso({ templateOk: false });
+
+    await expect(createContract(DATA)).rejects.toThrow(/Documenso/);
+  });
+});
