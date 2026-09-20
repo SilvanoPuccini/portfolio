@@ -42,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { data: modules } = await db
-    .from('modulos_presupuesto').select('slug, label, horas_min, horas_max').order('label');
+    .from('modulos_precio').select('slug, label, horas_min, horas_max').order('label');
 
   const pick = (keys: string[]) => Object.fromEntries(keys.map((key) => [key, lead[key]]));
   const diagnostico = {

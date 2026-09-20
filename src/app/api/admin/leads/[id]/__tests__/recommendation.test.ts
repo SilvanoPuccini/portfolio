@@ -17,7 +17,7 @@ const CATALOG = [{ slug: 'catalogo', label: 'Catálogo', horas_min: 20, horas_ma
 
 function supabase(lead: Record<string, unknown> | null) {
   const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
-  const from = vi.fn((table: string) => (table === 'modulos_presupuesto'
+  const from = vi.fn((table: string) => (table === 'modulos_precio'
     ? { select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: CATALOG, error: null }) }) }
     : {
       select: vi.fn().mockReturnValue({

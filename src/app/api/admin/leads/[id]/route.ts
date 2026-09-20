@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { isKnownState } from '@/lib/leads/pipeline';
+import { parseSelectedModules } from '@/lib/leads/selected-modules';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,6 +51,7 @@ export async function PATCH(
     ];
     const allowedNumbers = ['monto_presupuestado', 'horas_calculadas'];
 
+
     const updates: Record<string, unknown> = {};
     for (const key of allowedStrings) {
       if (key in body) {
@@ -68,6 +70,15 @@ export async function PATCH(
         }
         updates[key] = v;
       }
+    }
+
+    // El alcance cotizado viaja junto con el presupuesto: lo que se guarda es
+    // lo que después dice la propuesta.
+    if ('modulos_seleccionados' in body) {
+      if (!Array.isArray(body.modulos_seleccionados)) {
+        return NextResponse.json({ error: 'Field "modulos_seleccionados" must be an array.' }, { status: 400 });
+      }
+      updates.modulos_seleccionados = parseSelectedModules(body.modulos_seleccionados);
     }
 
     // La columna `estado` es text libre: sin esto, un typo entra a la base y

@@ -17,6 +17,7 @@ vi.mock('@/lib/proposal-template', () => ({
 }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { buildProposal } from '@/lib/proposal-template';
 import { GET } from '@/app/api/admin/proposal/[id]/route';
 
 function makeRequest(id = 'lead-123'): [NextRequest, { params: Promise<{ id: string }> }] {
@@ -42,17 +43,14 @@ function makeSupabaseMock(cfg: SupabaseMockConfig) {
           }),
         };
       }
-      if (table === 'modulos_presupuesto') {
+      // La tarifa sale de `rate_config`: `config_presupuesto` no existe en la
+      // base, y el alcance ya no se arma del catálogo sino del propio lead.
+      if (table === 'rate_config') {
         return {
           select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue(cfg.modules ?? { data: [], error: null }),
-          }),
-        };
-      }
-      if (table === 'config_presupuesto') {
-        return {
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue(cfg.config ?? { data: { tarifa_hora: 35 }, error: null }),
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue(cfg.config ?? { data: { tarifa_hora: 35 }, error: null }),
+            }),
           }),
         };
       }
@@ -88,6 +86,54 @@ describe('GET /api/admin/proposal/[id]', () => {
     expect(res.headers.get('content-type')).toContain(
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     );
+  });
+
+  it('lista los módulos cotizados a ESTE cliente, no el catálogo entero', async () => {
+    // El bug que esto fija: la propuesta pedía el catálogo completo a una
+    // tabla inexistente, así que el PDF salía sin un solo módulo.
+    vi.mocked(getSupabaseAdmin).mockReturnValue(makeSupabaseMock({
+      lead: {
+        data: {
+          nombre: 'Test Client', email: 'test@example.com', tipo_proyecto: 'Platform',
+          monto_presupuestado: 3200, horas_calculadas: 80, plazo: '2 months',
+          modulos_seleccionados: [
+            { slug: 'catalogo', label: 'Catálogo de productos', horas: 24 },
+            { slug: 'pagos', label: 'Pagos online', horas: 16 },
+          ],
+        },
+        error: null,
+      },
+      config: { data: { tarifa_hora: 40 }, error: null },
+    }) as never);
+
+    const [req, ctx] = makeRequest();
+    await GET(req, ctx);
+
+    expect(vi.mocked(buildProposal).mock.calls[0][0]).toMatchObject({
+      modules: [
+        { label: 'Catálogo de productos', hours: 24 },
+        { label: 'Pagos online', hours: 16 },
+      ],
+    });
+  });
+
+  it('un presupuesto sin módulos guardados no inventa ninguno', async () => {
+    vi.mocked(getSupabaseAdmin).mockReturnValue(makeSupabaseMock({
+      lead: {
+        data: {
+          nombre: 'Test Client', email: 'test@example.com', tipo_proyecto: 'Platform',
+          monto_presupuestado: 3200, horas_calculadas: 80, plazo: '2 months',
+          modulos_seleccionados: null,
+        },
+        error: null,
+      },
+      config: { data: { tarifa_hora: 40 }, error: null },
+    }) as never);
+
+    const [req, ctx] = makeRequest();
+    await GET(req, ctx);
+
+    expect(vi.mocked(buildProposal).mock.calls[0][0]).toMatchObject({ modules: [] });
   });
 
   it('returns 400 when lead has no budget', async () => {

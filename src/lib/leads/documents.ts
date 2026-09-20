@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { proposalModules } from './selected-modules';
 import { buildProposal, Packer } from '@/lib/proposal-template';
 import { buildContract, Packer as ContractPacker, type ContractData } from '@/lib/contract-template';
 
@@ -38,25 +39,22 @@ export async function buildProposalDoc(leadId: string): Promise<GeneratedDoc | n
 
   const { data: lead, error } = await db
     .from('leads')
-    .select('nombre, email, tipo_proyecto, monto_presupuestado, horas_calculadas, plazo')
+    .select('nombre, email, tipo_proyecto, monto_presupuestado, horas_calculadas, plazo, modulos_seleccionados')
     .eq('id', leadId).single();
 
   if (error || !lead) return null;
   if (lead.monto_presupuestado == null || lead.horas_calculadas == null) return null;
 
-  const [{ data: modules }, { data: config }] = await Promise.all([
-    db.from('modulos_presupuesto').select('slug, label, horas_min, horas_max').order('label'),
-    db.from('config_presupuesto').select('tarifa_hora').single(),
-  ]);
+  const { data: config } = await db.from('rate_config').select('tarifa_hora').eq('id', 1).single();
 
   const hourlyRate: number = config?.tarifa_hora ?? 35;
   const totalHours: number = lead.horas_calculadas;
   const totalPrice: number = lead.monto_presupuestado;
 
-  const moduleList = (modules ?? []).map((m: { label: string; horas_min: number; horas_max: number }) => ({
-    label: m.label,
-    hours: Math.round((m.horas_min + m.horas_max) / 2),
-  }));
+  // El alcance cotizado para ESTE lead. Antes se listaba el catálogo entero
+  // —todos los módulos, para todos los clientes— desde una tabla que ni
+  // siquiera existe, así que la propuesta salía sin un solo módulo.
+  const moduleList = proposalModules(lead.modulos_seleccionados);
 
   const doc = buildProposal({
     clientName: lead.nombre,

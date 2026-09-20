@@ -371,6 +371,11 @@ export default function LeadDetailPage() {
       body: JSON.stringify({
         horas_calculadas: Math.round(bufferedHours * 10) / 10,
         monto_presupuestado: Math.round(totalPrice),
+        // El alcance se guarda con el total: es lo que después lista la
+        // propuesta, con el nombre y las horas del día que se cotizó.
+        modulos_seleccionados: pertRows
+          .filter((row) => row.selected)
+          .map((row) => ({ slug: row.slug, label: row.label, horas: pertHours(row.o, row.m, row.p) })),
       }),
     });
     setBudgetSaved(true);

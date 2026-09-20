@@ -11,7 +11,7 @@ import { callJson } from '@/lib/x/providers';
  *
  * Dos reglas hacen el trabajo:
  *
- * 1. Los módulos salen del catálogo real (`modulos_presupuesto`), con su slug.
+ * 1. Los módulos salen del catálogo real (`modulos_precio`), con su slug.
  *    Un modelo suelto inventa «módulo de analítica avanzada» y no hay con qué
  *    cotizarlo ni construirlo.
  * 2. Si la información no alcanza, la salida tiene que decir qué falta

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { buildProposal, Packer } from '@/lib/proposal-template';
+import { proposalModules } from '@/lib/leads/selected-modules';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ export async function GET(
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('nombre, email, tipo_proyecto, monto_presupuestado, horas_calculadas, plazo')
+      .select('nombre, email, tipo_proyecto, monto_presupuestado, horas_calculadas, plazo, modulos_seleccionados')
       .eq('id', id)
       .single();
 
@@ -31,25 +32,18 @@ export async function GET(
       );
     }
 
-    const { data: modules } = await getSupabaseAdmin()
-      .from('modulos_presupuesto')
-      .select('slug, label, horas_min, horas_max')
-      .order('label');
-
     const { data: config } = await getSupabaseAdmin()
-      .from('config_presupuesto')
+      .from('rate_config')
       .select('tarifa_hora')
+      .eq('id', 1)
       .single();
 
     const hourlyRate: number = config?.tarifa_hora ?? 35;
     const totalHours: number = lead.horas_calculadas;
     const totalPrice: number = lead.monto_presupuestado;
 
-    // Build module list from saved budget if available, otherwise use all modules as fallback
-    const moduleList = (modules ?? []).map((m: { label: string; horas_min: number; horas_max: number }) => ({
-      label: m.label,
-      hours: Math.round((m.horas_min + m.horas_max) / 2),
-    }));
+    // El alcance cotizado para este lead, no el catálogo entero.
+    const moduleList = proposalModules(lead.modulos_seleccionados);
 
     const estimatedWeeks = lead.plazo
       ? Math.ceil(totalHours / (hourlyRate * 0.8))
