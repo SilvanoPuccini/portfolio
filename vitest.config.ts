@@ -23,7 +23,18 @@ export default defineConfig({
       },
       {
         extends: true,
-        test: { name: "dom", environment: "jsdom", include: ["src/**/*.test.tsx"] },
+        test: {
+          name: "dom",
+          environment: "jsdom",
+          include: ["src/**/*.test.tsx"],
+          // Running alone, the slowest component test takes ~0.9 s; under a
+          // full parallel run the same test can take 4.5 s on a 4-CPU machine.
+          // With the default 5 s limit those runs failed at random, which made
+          // the suite lie: the timeout measured machine load, not the code. A
+          // real hang is still caught, just later.
+          testTimeout: 20_000,
+          hookTimeout: 20_000,
+        },
       },
     ],
     coverage: {
