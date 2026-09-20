@@ -1,24 +1,18 @@
 /**
- * Qué parte de la ficha corresponde mirar en cada fase.
+ * Los cuatro momentos de la ficha.
  *
- * La ficha del lead tiene ocho secciones y las mostraba todas a la vez. Una
- * pantalla que muestra todo no te dice qué hacer ahora: para cargar el
- * diagnóstico de una llamada recién terminada hay que pasar por el formulario
- * de hace un mes, el cuestionario ya respondido y la calculadora todavía vacía.
+ * Antes eran ocho secciones sueltas y varias decían lo mismo: «Formulario»,
+ * «Detalles del servicio» y «Datos del cliente» eran tres cajas para la misma
+ * pregunta —quién es y qué pidió—, y el diagnóstico estaba duplicado entre la
+ * guía y una sección aparte. Ocho cajones no ordenan: obligan a buscar.
  *
- * Nada se esconde: todas las secciones siguen ahí y se abren con un clic. Lo
- * único que cambia es cuál viene abierta.
+ * Ahora la ficha sigue el recorrido de la venta: quién es, la llamada, qué le
+ * cotizamos y cómo viene el cierre. Se abre sola la que corresponde al estado,
+ * y cada una se presenta con un renglón de resumen, así el detalle se lee solo
+ * cuando hace falta.
  */
 
-export type SectionId =
-  | 'formulario'
-  | 'servicio'
-  | 'cuestionario'
-  | 'transcripcion'
-  | 'cliente'
-  | 'diagnostico'
-  | 'presupuesto'
-  | 'propuesta';
+export type SectionId = 'cliente' | 'llamada' | 'diagnostico' | 'venta';
 
 export interface LeadSection {
   id: SectionId;
@@ -28,18 +22,14 @@ export interface LeadSection {
 }
 
 const CAPTACION = ['nuevo', 'llamada_agendada', 'no_show'];
-const POST_LLAMADA = ['en conversación'];
+const LLAMADA = ['en conversación'];
 const VENTA = ['presupuestado', 'contrato_enviado', 'contrato_firmado'];
 
 export const LEAD_SECTIONS: LeadSection[] = [
-  { id: 'formulario', title: 'Formulario', activeIn: CAPTACION },
-  { id: 'servicio', title: 'Detalles del servicio', activeIn: CAPTACION },
-  { id: 'cuestionario', title: 'Cuestionario', activeIn: CAPTACION },
-  { id: 'cliente', title: 'Datos del cliente', activeIn: [...CAPTACION, ...POST_LLAMADA] },
-  { id: 'transcripcion', title: 'Transcripción de la llamada', activeIn: POST_LLAMADA },
-  { id: 'diagnostico', title: 'Diagnóstico de la llamada', activeIn: POST_LLAMADA },
-  { id: 'presupuesto', title: 'Calculadora de presupuesto', activeIn: [...POST_LLAMADA, 'presupuestado'] },
-  { id: 'propuesta', title: 'Prompt para propuesta', activeIn: VENTA },
+  { id: 'cliente', title: 'El cliente', activeIn: CAPTACION },
+  { id: 'llamada', title: 'La llamada', activeIn: [...CAPTACION, ...LLAMADA] },
+  { id: 'diagnostico', title: 'El diagnóstico', activeIn: [...LLAMADA, 'presupuestado'] },
+  { id: 'venta', title: 'La venta', activeIn: VENTA },
 ];
 
 /** Los estados donde la venta ya no se trabaja: nada tiene que abrirse solo. */
@@ -59,22 +49,7 @@ export function opensAt(id: SectionId, estado: string): boolean {
   return known ? section.activeIn.includes(estado) : section.activeIn.includes('nuevo');
 }
 
-/**
- * Todas las secciones, cada una sabiendo si arranca abierta.
- *
- * En las fases de cierre —cobrado, facturado, entregado— no hay nada de la
- * ficha que "toque": el trabajo está en la barra de arriba. Igual se abre el
- * resumen del formulario, porque una pantalla entera plegada parece rota.
- */
+/** Las cuatro secciones con su estado de apertura, en orden. */
 export function sectionsFor(estado: string): (LeadSection & { open: boolean })[] {
-  const sections = LEAD_SECTIONS.map((section) => ({
-    ...section,
-    open: opensAt(section.id, estado),
-  }));
-
-  if (sections.some((section) => section.open)) return sections;
-
-  return sections.map((section) => (
-    section.id === 'formulario' ? { ...section, open: true } : section
-  ));
+  return LEAD_SECTIONS.map((section) => ({ ...section, open: opensAt(section.id, estado) }));
 }

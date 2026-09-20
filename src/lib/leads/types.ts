@@ -50,6 +50,14 @@ export interface Lead {
   propuesta_respuesta: string | null;
   modulos_seleccionados: unknown;
   guia_respuestas: unknown;
+  /** Los hitos de la venta, para el historial de la ficha. */
+  propuesta_respondida_at: string | null;
+  contrato_firmado_at: string | null;
+  kickoff_at: string | null;
+  cobrado_at: string | null;
+  factura_at: string | null;
+  factura_numero: string | null;
+  entregado_at: string | null;
   propuesta_rechazo_motivo: string | null;
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */

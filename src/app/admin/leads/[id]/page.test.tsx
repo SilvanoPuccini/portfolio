@@ -112,9 +112,10 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     await screen.findByText('Ferrelon');
 
     // En «en conversación» toca el diagnóstico, no el formulario de captación.
-    // El diagnóstico ahora se carga desde la guía: es la misma sección.
-    expect(screen.getByRole('button', { name: /Guía de la llamada/ })).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('button', { name: /^.?Cuestionario/ })).toHaveAttribute('aria-expanded', 'false');
+    // La ficha sigue el recorrido de la venta: con la llamada ya hecha, lo
+    // que toca mirar es el diagnóstico, no quién es el cliente.
+    expect(screen.getByRole('button', { name: /3 · El diagnóstico/ })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /1 · El cliente/ })).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('carga los datos editables del cliente en sus campos', async () => {
@@ -190,6 +191,10 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     render(<LeadDetailPage />);
     await screen.findByText('Ferrelon');
 
+    // Los datos del cliente viven en el momento 1, que con la llamada ya
+    // hecha viene plegado: se abre con un clic, como cualquier otro.
+    fireEvent.click(screen.getByRole('button', { name: /1 · El cliente/ }));
+
     const select = screen.getByDisplayValue('En conversación');
     expect(select).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Ganado' })).toBeInTheDocument();
@@ -239,7 +244,12 @@ describe('Ficha del lead — la barra recibe lo que necesita', () => {
 
     render(<LeadDetailPage />);
     await screen.findByText('Ferrelon');
-    expect(screen.getByRole('link', { name: /Ver contrato firmado/ }))
-      .toHaveAttribute('href', '/api/admin/leads/lead-1/contract-pdf');
+    // Aparece en dos lados a propósito: en la barra de acciones y en el
+    // historial de la venta. Los dos tienen que apuntar al mismo lado.
+    const links = screen.getAllByRole('link', { name: /Ver contrato firmado/ });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link).toHaveAttribute('href', '/api/admin/leads/lead-1/contract-pdf');
+    }
   });
 });

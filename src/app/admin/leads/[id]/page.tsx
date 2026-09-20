@@ -16,6 +16,10 @@ import {
 import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/LeadReadOnlySections';
 import { LeadEditableForm } from '@/components/admin/leads/LeadEditableForm';
 import { CallGuide } from '@/components/admin/leads/CallGuide';
+import { LeadSaleHistory } from '@/components/admin/leads/LeadSaleHistory';
+import {
+  clienteSummary, llamadaSummary, diagnosticoSummary, ventaSummary,
+} from '@/lib/leads/sheet-summary';
 import { diagnosisFromAnswers, parseAnswers, type GuideAnswers } from '@/lib/leads/call-guide';
 import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
 import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
@@ -496,68 +500,54 @@ export default function LeadDetailPage() {
         onAdvanced={() => void load()}
       />
 
-      {/* Read-only: Formulario */}
-      <LeadSection title="Formulario" defaultOpen={openSections.formulario}>
-
+      {/* ── 1 · EL CLIENTE ─────────────────────────────────────────────
+          «Formulario», «Detalles del servicio», «Cuestionario» y «Datos del
+          cliente» eran cuatro cajas para la misma pregunta: quién es y qué
+          pidió. Ahora es una sola, con el resumen a la vista. */}
+      <LeadSection title="1 · El cliente" defaultOpen={openSections.cliente} hint={clienteSummary(lead)}>
         <LeadFormFields lead={lead} />
+
+        {(lead.service || lead.service_data) && (
+          <div style={{ marginTop: 18 }}>
+            <p style={s.sectionTitle}>Detalles del servicio</p>
+            <LeadServiceDetails service={lead.service} serviceData={lead.service_data} />
+          </div>
+        )}
+
+        <div style={{ marginTop: 18 }}>
+          <p style={s.sectionTitle}>Datos para facturar y estado</p>
+          <LeadEditableForm
+            onSave={saveClient}
+            saved={clientSaved}
+            fields={[
+              { kind: 'text', key: 'titular', label: 'Titular', value: titular, onChange: setTitular },
+              { kind: 'text', key: 'localidad', label: 'Localidad', value: localidad, onChange: setLocalidad },
+              { kind: 'text', key: 'pais', label: 'País', value: pais, onChange: setPais },
+              {
+                kind: 'select', key: 'estado', label: 'Estado', value: estado, onChange: setEstado,
+                options: ESTADOS.map((value) => ({ value, label: labelForState(value) })),
+              },
+              { kind: 'textarea', key: 'notas', label: 'Notas de llamada', value: notasLlamada, onChange: setNotasLlamada, minHeight: 100 },
+            ]}
+          />
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <p style={s.sectionTitle}>Pedirle lo que falta</p>
+          <LeadActionButton
+            hint="Mandale el cuestionario ANTES de la llamada: llegás con la mitad contestada y la charla se usa para profundizar, no para recolectar datos."
+            label="Enviar cuestionario"
+            tone="#0ea5e9"
+            busy={questionnaireSending}
+            done={questionnaireSent}
+            doneLabel="Cuestionario enviado"
+            error={questionnaireError}
+            onClick={sendQuestionnaire}
+          />
+        </div>
       </LeadSection>
 
-      {/* Service Details — task 8.1 */}
-      {(lead.service || lead.service_data) && (
-        <LeadSection title="Detalles del servicio" defaultOpen={openSections.servicio}>
-          <LeadServiceDetails service={lead.service} serviceData={lead.service_data} />
-        </LeadSection>
-      )}
-
-      {/* Send Questionnaire — task 8.3 */}
-      <LeadSection title="Cuestionario" defaultOpen={openSections.cuestionario}>
-        <LeadActionButton
-          hint="Enviá un cuestionario al cliente para recopilar información detallada sobre su proyecto."
-          label="Enviar cuestionario"
-          tone="#0ea5e9"
-          busy={questionnaireSending}
-          done={questionnaireSent}
-          doneLabel="Cuestionario enviado"
-          error={questionnaireError}
-          onClick={sendQuestionnaire}
-        />
-      </LeadSection>
-
-      {/* Transcription */}
-      {lead.transcripcion && (
-        <LeadSection title="Transcripción de la llamada" defaultOpen={openSections.transcripcion}>
-          <pre style={{
-            fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.7,
-            whiteSpace: 'pre-wrap', fontFamily: 'inherit',
-            maxHeight: 400, overflowY: 'auto',
-          }}>
-            {lead.transcripcion}
-          </pre>
-        </LeadSection>
-      )}
-
-      {/* Editable: Datos del cliente */}
-      <LeadSection title="Datos del cliente" defaultOpen={openSections.cliente}>
-        <LeadEditableForm
-          onSave={saveClient}
-          saved={clientSaved}
-          fields={[
-            { kind: 'text', key: 'titular', label: 'Titular', value: titular, onChange: setTitular },
-            { kind: 'text', key: 'localidad', label: 'Localidad', value: localidad, onChange: setLocalidad },
-            { kind: 'text', key: 'pais', label: 'País', value: pais, onChange: setPais },
-            {
-              kind: 'select', key: 'estado', label: 'Estado', value: estado, onChange: setEstado,
-              options: ESTADOS.map((value) => ({ value, label: labelForState(value) })),
-            },
-            { kind: 'textarea', key: 'notas', label: 'Notas de llamada', value: notasLlamada, onChange: setNotasLlamada, minHeight: 100 },
-          ]}
-        />
-      </LeadSection>
-
-      {/* La guía de la llamada: las mismas seis respuestas, pero en el orden
-          de la conversación y con las preguntas al lado. Se abre cuando la
-          llamada es lo que toca. */}
-      <LeadSection title="Guía de la llamada" defaultOpen={openSections.diagnostico}>
+      <LeadSection title="2 · La llamada" defaultOpen={openSections.llamada} hint={llamadaSummary(guideAnswers)}>
         <CallGuide
           leadId={lead.id}
           form={lead}
@@ -574,10 +564,23 @@ export default function LeadDetailPage() {
             )));
           }}
         />
+
+        {lead.transcripcion && (
+          <div style={{ marginTop: 18 }}>
+            <p style={s.sectionTitle}>Transcripción de la llamada</p>
+            <pre style={{
+              fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.7,
+              whiteSpace: 'pre-wrap', fontFamily: 'inherit',
+              maxHeight: 400, overflowY: 'auto',
+            }}>
+              {lead.transcripcion}
+            </pre>
+          </div>
+        )}
       </LeadSection>
 
       {/* Budget Calculator */}
-      <LeadSection title="Calculadora de presupuesto" defaultOpen={openSections.presupuesto}>
+      <LeadSection title="3 · El diagnóstico" defaultOpen={openSections.diagnostico} hint={diagnosticoSummary(lead)}>
         <LeadBudgetSection
           lead={lead}
           rateConfig={rateConfig}
@@ -603,11 +606,10 @@ export default function LeadDetailPage() {
           contractEmailError={contractEmailError}
           fmt={fmt}
         />
-      </LeadSection>
-
       {/* Proposal Prompt Generator */}
-      {lead.monto_presupuestado != null && (
-        <LeadSection title="Prompt para propuesta" defaultOpen={openSections.propuesta}>
+        {lead.monto_presupuestado != null && (
+          <div style={{ marginTop: 18 }}>
+            <p style={s.sectionTitle}>Prompt para la propuesta</p>
           <p style={s.hint}>
             Compilá los datos del lead en un prompt listo para generar la propuesta visual.
           </p>
@@ -643,8 +645,14 @@ export default function LeadDetailPage() {
               }}
             />
           )}
-        </LeadSection>
-      )}
+          </div>
+        )}
+      </LeadSection>
+
+      {/* ── 4 · LA VENTA ──────────────────────────────────────────────── */}
+      <LeadSection title="4 · La venta" defaultOpen={openSections.venta} hint={ventaSummary(lead)}>
+        <LeadSaleHistory lead={lead} fmt={fmt} />
+      </LeadSection>
     </div>
   );
 }
