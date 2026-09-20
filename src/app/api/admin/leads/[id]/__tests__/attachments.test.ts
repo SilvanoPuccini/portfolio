@@ -35,6 +35,10 @@ function supabaseWithLead() {
           data: { nombre: 'Ferrelon', email: 'hola@ferrelon.com', estado: 'en conversación' },
           error: null,
         }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { nombre: 'Ferrelon', email: 'hola@ferrelon.com', estado: 'en conversación' },
+          error: null,
+        }),
       }),
     }),
     update,

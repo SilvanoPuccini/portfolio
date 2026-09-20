@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
@@ -38,11 +39,20 @@ export async function POST(
       }, { status: 400 });
     }
 
+    // Un token por envío: si después se manda una propuesta corregida, el
+    // link viejo deja de servir y nadie acepta una versión que ya no existe.
+    const token = randomUUID();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+
     try {
       await sendCrmEmail(
         lead.email,
         'Tu propuesta está lista',
-        proposalReadyHtml({ name: lead.nombre, email: lead.email }),
+        proposalReadyHtml({
+          name: lead.nombre,
+          email: lead.email,
+          responseUrl: `${siteUrl}/propuesta/${token}`,
+        }),
         [{ filename: doc.filename, content: doc.buffer }],
       );
     } catch (emailErr) {
@@ -60,6 +70,11 @@ export async function POST(
       .from('leads')
       .update({
         proposal_sent_at: new Date().toISOString(),
+        propuesta_token: token,
+        // La propuesta nueva se responde de cero: lo contestado era de la anterior.
+        propuesta_respuesta: null,
+        propuesta_respondida_at: null,
+        propuesta_rechazo_motivo: null,
         ...(nextState ? { estado: nextState } : {}),
       })
       .eq('id', id);

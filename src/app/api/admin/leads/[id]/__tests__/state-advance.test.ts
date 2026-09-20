@@ -28,6 +28,10 @@ function supabaseWithLead(estado: string) {
           data: { nombre: 'Lucía', email: 'lucia@example.com', estado },
           error: null,
         }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { nombre: 'Lucía', email: 'lucia@example.com', estado },
+          error: null,
+        }),
       }),
     }),
     update,

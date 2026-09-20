@@ -22,6 +22,8 @@ export interface LeadRow {
   proposal_sent_at: string | null;
   /** El último seguimiento enviado. El silencio se mide desde acá. */
   ultimo_contacto_at?: string | null;
+  /** Lo que el cliente contestó desde el correo de la propuesta. */
+  propuesta_respuesta?: string | null;
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */
   contrato_vencido_at?: string | null;
@@ -85,6 +87,11 @@ export function rowSummary(lead: LeadRow, now = new Date()): RowSummary {
       return { line: 'Hablaron · falta la propuesta', risk: false };
 
     case 'presupuestado': {
+      // Dijo que no desde el correo: sigue siendo una venta abierta, pero hay
+      // algo concreto que resolver y no un silencio que esperar.
+      if (lead.propuesta_respuesta === 'rechazada') {
+        return { line: 'Dijo que no a la propuesta · llamalo para ajustar', risk: true };
+      }
       const contacted = lastContactAt(lead);
       if (!contacted) return { line: 'Propuesta pendiente de envío', risk: false };
       const waited = daysBetween(contacted, now);

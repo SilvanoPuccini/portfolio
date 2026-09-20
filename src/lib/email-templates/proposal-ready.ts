@@ -3,7 +3,30 @@ import { escapeHtml } from '@/lib/html-escape';
 type LeadContact = {
   name: string;
   email: string;
+  /**
+   * La página donde contesta. Los botones llevan ahí con la respuesta
+   * preseleccionada, y la decisión se confirma con un clic más: los filtros
+   * de correo abren los links solos, y una propuesta no puede aceptarse
+   * porque un antivirus pasó por encima.
+   */
+  responseUrl?: string;
 };
+
+/** Los dos botones. Decir que no también tiene que ser fácil: un «no» a tiempo
+ *  vale más que un silencio de dos semanas. */
+function responseButtons(url: string): string {
+  return `
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        <tr>
+          <td style="padding-right:10px;">
+            <a href="${url}?r=aceptar" style="display:inline-block;background:#00d4d4;color:#050810;font-size:14px;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:8px;">Acepto, mandame el contrato</a>
+          </td>
+          <td>
+            <a href="${url}?r=rechazar" style="display:inline-block;color:#94a3b8;font-size:13px;text-decoration:none;padding:12px 16px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;">No por ahora</a>
+          </td>
+        </tr>
+      </table>`;
+}
 
 export function proposalReadyHtml(lead: LeadContact): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
@@ -33,6 +56,7 @@ export function proposalReadyHtml(lead: LeadContact): string {
         <p style="font-size:12px;color:#64748b;margin:0 0 4px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Adjunto</p>
         <p style="font-size:14px;color:#00d4d4;margin:0;font-weight:600;">Propuesta — ${escapeHtml(lead.name)}.docx</p>
       </div>
+      ${lead.responseUrl ? responseButtons(lead.responseUrl) : ''}
       <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
         Ante cualquier duda, respondé este email o contactame en <a href="${siteUrl}" style="color:#00d4d4;text-decoration:none;">${siteUrl}</a>
       </p>

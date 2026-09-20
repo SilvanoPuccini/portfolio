@@ -47,6 +47,8 @@ export interface Lead {
   service_data: Record<string, unknown> | null;
   proposal_sent_at: string | null;
   ultimo_contacto_at: string | null;
+  propuesta_respuesta: string | null;
+  propuesta_rechazo_motivo: string | null;
   contract_sent_at: string | null;
   /** Documenso lo dio por vencido sin firma. */
   contrato_vencido_at?: string | null;
