@@ -28,7 +28,8 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
   const nowIso = now.toISOString();
 
   const [
-    unread, subsToday, newLeads, proposals, threads, late, pendingMail, expired, rejected,
+    unread, subsToday, newLeads, proposals, unpaidSigned, pendingKickoffs, uninvoiced,
+    threads, late, pendingMail, expired, rejected,
   ] = await Promise.all([
     db.from('messages').select('id', { count: 'exact', head: true }).eq('read', false),
 
@@ -38,6 +39,15 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
 
     db.from('leads').select('id, proposal_sent_at, ultimo_contacto_at')
       .not('proposal_sent_at', 'is', null).not('estado', 'in', `(${CLOSED_STATES.join(',')})`),
+
+    // Después de la firma el tablero también tiene que reclamar: la plata ya
+    // está comprometida y se queda quieta sin que nadie diga nada.
+    db.from('leads').select('id, contrato_firmado_at').eq('estado', 'contrato_firmado'),
+
+    db.from('leads').select('id, contrato_firmado_at')
+      .eq('estado', 'contrato_firmado').is('kickoff_at', null),
+
+    db.from('leads').select('id, cobrado_at').eq('estado', 'cerrado'),
 
     db.from('x_threads').select('id', { count: 'exact', head: true })
       .eq('status', 'error').is('deleted_at', null),
@@ -67,6 +77,9 @@ export async function collectAlerts(now = new Date()): Promise<CollectedAlerts> 
     newSubscribersToday: subsToday.count ?? 0,
     newLeads: (newLeads.data ?? []) as { id: string; created_at: string }[],
     sentProposals: (proposals.data ?? []) as { id: string; proposal_sent_at: string; ultimo_contacto_at: string | null }[],
+    unpaidSigned: (unpaidSigned.data ?? []) as { id: string; contrato_firmado_at: string | null }[],
+    pendingKickoffs: (pendingKickoffs.data ?? []) as { id: string; contrato_firmado_at: string | null }[],
+    uninvoiced: (uninvoiced.data ?? []) as { id: string; cobrado_at: string | null }[],
     failedThreads: threads.count ?? 0,
     expiredContracts: expired.count ?? 0,
     rejectedContracts: rejected.count ?? 0,

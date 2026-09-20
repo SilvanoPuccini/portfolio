@@ -55,12 +55,15 @@ describe('calcomEventOutcome — una reunión con un cliente no toca la venta', 
   const FIRMADO = 'contrato_firmado';
 
   it('agendar el kickoff no la devuelve a «llamada agendada»', () => {
+    // Se anota la fecha del kickoff, pero ni el estado ni la fecha de la
+    // llamada de venta se tocan.
     expect(calcomEventOutcome('BOOKING_CREATED', FIRMADO, AT))
-      .toEqual({ updates: null, action: 'reunion_de_cliente' });
+      .toEqual({ updates: { kickoff_at: AT.startTime }, action: 'reunion_de_cliente' });
   });
 
-  it('cancelar el kickoff no la devuelve a «nuevo»', () => {
-    expect(calcomEventOutcome('BOOKING_CANCELLED', FIRMADO, {}).updates).toBeNull();
+  it('cancelar el kickoff no la devuelve a «nuevo», pero lo deja pendiente', () => {
+    expect(calcomEventOutcome('BOOKING_CANCELLED', FIRMADO, {}))
+      .toEqual({ updates: { kickoff_at: null }, action: 'kickoff_cancelado' });
   });
 
   it('faltar al kickoff no la marca como no-show', () => {

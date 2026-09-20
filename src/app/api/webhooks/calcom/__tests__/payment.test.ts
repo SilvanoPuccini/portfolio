@@ -261,7 +261,8 @@ describe('webhook de Cal.com — reuniones con clientes', () => {
 
     const body = await (await POST(eventRequest('BOOKING_CREATED', { startTime: '2026-10-01T15:00:00.000Z' }))).json();
 
-    expect(update).not.toHaveBeenCalled();
+    // Se guarda la fecha del kickoff y nada más: ni estado ni fecha_llamada.
+    expect(update).toHaveBeenCalledWith({ kickoff_at: '2026-10-01T15:00:00.000Z' });
     expect(body.action).toBe('reunion_de_cliente');
   });
 

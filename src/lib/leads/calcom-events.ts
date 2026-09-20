@@ -42,6 +42,8 @@ export interface LeadUpdate {
   grabacion_url?: string;
   transcripcion?: string;
   pago_estado?: string;
+  /** La reunión de arranque con alguien que ya firmó. */
+  kickoff_at?: string | null;
 }
 
 export interface CalcomOutcome {
@@ -72,8 +74,10 @@ export function calcomEventOutcome(rawTrigger: string, estado: string, payload: 
 
   switch (trigger) {
     case 'BOOKING_CREATED': {
-      if (!sales) return CLIENT_MEETING;
       const fecha = payload.startTime ?? new Date().toISOString();
+      // La reunión de un cliente no toca la venta, pero sí se anota: sin esto
+      // nadie podía reclamar un kickoff que no se agendó nunca.
+      if (!sales) return { updates: { kickoff_at: fecha }, action: 'reunion_de_cliente' };
       // Una segunda llamada antes de la propuesta actualiza la fecha, pero no
       // devuelve a «Llamada agendada» a quien ya habló.
       const earlier = estado === 'nuevo' || estado === 'no_show' || phaseIndex(estado) === -1;
@@ -95,6 +99,8 @@ export function calcomEventOutcome(rawTrigger: string, estado: string, payload: 
     case 'BOOKING_REJECTED': {
       // Solo la llamada de venta pendiente vuelve a «Nuevo». Cancelar
       // cualquier otra reunión no le quita a nadie lo que ya avanzó.
+      // Si cancela la reunión de cliente, el kickoff vuelve a estar pendiente.
+      if (!sales) return { updates: { kickoff_at: null }, action: 'kickoff_cancelado' };
       if (estado !== 'llamada_agendada') return { updates: null, action: 'cancelacion_sin_efecto' };
       return { updates: { estado: 'nuevo', fecha_llamada: null }, action: 'reverted_to_nuevo' };
     }

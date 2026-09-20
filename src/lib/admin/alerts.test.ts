@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { buildAlerts, startOfTodayISO, LEAD_SILENCE_HOURS, PROPOSAL_SILENCE_DAYS, type AlertInput } from './alerts';
+import {
+  buildAlerts, startOfTodayISO, LEAD_SILENCE_HOURS, PROPOSAL_SILENCE_DAYS,
+  KICKOFF_PENDING_DAYS, SIGNED_UNPAID_DAYS, PAID_UNINVOICED_DAYS, type AlertInput,
+} from './alerts';
 
 const NOW = new Date('2026-09-18T15:00:00.000Z');
 
@@ -19,6 +22,9 @@ function quiet(overrides: Partial<AlertInput> = {}): AlertInput {
     rejectedContracts: 0,
     latePieces: 0,
     unsentNewsletters: [],
+    pendingKickoffs: [],
+    unpaidSigned: [],
+    uninvoiced: [],
     ...overrides,
   };
 }
@@ -188,5 +194,61 @@ describe('startOfTodayISO', () => {
   it('honours another time zone when asked', () => {
     expect(startOfTodayISO(new Date('2026-09-18T15:00:00.000Z'), 'UTC'))
       .toBe('2026-09-18T00:00:00.000Z');
+  });
+});
+
+/**
+ * La plata parada después de la firma.
+ *
+ * Hasta acá el tablero reclamaba todo lo que pasa ANTES de firmar y nada de
+ * lo que pasa después. Un cliente que firmó y no agendó, una firma sin cobrar
+ * y un cobro sin factura son las tres formas de perder plata en silencio.
+ */
+describe('buildAlerts — lo que queda después de la firma', () => {
+  it('reclama el kickoff que nadie agendó', () => {
+    const [alert] = buildAlerts(quiet({
+      pendingKickoffs: [{ id: 'l1', contrato_firmado_at: daysAgo(KICKOFF_PENDING_DAYS + 1) }],
+    }));
+
+    expect(alert.id).toBe('kickoff-sin-agendar');
+    expect(alert.severity).toBe('warn');
+    expect(alert.count).toBe(1);
+    expect(alert.href).toBe('/admin/leads');
+  });
+
+  it('le da tiempo al cliente recién firmado', () => {
+    expect(idsOf(quiet({
+      pendingKickoffs: [{ id: 'l1', contrato_firmado_at: daysAgo(KICKOFF_PENDING_DAYS - 1) }],
+    }))).toEqual([]);
+  });
+
+  it('reclama una firma que no se cobró', () => {
+    const [alert] = buildAlerts(quiet({
+      unpaidSigned: [{ id: 'l1', contrato_firmado_at: daysAgo(SIGNED_UNPAID_DAYS + 1) }],
+    }));
+
+    expect(alert.id).toBe('firmados-sin-cobrar');
+    expect(alert.severity).toBe('urgent');
+  });
+
+  it('no reclama un cobro que todavía está en plazo', () => {
+    expect(idsOf(quiet({
+      unpaidSigned: [{ id: 'l1', contrato_firmado_at: daysAgo(SIGNED_UNPAID_DAYS - 1) }],
+    }))).toEqual([]);
+  });
+
+  it('reclama un cobro sin factura', () => {
+    const [alert] = buildAlerts(quiet({
+      uninvoiced: [{ id: 'l1', cobrado_at: daysAgo(PAID_UNINVOICED_DAYS + 1) }],
+    }));
+
+    expect(alert.id).toBe('cobrados-sin-facturar');
+    expect(alert.severity).toBe('warn');
+  });
+
+  it('una venta sin fecha de cobro no se reclama a ciegas', () => {
+    // Sin fecha no hay forma de saber si está atrasada: reclamarla igual sería
+    // ruido, y el ruido es lo que hace que se dejen de mirar los avisos.
+    expect(idsOf(quiet({ uninvoiced: [{ id: 'l1', cobrado_at: null }] }))).toEqual([]);
   });
 });

@@ -25,6 +25,16 @@ export const LEAD_SILENCE_HOURS = 48;
 export const PROPOSAL_SILENCE_DAYS = 5;
 
 /**
+ * Lo que pasa DESPUÉS de firmar también se enfría, y ahí la plata ya está
+ * comprometida. Tres relojes distintos porque son tres problemas distintos:
+ * un kickoff sin agendar frena el trabajo, una firma sin cobrar es plata que
+ * no entró, y un cobro sin factura es una obligación que se acumula.
+ */
+export const KICKOFF_PENDING_DAYS = 3;
+export const SIGNED_UNPAID_DAYS = 7;
+export const PAID_UNINVOICED_DAYS = 5;
+
+/**
  * La medianoche de hoy en la zona del negocio, como ISO UTC.
  *
  * «Suscriptores nuevos hoy» tiene que significar hoy acá, no en UTC. A las
@@ -69,6 +79,12 @@ export interface AlertInput {
   expiredContracts: number;
   /** Contratos que el cliente rechazó en Documenso y siguen sin resolver. */
   rejectedContracts: number;
+  /** Firmados que todavía no agendaron la reunión de arranque. */
+  pendingKickoffs: { id: string; contrato_firmado_at: string | null }[];
+  /** Firmados sin el cobro registrado. */
+  unpaidSigned: { id: string; contrato_firmado_at: string | null }[];
+  /** Cobrados sin factura emitida. */
+  uninvoiced: { id: string; cobrado_at: string | null }[];
   /** Piezas cuya fecha ya pasó y siguen sin publicar. */
   latePieces: number;
   /** Posts publicados cuyo correo a suscriptores nunca salió. */
@@ -78,6 +94,11 @@ export interface AlertInput {
 /** «1 lead» / «2 leads», sin el paréntesis feo de (s). */
 function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+/** Como `olderThan`, pero sin fecha no reclama: un aviso a ciegas es ruido. */
+function olderThanOrSkip(iso: string | null, now: Date, milliseconds: number): boolean {
+  return Boolean(iso) && olderThan(iso as string, now, milliseconds);
 }
 
 function olderThan(iso: string, now: Date, milliseconds: number): boolean {
@@ -160,6 +181,47 @@ export function buildAlerts(input: AlertInput): Alert[] {
       text: `${plural(input.rejectedContracts, 'contrato rechazado', 'contratos rechazados')} — llamá para negociar`,
       href: '/admin/leads',
       count: input.rejectedContracts,
+    });
+  }
+
+  // Lo que sigue pasa DESPUÉS de firmar: plata ya comprometida que se queda
+  // quieta sin que nadie reclame. Antes el tablero solo miraba hasta la firma.
+  const unpaid = input.unpaidSigned.filter(
+    (lead) => olderThanOrSkip(lead.contrato_firmado_at, input.now, SIGNED_UNPAID_DAYS * 86_400_000),
+  );
+  if (unpaid.length > 0) {
+    alerts.push({
+      id: 'firmados-sin-cobrar',
+      severity: 'urgent',
+      text: `${plural(unpaid.length, 'contrato firmado', 'contratos firmados')} sin cobrar hace más de ${SIGNED_UNPAID_DAYS} días`,
+      href: '/admin/leads',
+      count: unpaid.length,
+    });
+  }
+
+  const pendingKickoff = input.pendingKickoffs.filter(
+    (lead) => olderThanOrSkip(lead.contrato_firmado_at, input.now, KICKOFF_PENDING_DAYS * 86_400_000),
+  );
+  if (pendingKickoff.length > 0) {
+    alerts.push({
+      id: 'kickoff-sin-agendar',
+      severity: 'warn',
+      text: `${plural(pendingKickoff.length, 'cliente firmado', 'clientes firmados')} sin agendar el kickoff`,
+      href: '/admin/leads',
+      count: pendingKickoff.length,
+    });
+  }
+
+  const uninvoiced = input.uninvoiced.filter(
+    (lead) => olderThanOrSkip(lead.cobrado_at, input.now, PAID_UNINVOICED_DAYS * 86_400_000),
+  );
+  if (uninvoiced.length > 0) {
+    alerts.push({
+      id: 'cobrados-sin-facturar',
+      severity: 'warn',
+      text: `${plural(uninvoiced.length, 'cobro', 'cobros')} sin facturar hace más de ${PAID_UNINVOICED_DAYS} días`,
+      href: '/admin/leads',
+      count: uninvoiced.length,
     });
   }
 
