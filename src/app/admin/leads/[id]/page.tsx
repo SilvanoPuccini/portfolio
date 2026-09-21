@@ -88,6 +88,10 @@ export default function LeadDetailPage() {
   const [questionnaireSending, setQuestionnaireSending] = useState(false);
   const [questionnaireSent, setQuestionnaireSent] = useState(false);
   const [questionnaireError, setQuestionnaireError] = useState('');
+  /** Qué pasó con el cuestionario: null mientras no se sabe. */
+  const [questionnaireState, setQuestionnaireState] = useState<{
+    enviado: boolean; enviadoEl?: string; completadoEl?: string | null; url?: string;
+  } | null>(null);
 
   // Send proposal email
   const [proposalSending, setProposalSending] = useState(false);
@@ -321,25 +325,53 @@ export default function LeadDetailPage() {
     }
   }
 
-  async function sendQuestionnaire() {
+  /**
+   * Manda el cuestionario, o lo reenvía si ya existe.
+   *
+   * Sin `reenviar` el servidor corta el segundo envío: dos links vivos son el
+   * cliente contestando uno mientras el panel mira el otro.
+   */
+  async function sendQuestionnaire(reenviar = false) {
     setQuestionnaireSending(true);
     setQuestionnaireSent(false);
     setQuestionnaireError('');
     try {
-      const res = await fetch(`/api/admin/leads/${id}/questionnaire`, { method: 'POST' });
+      const res = await fetch(`/api/admin/leads/${id}/questionnaire`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reenviar }),
+      });
+      const body = await res.json().catch(() => ({})) as {
+        error?: string; yaEnviado?: boolean; enviadoEl?: string; url?: string;
+      };
+
       if (res.ok) {
         setQuestionnaireSent(true);
         setTimeout(() => setQuestionnaireSent(false), 4000);
-      } else {
-        const body = await res.json() as { error?: string };
-        setQuestionnaireError(body.error ?? 'Error al enviar el cuestionario.');
+        await loadQuestionnaireState();
+        return;
       }
+      if (body.yaEnviado) {
+        setQuestionnaireState({ enviado: true, enviadoEl: body.enviadoEl, url: body.url });
+        return;
+      }
+      setQuestionnaireError(body.error ?? 'Error al enviar el cuestionario.');
     } catch {
       setQuestionnaireError('Error de conexión.');
     } finally {
       setQuestionnaireSending(false);
     }
   }
+
+  const loadQuestionnaireState = useCallback(async () => {
+    const res = await fetch(`/api/admin/leads/${id}/questionnaire`);
+    if (!res.ok) return;
+    setQuestionnaireState(await res.json());
+  }, [id]);
+
+  // El estado del cuestionario se pregunta al abrir la ficha: ofrecer «enviar»
+  // algo que ya se mandó es cómo terminaban dos links dando vueltas.
+  useEffect(() => { void loadQuestionnaireState(); }, [loadQuestionnaireState]);
 
   async function sendProposalEmail() {
     setProposalSending(true);
@@ -537,16 +569,40 @@ export default function LeadDetailPage() {
 
         <div style={{ marginTop: 18 }}>
           <p style={s.sectionTitle}>Pedirle lo que falta</p>
-          <LeadActionButton
-            hint="Mandale el cuestionario ANTES de la llamada: llegás con la mitad contestada y la charla se usa para profundizar, no para recolectar datos."
-            label="Enviar cuestionario"
-            tone="#0ea5e9"
-            busy={questionnaireSending}
-            done={questionnaireSent}
-            doneLabel="Cuestionario enviado"
-            error={questionnaireError}
-            onClick={sendQuestionnaire}
-          />
+
+          {questionnaireState?.completadoEl ? (
+            <p style={s.hint}>
+              Ya lo completó el {fmt(questionnaireState.completadoEl)}. Las respuestas están arriba, en el formulario.
+            </p>
+          ) : questionnaireState?.enviado ? (
+            <div>
+              <p style={s.hint}>
+                Enviado el {questionnaireState.enviadoEl ? fmt(questionnaireState.enviadoEl) : '—'} y todavía sin
+                contestar. Reenviar manda el mismo link, no uno nuevo.
+              </p>
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                <button style={s.btnGhost} disabled={questionnaireSending} onClick={() => void sendQuestionnaire(true)}>
+                  {questionnaireSending ? 'Reenviando…' : 'Reenviar el mismo link'}
+                </button>
+                {questionnaireState.url && (
+                  <a href={questionnaireState.url} target="_blank" rel="noopener noreferrer"
+                    style={{ ...s.btnGhost, textDecoration: 'none' }}>Ver el cuestionario ↗</a>
+                )}
+              </div>
+              {questionnaireSent && <p style={{ ...s.successText, marginTop: 8 }}>Reenviado</p>}
+            </div>
+          ) : (
+            <LeadActionButton
+              hint="Mandale el cuestionario ANTES de la llamada: llegás con la mitad contestada y la charla se usa para profundizar, no para recolectar datos."
+              label="Enviar cuestionario"
+              tone="#0ea5e9"
+              busy={questionnaireSending}
+              done={questionnaireSent}
+              doneLabel="Cuestionario enviado"
+              error={questionnaireError}
+              onClick={() => void sendQuestionnaire()}
+            />
+          )}
         </div>
       </LeadSection>
 
