@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { isAuthorized } from '@/lib/admin-auth';
-import { CAMPOS_ESPERADOS, signerOf } from '@/lib/leads/documenso-contract';
+import { CAMPOS_ESPERADOS, createContract, signerOf } from '@/lib/leads/documenso-contract';
+import { legalClauseFor } from '@/lib/leads/legal-clause';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -143,4 +144,37 @@ export async function GET(req: NextRequest) {
     listo: Boolean(firmante) && faltan.length === 0 && tablaPedidos,
     ...(problema ? { problema } : {}),
   });
+}
+
+/**
+ * Una firma de prueba, de verdad.
+ *
+ * Crea un contrato real en Documenso con datos de prueba evidentes y devuelve
+ * el error EXACTO si algo falla. Un 502 en la página del cliente no dice nada;
+ * «invalid enum value» dice todo.
+ *
+ * El documento queda en la cuenta de Documenso y se puede borrar desde ahí.
+ */
+export async function POST(req: NextRequest) {
+  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const contrato = await createContract({
+      nombre: 'PRUEBA — no es un cliente',
+      email: 'prueba@example.com',
+      total: 1,
+      alcance: 'Contrato de prueba para verificar la plantilla.',
+      objeto: 'Prueba de integración.',
+      plazo: '1 día hábil.',
+      pago: 'Pago único de USD 1.',
+      domicilio: 'Prueba',
+      jurisdiccion: legalClauseFor('Argentina'),
+    });
+
+    return NextResponse.json({ ok: true, signingUrl: contrato.signingUrl });
+  } catch (reason) {
+    const error = reason instanceof Error ? reason.message : String(reason);
+    console.error('[documenso-check] La prueba falló:', error);
+    return NextResponse.json({ ok: false, error });
+  }
 }

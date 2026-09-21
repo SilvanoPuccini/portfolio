@@ -50,6 +50,8 @@ export function DocumensoCheck() {
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
+  const [prueba, setPrueba] = useState<{ ok: boolean; signingUrl?: string; error?: string } | null>(null);
+  const [probando, setProbando] = useState(false);
 
   async function comprobar() {
     setCargando(true);
@@ -69,6 +71,20 @@ export function DocumensoCheck() {
     }
   }
 
+  /** Crea un contrato real de prueba y muestra el error exacto si falla. */
+  async function probar() {
+    setProbando(true);
+    setPrueba(null);
+    try {
+      const res = await fetch('/api/admin/documenso-check', { method: 'POST' });
+      setPrueba(await res.json() as { ok: boolean; signingUrl?: string; error?: string });
+    } catch {
+      setPrueba({ ok: false, error: 'Se cortó la conexión.' });
+    } finally {
+      setProbando(false);
+    }
+  }
+
   return (
     <div style={{ ...s.card, maxWidth: 520, marginTop: 20 }}>
       <p style={s.eyebrow}>Contratos</p>
@@ -81,9 +97,46 @@ export function DocumensoCheck() {
         sale del servidor.
       </p>
 
-      <button onClick={comprobar} disabled={cargando} style={{ ...s.btn, opacity: cargando ? 0.6 : 1 }}>
-        {cargando ? 'Comprobando…' : 'Comprobar la plantilla'}
-      </button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        <button onClick={comprobar} disabled={cargando} style={{ ...s.btn, opacity: cargando ? 0.6 : 1 }}>
+          {cargando ? 'Comprobando…' : 'Comprobar la plantilla'}
+        </button>
+        <button onClick={probar} disabled={probando} style={{ ...s.btnGhost, opacity: probando ? 0.6 : 1 }}>
+          {probando ? 'Creando…' : 'Crear un contrato de prueba'}
+        </button>
+      </div>
+
+      {prueba && (
+        <div style={{
+          marginTop: 14, padding: '12px 14px', borderRadius: 8,
+          background: prueba.ok ? VERDE.fondo : ROJO.fondo,
+          border: `1px solid ${prueba.ok ? VERDE.borde : ROJO.borde}`,
+        }}>
+          {prueba.ok ? (
+            <>
+              <p style={{ fontSize: 13, color: '#e2e8f0', margin: 0 }}>
+                Documenso creó el contrato. Se firma acá:
+              </p>
+              <a href={prueba.signingUrl} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 12, color: '#00d4d4', wordBreak: 'break-all' }}>
+                {prueba.signingUrl}
+              </a>
+              <p style={{ fontSize: 11.5, color: c.textDim, margin: '8px 0 0', lineHeight: 1.6 }}>
+                Es un documento de prueba con datos falsos. Borralo desde Documenso cuando lo revises.
+              </p>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 13, color: '#e2e8f0', margin: '0 0 6px' }}>
+                Documenso rechazó la llamada. Esto es lo que dijo:
+              </p>
+              <code style={{ fontSize: 11.5, color: '#fca5a5', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {prueba.error}
+              </code>
+            </>
+          )}
+        </div>
+      )}
 
       {error && <p style={{ ...s.errorText, marginTop: 14 }}>{error}</p>}
 

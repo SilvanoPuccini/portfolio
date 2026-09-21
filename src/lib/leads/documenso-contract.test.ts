@@ -52,6 +52,35 @@ describe('prefillFor', () => {
     expect(prefillFor(fields, sinPlazo)).toEqual([]);
   });
 
+  it('manda el tipo en minúscula, que es el único que Documenso acepta', () => {
+    // El sobre devuelve «TEXT» y el rellenado espera «text». Mandar el valor
+    // tal cual hacía que Documenso rechazara la llamada entera.
+    const fields = [{ id: 1, type: 'TEXT', fieldMeta: { label: 'cliente' } }];
+    expect(prefillFor(fields, DATA)).toEqual([{ id: 1, type: 'text', value: 'Ferrelon' }]);
+  });
+
+  it('traduce cada tipo al que espera el rellenado', () => {
+    const fields = [
+      { id: 1, type: 'NUMBER', fieldMeta: { label: 'precio' } },
+      { id: 2, type: 'DROPDOWN', fieldMeta: { label: 'pago' } },
+    ];
+    expect(prefillFor(fields, DATA)).toEqual([
+      { id: 1, type: 'number', value: 'USD 4.800' },
+      { id: 2, type: 'dropdown', value: DATA.pago },
+    ]);
+  });
+
+  it('no intenta rellenar una firma ni un campo que se completa solo', () => {
+    // SIGNATURE, EMAIL y NAME no están entre los tipos rellenables: mandarlos
+    // hace fallar toda la llamada, no solo ese campo.
+    const fields = [
+      { id: 1, type: 'SIGNATURE', fieldMeta: { label: 'cliente' } },
+      { id: 2, type: 'EMAIL', fieldMeta: { label: 'email' } },
+      { id: 3, type: 'TEXT', fieldMeta: { label: 'precio' } },
+    ];
+    expect(prefillFor(fields, DATA)).toEqual([{ id: 3, type: 'text', value: 'USD 4.800' }]);
+  });
+
   it('ignora los campos que no sabe llenar, sin romper el contrato', () => {
     // Una plantilla puede tener campos que solo llena el firmante.
     const fields = [

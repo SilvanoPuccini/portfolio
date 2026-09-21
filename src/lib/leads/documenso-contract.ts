@@ -96,11 +96,34 @@ const FIELD_LABELS: Record<string, (data: ContractData) => string> = {
   jurisdiccion: (data) => data.jurisdiccion ?? '',
 };
 
+/**
+ * Los tipos que el rellenado acepta, y cómo se llaman ahí.
+ *
+ * Documenso devuelve el tipo en mayúscula al leer el sobre («TEXT») y lo
+ * espera en minúscula al rellenarlo («text»). Mandar el valor tal como viene
+ * hace que rechace la llamada entera, no solo ese campo.
+ *
+ * Los que no están acá no se rellenan a propósito: una firma la pone el
+ * cliente, y el mail y el nombre nativos los completa Documenso solo.
+ */
+const TIPOS_RELLENABLES: Record<string, string> = {
+  TEXT: 'text',
+  NUMBER: 'number',
+  RADIO: 'radio',
+  CHECKBOX: 'checkbox',
+  DROPDOWN: 'dropdown',
+  DATE: 'date',
+};
+
 export function prefillFor(fields: TemplateField[], data: ContractData) {
   return fields.flatMap((field) => {
     const label = field.fieldMeta?.label?.trim().toLowerCase();
     const value = label ? FIELD_LABELS[label]?.(data) : undefined;
-    return value ? [{ id: field.id, type: field.type ?? 'text', value }] : [];
+    if (!value) return [];
+
+    // Sin tipo declarado asumimos texto, que es lo que usan las plantillas.
+    const tipo = field.type ? TIPOS_RELLENABLES[field.type.toUpperCase()] : 'text';
+    return tipo ? [{ id: field.id, type: tipo, value }] : [];
   });
 }
 

@@ -6,7 +6,13 @@ vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 
 import { isAuthorized } from '@/lib/admin-auth';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { GET } from './route';
+vi.mock('@/lib/leads/documenso-contract', async (original) => ({
+  ...(await original<typeof import('@/lib/leads/documenso-contract')>()),
+  createContract: vi.fn(),
+}));
+
+import { createContract } from '@/lib/leads/documenso-contract';
+import { GET, POST } from './route';
 
 const pedido = () => GET(new NextRequest('http://localhost/api/admin/documenso-check'));
 
@@ -146,5 +152,37 @@ describe('GET /api/admin/documenso-check', () => {
   it('sin sesión de admin no contesta nada', async () => {
     vi.mocked(isAuthorized).mockReturnValue(false);
     expect((await pedido()).status).toBe(401);
+  });
+});
+
+describe('POST /api/admin/documenso-check', () => {
+  const prueba = () => POST(new NextRequest('http://localhost/x', { method: 'POST' }));
+
+  it('crea un contrato de prueba y devuelve dónde se firma', async () => {
+    vi.mocked(createContract).mockResolvedValue({
+      envelopeId: 'env_1', signingUrl: 'https://app.documenso.com/sign/abc', token: 'abc',
+    });
+
+    const body = await (await prueba()).json();
+
+    expect(body.ok).toBe(true);
+    expect(body.signingUrl).toContain('/sign/abc');
+    // Con datos de prueba evidentes: esto no puede parecer una venta real.
+    expect(vi.mocked(createContract).mock.calls[0][0].nombre).toMatch(/prueba/i);
+  });
+
+  it('cuando Documenso rechaza, muestra el error tal cual lo dijo', async () => {
+    vi.mocked(createContract).mockRejectedValue(new Error('Documenso 400: invalid enum value'));
+
+    const body = await (await prueba()).json();
+
+    expect(body.ok).toBe(false);
+    expect(body.error).toContain('invalid enum value');
+  });
+
+  it('sin sesión de admin no crea nada', async () => {
+    vi.mocked(isAuthorized).mockReturnValue(false);
+    expect((await prueba()).status).toBe(401);
+    expect(createContract).not.toHaveBeenCalled();
   });
 });
