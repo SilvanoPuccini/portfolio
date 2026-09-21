@@ -31,8 +31,13 @@ export async function POST(
       return NextResponse.json({ error: 'Lead not found.' }, { status: 404 });
     }
 
-    // El correo anuncia un adjunto, así que sin el adjunto no sale. Antes se
-    // mandaba igual y el cliente recibía «mirá el adjunto» sin nada que mirar.
+    // La propuesta es la PÁGINA, no un adjunto: se manda el link y nada más.
+    // Antes viajaba además un .docx en inglés, así que el cliente recibía la
+    // misma propuesta dos veces y una de las dos no estaba en su idioma.
+    //
+    // El documento se sigue generando acá por un motivo: si no hay presupuesto
+    // guardado tampoco hay propuesta que mandar, y esto lo detecta antes de
+    // que salga un correo con una página vacía.
     const doc = await buildProposalDoc(id);
     if (!doc) {
       return NextResponse.json({
@@ -57,7 +62,6 @@ export async function POST(
           email: lead.email,
           responseUrl: `${siteUrl}/propuesta/${token}`,
         }),
-        [{ filename: doc.filename, content: doc.buffer }],
       );
     } catch (emailErr) {
       console.error('[send-proposal] Resend error:', emailErr);

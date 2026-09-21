@@ -3,6 +3,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { contractReadyHtml } from '@/lib/email-templates/contract-ready';
 import { buildContractDoc } from '@/lib/leads/documents';
 import { advanceOn } from '@/lib/leads/pipeline';
+import { legalClauseFor } from './legal-clause';
 
 /**
  * Mandar el contrato, desde donde sea.
@@ -13,12 +14,8 @@ import { advanceOn } from '@/lib/leads/pipeline';
  * que cambie el contrato.
  */
 
-/** La cláusula por defecto. El correo no pide una a medida: costaría una
- *  llamada al modelo por envío y el contrato ya viaja con las condiciones. */
-export const LEGAL_FALLBACK =
-  'Este contrato se regirá por las leyes de la República Argentina. ' +
-  'Para cualquier controversia, las partes se someten a la jurisdicción de los ' +
-  'tribunales ordinarios de la Ciudad Autónoma de Buenos Aires.';
+/** Se mantiene exportada por compatibilidad; la cláusula real sale por país. */
+export const LEGAL_FALLBACK = legalClauseFor(null);
 
 export type ContractResult =
   | { ok: true; estado?: string }
@@ -28,12 +25,12 @@ export async function sendContractToLead(leadId: string): Promise<ContractResult
   const db = getSupabaseAdmin();
 
   const { data: lead, error } = await db
-    .from('leads').select('nombre, email, estado').eq('id', leadId).maybeSingle();
+    .from('leads').select('nombre, email, estado, pais').eq('id', leadId).maybeSingle();
 
   if (error || !lead?.email) return { ok: false, reason: 'lead_not_found', detail: error?.message };
 
   // Sin el contrato adjunto no hay nada que firmar: el correo no sale.
-  const doc = await buildContractDoc(leadId, LEGAL_FALLBACK);
+  const doc = await buildContractDoc(leadId, legalClauseFor(lead.pais as string | null));
   if (!doc) return { ok: false, reason: 'no_document' };
 
   try {

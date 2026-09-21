@@ -55,8 +55,8 @@ function ClientContext({ form, service }: { form: FormAnswers; service?: string 
 }
 
 /** Una pregunta con su casilla y, si el navegador lo permite, su dictado. */
-function Question({ id, text, value, onChange }: {
-  id: string; text: string; value: string; onChange: (value: string) => void;
+function Question({ id, text, hint, value, onChange }: {
+  id: string; text: string; hint?: string; value: string; onChange: (value: string) => void;
 }) {
   const { supported, listening, toggle } = useDictation((chunk) => {
     onChange(value ? `${value} ${chunk}` : chunk);
@@ -79,6 +79,11 @@ function Question({ id, text, value, onChange }: {
           >🎤</button>
         )}
       </div>
+      {/* El ejemplo va arriba del campo, no en el placeholder: desaparece
+          justo cuando se empieza a escribir, que es cuando hace falta. */}
+      {hint && (
+        <p style={{ margin: 0, fontSize: 12, color: c.textDim, lineHeight: 1.5 }}>{hint}</p>
+      )}
       <textarea
         id={id}
         value={value}
@@ -224,6 +229,7 @@ export function CallGuide({ leadId, form, service, answers, onAnswer, onSave, sa
             key={question.id}
             id={question.id}
             text={question.text}
+            hint={question.hint}
             value={answers[question.id] ?? ''}
             onChange={(value) => onAnswer(question.id, value)}
           />

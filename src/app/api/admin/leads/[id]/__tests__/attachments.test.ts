@@ -13,7 +13,7 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/admin-auth', () => ({ isAuthorized: vi.fn().mockReturnValue(true) }));
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
-vi.mock('@/lib/email-templates/proposal-ready', () => ({ proposalReadyHtml: () => '<p>propuesta</p>' }));
+vi.mock('@/lib/email-templates/proposal-ready', () => ({ proposalReadyHtml: vi.fn(() => '<p>propuesta</p>') }));
 vi.mock('@/lib/email-templates/contract-ready', () => ({ contractReadyHtml: () => '<p>contrato</p>' }));
 vi.mock('@/lib/leads/documents', () => ({
   buildProposalDoc: vi.fn(),
@@ -22,6 +22,7 @@ vi.mock('@/lib/leads/documents', () => ({
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
+import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
 import { buildProposalDoc, buildContractDoc } from '@/lib/leads/documents';
 import { POST as sendProposal } from '@/app/api/admin/leads/[id]/send-proposal/route';
 import { POST as sendContract } from '@/app/api/admin/leads/[id]/send-contract/route';
@@ -62,12 +63,14 @@ describe('el correo de propuesta lleva la propuesta', () => {
     });
   });
 
-  it('adjunta el documento generado', async () => {
+  it('NO adjunta nada: la propuesta es la página, no un .docx', async () => {
+    // Antes viajaban las dos cosas y el cliente recibía la misma propuesta
+    // dos veces, una de ellas en inglés.
     await sendProposal(request(), { params });
 
-    expect(attachmentsSent()).toEqual([
-      { filename: 'propuesta-ferrelon.docx', content: expect.any(Buffer) },
-    ]);
+    expect(attachmentsSent()).toBeUndefined();
+    // Y el correo lleva el link a la página, que es la propuesta de verdad.
+    expect(vi.mocked(proposalReadyHtml).mock.calls[0][0].responseUrl).toContain('/propuesta/');
   });
 
   it('no manda nada si todavía no hay presupuesto guardado', async () => {

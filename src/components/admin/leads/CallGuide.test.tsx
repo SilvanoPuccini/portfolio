@@ -41,7 +41,7 @@ describe('CallGuide', () => {
     setup({ onAnswer });
 
     fireEvent.click(screen.getByRole('button', { name: /Ir a La situación de hoy/i }));
-    fireEvent.change(screen.getByLabelText(/¿Quiénes tocan eso/i), { target: { value: 'Tres personas' } });
+    fireEvent.change(screen.getByLabelText(/¿Quién más mete mano/i), { target: { value: 'Tres personas' } });
 
     expect(onAnswer).toHaveBeenCalledWith('situacion.gente', 'Tres personas');
   });
