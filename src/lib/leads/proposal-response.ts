@@ -3,6 +3,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { escapeHtml } from '@/lib/html-escape';
 import { sendContractToLead } from './send-contract';
 import { createContract } from './documenso-contract';
+import { legalClauseFor } from './legal-clause';
 import { advanceOn } from './pipeline';
 
 /**
@@ -40,7 +41,37 @@ interface LeadRow {
   nombre: string;
   email: string;
   propuesta_respuesta: string | null;
-  propuesta_snapshot: { incluye?: { titulo?: string }[]; inversion?: { total?: number } } | null;
+  propuesta_snapshot: {
+    incluye?: { titulo?: string }[];
+    inversion?: { total?: number; sena?: number; saldo?: number; pct?: number };
+  } | null;
+  /** Para la cláusula de partes y la ley que aplica. */
+  pais: string | null;
+  localidad: string | null;
+  pago_unico: boolean | null;
+  horas_calculadas: number | null;
+}
+
+/** El plazo que se escribe en el contrato, a partir de las horas cotizadas. */
+export function plazoDe(horas: number | null | undefined): string {
+  if (!horas || horas <= 0) return 'A convenir por escrito entre las partes.';
+  const semanas = Math.max(1, Math.ceil(horas / 20));
+  return `${semanas} ${semanas === 1 ? 'semana' : 'semanas'} desde la acreditación del primer pago.`;
+}
+
+/** Seña y saldo, o pago único. Es una decisión por venta, no por plantilla. */
+export function formaDePago(
+  pagoUnico: boolean | null | undefined,
+  inversion: { total?: number; sena?: number; saldo?: number; pct?: number },
+): string {
+  const money = (value: number) => `USD ${Math.round(value).toLocaleString('es-AR')}`;
+
+  if (pagoUnico) return `Pago único de ${money(inversion.total ?? 0)} por adelantado.`;
+
+  const pct = inversion.pct ?? 50;
+  const sena = inversion.sena ?? Math.round((inversion.total ?? 0) * pct) / 100;
+  const saldo = inversion.saldo ?? Math.max(0, (inversion.total ?? 0) - sena);
+  return `Seña del ${pct}% (${money(sena)}) para comenzar y ${money(saldo)} contra entrega.`;
 }
 
 /** Le avisa a Silvano. Que falle el aviso no invalida la respuesta del cliente. */
@@ -79,7 +110,7 @@ export async function recordProposalResponse(
 
   const { data, error } = await db
     .from('leads')
-    .select('id, nombre, email, propuesta_respuesta, propuesta_snapshot')
+    .select('id, nombre, email, propuesta_respuesta, propuesta_snapshot, pais, localidad, pago_unico, horas_calculadas')
     .eq('propuesta_token', token)
     .maybeSingle();
 
@@ -117,14 +148,23 @@ export async function recordProposalResponse(
   // alcance de ESTA propuesta, y el cliente lo firma sin salir de la página.
   try {
     const snapshot = lead.propuesta_snapshot ?? {};
+    const inversion = snapshot.inversion ?? {};
+    const total = Math.round(inversion.total ?? 0);
+
     const contract = await createContract({
       nombre: lead.nombre,
       email: lead.email,
-      total: Math.round(snapshot.inversion?.total ?? 0),
+      total,
       alcance: (snapshot.incluye ?? [])
         .map((item) => item?.titulo ?? '')
         .filter(Boolean)
         .join(', '),
+      // El plazo sale de las horas cotizadas: una semana por cada 20 horas,
+      // que es el ritmo real de un proyecto con un cliente respondiendo.
+      plazo: plazoDe(lead.horas_calculadas),
+      pago: formaDePago(lead.pago_unico, inversion),
+      domicilio: [lead.localidad, lead.pais].filter(Boolean).join(', '),
+      jurisdiccion: legalClauseFor(lead.pais),
     }, redirectUrl);
 
     await db.from('leads').update({

@@ -57,7 +57,6 @@ export async function GET(
       totalPrice,
       hourlyRate,
       paymentTerms: '50% al inicio, 50% contra entrega',
-      startDate: new Date().toISOString().split('T')[0],
       estimatedWeeks: Math.ceil(totalHours / 40) || 4,
       legalClause,
     };

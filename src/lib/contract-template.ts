@@ -17,9 +17,16 @@ export type ContractData = {
   totalPrice: number;
   hourlyRate: number;
   paymentTerms: string;
-  startDate: string;
   estimatedWeeks: number;
   legalClause: string;
+  /**
+   * El molde para Documenso: las partes que cambian por venta salen en blanco,
+   * para poder apoyar encima los campos que el sistema rellena.
+   *
+   * Sale del MISMO texto que el contrato real: así la plantilla nunca se
+   * despega de lo que firma el cliente.
+   */
+  plantilla?: boolean;
 };
 
 // Re-export Packer so the API route can use it without importing docx directly
@@ -62,24 +69,17 @@ function signatureDetail(text: string): Paragraph {
 
 // ─── Builder ─────────────────────────────────────────────────────────────────
 
+/** En el molde, lo que cambia por venta se deja en blanco para el campo. */
+function hueco(largo = 34): string {
+  return '_'.repeat(largo);
+}
+
 export function buildContract(data: ContractData): Document {
+  /** El valor real, o el hueco cuando se está armando el molde. */
+  const campo = <T>(valor: T, largo?: number): string =>
+    data.plantilla ? hueco(largo) : String(valor);
+
   const today = new Date().toLocaleDateString('es-AR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-
-  const endDate = (() => {
-    const d = new Date(data.startDate);
-    d.setDate(d.getDate() + data.estimatedWeeks * 7);
-    return d.toLocaleDateString('es-AR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
-  })();
-
-  const startDateFormatted = new Date(data.startDate).toLocaleDateString('es-AR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -99,7 +99,7 @@ export function buildContract(data: ContractData): Document {
       'PROVEEDOR: Silvano Puccini, desarrollador web freelance, con domicilio en la Ciudad Autónoma de Buenos Aires, República Argentina. En adelante denominado "el Proveedor".',
     ),
     bodyParagraph(
-      `CLIENTE: ${data.clientName}, con domicilio en ${data.clientLocation}, ${data.clientCountry}. En adelante denominado "el Cliente".`,
+      `CLIENTE: ${campo(data.clientName)}, con domicilio en ${campo(`${data.clientLocation}, ${data.clientCountry}`, 40)}. En adelante denominado "el Cliente".`,
     ),
 
     divider(),
@@ -109,14 +109,14 @@ export function buildContract(data: ContractData): Document {
     bodyParagraph(
       'El Proveedor se compromete a prestar servicios de desarrollo web al Cliente, consistentes en:',
     ),
-    bodyParagraph(data.projectDescription, true),
+    bodyParagraph(campo(data.projectDescription, 60), true),
 
     divider(),
 
     // ── Clause 3: ALCANCE Y ENTREGABLES ──────────────────────────────────────
     clauseHeading('III', 'ALCANCE Y ENTREGABLES'),
     bodyParagraph('Los entregables acordados en el marco del presente contrato son:'),
-    bodyParagraph(data.deliverables, true),
+    bodyParagraph(data.plantilla ? `${hueco(60)}\n${hueco(60)}\n${hueco(60)}` : data.deliverables, true),
     bodyParagraph(
       'Cualquier funcionalidad o desarrollo adicional que no esté contemplado en el presente apartado deberá ser acordado por escrito entre las partes y podrá dar lugar a una modificación del precio y/o los plazos.',
     ),
@@ -126,7 +126,7 @@ export function buildContract(data: ContractData): Document {
     // ── Clause 4: PLAZOS ─────────────────────────────────────────────────────
     clauseHeading('IV', 'PLAZOS'),
     bodyParagraph(
-      `Los servicios darán comienzo el ${startDateFormatted} y se estima una duración de ${data.estimatedWeeks} semana${data.estimatedWeeks !== 1 ? 's' : ''}, con fecha estimada de finalización el ${endDate}.`,
+      `Los servicios darán comienzo una vez acreditado el primer pago y se estima una duración de ${campo(`${data.estimatedWeeks} semana${data.estimatedWeeks !== 1 ? 's' : ''}`, 26)}.`,
     ),
     bodyParagraph(
       'Los plazos indicados son estimativos. Demoras atribuibles al Cliente, incluyendo pero no limitándose a retrasos en la entrega de materiales, contenido o feedback, podrán extender los plazos acordados sin que ello implique incumplimiento por parte del Proveedor.',
@@ -137,9 +137,9 @@ export function buildContract(data: ContractData): Document {
     // ── Clause 5: PRECIO Y FORMA DE PAGO ─────────────────────────────────────
     clauseHeading('V', 'PRECIO Y FORMA DE PAGO'),
     bodyParagraph(
-      `El precio total acordado por los servicios descritos es de USD ${data.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, calculado sobre la base de ${data.totalHours} horas estimadas a una tarifa de USD ${data.hourlyRate}/hora.`,
+      `El precio total acordado por los servicios descritos es de ${campo(`USD ${data.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 26)}.`,
     ),
-    bodyParagraph(`Forma de pago: ${data.paymentTerms}.`),
+    bodyParagraph(`Forma de pago: ${campo(data.paymentTerms, 60)}`),
     bodyParagraph(
       'El pago deberá realizarse mediante transferencia bancaria internacional o por los medios digitales acordados entre las partes. El Proveedor no iniciará las tareas de cada etapa hasta recibir el pago correspondiente.',
     ),
@@ -162,7 +162,7 @@ export function buildContract(data: ContractData): Document {
 
     // ── Clause 7: LEGISLACIÓN APLICABLE ──────────────────────────────────────
     clauseHeading('VII', 'LEGISLACIÓN APLICABLE Y JURISDICCIÓN'),
-    bodyParagraph(data.legalClause),
+    bodyParagraph(data.plantilla ? `${hueco(60)}\n${hueco(60)}` : data.legalClause),
 
     divider(),
 

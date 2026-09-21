@@ -4,6 +4,10 @@ import { createContract, prefillFor, signerOf } from './documenso-contract';
 const DATA = {
   nombre: 'Ferrelon', email: 'hola@ferrelon.com', total: 4800,
   alcance: 'Catálogo de productos, Pagos online',
+  plazo: '15 días hábiles desde la seña',
+  pago: 'Seña del 50% para empezar, el resto contra entrega.',
+  domicilio: 'Córdoba, Argentina',
+  jurisdiccion: 'Tribunales ordinarios de la Ciudad de Buenos Aires.',
 };
 
 describe('prefillFor', () => {
@@ -19,6 +23,30 @@ describe('prefillFor', () => {
       { id: 2, type: 'text', value: 'USD 4.800' },
       { id: 3, type: 'text', value: 'Catálogo de productos, Pagos online' },
     ]);
+  });
+
+  it('llena también el plazo, la forma de pago y la jurisdicción', () => {
+    // Son las tres cosas que antes quedaban escritas fijas en el PDF y no
+    // podían cambiar por venta ni por país.
+    const fields = [
+      { id: 1, type: 'text', fieldMeta: { label: 'plazo' } },
+      { id: 2, type: 'text', fieldMeta: { label: 'Pago' } },
+      { id: 3, type: 'text', fieldMeta: { label: 'jurisdiccion' } },
+      { id: 4, type: 'text', fieldMeta: { label: 'domicilio' } },
+    ];
+
+    expect(prefillFor(fields, DATA)).toEqual([
+      { id: 1, type: 'text', value: '15 días hábiles desde la seña' },
+      { id: 2, type: 'text', value: 'Seña del 50% para empezar, el resto contra entrega.' },
+      { id: 3, type: 'text', value: 'Tribunales ordinarios de la Ciudad de Buenos Aires.' },
+      { id: 4, type: 'text', value: 'Córdoba, Argentina' },
+    ]);
+  });
+
+  it('un dato que la venta no tiene deja el campo vacío en vez de escribir «undefined»', () => {
+    const fields = [{ id: 1, type: 'text', fieldMeta: { label: 'plazo' } }];
+    const sinPlazo = { ...DATA, plazo: '' };
+    expect(prefillFor(fields, sinPlazo)).toEqual([]);
   });
 
   it('ignora los campos que no sabe llenar, sin romper el contrato', () => {

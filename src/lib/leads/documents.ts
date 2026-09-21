@@ -122,7 +122,6 @@ export async function buildContractDoc(leadId: string, legalClause: string): Pro
     totalPrice,
     hourlyRate,
     paymentTerms,
-    startDate: new Date().toISOString().split('T')[0],
     estimatedWeeks: Math.ceil(totalHours / 40) || 4,
     legalClause,
   };

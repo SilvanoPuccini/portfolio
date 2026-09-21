@@ -45,6 +45,14 @@ export interface ContractData {
   total: number;
   /** Una línea con lo que incluye, para la cláusula de alcance. */
   alcance: string;
+  /** Cuánto tarda la entrega. Es la obligación principal del que vende. */
+  plazo?: string;
+  /** Seña y saldo, o pago único. Cambia por venta, no por plantilla. */
+  pago?: string;
+  /** Dónde vive el cliente, para la cláusula de partes. */
+  domicilio?: string;
+  /** La ley que aplica, según el país del cliente. */
+  jurisdiccion?: string;
 }
 
 /**
@@ -62,6 +70,13 @@ const FIELD_LABELS: Record<string, (data: ContractData) => string> = {
   monto: (data) => `USD ${data.total.toLocaleString('es-AR')}`,
   total: (data) => `USD ${data.total.toLocaleString('es-AR')}`,
   alcance: (data) => data.alcance,
+  // Los tres que antes quedaban escritos fijos en el PDF y no podían cambiar
+  // ni por venta ni por país.
+  plazo: (data) => data.plazo ?? '',
+  entrega: (data) => data.plazo ?? '',
+  pago: (data) => data.pago ?? '',
+  domicilio: (data) => data.domicilio ?? '',
+  jurisdiccion: (data) => data.jurisdiccion ?? '',
 };
 
 export function prefillFor(fields: TemplateField[], data: ContractData) {

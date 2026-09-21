@@ -54,7 +54,6 @@ function ventaDirecta(): ContractData {
     totalPrice: pedido.totalUsd ?? 0,
     hourlyRate: 30,
     paymentTerms: 'Pago único por adelantado, antes de empezar.',
-    startDate: new Date().toISOString().slice(0, 10),
     estimatedWeeks: Math.ceil(paquete.plazoDias / 5),
     legalClause: legalClauseFor('Argentina'),
   };
@@ -78,7 +77,6 @@ function ventaConLlamada(): ContractData {
     totalPrice: 1800,
     hourlyRate: 30,
     paymentTerms: 'Seña del 50% para empezar, el resto contra entrega.',
-    startDate: new Date().toISOString().slice(0, 10),
     estimatedWeeks: 6,
     legalClause: legalClauseFor('Chile'),
   };
@@ -113,6 +111,17 @@ describe('vista previa de la venta', () => {
     expect(buffer.length).toBeGreaterThan(1000);
   });
 
+  it('el molde para Documenso sale del mismo texto, con los huecos en su lugar', async () => {
+    const data: ContractData = { ...ventaDirecta(), plantilla: true };
+    const buffer = await guardarContrato('PLANTILLA-para-documenso', data);
+
+    // El molde no puede llevar los datos de nadie: si quedara un nombre
+    // adentro, todos los contratos saldrían con ese nombre.
+    const texto = buffer.toString('latin1');
+    expect(texto).not.toContain('Ortigosa');
+    expect(buffer.length).toBeGreaterThan(1000);
+  });
+
   it('los cuatro correos del circuito se pueden leer antes de mandarlos', () => {
     const lead = { name: 'Estefanía Ortigosa', email: 'estefania@ejemplo.com' };
 
@@ -127,7 +136,14 @@ describe('vista previa de la venta', () => {
         pct: 100,
         singlePayment: true,
         paymentInstructions: 'Alias: silvano.mp · CBU: 0000003100000000000000',
-        localQuote: { currency: 'ARS', amount: 1_530_000, rate: 1500, validHours: 72 },
+        localQuote: {
+          currency: 'ARS',
+          amount: 1_530_000,
+          rate: 1500,
+          source: 'Dólar MEP',
+          updatedAt: new Date().toISOString(),
+          validUntil: new Date(Date.now() + 72 * 3_600_000).toISOString(),
+        },
       }),
     };
 

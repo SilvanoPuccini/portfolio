@@ -9,7 +9,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
 import { sendContractToLead } from './send-contract';
 import { createContract } from './documenso-contract';
-import { recordProposalResponse } from './proposal-response';
+import { formaDePago, plazoDe, recordProposalResponse } from './proposal-response';
 
 const LEAD = {
   id: 'lead-1', nombre: 'Ferrelon', email: 'hola@ferrelon.com', propuesta_respuesta: null,
@@ -47,8 +47,18 @@ describe('recordProposalResponse', () => {
 
     const result = await recordProposalResponse('tok-1', 'aceptada', undefined, undefined, 'https://x/propuesta/tok-1');
 
+    // El contrato viaja con todo lo que antes quedaba escrito fijo en el PDF:
+    // el plazo, la forma de pago y la ley que aplica según el país.
     expect(createContract).toHaveBeenCalledWith(
-      { nombre: 'Ferrelon', email: 'hola@ferrelon.com', total: 4800, alcance: 'Catálogo' },
+      expect.objectContaining({
+        nombre: 'Ferrelon',
+        email: 'hola@ferrelon.com',
+        total: 4800,
+        alcance: 'Catálogo',
+        pago: expect.stringContaining('Seña'),
+        plazo: expect.any(String),
+        jurisdiccion: expect.stringContaining('Argentina'),
+      }),
       'https://x/propuesta/tok-1',
     );
     expect(update).toHaveBeenCalledWith(expect.objectContaining({
@@ -183,5 +193,30 @@ describe('recordProposalResponse', () => {
 
       expect(update).toHaveBeenCalledWith(expect.objectContaining({ propuesta_recordar_at: null }));
     });
+  });
+});
+
+describe('lo que se escribe en el contrato', () => {
+  it('el plazo sale de las horas cotizadas, una semana cada veinte', () => {
+    expect(plazoDe(60)).toBe('3 semanas desde la acreditación del primer pago.');
+    expect(plazoDe(15)).toBe('1 semana desde la acreditación del primer pago.');
+  });
+
+  it('sin horas cotizadas no inventa un plazo', () => {
+    expect(plazoDe(null)).toMatch(/A convenir/);
+    expect(plazoDe(0)).toMatch(/A convenir/);
+  });
+
+  it('un pago único se escribe como pago único', () => {
+    expect(formaDePago(true, { total: 1020 })).toBe('Pago único de USD 1.020 por adelantado.');
+  });
+
+  it('con seña dice cuánto para arrancar y cuánto contra entrega', () => {
+    expect(formaDePago(false, { total: 1800, sena: 900, saldo: 900, pct: 50 }))
+      .toBe('Seña del 50% (USD 900) para comenzar y USD 900 contra entrega.');
+  });
+
+  it('sin seña calculada la saca del porcentaje', () => {
+    expect(formaDePago(false, { total: 2000, pct: 30 })).toContain('USD 600');
   });
 });
