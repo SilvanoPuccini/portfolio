@@ -93,6 +93,32 @@ describe('prefillFor', () => {
   });
 });
 
+describe('signerOf con dos firmantes', () => {
+  it('elige al cliente, no a Silvano, aunque él esté primero', () => {
+    // Un contrato lo firman los dos. Si el código pisa el destinatario
+    // equivocado, el cliente recibe el contrato en lugar del proveedor y la
+    // copia final sale con una sola firma.
+    const recipients = [
+      { id: 1, role: 'SIGNER', signingOrder: 1, email: 'silvano@silvanopuccini.dev' },
+      { id: 2, role: 'SIGNER', signingOrder: 2, email: 'cliente@ejemplo.com' },
+    ];
+    expect(signerOf(recipients, 'silvano@silvanopuccini.dev')?.id).toBe(2);
+  });
+
+  it('sin saber cuál es el del proveedor, sigue eligiendo por orden de firma', () => {
+    const recipients = [
+      { id: 1, role: 'SIGNER', signingOrder: 2 },
+      { id: 2, role: 'SIGNER', signingOrder: 1 },
+    ];
+    expect(signerOf(recipients)?.id).toBe(2);
+  });
+
+  it('si el único firmante es el proveedor, no inventa otro', () => {
+    const recipients = [{ id: 1, role: 'SIGNER', signingOrder: 1, email: 'silvano@x.dev' }];
+    expect(signerOf(recipients, 'silvano@x.dev')).toBeNull();
+  });
+});
+
 describe('signerOf', () => {
   it('elige al primero que firma, no al que revisa', () => {
     expect(signerOf([

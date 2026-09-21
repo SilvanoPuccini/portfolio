@@ -122,16 +122,20 @@ export async function GET(req: NextRequest) {
     .filter(Boolean);
 
   const faltan = CAMPOS_ESPERADOS.filter((campo) => !encontrados.includes(campo));
-  const firmante = signerOf(plantilla.recipients ?? []);
+  const firmante = signerOf(plantilla.recipients ?? [], process.env.DOCUMENSO_OWNER_EMAIL);
   const firmantes = (plantilla.recipients ?? []).filter((r) => (r.role ?? 'SIGNER') === 'SIGNER').length;
 
-  const problema = !firmante
+  const problema = firmantes === 0
     ? 'La plantilla no tiene ningún firmante. Sin eso, Documenso no puede cerrar el documento.'
-    : faltan.length > 0
-      ? `Le faltan campos a la plantilla: ${faltan.join(', ')}. Ese dato va a salir en blanco en el contrato.`
-      : !tablaPedidos
-        ? 'Falta correr la migración 038_pedidos.sql en Supabase: sin esa tabla, el botón de contratar devuelve error.'
-        : null;
+    : firmantes < 2
+      ? 'El contrato lo firman las dos partes. Falta agregar tu firma en la plantilla: hoy el cliente se llevaría una copia con una sola firma.'
+      : !firmante
+        ? 'La plantilla no tiene un firmante para el cliente.'
+        : faltan.length > 0
+        ? `Le faltan campos a la plantilla: ${faltan.join(', ')}. Ese dato va a salir en blanco en el contrato.`
+        : !tablaPedidos
+          ? 'Falta correr la migración 038_pedidos.sql en Supabase: sin esa tabla, el botón de contratar devuelve error.'
+          : null;
 
   return NextResponse.json({
     variables,
@@ -141,7 +145,7 @@ export async function GET(req: NextRequest) {
     encontrados,
     faltan,
     firmantes,
-    listo: Boolean(firmante) && faltan.length === 0 && tablaPedidos,
+    listo: Boolean(firmante) && firmantes >= 2 && faltan.length === 0 && tablaPedidos,
     ...(problema ? { problema } : {}),
   });
 }

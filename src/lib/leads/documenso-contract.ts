@@ -36,6 +36,7 @@ interface TemplateRecipient {
   id: number;
   role?: string;
   signingOrder?: number;
+  email?: string;
 }
 
 export interface ContractData {
@@ -129,9 +130,24 @@ export function prefillFor(fields: TemplateField[], data: ContractData) {
   });
 }
 
-/** El firmante de la plantilla: el primero que firma, no el que revisa. */
-export function signerOf(recipients: TemplateRecipient[]): TemplateRecipient | null {
-  const signers = recipients.filter((recipient) => (recipient.role ?? 'SIGNER') === 'SIGNER');
+/**
+ * El destinatario que corresponde al cliente.
+ *
+ * Un contrato lo firman las dos partes: la plantilla tiene al cliente y al
+ * proveedor. Acá se elige a cuál reemplazarle el nombre y el mail, y tiene
+ * que ser el del cliente. Si se pisa el del proveedor, el contrato le llega
+ * dos veces al cliente y la copia final sale con una sola firma.
+ */
+export function signerOf(
+  recipients: TemplateRecipient[],
+  ownerEmail?: string | null,
+): TemplateRecipient | null {
+  const propio = ownerEmail?.trim().toLowerCase();
+
+  const signers = recipients
+    .filter((recipient) => (recipient.role ?? 'SIGNER') === 'SIGNER')
+    .filter((recipient) => !propio || recipient.email?.trim().toLowerCase() !== propio);
+
   if (signers.length === 0) return null;
   return signers.sort((a, b) => (a.signingOrder ?? 1) - (b.signingOrder ?? 1))[0];
 }
@@ -186,8 +202,10 @@ export async function createContract(
     fields?: TemplateField[]; recipients?: TemplateRecipient[];
   };
 
-  const signer = signerOf(template.recipients ?? []);
-  if (!signer) throw new Error('La plantilla no tiene un firmante definido');
+  // El mail del proveedor se protege: es el otro firmante del contrato, no
+  // un destinatario para reemplazar.
+  const signer = signerOf(template.recipients ?? [], process.env.DOCUMENSO_OWNER_EMAIL);
+  if (!signer) throw new Error('La plantilla no tiene un firmante para el cliente');
 
   const titulo = data.titulo ?? 'Contrato de prestación de servicios';
 
