@@ -49,11 +49,15 @@ describe('POST /api/pedido', () => {
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ extras: ['agenda'], total_usd: 940 }));
   });
 
-  it('devuelve el link de firma con el pedido enganchado', async () => {
+  it('lleva al detalle del pedido, que es donde se firma', async () => {
     const body = await (await post({ paquete: 'web-cinco-secciones', extras: [] })).json();
     expect(body.pedidoId).toBe('pedido-1');
-    // Sin plantilla cargada todavía, el paquete no se firma: se agenda.
-    expect(body.url).toContain('/services/agendar');
+    expect(body.url).toBe('/es/pedido/pedido-1');
+  });
+
+  it('respeta el idioma en el que estaba comprando', async () => {
+    const body = await (await post({ paquete: 'web-cinco-secciones', extras: [], locale: 'en' })).json();
+    expect(body.url).toBe('/en/pedido/pedido-1');
   });
 
   it('un paquete que no existe no crea nada', async () => {

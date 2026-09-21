@@ -72,11 +72,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not register the order.' }, { status: 500 });
     }
 
-    // Con plantilla cargada se firma ahora; sin ella, se agenda. En los dos
-    // casos el pedido ya quedó registrado, que es lo que importa.
-    const url = paquete.activo && paquete.directLink
-      ? `${paquete.directLink}?externalId=${data.id}`
-      : `/${locale}/services/agendar?paquete=${paquete.slug}&pedido=${data.id}`;
+    // Al detalle de lo que compró, donde deja sus datos y firma. Mandarlo a
+    // agendar una llamada era lo contrario de lo que pidió: si eligió un
+    // paquete de precio cerrado, es porque no quiere una llamada.
+    const url = `/${locale}/pedido/${data.id}`;
 
     return NextResponse.json({
       pedidoId: data.id,
