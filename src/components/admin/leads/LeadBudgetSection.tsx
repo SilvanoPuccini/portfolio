@@ -29,8 +29,6 @@ export function LeadBudgetSection(props: {
   onMantenimiento: (value: string) => void;
   /** El link a la propuesta tal como la ve el cliente, si ya se mandó. */
   propuestaUrl?: string | null;
-  downloadProposal: () => void;
-  proposalLoading: boolean;
   downloadContract: () => void;
   contractLoading: boolean;
   sendProposalEmail: () => void;
@@ -46,8 +44,7 @@ export function LeadBudgetSection(props: {
   const {
     lead, rateConfig, baseModules, featureModules, totalPertHours, bufferedHours,
     totalPrice, updatePertRow, saveBudget, budgetSaved, mantenimiento, onMantenimiento,
-    propuestaUrl, downloadProposal,
-    proposalLoading, downloadContract, contractLoading, sendProposalEmail,
+    propuestaUrl, downloadContract, contractLoading, sendProposalEmail,
     proposalSending, proposalEmailSent, proposalEmailError, sendContractEmail,
     contractSending, contractEmailSent, contractEmailError, fmt,
   } = props;
@@ -175,25 +172,6 @@ export function LeadBudgetSection(props: {
 
         {lead.monto_presupuestado != null && (
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
-            {/* Download Proposal — task 8.4 */}
-            <div style={{ marginBottom: 16 }}>
-              <button
-                style={{
-                  ...s.btn,
-                  background: proposalLoading ? '#334155' : '#00d4d4',
-                  opacity: proposalLoading ? 0.7 : 1,
-                  cursor: proposalLoading ? 'not-allowed' : 'pointer',
-                }}
-                onClick={downloadProposal}
-                disabled={proposalLoading}
-              >
-                {proposalLoading ? 'Generando...' : 'Descargar propuesta'}
-              </button>
-              <p style={{ ...s.hint, marginTop: 6 }}>
-                Descarga la propuesta en formato .docx.
-              </p>
-            </div>
-
             {/* Send Proposal Email — task 8.4 */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

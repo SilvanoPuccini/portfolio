@@ -82,7 +82,6 @@ export default function LeadDetailPage() {
   const [contractLoading, setContractLoading] = useState(false);
 
   // Proposal DOCX download
-  const [proposalLoading, setProposalLoading] = useState(false);
 
   // Send questionnaire
   const [questionnaireSending, setQuestionnaireSending] = useState(false);
@@ -302,29 +301,6 @@ export default function LeadDetailPage() {
     setTimeout(() => setPromptCopied(false), 3000);
   }
 
-  async function downloadProposal() {
-    if (!lead) return;
-    setProposalLoading(true);
-    try {
-      const res = await fetch(`/api/admin/proposal/${id}`);
-      if (!res.ok) {
-        const body = await res.json() as { error?: string };
-        console.error('[downloadProposal]', body.error);
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `propuesta-${lead.nombre.replace(/\s+/g, '-').toLowerCase()}.docx`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('[downloadProposal]', err);
-    } finally {
-      setProposalLoading(false);
-    }
-  }
 
   /**
    * Manda el cuestionario, o lo reenvía si ya existe.
@@ -671,8 +647,6 @@ export default function LeadDetailPage() {
           mantenimiento={mantenimiento}
           onMantenimiento={setMantenimiento}
           propuestaUrl={lead.propuesta_token ? `/propuesta/${lead.propuesta_token}` : null}
-          downloadProposal={downloadProposal}
-          proposalLoading={proposalLoading}
           downloadContract={downloadContract}
           contractLoading={contractLoading}
           sendProposalEmail={sendProposalEmail}

@@ -1,20 +1,28 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { parseSelectedModules } from './selected-modules';
-import { proposalModules } from './selected-modules';
-import { buildProposal, Packer } from '@/lib/proposal-template';
-import { buildContract, Packer as ContractPacker, type ContractData } from '@/lib/contract-template';
+import { buildContract, Packer, type ContractData } from '@/lib/contract-template';
 
 /**
- * Los documentos que recibe el cliente: la propuesta y el contrato.
+ * El contrato que firma el cliente.
  *
- * Vive acá porque lo necesitan dos caminos y antes solo lo tenía uno. El
- * documento se armaba dentro de la ruta de descarga, así que el correo —que
- * anunciaba «adjunto»— no tenía forma de conseguirlo. El cliente recibía un
- * aviso que prometía un archivo que nunca viajaba.
+ * Acá vivía también la propuesta en .docx. Se fue: la propuesta es una página
+ * con su link, y mantener dos versiones del mismo documento garantiza que un
+ * día digan cosas distintas. El contrato sigue siendo un archivo porque es lo
+ * que se firma.
  *
- * Ahora descargar y enviar producen exactamente el mismo archivo, porque es el
- * mismo código. Si fueran dos, un día dirían cosas distintas.
+ * Descargarlo y enviarlo producen exactamente el mismo archivo, porque es el
+ * mismo código.
  */
+
+/** «estefania ortigosa» → «Estefania Ortigosa». Sin tocar las preposiciones. */
+function titleCase(text: string | null | undefined): string {
+  const MINOR = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'en']);
+  return (text ?? '').trim().split(/\s+/).filter(Boolean)
+    .map((word, i) => (i > 0 && MINOR.has(word.toLowerCase())
+      ? word.toLowerCase()
+      : word.charAt(0).toUpperCase() + word.slice(1)))
+    .join(' ');
+}
 
 export interface GeneratedDoc {
   buffer: Buffer;
@@ -28,66 +36,6 @@ function slug(name: string): string {
     .replace(/[^a-zA-Z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .toLowerCase() || 'cliente';
-}
-
-/**
- * La propuesta. Devuelve `null` si todavía no hay presupuesto guardado: sin
- * monto ni horas el documento saldría vacío, y es mejor no mandar nada que
- * mandar una propuesta en blanco.
- */
-export async function buildProposalDoc(leadId: string): Promise<GeneratedDoc | null> {
-  const db = getSupabaseAdmin();
-
-  const { data: lead, error } = await db
-    .from('leads')
-    .select('nombre, email, tipo_proyecto, monto_presupuestado, horas_calculadas, plazo, modulos_seleccionados')
-    .eq('id', leadId).single();
-
-  if (error || !lead) return null;
-  if (lead.monto_presupuestado == null || lead.horas_calculadas == null) return null;
-
-  const { data: config } = await db.from('rate_config').select('tarifa_hora').eq('id', 1).single();
-
-  const hourlyRate: number = config?.tarifa_hora ?? 35;
-  const totalHours: number = lead.horas_calculadas;
-  const totalPrice: number = lead.monto_presupuestado;
-
-  // El alcance cotizado para ESTE lead. Antes se listaba el catálogo entero
-  // —todos los módulos, para todos los clientes— desde una tabla que ni
-  // siquiera existe, así que la propuesta salía sin un solo módulo.
-  const moduleList = proposalModules(lead.modulos_seleccionados);
-
-  const doc = buildProposal({
-    clientName: lead.nombre,
-    projectName: `${lead.nombre} — ${lead.tipo_proyecto ?? 'Project'}`,
-    problemSummary: 'Based on our discovery call, we identified your key challenges and goals.',
-    solutionSummary: 'We propose a tailored development solution addressing your specific needs.',
-    modules: moduleList,
-    totalHours,
-    totalPrice,
-    hourlyRate,
-    estimatedWeeks: lead.plazo
-      ? Math.ceil(totalHours / (hourlyRate * 0.8))
-      : Math.ceil(totalHours / 40),
-    paymentTerms: '50% at project start, 50% on final delivery',
-  });
-
-  return { buffer: await Packer.toBuffer(doc), filename: `propuesta-${slug(lead.nombre)}.docx` };
-}
-
-/**
- * El contrato. `legalClause` viene de afuera porque la ruta de descarga la
- * pide a un modelo según el país del cliente, y generar eso dos veces para el
- * mismo contrato costaría una llamada de más.
- */
-/** «estefania ortigosa» → «Estefania Ortigosa». Sin tocar las preposiciones. */
-function titleCase(text: string | null | undefined): string {
-  const MINOR = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'en']);
-  return (text ?? '').trim().split(/\s+/).filter(Boolean)
-    .map((word, i) => (i > 0 && MINOR.has(word.toLowerCase())
-      ? word.toLowerCase()
-      : word.charAt(0).toUpperCase() + word.slice(1)))
-    .join(' ');
 }
 
 /** Una línea con lo que se cotizó: es el objeto real del contrato. */
@@ -174,7 +122,7 @@ export async function buildContractDoc(leadId: string, legalClause: string): Pro
 
   const doc = buildContract(contractData);
   return {
-    buffer: await ContractPacker.toBuffer(doc),
+    buffer: await Packer.toBuffer(doc),
     filename: `contrato-${slug(contractData.clientName)}.docx`,
   };
 }

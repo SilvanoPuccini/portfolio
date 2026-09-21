@@ -4,7 +4,6 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
-import { buildProposalDoc } from '@/lib/leads/documents';
 import { advanceOn } from '@/lib/leads/pipeline';
 import { buildDiagnosisDoc } from '@/lib/leads/diagnosis-doc';
 
@@ -23,7 +22,7 @@ export async function POST(
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('*')
+      .select('nombre, email, estado, monto_presupuestado, horas_calculadas, modulos_seleccionados, mantenimiento_mensual, sena_pct, pago_unico, recomendacion, diagnostico_dolor, diagnostico_situacion, diagnostico_requerimiento')
       .eq('id', id)
       .single();
 
@@ -31,17 +30,12 @@ export async function POST(
       return NextResponse.json({ error: 'Lead not found.' }, { status: 404 });
     }
 
-    // La propuesta es la PÁGINA, no un adjunto: se manda el link y nada más.
-    // Antes viajaba además un .docx en inglés, así que el cliente recibía la
-    // misma propuesta dos veces y una de las dos no estaba en su idioma.
-    //
-    // El documento se sigue generando acá por un motivo: si no hay presupuesto
-    // guardado tampoco hay propuesta que mandar, y esto lo detecta antes de
-    // que salga un correo con una página vacía.
-    const doc = await buildProposalDoc(id);
-    if (!doc) {
+    // La propuesta es la PÁGINA: no se genera ni se adjunta ningún documento.
+    // Lo único que hay que verificar es que haya presupuesto, porque sin monto
+    // la página sale vacía y eso es peor que no mandar nada.
+    if (lead.monto_presupuestado == null || lead.horas_calculadas == null) {
       return NextResponse.json({
-        error: 'Guardá el presupuesto antes de mandar la propuesta: sin monto ni horas el documento sale vacío.',
+        error: 'Guardá el presupuesto antes de mandar la propuesta: sin monto ni horas la página sale vacía.',
       }, { status: 400 });
     }
 

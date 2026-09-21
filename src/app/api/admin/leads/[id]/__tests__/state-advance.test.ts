@@ -8,13 +8,12 @@ vi.mock('@/lib/email-templates/proposal-ready', () => ({ proposalReadyHtml: () =
 vi.mock('@/lib/email-templates/contract-ready', () => ({ contractReadyHtml: () => '<p>ok</p>' }));
 // El envio ahora exige el documento: sin adjunto, el correo no sale.
 vi.mock('@/lib/leads/documents', () => ({
-  buildProposalDoc: vi.fn(),
   buildContractDoc: vi.fn(),
 }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
-import { buildProposalDoc, buildContractDoc } from '@/lib/leads/documents';
+import { buildContractDoc } from '@/lib/leads/documents';
 import { POST as sendProposal } from '@/app/api/admin/leads/[id]/send-proposal/route';
 import { POST as sendContract } from '@/app/api/admin/leads/[id]/send-contract/route';
 
@@ -25,11 +24,11 @@ function supabaseWithLead(estado: string) {
     select: vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({
-          data: { nombre: 'Lucía', email: 'lucia@example.com', estado },
+          data: { nombre: 'Lucía', email: 'lucia@example.com', estado, monto_presupuestado: 4800, horas_calculadas: 120 },
           error: null,
         }),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { nombre: 'Lucía', email: 'lucia@example.com', estado },
+          data: { nombre: 'Lucía', email: 'lucia@example.com', estado, monto_presupuestado: 4800, horas_calculadas: 120 },
           error: null,
         }),
       }),
@@ -49,7 +48,6 @@ describe('mandar propuesta y contrato mueve el estado del lead', () => {
     vi.clearAllMocks();
     vi.mocked(sendCrmEmail).mockResolvedValue(undefined as never);
     const doc = { buffer: Buffer.from('docx'), filename: 'doc.docx' };
-    vi.mocked(buildProposalDoc).mockResolvedValue(doc);
     vi.mocked(buildContractDoc).mockResolvedValue(doc);
   });
 

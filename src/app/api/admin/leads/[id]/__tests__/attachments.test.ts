@@ -16,28 +16,27 @@ vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 vi.mock('@/lib/email-templates/proposal-ready', () => ({ proposalReadyHtml: vi.fn(() => '<p>propuesta</p>') }));
 vi.mock('@/lib/email-templates/contract-ready', () => ({ contractReadyHtml: () => '<p>contrato</p>' }));
 vi.mock('@/lib/leads/documents', () => ({
-  buildProposalDoc: vi.fn(),
   buildContractDoc: vi.fn(),
 }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendCrmEmail } from '@/lib/resend';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
-import { buildProposalDoc, buildContractDoc } from '@/lib/leads/documents';
+import { buildContractDoc } from '@/lib/leads/documents';
 import { POST as sendProposal } from '@/app/api/admin/leads/[id]/send-proposal/route';
 import { POST as sendContract } from '@/app/api/admin/leads/[id]/send-contract/route';
 
-function supabaseWithLead() {
+function supabaseWithLead(overrides: Record<string, unknown> = {}) {
   const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
   const from = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({
-          data: { nombre: 'Ferrelon', email: 'hola@ferrelon.com', estado: 'en conversación' },
+          data: { nombre: 'Ferrelon', email: 'hola@ferrelon.com', estado: 'en conversación', monto_presupuestado: 4800, horas_calculadas: 120, ...overrides },
           error: null,
         }),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { nombre: 'Ferrelon', email: 'hola@ferrelon.com', estado: 'en conversación' },
+          data: { nombre: 'Ferrelon', email: 'hola@ferrelon.com', estado: 'en conversación', monto_presupuestado: 4800, horas_calculadas: 120, ...overrides },
           error: null,
         }),
       }),
@@ -58,9 +57,6 @@ describe('el correo de propuesta lleva la propuesta', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseWithLead();
-    vi.mocked(buildProposalDoc).mockResolvedValue({
-      buffer: Buffer.from('docx-de-prueba'), filename: 'propuesta-ferrelon.docx',
-    });
   });
 
   it('NO adjunta nada: la propuesta es la página, no un .docx', async () => {
@@ -74,8 +70,8 @@ describe('el correo de propuesta lleva la propuesta', () => {
   });
 
   it('no manda nada si todavía no hay presupuesto guardado', async () => {
-    // Mandar una propuesta sin monto ni horas es mandar un documento vacío.
-    vi.mocked(buildProposalDoc).mockResolvedValue(null);
+    // Mandar una propuesta sin monto ni horas es mandar una página vacía.
+    supabaseWithLead({ monto_presupuestado: null, horas_calculadas: null });
 
     const response = await sendProposal(request(), { params });
 
