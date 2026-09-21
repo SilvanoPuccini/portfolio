@@ -16,8 +16,10 @@ const STATIC_CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://cdn.jsdelivr.net https://cdn.simpleicons.org https://res.cloudinary.com",
   "font-src 'self'",
-  "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com",
-  "frame-src https://www.openstreetmap.org https://cal.com",
+  // Documenso entra acá porque el contrato se firma embebido: el componente
+  // habla con su API desde el navegador del cliente mientras firma.
+  "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://app.documenso.com",
+  "frame-src https://www.openstreetmap.org https://cal.com https://app.documenso.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

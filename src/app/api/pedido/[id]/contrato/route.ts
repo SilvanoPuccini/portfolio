@@ -35,6 +35,7 @@ interface PedidoRow {
   total_usd: number;
   mensual_usd: number;
   firmado_at: string | null;
+  locale: string | null;
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: pedido } = await db
       .from('pedidos')
-      .select('id, paquete, extras, total_usd, mensual_usd, firmado_at')
+      .select('id, paquete, extras, total_usd, mensual_usd, firmado_at, locale')
       .eq('id', id)
       .maybeSingle();
 
@@ -140,7 +141,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           domicilio: pais,
           jurisdiccion: legalClauseFor(pais || null),
         },
-        `${siteUrl}/gracias`,
+        // Con el idioma adelante: `/gracias` sin idioma es un 404, y el
+        // cliente lo ve justo después de firmar, que es el peor momento.
+        `${siteUrl}/${fila.locale === 'en' ? 'en' : 'es'}/gracias`,
         fila.id,
       );
     } catch (reason) {

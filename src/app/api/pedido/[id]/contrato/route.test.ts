@@ -22,6 +22,7 @@ const PEDIDO = {
   mensual_usd: 0,
   lead_id: null,
   firmado_at: null,
+  locale: 'es',
 };
 
 const insertLead = vi.fn();
@@ -86,6 +87,13 @@ describe('POST /api/pedido/[id]/contrato', () => {
     expect(data.jurisdiccion).toMatch(/Argentina/);
     // El pedido viaja con el sobre: así la firma se reconoce sin adivinar.
     expect(externalId).toBe('pedido-1');
+  });
+
+  it('después de firmar lo manda a una página que existe', async () => {
+    // `/gracias` sin idioma es un 404, y el cliente lo ve justo después de
+    // firmar: el peor momento posible para una pantalla rota.
+    await post(DATOS);
+    expect(vi.mocked(createContract).mock.calls[0][1]).toMatch(/\/es\/gracias$/);
   });
 
   it('deja la venta creada y enganchada al pedido', async () => {
