@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { paquetePorSlug, servicioPorSlug } from '@/content/servicios';
 import PackageCard from './PackageCard';
@@ -8,7 +8,47 @@ const auditoria = paquetePorSlug('auditoria-web')!;
 const web = paquetePorSlug('web-cinco-secciones')!;
 const servicioWeb = servicioPorSlug('web')!;
 
+/** Contesta la calificación con las respuestas que entran en el paquete. */
+const calificar = (pkg: typeof web) => {
+  for (const pregunta of pkg.calificacion) {
+    const opcion = pregunta.opciones.find((o) => o.califica)!;
+    fireEvent.click(screen.getByRole('radio', { name: opcion.label.es }));
+  }
+};
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ pedidoId: 'pedido-1', url: 'https://documenso.test/d/x?externalId=pedido-1' }),
+  }));
+});
+afterEach(() => vi.unstubAllGlobals());
+
 describe('PackageCard', () => {
+  it('al contratar registra el pedido con los extras antes de mandar a firmar', async () => {
+    render(<PackageCard locale="es" paquete={web} extras={servicioWeb.extras} />);
+    calificar(web);
+    fireEvent.click(screen.getByLabelText(new RegExp(servicioWeb.extras[0].label.es, 'i')));
+    fireEvent.click(screen.getByRole('button', { name: /contratar/i }));
+
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    const [url, init] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/pedido');
+    expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({
+      paquete: 'web-cinco-secciones',
+      extras: [servicioWeb.extras[0].id],
+    });
+  });
+
+  it('si el pedido falla lo dice y no manda a ningún lado', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, json: async () => ({}) } as Response);
+    render(<PackageCard locale="es" paquete={web} extras={[]} />);
+    calificar(web);
+    fireEvent.click(screen.getByRole('button', { name: /contratar/i }));
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+
   it('muestra precio, plazo, qué incluye y qué no', () => {
     render(<PackageCard locale="es" paquete={web} extras={[]} />);
     expect(screen.getByText(/790/)).toBeInTheDocument();

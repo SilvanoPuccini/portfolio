@@ -8,6 +8,7 @@ import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
 import { archiveSignedContract } from '@/lib/leads/contract-archive';
 import { packageForTemplate, type FixedPackage } from '@/content/packages';
+import { paquetePorSlug, servicioPorSlug } from '@/content/servicios';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -49,6 +50,8 @@ type DocumensoPayload = {
     /** «TEMPLATE_DIRECT_LINK» cuando se firmó desde el link directo de una plantilla. */
     source?: string;
     templateId?: number | string | null;
+    /** El pedido que se enganchó al link de firma. */
+    externalId?: string | null;
     recipients?: DocumensoRecipient[];
   };
 };
@@ -142,12 +145,24 @@ export async function POST(req: NextRequest) {
   // de un paquete activo; abrir el link o firmar otro documento no crea nada.
   let origen: string | undefined;
   if (!lead && kind === 'DOCUMENT_COMPLETED' && event.payload?.source === 'TEMPLATE_DIRECT_LINK') {
-    const pkg = packageForTemplate(event.payload.templateId);
-    if (pkg) {
-      const created = await createLeadFromPackage(pkg, event.payload.recipients ?? []);
+    // Primero el pedido: trae el total real, con los extras que eligió. La
+    // plantilla quedó como respaldo para los links directos viejos, que no
+    // saben nada de extras.
+    const pedido = await pedidoDe(event.payload.externalId);
+    if (pedido) {
+      const created = await createLeadFromPedido(pedido, event.payload.recipients ?? []);
       if (created.error) return NextResponse.json({ error: created.error }, { status: 500 });
       lead = created.lead;
-      origen = `paquete:${pkg.slug}`;
+      origen = `pedido:${pedido.paquete}`;
+      if (lead) await cerrarPedido(pedido.id, lead.id);
+    } else {
+      const pkg = packageForTemplate(event.payload.templateId);
+      if (pkg) {
+        const created = await createLeadFromPackage(pkg, event.payload.recipients ?? []);
+        if (created.error) return NextResponse.json({ error: created.error }, { status: 500 });
+        lead = created.lead;
+        origen = `paquete:${pkg.slug}`;
+      }
     }
   }
   if (!lead) return NextResponse.json({ ok: true, action: 'lead_not_found' });
@@ -162,6 +177,96 @@ export async function POST(req: NextRequest) {
   if (kind === 'DOCUMENT_OPENED') return onOpened(lead, recipient);
   if (kind === 'DOCUMENT_REJECTED') return onRejected(lead, recipient);
   return onCompleted(lead, event.payload?.envelopeId, origen);
+}
+
+interface PedidoRow {
+  id: string;
+  paquete: string;
+  extras: string[];
+  total_usd: number;
+  mensual_usd: number;
+}
+
+/** El pedido que viajó con el sobre. Sin él, se cae a la plantilla. */
+async function pedidoDe(externalId: string | null | undefined): Promise<PedidoRow | null> {
+  if (!externalId) return null;
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('pedidos')
+    .select('id, paquete, extras, total_usd, mensual_usd')
+    .eq('id', externalId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[webhook/documenso] No se pudo leer el pedido:', error);
+    return null;
+  }
+  return (data as PedidoRow | null) ?? null;
+}
+
+/** El pedido deja de estar abierto: ya tiene firma y dueño. */
+async function cerrarPedido(pedidoId: string, leadId: string) {
+  const { error } = await getSupabaseAdmin()
+    .from('pedidos')
+    .update({ lead_id: leadId, firmado_at: new Date().toISOString() })
+    .eq('id', pedidoId);
+
+  if (error) console.error('[webhook/documenso] No se pudo cerrar el pedido:', error);
+}
+
+/**
+ * La venta de un pedido: el monto es el que el cliente vio cuando eligió, con
+ * sus extras, y no el precio de lista del paquete.
+ */
+async function createLeadFromPedido(
+  pedido: PedidoRow,
+  recipients: DocumensoRecipient[],
+): Promise<{ lead: LeadForSignature | null; error?: string }> {
+  const signer = recipients.find((r) => r.email) ?? {};
+  const email = (signer.email ?? '').trim().toLowerCase();
+  const paquete = paquetePorSlug(pedido.paquete);
+  const servicio = paquete ? servicioPorSlug(paquete.servicio) : null;
+
+  const etiquetas = (pedido.extras ?? [])
+    .map((id) => servicio?.extras.find((extra) => extra.id === id)?.label.es ?? id);
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('leads')
+    .insert({
+      nombre: signer.name?.trim() || email,
+      email,
+      tipo_proyecto: paquete?.nombre.es ?? pedido.paquete,
+      que_construir: paquete?.resumen.es ?? null,
+      estado: 'contrato_enviado',
+      monto_presupuestado: pedido.total_usd,
+      mantenimiento_mensual: pedido.mensual_usd || null,
+      pago_unico: paquete?.pagoUnico ?? true,
+      service: paquete?.servicio ?? null,
+      pedido_snapshot: {
+        paquete: pedido.paquete,
+        extras: pedido.extras ?? [],
+        totalUsd: pedido.total_usd,
+        mensualUsd: pedido.mensual_usd,
+        congeladoAt: new Date().toISOString(),
+      },
+      // El alcance cotizado, para que la propuesta y el contrato lo listen.
+      modulos_seleccionados: [
+        ...(paquete ? [{ slug: paquete.slug, label: paquete.nombre.es, precioUsd: paquete.precioUsd }] : []),
+        ...(pedido.extras ?? []).map((id, i) => ({
+          slug: id,
+          label: etiquetas[i],
+          precioUsd: servicio?.extras.find((extra) => extra.id === id)?.precioUsd,
+        })),
+      ],
+    })
+    .select(LEAD_COLUMNS)
+    .single();
+
+  if (error) {
+    console.error('[webhook/documenso] No se pudo crear la venta del pedido:', error);
+    return { lead: null, error: error.message };
+  }
+  return { lead: data as LeadForSignature };
 }
 
 /**

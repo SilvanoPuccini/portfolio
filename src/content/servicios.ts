@@ -295,28 +295,36 @@ const PREGUNTAS_CUIDADO: PreguntaServicio[] = [
 
 /* -------------------------------------------------------------------------- */
 
-const SECCIONES: PreguntaCalificacion = {
-  id: 'secciones',
-  texto: {
-    es: '¿Cuántas secciones necesitás?',
-    en: 'How many sections do you need?',
-  },
-  opciones: [
-    { valor: 'una', label: { es: 'Una sola página', en: 'A single page' }, califica: true },
-    {
-      valor: 'hasta-cinco',
-      label: { es: 'Entre dos y cinco', en: 'Between two and five' },
-      califica: false,
-      hacia: { tipo: 'paquete', slug: 'web-cinco-secciones' },
-    },
-    {
-      valor: 'mas',
-      label: { es: 'Más de cinco, o con blog', en: 'More than five, or with a blog' },
-      califica: false,
-      hacia: { tipo: 'paquete', slug: 'web-con-blog' },
-    },
-  ],
-};
+/**
+ * La misma pregunta, con un límite distinto por paquete.
+ *
+ * Es la que ordena las tres webs entre sí: quien pide una sola página no
+ * necesita la de cinco, y quien quiere blog no entra en ninguna de las dos
+ * primeras. Cada respuesta que no califica dice a qué paquete ir.
+ */
+function secciones(califica: 'una' | 'hasta-cinco' | 'mas'): PreguntaCalificacion {
+  const destinos: Record<string, Destino> = {
+    una: { tipo: 'paquete', slug: 'landing' },
+    'hasta-cinco': { tipo: 'paquete', slug: 'web-cinco-secciones' },
+    mas: { tipo: 'paquete', slug: 'web-con-blog' },
+  };
+
+  const opciones: { valor: 'una' | 'hasta-cinco' | 'mas'; label: Localized<string> }[] = [
+    { valor: 'una', label: { es: 'Una sola página', en: 'A single page' } },
+    { valor: 'hasta-cinco', label: { es: 'Entre dos y cinco', en: 'Between two and five' } },
+    { valor: 'mas', label: { es: 'Más de cinco, o con blog', en: 'More than five, or with a blog' } },
+  ];
+
+  return {
+    id: 'secciones',
+    texto: { es: '¿Cuántas secciones necesitás?', en: 'How many sections do you need?' },
+    opciones: opciones.map((opcion) => ({
+      ...opcion,
+      califica: opcion.valor === califica,
+      ...(opcion.valor === califica ? {} : { hacia: destinos[opcion.valor] }),
+    })),
+  };
+}
 
 const web: Servicio = {
   slug: 'web',
@@ -389,7 +397,7 @@ const web: Servicio = {
         es: ['Blog', 'Panel para editar los textos', 'Investigación de palabras clave'],
         en: ['Blog', 'Panel to edit the copy', 'Keyword research'],
       },
-      calificacion: [SECCIONES],
+      calificacion: [secciones('una')],
       modulos: ['landing', 'seo-tecnico', 'formulario-contacto'],
       pagoUnico: true,
       documensoTemplateId: null,
@@ -426,7 +434,7 @@ const web: Servicio = {
         es: ['Blog', 'Tienda con cobro online'],
         en: ['Blog', 'Store with online payments'],
       },
-      calificacion: [SECCIONES],
+      calificacion: [secciones('hasta-cinco')],
       modulos: ['sitio-institucional', 'seo-tecnico', 'seo-contenido', 'formulario-contacto'],
       pagoUnico: true,
       documensoTemplateId: null,
@@ -462,7 +470,7 @@ const web: Servicio = {
         es: ['Artículos siguientes (van en el plan de cuidado)', 'Tienda con cobro online'],
         en: ['Further articles (covered by the care plan)', 'Store with online payments'],
       },
-      calificacion: [SECCIONES],
+      calificacion: [secciones('mas')],
       modulos: ['sitio-institucional', 'blog', 'seo-tecnico', 'seo-contenido', 'analytics'],
       pagoUnico: true,
       documensoTemplateId: null,

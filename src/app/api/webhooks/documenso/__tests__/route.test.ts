@@ -452,3 +452,112 @@ describe('webhook de Documenso — link directo de un paquete', () => {
     expect(insert).not.toHaveBeenCalled();
   });
 });
+
+/* -------------------------------------------------------------------------- */
+/*  La venta se reconoce por el pedido                                         */
+/* -------------------------------------------------------------------------- */
+
+/** Sin lead previo: la firma llega con un pedido enganchado al sobre. */
+function supabaseConPedido(pedido: Record<string, unknown> | null) {
+  const insertLead = vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: 'lead-nuevo', nombre: 'Estefanía', email: 'este@ferrelon.com',
+          estado: 'contrato_enviado', monto_presupuestado: 940,
+          sena_pct: null, sena_monto: null, pago_unico: true,
+        },
+        error: null,
+      }),
+    }),
+  });
+  const updatePedido = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+
+  const from = vi.fn((tabla: string) => (tabla === 'pedidos'
+    ? {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: pedido, error: null }) }),
+      }),
+      update: updatePedido,
+    }
+    : {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }),
+      }),
+      insert: insertLead,
+      update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }),
+    }));
+
+  vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);
+  return { insertLead, updatePedido };
+}
+
+const PEDIDO = {
+  id: 'pedido-1',
+  paquete: 'web-cinco-secciones',
+  extras: ['agenda'],
+  total_usd: 940,
+  mensual_usd: 0,
+};
+
+const conPedido = (externalId: string | null) => ({
+  event: 'DOCUMENT_COMPLETED',
+  payload: {
+    externalId,
+    source: 'TEMPLATE_DIRECT_LINK',
+    recipients: [{ email: 'este@ferrelon.com', name: 'Estefanía', signingStatus: 'SIGNED' }],
+  },
+});
+
+describe('la firma de un pedido', () => {
+  it('crea la venta con el total del pedido, no con el precio de lista', async () => {
+    const { insertLead } = supabaseConPedido(PEDIDO);
+
+    const res = await POST(signed(conPedido('pedido-1')));
+
+    expect(res.status).toBe(200);
+    expect(insertLead).toHaveBeenCalledWith(expect.objectContaining({
+      email: 'este@ferrelon.com',
+      monto_presupuestado: 940,
+      estado: 'contrato_enviado',
+    }));
+    // El detalle de lo que eligió viaja con la venta.
+    const guardado = insertLead.mock.calls[0][0] as { pedido_snapshot: { extras: string[] } };
+    expect(guardado.pedido_snapshot.extras).toEqual(['agenda']);
+  });
+
+  it('marca el pedido como firmado y lo engancha a la venta', async () => {
+    const { updatePedido } = supabaseConPedido(PEDIDO);
+
+    await POST(signed(conPedido('pedido-1')));
+
+    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-nuevo' }));
+    expect(updatePedido.mock.calls[0][0]).toHaveProperty('firmado_at');
+  });
+
+  it('sin pedido en el sobre sigue funcionando como antes, por plantilla', async () => {
+    const { insertLead } = supabaseConPedido(null);
+    vi.mocked(packageForTemplate).mockReturnValue({
+      slug: 'viejo', name: { es: 'Paquete viejo', en: 'Old' }, summary: { es: 'x', en: 'x' },
+      priceUsd: 250, singlePayment: true,
+    } as unknown as FixedPackage);
+
+    await POST(signed({
+      event: 'DOCUMENT_COMPLETED',
+      payload: { source: 'TEMPLATE_DIRECT_LINK', templateId: 7, recipients: [{ email: 'este@ferrelon.com' }] },
+    }));
+
+    expect(insertLead).toHaveBeenCalledWith(expect.objectContaining({ monto_presupuestado: 250 }));
+  });
+
+  it('un pedido que no existe no inventa ninguna venta', async () => {
+    const { insertLead } = supabaseConPedido(null);
+    vi.mocked(packageForTemplate).mockReturnValue(null);
+
+    const res = await POST(signed(conPedido('pedido-borrado')));
+    const body = await res.json();
+
+    expect(insertLead).not.toHaveBeenCalled();
+    expect(body.action).toBe('lead_not_found');
+  });
+});

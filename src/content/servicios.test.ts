@@ -87,6 +87,22 @@ describe('precioCierra', () => {
   });
 });
 
+describe('el límite de cada paquete es el suyo', () => {
+  it('cada web califica por su propia cantidad de secciones', () => {
+    const califican = ['landing', 'web-cinco-secciones', 'web-con-blog'].map((slug) => {
+      const pkg = paquetePorSlug(slug)!;
+      return pkg.calificacion[0].opciones.find((o) => o.califica)!.valor;
+    });
+    expect(new Set(califican).size).toBe(3);
+  });
+
+  it('el de cinco secciones no se vende a quien pide una sola', () => {
+    const pkg = paquetePorSlug('web-cinco-secciones')!;
+    expect(calificaParaComprar(pkg, { secciones: 'una' })).toBe(false);
+    expect(calificaParaComprar(pkg, { secciones: 'hasta-cinco' })).toBe(true);
+  });
+});
+
 describe('calificaParaComprar', () => {
   const pkg = paquetePorSlug('auditoria-web')!;
 

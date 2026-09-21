@@ -39,6 +39,8 @@ const copy = {
     agendar: 'Agendar una llamada',
     nota: 'Firmás online y te llega el mail de pago. Sin llamada previa.',
     faltaResponder: 'Contestá las preguntas para ver si entra en este paquete.',
+    pidiendo: 'Preparando…',
+    falloPedido: 'No se pudo preparar el contrato. Probá de nuevo en un momento.',
     teConviene: 'Por lo que contestaste, te conviene',
     total: 'Total',
   },
@@ -55,6 +57,8 @@ const copy = {
     agendar: 'Schedule a call',
     nota: 'Sign online and get the payment email. No call needed.',
     faltaResponder: 'Answer the questions to see if this package fits.',
+    pidiendo: 'Preparing…',
+    falloPedido: 'Could not prepare the contract. Please try again in a moment.',
     teConviene: 'Based on your answers, a better fit is',
     total: 'Total',
   },
@@ -79,6 +83,37 @@ export default function PackageCard({
   const labels = copy[locale];
   const [respuestas, setRespuestas] = useState<Record<string, string>>({});
   const [elegidos, setElegidos] = useState<string[]>([]);
+  const [pidiendo, setPidiendo] = useState(false);
+  const [falloPedido, setFalloPedido] = useState(false);
+
+  /**
+   * El pedido se registra antes de firmar. Así queda asentado qué eligió
+   * aunque después no firme, y el contrato sale por el total real y no por el
+   * precio de lista del paquete.
+   */
+  async function contratar() {
+    setPidiendo(true);
+    setFalloPedido(false);
+
+    try {
+      const res = await fetch('/api/pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paquete: paquete.slug, extras: elegidos, locale }),
+      });
+      const body = (await res.json()) as { url?: string };
+
+      if (!res.ok || !body.url) {
+        setFalloPedido(true);
+        setPidiendo(false);
+        return;
+      }
+      window.location.href = body.url;
+    } catch {
+      setFalloPedido(true);
+      setPidiendo(false);
+    }
+  }
 
   const pedido = useMemo(() => totalPedido(paquete, elegidos, extras), [paquete, elegidos, extras]);
 
@@ -240,20 +275,19 @@ export default function PackageCard({
       <div className="mt-6 border-t border-outline-ghost/10 pt-5">
         {vende ? (
           <>
-            {paquete.directLink && paquete.activo && califica ? (
-              <a
-                href={paquete.directLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="button-primary w-full gap-2"
-              >
-                {labels.contratar}
-                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </a>
-            ) : (
-              <button type="button" className="button-primary w-full gap-2" disabled={!califica}>
-                {labels.contratar}
-              </button>
+            <button
+              type="button"
+              className="button-primary w-full gap-2"
+              disabled={!califica || pidiendo}
+              onClick={contratar}
+            >
+              {pidiendo ? labels.pidiendo : labels.contratar}
+              {!pidiendo && <ArrowUpRight className="h-4 w-4" aria-hidden="true" />}
+            </button>
+            {falloPedido && (
+              <p role="alert" className="mt-2 text-xs leading-5 text-red-400">
+                {labels.falloPedido}
+              </p>
             )}
             {!contestoTodo && paquete.calificacion.length > 0 && (
               <p className="mt-2 text-xs leading-5 text-text-tertiary">{labels.faltaResponder}</p>
