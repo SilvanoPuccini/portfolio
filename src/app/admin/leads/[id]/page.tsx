@@ -91,6 +91,7 @@ export default function LeadDetailPage() {
   /** Qué pasó con el cuestionario: null mientras no se sabe. */
   const [questionnaireState, setQuestionnaireState] = useState<{
     enviado: boolean; enviadoEl?: string; completadoEl?: string | null; url?: string;
+    respuestas?: { question: { text: string; para: string }; answer: string }[];
   } | null>(null);
 
   // Send proposal email
@@ -571,9 +572,25 @@ export default function LeadDetailPage() {
           <p style={s.sectionTitle}>Pedirle lo que falta</p>
 
           {questionnaireState?.completadoEl ? (
-            <p style={s.hint}>
-              Ya lo completó el {fmt(questionnaireState.completadoEl)}. Las respuestas están arriba, en el formulario.
-            </p>
+            <div>
+              <p style={s.hint}>Lo completó el {fmt(questionnaireState.completadoEl)}.</p>
+              <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+                {(questionnaireState.respuestas ?? []).map(({ question, answer }) => (
+                  <div key={question.text}>
+                    <p style={{ ...s.label, marginBottom: 3 }}>{question.para}</p>
+                    <p style={{ margin: '0 0 3px', fontSize: 12.5, color: c.textDim, lineHeight: 1.5 }}>
+                      {question.text}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 13.5, color: c.text, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {answer}
+                    </p>
+                  </div>
+                ))}
+                {(questionnaireState.respuestas ?? []).length === 0 && (
+                  <p style={s.hint}>Lo envió sin contestar ninguna pregunta.</p>
+                )}
+              </div>
+            </div>
           ) : questionnaireState?.enviado ? (
             <div>
               <p style={s.hint}>

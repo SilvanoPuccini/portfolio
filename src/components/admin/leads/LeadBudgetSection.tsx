@@ -164,6 +164,15 @@ export function LeadBudgetSection(props: {
           </p>
         )}
 
+        {/* Sin presupuesto guardado no hay propuesta que mandar, y una zona
+            vacía no explica por qué: se dice qué falta. */}
+        {lead.monto_presupuestado == null && (
+          <p style={{ ...s.hint, marginTop: 14, color: c.incomplete }}>
+            Tildá los módulos que entran y tocá «Guardar presupuesto». Recién ahí aparecen los botones para
+            mandarle la propuesta y el contrato.
+          </p>
+        )}
+
         {lead.monto_presupuestado != null && (
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
             {/* Download Proposal — task 8.4 */}

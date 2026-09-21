@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { questionnaireInviteHtml } from '@/lib/email-templates/questionnaire-invite';
+import { answeredQuestions } from '@/lib/leads/questionnaire-questions';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +22,15 @@ const urlFor = (token: string) => `${siteUrl()}/questionnaire/${token}`;
 async function currentQuestionnaire(leadId: string) {
   const { data } = await getSupabaseAdmin()
     .from('questionnaires')
-    .select('id, token, created_at, completed_at')
+    .select('id, token, created_at, completed_at, answers')
     .eq('lead_id', leadId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  return data as { id: string; token: string; created_at: string; completed_at: string | null } | null;
+  return data as {
+    id: string; token: string; created_at: string; completed_at: string | null; answers: unknown;
+  } | null;
 }
 
 /** El estado, para que el panel no ofrezca mandar lo que ya se mandó. */
@@ -44,6 +47,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     enviadoEl: questionnaire.created_at,
     completadoEl: questionnaire.completed_at,
     url: urlFor(questionnaire.token),
+    // Las respuestas, con su pregunta al lado: guardadas y nunca mostradas
+    // era exactamente lo mismo que no tenerlas.
+    respuestas: answeredQuestions(questionnaire.answers),
   });
 }
 

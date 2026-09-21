@@ -2,49 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { QUESTIONNAIRE } from '@/lib/leads/questionnaire-questions';
 
-/**
- * Las preguntas previas a la llamada.
- *
- * No son «para conocerse»: cada una llena un casillero de la calificación
- * —problema, impacto, alternativas, quién decide, plazo y presupuesto—, que es
- * lo que después dice si esa venta se puede cerrar. Si llegan contestadas, los
- * 45 minutos de la llamada se usan para profundizar y no para recolectar.
- *
- * Están escritas como se habla acá y cada una trae un ejemplo. Una pregunta
- * abstracta («¿cómo se ve el éxito para usted?») se contesta con una
- * abstracción, y con eso no se puede cotizar nada.
- */
-const QUESTIONS = [
-  {
-    text: '¿Cómo hacés hoy eso que querés mejorar?',
-    hint: 'Contalo como se lo contarías a alguien que arranca mañana. Ej.: «los pedidos me llegan por WhatsApp, los anoto en un cuaderno y después los paso a un Excel».',
-  },
-  {
-    text: '¿Qué es lo que más te está costando de hacerlo así?',
-    hint: 'Si podés, ponele número: horas por semana, pedidos que se pierden, plata. Ej.: «pierdo 2 horas por día cargando datos» o «se me caen 3 pedidos por mes».',
-  },
-  {
-    text: '¿Ya intentaste resolverlo de otra forma?',
-    hint: 'Una app, un Excel, alguien que te lo hizo antes, un sistema que compraste. Contame qué pasó y por qué no terminó de funcionar.',
-  },
-  {
-    text: 'Si decidimos avanzar, ¿la decisión la tomás vos o hay alguien más?',
-    hint: 'Ej.: «la tomo yo», «lo decidimos con mi socio», «lo tiene que aprobar mi contador». Sirve para saber a quién sumar a la llamada.',
-  },
-  {
-    text: '¿Para cuándo necesitás tenerlo funcionando y por qué esa fecha?',
-    hint: 'El motivo importa más que la fecha. Ej.: «antes de la temporada de verano», «cuando abra el local nuevo», «no tengo apuro».',
-  },
-  {
-    text: '¿Con qué presupuesto te estás manejando para esto?',
-    hint: 'Un rango alcanza. No es un compromiso: me sirve para proponerte algo que entre, en vez de hacerte perder el tiempo.',
-  },
-  {
-    text: '¿Algo más que quieras contarme antes de hablar?',
-    hint: 'Links de páginas que te gusten, una referencia, algo que te preocupe. Opcional.',
-  },
-] as const;
+const QUESTIONS = QUESTIONNAIRE;
 
 type PageState = 'loading' | 'not-found' | 'completed' | 'form' | 'submitting' | 'success' | 'error';
 
@@ -135,7 +95,7 @@ export default function QuestionnairePage() {
 
     const answersObj: Record<string, string> = {};
     QUESTIONS.forEach((q, i) => {
-      answersObj[`q${i + 1}`] = answers[i];
+      answersObj[QUESTIONS[i].key] = answers[i];
     });
 
     try {

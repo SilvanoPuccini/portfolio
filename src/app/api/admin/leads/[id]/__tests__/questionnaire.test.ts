@@ -52,7 +52,9 @@ const post = (body: unknown = {}) => POST(
 );
 const get = () => GET(new NextRequest('http://localhost/x'), { params });
 
-const ENVIADO = { id: 'q-1', token: 'tok-1', created_at: '2026-09-20T12:00:00.000Z', completed_at: null };
+const ENVIADO = {
+  id: 'q-1', token: 'tok-1', created_at: '2026-09-20T12:00:00.000Z', completed_at: null, answers: null,
+};
 
 describe('el cuestionario previo a la llamada', () => {
   beforeEach(() => {
@@ -135,5 +137,29 @@ describe('el cuestionario previo a la llamada', () => {
 
     expect((await get()).status).toBe(401);
     expect((await post()).status).toBe(401);
+  });
+
+  it('devuelve las respuestas con su pregunta al lado', async () => {
+    // Guardadas y nunca mostradas es exactamente lo mismo que no tenerlas.
+    supabase({
+      ...ENVIADO,
+      completed_at: '2026-09-21T10:00:00.000Z',
+      answers: { q1: 'Tomo pedidos por WhatsApp', q2: '  ', q4: 'Decido yo' },
+    });
+
+    const body = await (await get()).json();
+
+    expect(body.respuestas).toHaveLength(2);
+    expect(body.respuestas[0]).toMatchObject({
+      answer: 'Tomo pedidos por WhatsApp',
+      question: { para: 'Situación' },
+    });
+    expect(body.respuestas[1].question.para).toBe('Decisor');
+  });
+
+  it('un cuestionario sin contestar no inventa respuestas', async () => {
+    supabase(ENVIADO);
+
+    expect((await (await get()).json()).respuestas).toEqual([]);
   });
 });
