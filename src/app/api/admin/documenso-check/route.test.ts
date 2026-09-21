@@ -36,7 +36,7 @@ beforeEach(() => {
   vi.mocked(isAuthorized).mockReturnValue(true);
   process.env.DOCUMENSO_API_TOKEN = 'api_secreto';
   process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
-  process.env.DOCUMENSO_SECRET = 'wh_secreto';
+  process.env.DOCUMENSO_WEBHOOK_SECRET = 'wh_secreto';
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -62,7 +62,7 @@ describe('GET /api/admin/documenso-check', () => {
     expect(JSON.parse(texto).variables).toMatchObject({
       DOCUMENSO_API_TOKEN: true,
       DOCUMENSO_TEMPLATE_ID: true,
-      DOCUMENSO_SECRET: true,
+      DOCUMENSO_WEBHOOK_SECRET: true,
     });
   });
 

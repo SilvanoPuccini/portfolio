@@ -88,6 +88,27 @@ describe('createContract', () => {
 
   afterEach(() => { vi.unstubAllGlobals(); });
 
+  /** La API nueva: el sobre se lee en /envelope/{id} y se usa en /envelope/use. */
+  function mockEnvelope() {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          fields: [{ id: 2, type: 'text', fieldMeta: { label: 'precio' } }],
+          recipients: [{ id: 5, role: 'SIGNER', signingOrder: 1 }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 'envelope_nuevo',
+          recipients: [{ token: 'abc', signingUrl: 'https://app.documenso.com/sign/abc' }],
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  }
+
   function mockDocumenso(overrides: { created?: unknown; templateOk?: boolean } = {}) {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({
@@ -132,17 +153,49 @@ describe('createContract', () => {
     expect(JSON.parse(fetchMock.mock.calls[1][1].body as string).distributeDocument).toBe(true);
   });
 
-  it('acepta el id de envelope de la API nueva, que no es un número', async () => {
-    // Documenso pasó de ids numéricos a `envelope_xxxx`. Convertir a número
-    // devolvía NaN y el contrato no se creaba nunca, en silencio.
+  it('con un id de sobre usa la API nueva: /envelope/{id} y /envelope/use', async () => {
+    // Documenso reemplazó plantillas y documentos por «envelopes». Pegarle a
+    // /template/ con un id de sobre daba 404 y el contrato no se creaba nunca.
     process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_encdeubfauwflbhb';
-    const fetchMock = mockDocumenso();
+    const fetchMock = mockEnvelope();
+
+    const result = await createContract(DATA);
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://app.documenso.com/api/v2/envelope/envelope_encdeubfauwflbhb',
+    );
+    expect(fetchMock.mock.calls[1][0]).toBe('https://app.documenso.com/api/v2/envelope/use');
+    expect(result.signingUrl).toBe('https://app.documenso.com/sign/abc');
+  });
+
+  it('el sobre viaja como multipart con el payload adentro', async () => {
+    // /envelope/use no acepta JSON: espera multipart con un campo `payload`.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = mockEnvelope();
+
+    await createContract(DATA, 'https://silvanopuccini.dev/propuesta/tok-1', 'pedido-1');
+
+    const enviado = fetchMock.mock.calls[1][1].body as FormData;
+    expect(enviado).toBeInstanceOf(FormData);
+    const payload = JSON.parse(enviado.get('payload') as string);
+
+    expect(payload.envelopeId).toBe('envelope_abc');
+    expect(payload.externalId).toBe('pedido-1');
+    expect(payload.recipients).toEqual([{ id: 5, email: 'hola@ferrelon.com', name: 'Ferrelon' }]);
+    expect(payload.prefillFields).toEqual([{ id: 2, type: 'text', value: 'USD 4.800' }]);
+    expect(payload.distributeDocument).toBe(true);
+    expect(payload.override.redirectUrl).toContain('/propuesta/tok-1');
+  });
+
+  it('con multipart no fuerza el content-type: lo pone fetch con su frontera', async () => {
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = mockEnvelope();
 
     await createContract(DATA);
 
-    expect(fetchMock.mock.calls[0][0]).toContain('envelope_encdeubfauwflbhb');
-    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string).templateId)
-      .toBe('envelope_encdeubfauwflbhb');
+    const headers = fetchMock.mock.calls[1][1].headers as Record<string, string>;
+    expect(headers['Content-Type']).toBeUndefined();
+    expect(headers.Authorization).toBe('api_test');
   });
 
   it('con un id numérico lo sigue mandando como número', async () => {

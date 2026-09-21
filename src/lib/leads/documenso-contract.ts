@@ -115,9 +115,17 @@ async function call(path: string, init?: RequestInit) {
   const token = process.env.DOCUMENSO_API_TOKEN;
   if (!token) throw new Error('Falta DOCUMENSO_API_TOKEN');
 
+  // El content-type solo se declara para JSON. Con multipart lo pone fetch,
+  // que es el único que sabe la frontera que separa las partes.
+  const esMultipart = init?.body instanceof FormData;
+
   const response = await fetch(`${API}${path}`, {
     ...init,
-    headers: { Authorization: token, 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
+    headers: {
+      Authorization: token,
+      ...(esMultipart ? {} : { 'Content-Type': 'application/json' }),
+      ...(init?.headers ?? {}),
+    },
     signal: AbortSignal.timeout(20_000),
   });
 
@@ -135,31 +143,48 @@ async function call(path: string, init?: RequestInit) {
  * página, el cliente recibe el correo de Documenso. Si cierra la pestaña sin
  * firmar, el link le sigue llegando por mail.
  */
-export async function createContract(data: ContractData, redirectUrl?: string): Promise<ContractCreation> {
-  // Documenso pasó de ids numéricos a ids de envelope (`envelope_xxxx`).
-  // Aceptamos los dos: convertir a número devolvía NaN con los nuevos, y el
-  // contrato no se creaba nunca sin decir por qué.
+export async function createContract(
+  data: ContractData,
+  redirectUrl?: string,
+  externalId?: string,
+): Promise<ContractCreation> {
   const crudo = (process.env.DOCUMENSO_TEMPLATE_ID ?? '').trim();
   if (!crudo) throw new Error('Falta DOCUMENSO_TEMPLATE_ID');
 
-  const templateId: string | number = /^\d+$/.test(crudo) ? Number(crudo) : crudo;
+  // Documenso reemplazó plantillas y documentos por «envelopes». Los ids
+  // nuevos son `envelope_xxxx` y viven en otra ruta, con otro formato de
+  // envío. Los numéricos siguen andando por la ruta vieja.
+  const esSobre = !/^\d+$/.test(crudo);
+  const templateId: string | number = esSobre ? crudo : Number(crudo);
 
-  const template = await call(`/template/${templateId}`) as {
+  const template = await call(esSobre ? `/envelope/${crudo}` : `/template/${templateId}`) as {
     fields?: TemplateField[]; recipients?: TemplateRecipient[];
   };
 
   const signer = signerOf(template.recipients ?? []);
   if (!signer) throw new Error('La plantilla no tiene un firmante definido');
 
-  const created = await call('/template/use', {
+  const payload = {
+    ...(esSobre ? { envelopeId: crudo } : { templateId }),
+    ...(externalId ? { externalId } : {}),
+    recipients: [{ id: signer.id, email: data.email, name: data.nombre }],
+    prefillFields: prefillFor(template.fields ?? [], data),
+    distributeDocument: true,
+    ...(redirectUrl ? { override: { redirectUrl } } : {}),
+  };
+
+  // `/envelope/use` no acepta JSON: espera multipart con el payload adentro.
+  const cuerpo = esSobre
+    ? (() => {
+      const form = new FormData();
+      form.append('payload', JSON.stringify(payload));
+      return form;
+    })()
+    : JSON.stringify(payload);
+
+  const created = await call(esSobre ? '/envelope/use' : '/template/use', {
     method: 'POST',
-    body: JSON.stringify({
-      templateId,
-      recipients: [{ id: signer.id, email: data.email, name: data.nombre }],
-      prefillFields: prefillFor(template.fields ?? [], data),
-      distributeDocument: true,
-      ...(redirectUrl ? { override: { redirectUrl } } : {}),
-    }),
+    body: cuerpo,
   }) as {
     id?: string; envelopeId?: string;
     recipients?: { signingUrl?: string; token?: string }[];
@@ -176,3 +201,4 @@ export async function createContract(data: ContractData, redirectUrl?: string): 
     token: recipient.token,
   };
 }
+

@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
   const variables = {
     DOCUMENSO_API_TOKEN: Boolean(token),
     DOCUMENSO_TEMPLATE_ID: Boolean(templateId),
-    DOCUMENSO_SECRET: Boolean((process.env.DOCUMENSO_SECRET ?? '').trim()),
+    DOCUMENSO_WEBHOOK_SECRET: Boolean((process.env.DOCUMENSO_WEBHOOK_SECRET ?? '').trim()),
   };
 
   const base = {
