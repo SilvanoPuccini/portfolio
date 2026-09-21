@@ -135,3 +135,70 @@ export function armarPresupuesto(entrada: EntradaPresupuesto): Presupuesto {
     esAMedida: paquete === null || paquete.precioUsd === null,
   };
 }
+
+/* -------------------------------------------------------------------------- */
+/*  El pedido congelado                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Lo que el cliente eligió, con el precio del día que lo eligió.
+ *
+ * Se guarda aparte del presupuesto calculado por la misma razón que
+ * `propuesta_snapshot`: si mañana sube la lista, lo que se cerró ayer no
+ * cambia. Y aunque el cliente nunca firme, queda registrado qué tildó.
+ */
+export interface PedidoSnapshot {
+  paquete: string | null;
+  extras: string[];
+  totalUsd: number;
+  mensualUsd: number;
+  congeladoAt: string;
+}
+
+export function parsePedidoSnapshot(value: unknown): PedidoSnapshot | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+
+  const paqueteSlug = row.paquete;
+  if (paqueteSlug !== null && typeof paqueteSlug !== 'string') return null;
+  // Un paquete que ya no está en el catálogo dejaría un pedido que no se puede
+  // reconstruir: mejor tratarlo como si no hubiera pedido.
+  if (typeof paqueteSlug === 'string' && !paquetePorSlug(paqueteSlug)) return null;
+
+  const paquete = paqueteSlug ? paquetePorSlug(paqueteSlug) : null;
+  const servicio = paquete ? servicioPorSlug(paquete.servicio) : null;
+  const extras = Array.isArray(row.extras)
+    ? row.extras.filter(
+        (id): id is string =>
+          typeof id === 'string' && Boolean(servicio?.extras.some((e) => e.id === id)),
+      )
+    : [];
+
+  const numero = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  const congeladoAt = typeof row.congeladoAt === 'string' ? row.congeladoAt : '';
+  if (!congeladoAt) return null;
+
+  return {
+    paquete: paqueteSlug ?? null,
+    extras,
+    totalUsd: numero(row.totalUsd),
+    mensualUsd: numero(row.mensualUsd),
+    congeladoAt,
+  };
+}
+
+/** El pedido tal como se guarda, a partir del presupuesto que se está viendo. */
+export function congelarPedido(
+  paqueteSlug: string | null,
+  extrasIds: string[],
+  presupuesto: Presupuesto,
+  ahora: Date = new Date(),
+): PedidoSnapshot {
+  return {
+    paquete: paqueteSlug,
+    extras: extrasIds,
+    totalUsd: Math.round(presupuesto.totalUsd),
+    mensualUsd: Math.round(presupuesto.mensualUsd),
+    congeladoAt: ahora.toISOString(),
+  };
+}

@@ -49,6 +49,8 @@ export interface Lead {
   ultimo_contacto_at: string | null;
   propuesta_respuesta: string | null;
   modulos_seleccionados: unknown;
+  /** El paquete y los extras que eligió el cliente, con su precio congelado. */
+  pedido_snapshot: unknown;
   guia_respuestas: unknown;
   mantenimiento_mensual: number | null;
   propuesta_snapshot: unknown;

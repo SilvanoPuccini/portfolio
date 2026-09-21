@@ -2,7 +2,9 @@
 
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
+import { CatalogPicker } from './CatalogPicker';
 import { PertModuleRow } from './PertModuleRow';
+import type { Presupuesto } from '@/lib/leads/presupuesto';
 import type { Lead, PertRow, RateConfig } from '@/lib/leads/types';
 
 /**
@@ -18,9 +20,12 @@ export function LeadBudgetSection(props: {
   rateConfig: RateConfig;
   baseModules: PertRow[];
   featureModules: PertRow[];
-  totalPertHours: number;
-  bufferedHours: number;
-  totalPrice: number;
+  /** El presupuesto ya armado: catálogo primero, estimación solo para el resto. */
+  presupuesto: Presupuesto;
+  paqueteSlug: string | null;
+  extrasIds: string[];
+  onPaquete: (slug: string | null) => void;
+  onExtra: (id: string, elegido: boolean) => void;
   updatePertRow: (slug: string, field: 'o' | 'm' | 'p' | 'selected', value: number | boolean) => void;
   saveBudget: () => void;
   budgetSaved: boolean;
@@ -42,8 +47,9 @@ export function LeadBudgetSection(props: {
   fmt: (iso: string) => string;
 }) {
   const {
-    lead, rateConfig, baseModules, featureModules, totalPertHours, bufferedHours,
-    totalPrice, updatePertRow, saveBudget, budgetSaved, mantenimiento, onMantenimiento,
+    lead, rateConfig, baseModules, featureModules, presupuesto,
+    paqueteSlug, extrasIds, onPaquete, onExtra,
+    updatePertRow, saveBudget, budgetSaved, mantenimiento, onMantenimiento,
     propuestaUrl, downloadContract, contractLoading, sendProposalEmail,
     proposalSending, proposalEmailSent, proposalEmailError, sendContractEmail,
     contractSending, contractEmailSent, contractEmailError, fmt,
@@ -52,7 +58,7 @@ export function LeadBudgetSection(props: {
   return (
     <>
       <p style={s.hint}>
-        PERT = (O + 4M + P) / 6 · Buffer {rateConfig.buffer_pct}% · ${rateConfig.tarifa_hora}/hr
+        Primero el catálogo. La estimación por horas queda para lo que no entra en ningún paquete.
       </p>
 
       {/* Service Context panel — task 8.5 */}
@@ -84,6 +90,21 @@ export function LeadBudgetSection(props: {
         </div>
       )}
 
+      <CatalogPicker
+        paqueteSlug={paqueteSlug}
+        extrasIds={extrasIds}
+        onPaquete={onPaquete}
+        onExtra={onExtra}
+      />
+
+      <div style={{ marginTop: 22, borderTop: '1px solid #1e293b', paddingTop: 16 }}>
+        <p style={{ ...s.label, marginBottom: 2, color: '#94a3b8' }}>Fuera de catálogo</p>
+        <p style={s.hint}>
+          PERT = (O + 4M + P) / 6 · Buffer {rateConfig.buffer_pct}% · ${rateConfig.tarifa_hora}/hr.
+          Lo que el paquete o un extra ya cubren no se cobra de nuevo, aunque quede tildado.
+        </p>
+      </div>
+
       {/* Base modules */}
       {baseModules.length > 0 && (
         <div style={{ marginTop: 18 }}>
@@ -108,15 +129,15 @@ export function LeadBudgetSection(props: {
       <div style={{ marginTop: 24, borderTop: '1px solid #1e293b', paddingTop: 18 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 360 }}>
           <div>
-            <p style={{ ...s.label, marginBottom: 2 }}>Horas PERT</p>
+            <p style={{ ...s.label, marginBottom: 2 }}>Del catálogo</p>
             <p style={{ fontSize: 18, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>
-              {totalPertHours.toFixed(1)}h
+              ${presupuesto.catalogoUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
           <div>
-            <p style={{ ...s.label, marginBottom: 2 }}>Con buffer ({rateConfig.buffer_pct}%)</p>
+            <p style={{ ...s.label, marginBottom: 2 }}>A medida ({presupuesto.horasMedida.toFixed(1)}h)</p>
             <p style={{ fontSize: 18, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>
-              {bufferedHours.toFixed(1)}h
+              ${presupuesto.medidaUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
@@ -139,8 +160,13 @@ export function LeadBudgetSection(props: {
           <div style={{ gridColumn: '1 / -1' }}>
             <p style={{ ...s.label, marginBottom: 2 }}>Total estimado</p>
             <p style={{ fontSize: 26, fontWeight: 700, color: '#00d4d4', margin: 0 }}>
-              ${totalPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+              ${presupuesto.totalUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
+            {presupuesto.mensualUsd > 0 && (
+              <p style={{ ...s.hint, marginTop: 4 }}>
+                Más ${presupuesto.mensualUsd.toLocaleString('en-US')} por mes, que no entra en el total del proyecto.
+              </p>
+            )}
           </div>
         </div>
 

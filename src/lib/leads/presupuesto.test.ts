@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { armarPresupuesto } from './presupuesto';
+import { armarPresupuesto, parsePedidoSnapshot } from './presupuesto';
 import type { PertRow } from './types';
 
 const fila = (slug: string, horas: number, selected = true): PertRow => ({
@@ -98,5 +98,40 @@ describe('armarPresupuesto', () => {
 
   it('sin nada elegido el total es cero', () => {
     expect(armarPresupuesto({ ...tarifa }).totalUsd).toBe(0);
+  });
+});
+
+describe('parsePedidoSnapshot', () => {
+  const snapshot = {
+    paquete: 'web-cinco-secciones',
+    extras: ['agenda'],
+    totalUsd: 940,
+    mensualUsd: 0,
+    congeladoAt: '2026-09-21T12:00:00.000Z',
+  };
+
+  it('devuelve lo que se eligió, con su precio congelado', () => {
+    expect(parsePedidoSnapshot(snapshot)).toEqual(snapshot);
+  });
+
+  it('descarta lo que no es un pedido', () => {
+    expect(parsePedidoSnapshot(null)).toBeNull();
+    expect(parsePedidoSnapshot('web')).toBeNull();
+    expect(parsePedidoSnapshot([])).toBeNull();
+    expect(parsePedidoSnapshot({})).toBeNull();
+  });
+
+  it('descarta un paquete que ya no existe en el catálogo', () => {
+    expect(parsePedidoSnapshot({ ...snapshot, paquete: 'borrado' })).toBeNull();
+  });
+
+  it('deja afuera los extras inventados y deja pasar el resto', () => {
+    const parsed = parsePedidoSnapshot({ ...snapshot, extras: ['agenda', 'inventado'] });
+    expect(parsed?.extras).toEqual(['agenda']);
+  });
+
+  it('acepta un pedido sin paquete, que es todo a medida', () => {
+    const parsed = parsePedidoSnapshot({ ...snapshot, paquete: null, extras: [] });
+    expect(parsed?.paquete).toBeNull();
   });
 });

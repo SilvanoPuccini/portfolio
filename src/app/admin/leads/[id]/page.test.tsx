@@ -178,7 +178,19 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     // «Catálogo» también aparece como dato del formulario del cliente: se
     // busca el de la calculadora, que es el que prueba de dónde salió.
     expect((await screen.findAllByText('Catálogo')).length).toBeGreaterThan(0);
-    expect(screen.getByText('Horas PERT')).toBeInTheDocument();
+    // La estimación por horas ya no encabeza el presupuesto: quedó para lo
+    // que el catálogo no cubre.
+    expect(screen.getByText('Fuera de catálogo')).toBeInTheDocument();
+    expect(screen.getByText('Del catálogo')).toBeInTheDocument();
+  });
+
+  it('el presupuesto arranca eligiendo un paquete del catálogo', async () => {
+    render(<LeadDetailPage />);
+    await screen.findByText('Ferrelon');
+
+    const select = screen.getByLabelText(/paquete del catálogo/i) as HTMLSelectElement;
+    const textos = Array.from(select.options).map((o) => o.textContent ?? '');
+    expect(textos.some((texto) => texto.includes('Web de cinco secciones'))).toBe(true);
   });
 
   it('ofrece el paso siguiente de la venta arriba de todo', async () => {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { isKnownState } from '@/lib/leads/pipeline';
+import { parsePedidoSnapshot } from '@/lib/leads/presupuesto';
 import { parseSelectedModules } from '@/lib/leads/selected-modules';
 import { parseAnswers } from '@/lib/leads/call-guide';
 
@@ -90,6 +91,16 @@ export async function PATCH(
         return NextResponse.json({ error: 'Field "modulos_seleccionados" must be an array.' }, { status: 400 });
       }
       updates.modulos_seleccionados = parseSelectedModules(body.modulos_seleccionados);
+    }
+
+    // El pedido del catálogo. Se valida contra el catálogo real: un paquete o
+    // un extra que ya no existe no entra a la base.
+    if ('pedido_snapshot' in body) {
+      const value = body.pedido_snapshot;
+      updates.pedido_snapshot = value === null ? null : parsePedidoSnapshot(value);
+      if (value !== null && updates.pedido_snapshot === null) {
+        return NextResponse.json({ error: 'Field "pedido_snapshot" is not a valid order.' }, { status: 400 });
+      }
     }
 
     // La columna `estado` es text libre: sin esto, un typo entra a la base y

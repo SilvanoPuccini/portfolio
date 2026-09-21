@@ -23,6 +23,13 @@ import {
 import { diagnosisFromAnswers, parseAnswers, type GuideAnswers } from '@/lib/leads/call-guide';
 import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
 import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
+import {
+  armarPresupuesto,
+  congelarPedido,
+  parsePedidoSnapshot,
+  type LineaPresupuesto,
+} from '@/lib/leads/presupuesto';
+import { servicioPorSlug } from '@/content/servicios';
 
 
 
@@ -45,6 +52,14 @@ function autoSelectSlugs(lead: Lead): Set<string> {
 }
 
 
+
+/** El paquete que se propone cuando el lead entró por un servicio pero no eligió. */
+function paqueteSugerido(service: string | null | undefined): string | null {
+  const servicio = servicioPorSlug(service);
+  if (!servicio) return null;
+  const destacado = servicio.paquetes.find((p) => p.destacado) ?? servicio.paquetes[0];
+  return destacado?.slug ?? null;
+}
 
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -75,6 +90,10 @@ export default function LeadDetailPage() {
   const [allModules, setAllModules] = useState<LeadModule[]>([]);
   const [rateConfig, setRateConfig] = useState<RateConfig>({ tarifa_hora: 35, buffer_pct: 20 });
   const [pertRows, setPertRows] = useState<PertRow[]>([]);
+  // Lo que el cliente eligió del catálogo. Es la base del presupuesto: la
+  // estimación por horas quedó para lo que ningún paquete cubre.
+  const [paqueteSlug, setPaqueteSlug] = useState<string | null>(null);
+  const [extrasIds, setExtrasIds] = useState<string[]>([]);
   const [budgetSaved, setBudgetSaved] = useState(false);
   const [budgetInit, setBudgetInit] = useState(false);
 
@@ -163,26 +182,47 @@ export default function LeadDetailPage() {
     // Only auto-build rows once
     const selected = autoSelectSlugs(lead);
     setPertRows(buildPertRows(allModules, selected));
+
+    // El pedido guardado manda: es lo que el cliente ya eligió, con su precio.
+    // Si no hay, se propone el paquete destacado del servicio por el que entró.
+    const pedido = parsePedidoSnapshot(lead.pedido_snapshot);
+    if (pedido) {
+      setPaqueteSlug(pedido.paquete);
+      setExtrasIds(pedido.extras);
+    } else {
+      const sugerido = paqueteSugerido(lead.service);
+      if (sugerido) setPaqueteSlug(sugerido);
+    }
+
     setBudgetInit(false); // prevent re-run
   }, [lead, allModules, budgetInit]);
 
   // Budget calculations
   const selectedRows = useMemo(() => pertRows.filter((r) => r.selected), [pertRows]);
 
-  const totalPertHours = useMemo(
-    () => selectedRows.reduce((sum, r) => sum + pertHours(r.o, r.m, r.p), 0),
-    [selectedRows],
+  const presupuesto = useMemo(
+    () =>
+      armarPresupuesto({
+        paqueteSlug,
+        extrasIds,
+        pertRows,
+        tarifaHora: rateConfig.tarifa_hora,
+        bufferPct: rateConfig.buffer_pct,
+      }),
+    [paqueteSlug, extrasIds, pertRows, rateConfig.tarifa_hora, rateConfig.buffer_pct],
   );
 
-  const bufferedHours = useMemo(
-    () => totalPertHours * (1 + rateConfig.buffer_pct / 100),
-    [totalPertHours, rateConfig.buffer_pct],
-  );
+  function toggleExtra(id: string, elegido: boolean) {
+    setExtrasIds((actuales) =>
+      elegido ? [...new Set([...actuales, id])] : actuales.filter((x) => x !== id),
+    );
+  }
 
-  const totalPrice = useMemo(
-    () => bufferedHours * rateConfig.tarifa_hora,
-    [bufferedHours, rateConfig.tarifa_hora],
-  );
+  function elegirPaquete(slug: string | null) {
+    setPaqueteSlug(slug);
+    // Los extras son de un servicio: al cambiar de paquete dejan de aplicar.
+    setExtrasIds([]);
+  }
 
   function updatePertRow(slug: string, field: keyof Pick<PertRow, 'o' | 'm' | 'p' | 'selected'>, value: number | boolean) {
     setPertRows((rows) =>
@@ -263,6 +303,9 @@ export default function LeadDetailPage() {
       diagObjetivo ? `**Objetivo:** ${diagObjetivo}` : null,
       diagSituacion ? `**Situación:** ${diagSituacion}` : null,
       diagRequerimiento ? `**Requerimiento:** ${diagRequerimiento}` : null,
+      diagDolor ? `**Dolor:** ${diagDolor}` : null,
+      diagDeseo ? `**Deseo:** ${diagDeseo}` : null,
+      diagPreocupaciones ? `**Preocupaciones:** ${diagPreocupaciones}` : null,
       '',
       '## Alcance del proyecto',
       `- Tipo: ${lead.tipo_proyecto || 'No definido'}`,
@@ -277,9 +320,9 @@ export default function LeadDetailPage() {
       modules || '(ninguno seleccionado)',
       '',
       '## Presupuesto',
-      `- Horas estimadas: ${bufferedHours.toFixed(1)}h (PERT + ${rateConfig.buffer_pct}% buffer)`,
+      `- Horas estimadas: ${presupuesto.horasMedida.toFixed(1)}h (PERT + ${rateConfig.buffer_pct}% buffer)`,
       `- Tarifa: $${rateConfig.tarifa_hora}/hr`,
-      `- Total: $${totalPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+      `- Total: $${presupuesto.totalUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
       lead.plazo ? `- Plazo deseado: ${lead.plazo}` : null,
       '',
       '## Instrucciones',
@@ -396,14 +439,24 @@ export default function LeadDetailPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        horas_calculadas: Math.round(bufferedHours * 10) / 10,
-        monto_presupuestado: Math.round(totalPrice),
+        horas_calculadas: Math.round(presupuesto.horasMedida * 10) / 10,
+        monto_presupuestado: Math.round(presupuesto.totalUsd),
+        // El pedido queda congelado con el precio del día: si mañana sube la
+        // lista, lo que se cotizó hoy no se mueve.
+        pedido_snapshot: paqueteSlug || extrasIds.length > 0
+          ? congelarPedido(paqueteSlug, extrasIds, presupuesto)
+          : null,
         mantenimiento_mensual: mantenimiento.trim() ? Number(mantenimiento) : null,
         // El alcance se guarda con el total: es lo que después lista la
         // propuesta, con el nombre y las horas del día que se cotizó.
-        modulos_seleccionados: pertRows
-          .filter((row) => row.selected)
-          .map((row) => ({ slug: row.slug, label: row.label, horas: pertHours(row.o, row.m, row.p) })),
+        // El alcance es el presupuesto entero: el paquete, sus extras y lo que
+        // se estimó aparte. Es lo que después lista la propuesta.
+        modulos_seleccionados: presupuesto.lineas.map((linea: LineaPresupuesto) => ({
+          slug: linea.slug,
+          label: linea.label,
+          horas: linea.horas ?? undefined,
+          precioUsd: linea.tipo === 'medida' ? undefined : linea.precioUsd,
+        })),
       }),
     });
     setBudgetSaved(true);
@@ -638,9 +691,11 @@ export default function LeadDetailPage() {
           rateConfig={rateConfig}
           baseModules={baseModules}
           featureModules={featureModules}
-          totalPertHours={totalPertHours}
-          bufferedHours={bufferedHours}
-          totalPrice={totalPrice}
+          presupuesto={presupuesto}
+          paqueteSlug={paqueteSlug}
+          extrasIds={extrasIds}
+          onPaquete={elegirPaquete}
+          onExtra={toggleExtra}
           updatePertRow={updatePertRow}
           saveBudget={saveBudget}
           budgetSaved={budgetSaved}
