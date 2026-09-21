@@ -247,6 +247,12 @@ describe('createContract', () => {
     });
     // El pedido de firma sí sale: es el respaldo si cierra la pestaña.
     expect(payload.override.emailSettings.recipientSigningRequest).toBe(true);
+    // Y a Silvano no le llega ninguno: se entera por el panel.
+    expect(payload.override.emailSettings).toMatchObject({
+      ownerDocumentCreated: false,
+      ownerDocumentCompleted: false,
+      ownerRecipientExpired: false,
+    });
   });
 
   it('con multipart no fuerza el content-type: lo pone fetch con su frontera', async () => {

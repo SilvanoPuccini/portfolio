@@ -209,10 +209,17 @@ export async function createContract(
       // Los avisos que le llegan al cliente los mandamos nosotros, con lo que
       // sigue explicado. Los de Documenso llegaban antes y en su idioma.
       emailSettings: {
+        // El único que queda: es el respaldo si el cliente cierra la pestaña
+        // sin firmar. Va con nuestro asunto y nuestro texto.
         recipientSigningRequest: true,
         documentPending: false,
         documentCompleted: false,
         recipientSigned: false,
+        // A Silvano no le llega nada de Documenso: se entera por el panel y
+        // por los avisos del sistema, que dicen qué hacer con la venta.
+        ownerDocumentCreated: false,
+        ownerDocumentCompleted: false,
+        ownerRecipientExpired: false,
       },
     },
   };
