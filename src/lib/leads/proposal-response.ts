@@ -42,6 +42,7 @@ interface LeadRow {
   email: string;
   propuesta_respuesta: string | null;
   propuesta_snapshot: {
+    solucion?: string;
     incluye?: { titulo?: string }[];
     inversion?: { total?: number; sena?: number; saldo?: number; pct?: number };
   } | null;
@@ -159,6 +160,7 @@ export async function recordProposalResponse(
         .map((item) => item?.titulo ?? '')
         .filter(Boolean)
         .join(', '),
+      objeto: snapshot.solucion ?? '',
       // El plazo sale de las horas cotizadas: una semana por cada 20 horas,
       // que es el ritmo real de un proyecto con un cliente respondiendo.
       plazo: plazoDe(lead.horas_calculadas),

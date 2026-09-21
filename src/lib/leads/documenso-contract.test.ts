@@ -7,6 +7,7 @@ const DATA = {
   plazo: '15 días hábiles desde la seña',
   pago: 'Seña del 50% para empezar, el resto contra entrega.',
   domicilio: 'Córdoba, Argentina',
+  objeto: 'Catálogo online con cobro por link de Mercado Pago.',
   jurisdiccion: 'Tribunales ordinarios de la Ciudad de Buenos Aires.',
 };
 
@@ -33,6 +34,7 @@ describe('prefillFor', () => {
       { id: 2, type: 'text', fieldMeta: { label: 'Pago' } },
       { id: 3, type: 'text', fieldMeta: { label: 'jurisdiccion' } },
       { id: 4, type: 'text', fieldMeta: { label: 'domicilio' } },
+      { id: 5, type: 'text', fieldMeta: { label: 'objeto' } },
     ];
 
     expect(prefillFor(fields, DATA)).toEqual([
@@ -40,6 +42,7 @@ describe('prefillFor', () => {
       { id: 2, type: 'text', value: 'Seña del 50% para empezar, el resto contra entrega.' },
       { id: 3, type: 'text', value: 'Tribunales ordinarios de la Ciudad de Buenos Aires.' },
       { id: 4, type: 'text', value: 'Córdoba, Argentina' },
+      { id: 5, type: 'text', value: 'Catálogo online con cobro por link de Mercado Pago.' },
     ]);
   });
 
@@ -129,8 +132,32 @@ describe('createContract', () => {
     expect(JSON.parse(fetchMock.mock.calls[1][1].body as string).distributeDocument).toBe(true);
   });
 
+  it('acepta el id de envelope de la API nueva, que no es un número', async () => {
+    // Documenso pasó de ids numéricos a `envelope_xxxx`. Convertir a número
+    // devolvía NaN y el contrato no se creaba nunca, en silencio.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_encdeubfauwflbhb';
+    const fetchMock = mockDocumenso();
+
+    await createContract(DATA);
+
+    expect(fetchMock.mock.calls[0][0]).toContain('envelope_encdeubfauwflbhb');
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string).templateId)
+      .toBe('envelope_encdeubfauwflbhb');
+  });
+
+  it('con un id numérico lo sigue mandando como número', async () => {
+    process.env.DOCUMENSO_TEMPLATE_ID = '42';
+    const fetchMock = mockDocumenso();
+
+    await createContract(DATA);
+
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string).templateId).toBe(42);
+  });
+
   it('sin configuración no inventa nada', async () => {
     delete process.env.DOCUMENSO_TEMPLATE_ID;
+    await expect(createContract(DATA)).rejects.toThrow('DOCUMENSO_TEMPLATE_ID');
+    process.env.DOCUMENSO_TEMPLATE_ID = '   ';
     await expect(createContract(DATA)).rejects.toThrow('DOCUMENSO_TEMPLATE_ID');
 
     process.env.DOCUMENSO_TEMPLATE_ID = '42';

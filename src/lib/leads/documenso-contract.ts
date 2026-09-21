@@ -45,6 +45,8 @@ export interface ContractData {
   total: number;
   /** Una línea con lo que incluye, para la cláusula de alcance. */
   alcance: string;
+  /** Qué se contrata, en una frase. Es la cláusula de objeto. */
+  objeto?: string;
   /** Cuánto tarda la entrega. Es la obligación principal del que vende. */
   plazo?: string;
   /** Seña y saldo, o pago único. Cambia por venta, no por plantilla. */
@@ -70,6 +72,9 @@ const FIELD_LABELS: Record<string, (data: ContractData) => string> = {
   monto: (data) => `USD ${data.total.toLocaleString('es-AR')}`,
   total: (data) => `USD ${data.total.toLocaleString('es-AR')}`,
   alcance: (data) => data.alcance,
+  // La cláusula II: qué se contrata. Si no viene, se cae al alcance, que dice
+  // lo mismo con más detalle; una cláusula de objeto en blanco no sirve.
+  objeto: (data) => data.objeto ?? data.alcance,
   // Los tres que antes quedaban escritos fijos en el PDF y no podían cambiar
   // ni por venta ni por país.
   plazo: (data) => data.plazo ?? '',
@@ -119,10 +124,13 @@ async function call(path: string, init?: RequestInit) {
  * firmar, el link le sigue llegando por mail.
  */
 export async function createContract(data: ContractData, redirectUrl?: string): Promise<ContractCreation> {
-  const templateId = Number(process.env.DOCUMENSO_TEMPLATE_ID);
-  if (!Number.isFinite(templateId) || templateId <= 0) {
-    throw new Error('Falta DOCUMENSO_TEMPLATE_ID');
-  }
+  // Documenso pasó de ids numéricos a ids de envelope (`envelope_xxxx`).
+  // Aceptamos los dos: convertir a número devolvía NaN con los nuevos, y el
+  // contrato no se creaba nunca sin decir por qué.
+  const crudo = (process.env.DOCUMENSO_TEMPLATE_ID ?? '').trim();
+  if (!crudo) throw new Error('Falta DOCUMENSO_TEMPLATE_ID');
+
+  const templateId: string | number = /^\d+$/.test(crudo) ? Number(crudo) : crudo;
 
   const template = await call(`/template/${templateId}`) as {
     fields?: TemplateField[]; recipients?: TemplateRecipient[];
