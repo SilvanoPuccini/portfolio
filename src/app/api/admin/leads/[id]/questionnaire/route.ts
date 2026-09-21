@@ -5,6 +5,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { questionnaireInviteHtml } from '@/lib/email-templates/questionnaire-invite';
 import { answeredQuestions } from '@/lib/leads/questionnaire-questions';
 import { servicioPorSlug } from '@/content/servicios';
+import { clienteUrl } from '@/lib/leads/client-stage';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('nombre, email')
+      .select('nombre, email, lead_token')
       .eq('id', id)
       .single();
 
@@ -123,7 +124,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     await sendCrmEmail(
       lead.email,
       body.reenviar ? 'Te reenvío el cuestionario de tu proyecto' : 'Unas preguntas antes de nuestra llamada',
-      questionnaireInviteHtml({ name: lead.nombre, email: lead.email }, urlFor(token as string)),
+      // Va el link único del cliente: el mismo que después le va a mostrar la
+      // propuesta y la firma, sin que tenga que buscar otro correo.
+      questionnaireInviteHtml(
+        { name: lead.nombre, email: lead.email },
+        clienteUrl(siteUrl(), lead.lead_token as string | null, urlFor(token as string)),
+      ),
     );
 
     return NextResponse.json(

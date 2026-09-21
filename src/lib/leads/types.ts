@@ -55,6 +55,8 @@ export interface Lead {
   mantenimiento_mensual: number | null;
   propuesta_snapshot: unknown;
   propuesta_token: string | null;
+  /** El link único que guarda el cliente: siempre lo lleva a la etapa actual. */
+  lead_token: string | null;
   /** Los hitos de la venta, para el historial de la ficha. */
   propuesta_respondida_at: string | null;
   contrato_firmado_at: string | null;

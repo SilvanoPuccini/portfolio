@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
+import { clienteUrl } from '@/lib/leads/client-stage';
 import { advanceOn } from '@/lib/leads/pipeline';
 import { buildDiagnosisDoc } from '@/lib/leads/diagnosis-doc';
 
@@ -22,7 +23,7 @@ export async function POST(
 
     const { data: lead, error: leadError } = await getSupabaseAdmin()
       .from('leads')
-      .select('nombre, email, estado, monto_presupuestado, horas_calculadas, modulos_seleccionados, mantenimiento_mensual, sena_pct, pago_unico, recomendacion, diagnostico_dolor, diagnostico_situacion, diagnostico_requerimiento')
+      .select('nombre, email, estado, lead_token, monto_presupuestado, horas_calculadas, modulos_seleccionados, mantenimiento_mensual, sena_pct, pago_unico, recomendacion, diagnostico_dolor, diagnostico_situacion, diagnostico_requerimiento')
       .eq('id', id)
       .single();
 
@@ -54,7 +55,9 @@ export async function POST(
         proposalReadyHtml({
           name: lead.nombre,
           email: lead.email,
-          responseUrl: `${siteUrl}/propuesta/${token}`,
+          // El cliente abre siempre el mismo link; adentro se resuelve que
+          // ahora le toca la propuesta.
+          responseUrl: clienteUrl(siteUrl, lead.lead_token as string | null, `${siteUrl}/propuesta/${token}`),
         }),
       );
     } catch (emailErr) {

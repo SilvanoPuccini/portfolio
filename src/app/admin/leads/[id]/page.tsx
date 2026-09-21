@@ -701,7 +701,15 @@ export default function LeadDetailPage() {
           budgetSaved={budgetSaved}
           mantenimiento={mantenimiento}
           onMantenimiento={setMantenimiento}
-          propuestaUrl={lead.propuesta_token ? `/propuesta/${lead.propuesta_token}` : null}
+          propuestaUrl={
+            // El link del cliente muestra lo que le toca ahora; el de la
+            // propuesta, solo esa pantalla.
+            lead.lead_token
+              ? `/cliente/${lead.lead_token}`
+              : lead.propuesta_token
+                ? `/propuesta/${lead.propuesta_token}`
+                : null
+          }
           downloadContract={downloadContract}
           contractLoading={contractLoading}
           sendProposalEmail={sendProposalEmail}
