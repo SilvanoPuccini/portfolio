@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { isAuthorized } from '@/lib/admin-auth';
 import { CAMPOS_ESPERADOS, signerOf } from '@/lib/leads/documenso-contract';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
  * ¿Está el contrato listo para firmarse de verdad?
@@ -50,6 +51,22 @@ async function leerPlantilla(id: string, token: string) {
   return { url: null, plantilla: null, intentos };
 }
 
+/**
+ * La tabla donde se registra el pedido antes de firmar.
+ *
+ * Si falta la migración, el botón de contratar devuelve 500 y el cliente ve
+ * un «probá de nuevo» que no se arregla probando de nuevo. Se comprueba acá
+ * para que el fallo sea visible antes de la primera venta y no durante.
+ */
+async function hayTablaPedidos(): Promise<boolean> {
+  try {
+    const { error } = await getSupabaseAdmin().from('pedidos').select('id').limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -63,8 +80,11 @@ export async function GET(req: NextRequest) {
     DOCUMENSO_WEBHOOK_SECRET: Boolean((process.env.DOCUMENSO_WEBHOOK_SECRET ?? '').trim()),
   };
 
+  const tablaPedidos = await hayTablaPedidos();
+
   const base = {
     variables,
+    tablaPedidos,
     esperados: [...CAMPOS_ESPERADOS],
     ruta: null as string | null,
     encontrados: [] as string[],
@@ -108,16 +128,19 @@ export async function GET(req: NextRequest) {
     ? 'La plantilla no tiene ningún firmante. Sin eso, Documenso no puede cerrar el documento.'
     : faltan.length > 0
       ? `Le faltan campos a la plantilla: ${faltan.join(', ')}. Ese dato va a salir en blanco en el contrato.`
-      : null;
+      : !tablaPedidos
+        ? 'Falta correr la migración 038_pedidos.sql en Supabase: sin esa tabla, el botón de contratar devuelve error.'
+        : null;
 
   return NextResponse.json({
     variables,
+    tablaPedidos,
     esperados: [...CAMPOS_ESPERADOS],
     ruta: url,
     encontrados,
     faltan,
     firmantes,
-    listo: Boolean(firmante) && faltan.length === 0,
+    listo: Boolean(firmante) && faltan.length === 0 && tablaPedidos,
     ...(problema ? { problema } : {}),
   });
 }

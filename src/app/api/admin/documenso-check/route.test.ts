@@ -2,8 +2,10 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/admin-auth', () => ({ isAuthorized: vi.fn().mockReturnValue(true) }));
+vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 
 import { isAuthorized } from '@/lib/admin-auth';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { GET } from './route';
 
 const pedido = () => GET(new NextRequest('http://localhost/api/admin/documenso-check'));
@@ -31,9 +33,19 @@ function documenso(respuestas: { ok: boolean; body?: unknown }[]) {
   return fetchMock;
 }
 
+/** La tabla de pedidos, que es donde se registra lo que el cliente eligió. */
+function tablaPedidos(error: unknown = null) {
+  vi.mocked(getSupabaseAdmin).mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ error }) }),
+    }),
+  } as never);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(isAuthorized).mockReturnValue(true);
+  tablaPedidos();
   process.env.DOCUMENSO_API_TOKEN = 'api_secreto';
   process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
   process.env.DOCUMENSO_WEBHOOK_SECRET = 'wh_secreto';
@@ -107,6 +119,28 @@ describe('GET /api/admin/documenso-check', () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(body.variables.DOCUMENSO_TEMPLATE_ID).toBe(false);
     expect(body.listo).toBe(false);
+  });
+
+  it('avisa si falta correr la migración de pedidos', async () => {
+    // Sin esa tabla, el botón de contratar devuelve 500 y el cliente ve un
+    // «probá de nuevo» que no se arregla probando de nuevo.
+    documenso([{ ok: true, body: PLANTILLA }]);
+    tablaPedidos({ message: 'relation "pedidos" does not exist' });
+
+    const body = await (await pedido()).json();
+
+    expect(body.tablaPedidos).toBe(false);
+    expect(body.listo).toBe(false);
+    expect(body.problema).toMatch(/migración/i);
+  });
+
+  it('con la tabla creada, esa línea queda en verde', async () => {
+    documenso([{ ok: true, body: PLANTILLA }]);
+
+    const body = await (await pedido()).json();
+
+    expect(body.tablaPedidos).toBe(true);
+    expect(body.listo).toBe(true);
   });
 
   it('sin sesión de admin no contesta nada', async () => {

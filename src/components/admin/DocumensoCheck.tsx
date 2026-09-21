@@ -19,6 +19,7 @@ interface Resultado {
   variables: Record<string, boolean>;
   esperados: string[];
   ruta: string | null;
+  tablaPedidos: boolean;
   encontrados: string[];
   faltan: string[];
   firmantes: number;
@@ -94,6 +95,12 @@ export function DocumensoCheck() {
               {cargada ? ' cargada' : ' falta cargarla en Vercel'}
             </Linea>
           ))}
+
+          <Linea ok={resultado.tablaPedidos}>
+            {resultado.tablaPedidos
+              ? 'La tabla de pedidos existe'
+              : 'Falta correr la migración 038_pedidos.sql en Supabase'}
+          </Linea>
 
           <Linea ok={Boolean(resultado.ruta)}>
             {resultado.ruta
