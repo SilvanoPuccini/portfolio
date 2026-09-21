@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { QUESTIONNAIRE } from '@/lib/leads/questionnaire-questions';
+import type { PlannedQuestion } from '@/lib/leads/questionnaire-plan';
 
-const QUESTIONS = QUESTIONNAIRE;
+/** Las preguntas las decide el servidor: son las que a este cliente le faltan. */
+type Question = PlannedQuestion & { opciones?: string[] };
 
 type PageState = 'loading' | 'not-found' | 'completed' | 'form' | 'submitting' | 'success' | 'error';
 
@@ -55,7 +56,8 @@ const btnStyle: React.CSSProperties = {
 export default function QuestionnairePage() {
   const { token } = useParams<{ token: string }>();
   const [pageState, setPageState] = useState<PageState>('loading');
-  const [answers, setAnswers] = useState<string[]>(QUESTIONS.map(() => ''));
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -79,10 +81,11 @@ export default function QuestionnairePage() {
           }
           return;
         }
-        const body = await res.json() as { completed?: boolean };
+        const body = await res.json() as { completed?: boolean; questions?: Question[] };
         if (body.completed) {
           setPageState('completed');
         } else {
+          setQuestions(body.questions ?? []);
           setPageState('form');
         }
       })
@@ -94,8 +97,8 @@ export default function QuestionnairePage() {
     setPageState('submitting');
 
     const answersObj: Record<string, string> = {};
-    QUESTIONS.forEach((q, i) => {
-      answersObj[QUESTIONS[i].key] = answers[i];
+    questions.forEach((question) => {
+      answersObj[question.key] = answers[question.key] ?? '';
     });
 
     try {
@@ -120,12 +123,8 @@ export default function QuestionnairePage() {
     }
   }
 
-  function updateAnswer(index: number, value: string) {
-    setAnswers((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
-    });
+  function updateAnswer(key: string, value: string) {
+    setAnswers((prev) => ({ ...prev, [key]: value }));
   }
 
   return (
@@ -257,15 +256,18 @@ export default function QuestionnairePage() {
               Contame de tu proyecto
             </h1>
             <p style={{ fontSize: 13, color: '#475569', margin: '0 0 32px', lineHeight: 1.6 }}>
-              Son siete preguntas y te llevan unos minutos. Con esto llego a la llamada entendiendo tu
-              situación, y los 45 minutos los usamos para resolver, no para tomar datos. Contestá lo que
-              puedas: si algo no lo sabés, dejalo vacío y lo vemos hablando.
+              {questions.length === 1
+                ? 'Queda una sola pregunta: el resto ya me lo contaste.'
+                : `Son ${questions.length} preguntas y te llevan unos minutos.`}{' '}
+              Solo están las que todavía no contestaste. Con esto llego a la llamada entendiendo tu
+              situación, y los 45 minutos los usamos para resolver, no para tomar datos. Si algo no lo
+              sabés, dejalo vacío y lo vemos hablando.
             </p>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              {QUESTIONS.map((question, index) => (
-                <div key={index}>
-                  <label style={labelStyle} htmlFor={`q${index + 1}`}>
+              {questions.map((question, index) => (
+                <div key={question.key}>
+                  <label style={labelStyle} htmlFor={question.key}>
                     {index + 1}. {question.text}
                   </label>
                   {/* El ejemplo va arriba del campo, no en el placeholder: el
@@ -273,14 +275,29 @@ export default function QuestionnairePage() {
                   <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 8px', lineHeight: 1.55 }}>
                     {question.hint}
                   </p>
-                  <textarea
-                    id={`q${index + 1}`}
-                    style={textareaStyle}
-                    value={answers[index]}
-                    onChange={(e) => updateAnswer(index, e.target.value)}
-                    placeholder="Escribí acá…"
-                    disabled={pageState === 'submitting'}
-                  />
+                  {question.opciones ? (
+                    <select
+                      id={question.key}
+                      style={{ ...textareaStyle, minHeight: 0, height: 44 }}
+                      value={answers[question.key] ?? ''}
+                      onChange={(e) => updateAnswer(question.key, e.target.value)}
+                      disabled={pageState === 'submitting'}
+                    >
+                      <option value="">Elegí una opción</option>
+                      {question.opciones.map((opcion) => (
+                        <option key={opcion} value={opcion}>{opcion}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <textarea
+                      id={question.key}
+                      style={textareaStyle}
+                      value={answers[question.key] ?? ''}
+                      onChange={(e) => updateAnswer(question.key, e.target.value)}
+                      placeholder="Escribí acá…"
+                      disabled={pageState === 'submitting'}
+                    />
+                  )}
                 </div>
               ))}
 

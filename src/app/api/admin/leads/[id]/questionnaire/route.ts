@@ -4,6 +4,7 @@ import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { questionnaireInviteHtml } from '@/lib/email-templates/questionnaire-invite';
 import { answeredQuestions } from '@/lib/leads/questionnaire-questions';
+import { servicioPorSlug } from '@/content/servicios';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,17 @@ export const dynamic = 'force-dynamic';
 
 const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
 const urlFor = (token: string) => `${siteUrl()}/questionnaire/${token}`;
+
+/** Las preguntas propias del servicio por el que entró: el cuestionario ya no es fijo. */
+async function preguntasDelServicio(leadId: string) {
+  const { data } = await getSupabaseAdmin()
+    .from('leads')
+    .select('service')
+    .eq('id', leadId)
+    .maybeSingle();
+
+  return servicioPorSlug((data as { service?: string | null } | null)?.service)?.preguntas ?? [];
+}
 
 async function currentQuestionnaire(leadId: string) {
   const { data } = await getSupabaseAdmin()
@@ -42,6 +54,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (!questionnaire) return NextResponse.json({ enviado: false });
 
+  const extra = await preguntasDelServicio(id);
+
   return NextResponse.json({
     enviado: true,
     enviadoEl: questionnaire.created_at,
@@ -49,7 +63,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     url: urlFor(questionnaire.token),
     // Las respuestas, con su pregunta al lado: guardadas y nunca mostradas
     // era exactamente lo mismo que no tenerlas.
-    respuestas: answeredQuestions(questionnaire.answers),
+    respuestas: answeredQuestions(questionnaire.answers, extra),
   });
 }
 

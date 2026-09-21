@@ -10,7 +10,7 @@ import { isAuthorized } from '@/lib/admin-auth';
 import { sendCrmEmail } from '@/lib/resend';
 import { GET, POST } from '@/app/api/admin/leads/[id]/questionnaire/route';
 
-const LEAD = { nombre: 'Ferrelon', email: 'hola@ferrelon.com' };
+const LEAD = { nombre: 'Ferrelon', email: 'hola@ferrelon.com', service: 'automatizacion' };
 
 /** `leads` da la ficha; `questionnaires` el que ya existe, si existe. */
 function supabase(existing: Record<string, unknown> | null) {
@@ -35,7 +35,12 @@ function supabase(existing: Record<string, unknown> | null) {
     }
     : {
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue({ data: LEAD, error: null }) }),
+        // La ficha se lee de dos formas: entera para el correo, y solo el
+        // servicio para saber qué preguntas suma el cuestionario.
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: LEAD, error: null }),
+          maybeSingle: vi.fn().mockResolvedValue({ data: LEAD, error: null }),
+        }),
       }),
     }));
 

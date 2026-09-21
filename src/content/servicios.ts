@@ -84,6 +84,14 @@ export interface Derivacion {
   label: Localized<string>;
 }
 
+/** Una pregunta del servicio, en lenguaje de negocio. La contesta el cliente. */
+export interface PreguntaServicio {
+  key: string;
+  label: Localized<string>;
+  hint: Localized<string>;
+  opciones?: Localized<string[]>;
+}
+
 export interface Servicio {
   slug: string;
   /** La frase del cliente, no la nuestra. Encabeza la tarjeta. */
@@ -95,6 +103,8 @@ export interface Servicio {
   desdeUsd: number | null;
   modo: 'directo' | 'llamada';
   paraQuien: Localized<string[]>;
+  /** Lo que hace falta saber de este servicio para cotizarlo. */
+  preguntas: PreguntaServicio[];
   /** Quién no entra y a dónde lo mandamos. */
   derivaciones: Derivacion[];
   porQueNoTienePrecio?: Localized<string>;
@@ -104,6 +114,185 @@ export interface Servicio {
 
 /* -------------------------------------------------------------------------- */
 /*  1 · Web de captación                                                       */
+/* -------------------------------------------------------------------------- */
+/*  Las preguntas de cada servicio                                             */
+/* -------------------------------------------------------------------------- */
+
+const PREGUNTAS_WEB: PreguntaServicio[] = [
+  {
+    key: 'rubro',
+    label: { es: '¿A qué se dedica tu negocio y a quién le vendés?', en: 'What does your business do, and who do you sell to?' },
+    hint: {
+      es: 'Dos líneas alcanzan. De acá salen los textos del sitio.',
+      en: 'Two lines is enough. The site copy comes from this.',
+    },
+  },
+  {
+    key: 'accion',
+    label: { es: '¿Qué querés que haga quien entra al sitio?', en: 'What should a visitor do on your site?' },
+    hint: {
+      es: 'Es la acción principal: todo el sitio se ordena alrededor de eso.',
+      en: 'This is the main action: the whole site is built around it.',
+    },
+    opciones: {
+      es: ['Que me escriba por WhatsApp', 'Que reserve un turno', 'Que compre', 'Que me conozca antes de llamarme'],
+      en: ['Message me on WhatsApp', 'Book an appointment', 'Buy', 'Get to know me before calling'],
+    },
+  },
+  {
+    key: 'materiales',
+    label: { es: '¿Tenés logo, textos y fotos?', en: 'Do you have a logo, copy and photos?' },
+    hint: {
+      es: 'Los textos los escribo yo igual. Las fotos propias siempre rinden más que las de banco.',
+      en: 'I write the copy either way. Your own photos always beat stock images.',
+    },
+    opciones: {
+      es: ['Tengo todo', 'Tengo el logo nada más', 'No tengo nada todavía'],
+      en: ['I have everything', 'Just the logo', 'Nothing yet'],
+    },
+  },
+];
+
+const PREGUNTAS_TIENDA: PreguntaServicio[] = [
+  {
+    key: 'productos',
+    label: {
+      es: '¿Cuántos productos vas a publicar y cada cuánto cambian?',
+      en: 'How many products will you list, and how often do they change?',
+    },
+    hint: {
+      es: 'Define cómo se carga el catálogo y si hace falta un panel propio.',
+      en: 'This defines how the catalog is loaded and whether you need your own panel.',
+    },
+  },
+  {
+    key: 'cobro',
+    label: { es: '¿Cómo querés cobrar?', en: 'How do you want to get paid?' },
+    hint: {
+      es: 'El cobro por link se confirma solo; la transferencia la confirmás vos cuando ves el comprobante.',
+      en: 'Link payments confirm themselves; bank transfers you confirm when you see the receipt.',
+    },
+    opciones: {
+      es: ['Link de Mercado Pago', 'Transferencia', 'Las dos', 'Todavía no lo decidí'],
+      en: ['Mercado Pago link', 'Bank transfer', 'Both', 'I have not decided yet'],
+    },
+  },
+  {
+    key: 'variantes',
+    label: {
+      es: '¿Manejás talles, colores o stock que se descuenta?',
+      en: 'Do you handle sizes, colors or stock that gets deducted?',
+    },
+    hint: { es: 'Es lo que más cambia el precio de una tienda.', en: 'This is what changes a store price the most.' },
+    opciones: {
+      es: ['No, producto simple', 'Talles o colores', 'Stock real que se descuenta al vender'],
+      en: ['No, simple products', 'Sizes or colors', 'Real stock deducted on each sale'],
+    },
+  },
+];
+
+const PREGUNTAS_SISTEMA: PreguntaServicio[] = [
+  {
+    key: 'primero',
+    label: { es: '¿Qué parte de tu operación querés resolver primero?', en: 'Which part of your operation do you want solved first?' },
+    hint: {
+      es: 'La primera etapa se elige por lo que más te duele hoy, no por lo que sería lindo tener.',
+      en: 'The first stage is chosen by what hurts most today, not by what would be nice to have.',
+    },
+  },
+  {
+    key: 'usuarios',
+    label: { es: '¿Cuántas personas lo van a usar y hacen todas lo mismo?', en: 'How many people will use it, and do they all do the same thing?' },
+    hint: {
+      es: 'Si el encargado ve una cosa y el dueño otra, hay permisos, y los permisos son trabajo.',
+      en: 'If a manager sees one thing and the owner another, that means roles, and roles are work.',
+    },
+  },
+  {
+    key: 'conexiones',
+    label: { es: '¿Con qué tiene que conectarse?', en: 'What does it need to connect to?' },
+    hint: {
+      es: 'Facturación, el banco, una planilla que ya usás, un sistema viejo.',
+      en: 'Invoicing, your bank, a spreadsheet you already use, an old system.',
+    },
+  },
+];
+
+const PREGUNTAS_AUTOMATIZACION: PreguntaServicio[] = [
+  {
+    key: 'tarea',
+    label: { es: '¿Qué tarea querés que se haga sola?', en: 'Which task do you want running on its own?' },
+    hint: {
+      es: 'Contala como se la explicarías a alguien que empieza mañana, paso por paso.',
+      en: 'Describe it as you would to someone starting tomorrow, step by step.',
+    },
+  },
+  {
+    key: 'origen',
+    label: { es: '¿De dónde salen los datos hoy?', en: 'Where does the data come from today?' },
+    hint: {
+      es: 'Es lo que decide si entra en un paquete o hay que cotizarlo aparte.',
+      en: 'This decides whether it fits a package or needs a separate quote.',
+    },
+    opciones: {
+      es: ['De mails', 'De una planilla', 'De un formulario', 'De un sistema con API', 'De papel o fotos'],
+      en: ['From emails', 'From a spreadsheet', 'From a form', 'From a system with an API', 'From paper or photos'],
+    },
+  },
+  {
+    key: 'frecuencia',
+    label: { es: '¿Cuántas veces por semana pasa?', en: 'How many times a week does it happen?' },
+    hint: {
+      es: 'Con esto sacamos cuánto te ahorra por mes, que es contra lo que se compara el precio.',
+      en: 'This gives us what it saves you per month, which is what the price is compared against.',
+    },
+  },
+];
+
+const PREGUNTAS_AUDITORIA: PreguntaServicio[] = [
+  {
+    key: 'direccion',
+    label: { es: '¿Cuál es la dirección del sitio a revisar?', en: 'What is the address of the site to review?' },
+    hint: { es: 'Si todavía no es público, contame dónde está.', en: 'If it is not public yet, tell me where it lives.' },
+  },
+  {
+    key: 'preocupacion',
+    label: { es: '¿Qué es lo que más te preocupa?', en: 'What worries you most?' },
+    hint: { es: 'El informe arranca por ahí.', en: 'The report starts there.' },
+    opciones: {
+      es: ['Es lento', 'Se rompe seguido', 'No aparece en Google', 'La seguridad', 'No sé, por eso pido la revisión'],
+      en: ['It is slow', 'It breaks often', 'It does not show on Google', 'Security', 'I do not know, that is why I am asking'],
+    },
+  },
+  {
+    key: 'mantiene',
+    label: { es: '¿Quién lo mantiene hoy?', en: 'Who maintains it today?' },
+    hint: {
+      es: 'Sirve para saber si el informe se va a poder ejecutar o queda en un cajón.',
+      en: 'This tells me whether the report can actually be acted on or ends up in a drawer.',
+    },
+  },
+];
+
+const PREGUNTAS_CUIDADO: PreguntaServicio[] = [
+  {
+    key: 'hosting',
+    label: { es: '¿Dónde está alojado el sitio hoy?', en: 'Where is the site hosted today?' },
+    hint: {
+      es: 'Si no sabés, decime quién te lo hizo y lo averiguo yo.',
+      en: 'If you do not know, tell me who built it and I will find out.',
+    },
+  },
+  {
+    key: 'cambios',
+    label: { es: '¿Qué tipo de cambios vas a necesitar por mes?', en: 'What kind of changes will you need each month?' },
+    hint: {
+      es: 'Cambiar un precio o una foto es un cambio chico. Una sección nueva no.',
+      en: 'Changing a price or a photo is a small change. A new section is not.',
+    },
+  },
+];
+
 /* -------------------------------------------------------------------------- */
 
 const SECCIONES: PreguntaCalificacion = {
@@ -143,6 +332,7 @@ const web: Servicio = {
   icono: 'Globe',
   desdeUsd: 450,
   modo: 'directo',
+  preguntas: PREGUNTAS_WEB,
   paraQuien: {
     es: [
       'Tenés un negocio andando y hoy vivís de Instagram o del boca en boca',
@@ -366,6 +556,7 @@ const tienda: Servicio = {
   icono: 'ShoppingBag',
   desdeUsd: 890,
   modo: 'directo',
+  preguntas: PREGUNTAS_TIENDA,
   paraQuien: {
     es: [
       'Hoy vendés por WhatsApp y se te pierden pedidos entre las conversaciones',
@@ -554,6 +745,7 @@ const sistema: Servicio = {
   icono: 'LayoutDashboard',
   desdeUsd: 1500,
   modo: 'llamada',
+  preguntas: PREGUNTAS_SISTEMA,
   paraQuien: {
     es: [
       'Tres o más personas tocan la misma planilla y se pisan',
@@ -626,6 +818,7 @@ const automatizacion: Servicio = {
   icono: 'Workflow',
   desdeUsd: 390,
   modo: 'directo',
+  preguntas: PREGUNTAS_AUTOMATIZACION,
   paraQuien: {
     es: [
       'Hay una tarea que sabés cuánto tiempo te come por semana',
@@ -748,6 +941,7 @@ const auditoria: Servicio = {
   icono: 'ClipboardCheck',
   desdeUsd: 250,
   modo: 'directo',
+  preguntas: PREGUNTAS_AUDITORIA,
   paraQuien: {
     es: [
       'Te hicieron un sitio y no sabés si te entregaron lo que pagaste',
@@ -889,6 +1083,7 @@ const cuidado: Servicio = {
   icono: 'ShieldCheck',
   desdeUsd: 40,
   modo: 'directo',
+  preguntas: PREGUNTAS_CUIDADO,
   paraQuien: {
     es: [
       'Tu sitio ya está publicado y cambia cada tanto',
