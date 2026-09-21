@@ -146,7 +146,14 @@ export default async function PropuestaPage({ params }: { params: Params }) {
                       <p className="mt-1.5 text-sm leading-6 text-text-secondary">{item.detalle}</p>
                     )}
                   </div>
-                  <span className="font-mono text-sm text-text-tertiary">{item.horas} h</span>
+                  {/* Lo del catálogo muestra su precio; lo estimado, sus horas. */}
+                  {item.precioUsd ? (
+                    <span className="font-mono text-sm text-text-tertiary">
+                      USD {item.precioUsd.toLocaleString('en-US')}
+                    </span>
+                  ) : item.horas ? (
+                    <span className="font-mono text-sm text-text-tertiary">{item.horas} h</span>
+                  ) : null}
                 </Reveal>
               ))}
             </RevealGroup>

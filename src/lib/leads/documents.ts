@@ -55,7 +55,14 @@ function contractDeliverables(lead: Record<string, unknown>): string {
   const modules = parseSelectedModules(lead.modulos_seleccionados);
   if (modules.length === 0) return firstAnswer(lead.diagnostico_requerimiento as string | null);
 
-  return modules.map((mod) => `· ${mod.label} (${mod.horas} h estimadas)`).join('\n');
+  // Una línea de catálogo tiene precio cerrado; una a medida, horas estimadas.
+  return modules
+    .map((mod) => {
+      if (mod.precioUsd) return `· ${mod.label} (USD ${mod.precioUsd})`;
+      if (mod.horas) return `· ${mod.label} (${mod.horas} h estimadas)`;
+      return `· ${mod.label}`;
+    })
+    .join('\n');
 }
 
 /**

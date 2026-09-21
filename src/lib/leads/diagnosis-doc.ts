@@ -24,7 +24,7 @@ export interface DiagnosisDoc {
   problema: string;
   solucion: string;
   /** Qué se lleva, módulo por módulo. */
-  incluye: { titulo: string; detalle?: string; horas: number }[];
+  incluye: { titulo: string; detalle?: string; horas?: number; precioUsd?: number }[];
   /** Lo que queda para una segunda etapa. Sin el motivo interno. */
   masAdelante: string[];
   inversion: {
@@ -99,6 +99,7 @@ export function buildDiagnosisDoc(lead: LeadForDoc, now = new Date()): Diagnosis
       titulo: mod.label,
       detalle: reasons.get(mod.slug) || undefined,
       horas: mod.horas,
+      precioUsd: mod.precioUsd,
     })),
     masAdelante: (recommendation.no_ofrecer ?? [])
       .map((item) => item?.que?.trim() ?? '')
