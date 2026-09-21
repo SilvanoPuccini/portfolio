@@ -3,13 +3,21 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
+import QuickIntake from "@/components/site/QuickIntake";
+import { paquetePorSlug, servicioPorSlug } from "@/content/servicios";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";
 
 type LocaleParams = Promise<{ locale: string }>;
 // PR1-4: extend SearchParams with optional service param
-type SearchParams = Promise<{ leadId?: string; name?: string; email?: string; service?: string }>;
+type SearchParams = Promise<{
+  leadId?: string;
+  name?: string;
+  email?: string;
+  service?: string;
+  paquete?: string;
+}>;
 
 const copy = {
   es: {
@@ -48,24 +56,6 @@ const copy = {
   },
 } as const;
 
-// PR1-4: service confirmation copy per slug
-const serviceConfirmationCopy: Record<string, { es: string; en: string }> = {
-  "full-stack-builds": {
-    es: "Desarrollo web a medida",
-    en: "Custom web development",
-  },
-  "automation-ai": {
-    es: "Automatizacion con IA",
-    en: "AI automation",
-  },
-  "product-ux-engineering": {
-    es: "Auditoria tecnica y producto",
-    en: "Technical audit & product",
-  },
-};
-
-const VALID_SERVICE_SLUGS = ["full-stack-builds", "automation-ai", "product-ux-engineering"];
-
 export async function generateMetadata({
   params,
 }: {
@@ -92,22 +82,15 @@ export default async function AgendarPage({
   searchParams: SearchParams;
 }) {
   const { locale } = await params;
-  const { name, email, service } = await searchParams;
+  const { service, paquete } = await searchParams;
   const currentLocale: Locale = resolveLocale(locale);
   const content = getSiteContent(currentLocale);
   const labels = copy[currentLocale];
   const calcomLink = process.env.NEXT_PUBLIC_CALCOM_LINK;
 
-  // Validate the service slug so we never render arbitrary strings
-  const activeService =
-    service && VALID_SERVICE_SLUGS.includes(service) ? service : undefined;
-
-  const calUrl = calcomLink
-    ? `${calcomLink}?${new URLSearchParams({
-        ...(name ? { name } : {}),
-        ...(email ? { email } : {}),
-      }).toString()}`
-    : null;
+  // El servicio sale del catálogo: si no existe, no se muestra nada inventado.
+  const servicio = servicioPorSlug(service);
+  const paqueteElegido = paquetePorSlug(paquete);
 
   return (
     <>
@@ -119,14 +102,16 @@ export default async function AgendarPage({
 
       <section className="site-container pb-16 sm:pb-20">
         {/* PR1-4: service confirmation banner */}
-        {activeService && serviceConfirmationCopy[activeService] ? (
+        {servicio ? (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-[var(--radius-soft)] border border-brand-primary/20 bg-brand-primary/5 px-5 py-4">
             <p className="text-sm text-text-secondary">
               <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand-primary">
                 {labels.serviceConfirmation.prefix}
               </span>{" "}
               <span className="font-medium text-text-primary">
-                {serviceConfirmationCopy[activeService][currentLocale]}
+                {paqueteElegido
+                  ? `${servicio.nombre[currentLocale]} · ${paqueteElegido.nombre[currentLocale]}`
+                  : servicio.nombre[currentLocale]}
               </span>
             </p>
             <Link
@@ -139,33 +124,13 @@ export default async function AgendarPage({
           </div>
         ) : null}
 
-        {calUrl ? (
-          <div className="surface-panel overflow-hidden border border-outline-ghost/10">
-            <iframe
-              src={calUrl}
-              title={labels.metaTitle}
-              className="h-[700px] w-full border-0"
-              loading="lazy"
-            />
-          </div>
-        ) : (
-          <div className="surface-panel border border-outline-ghost/10 bg-[linear-gradient(180deg,rgb(var(--surface-elevated)/0.9),rgb(var(--surface)/0.76))] px-8 py-14 text-center sm:px-16 sm:py-20">
-            <h2 className="section-title-sm">
-              {labels.fallbackTitle}
-            </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-text-secondary">
-              {labels.fallbackMessage}
-            </p>
-            <div className="mt-8">
-              <a
-                href={`mailto:${content.metadata.email}`}
-                className="button-primary inline-flex items-center justify-center"
-              >
-                {labels.fallbackCta}
-              </a>
-            </div>
-          </div>
-        )}
+        <QuickIntake
+          locale={currentLocale}
+          calcomLink={calcomLink ?? null}
+          service={servicio?.slug}
+          paquete={paqueteElegido?.slug}
+          email={content.metadata.email}
+        />
 
         {/* PR1-4: "Back to services" link at the bottom — always shown */}
         <div className="mt-8 flex justify-center">

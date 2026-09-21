@@ -5,9 +5,8 @@ import { ArrowRight } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
-import ServiceFormFlow from "@/components/blocks/ServiceFormFlow";
-import PackageBanner from "@/components/site/PackageBanner";
-import type { ServiceCardData } from "@/components/blocks/ServiceFormFlow";
+import ServiceCatalog from "@/components/site/ServiceCatalog";
+import { SERVICIOS } from "@/content/servicios";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";
@@ -39,77 +38,7 @@ const copy = {
       pricingNote:
         "Los precios son de referencia y marcan el punto de partida de cada servicio. El presupuesto final depende del alcance que definamos juntos en la llamada, y queda por escrito antes de empezar.",
       eyebrow: "Cobertura real",
-      title: "Cuatro servicios. Cada uno con proyectos que lo respaldan.",
-      cards: [
-        {
-          number: "01",
-          subtitle: "Que te encuentren y te escriban",
-          title: "Sitio web profesional",
-          description:
-            "Sitio de una o varias páginas, rápido y adaptado a celular, con formulario que te llega al mail y tu negocio visible en Google. Dominio y hosting configurados.",
-          details: [
-            { label: "Incluye", value: "Diseño, textos y formulario" },
-            { label: "Entrega", value: "Online, con dominio propio" },
-            { label: "Después", value: "30 días de soporte incluido" },
-          ],
-          references: ["Adaptado a celular", "Formulario de contacto", "Listo para Google"],
-          price: "Desde USD 450",
-          timeline: "1 a 2 semanas",
-          cta: "Pedir presupuesto",
-          slug: "web-presence" as const,
-        },
-        {
-          number: "02",
-          subtitle: "Dejá de operar con Excel y WhatsApp",
-          title: "Sistema de gestión a medida",
-          description:
-            "Aplicación web con usuarios y roles, base de datos, panel de administración y reportes. Turnos, stock, clientes, reservas o lo que tu operación necesite, en un solo lugar.",
-          details: [
-            { label: "Incluye", value: "Panel de admin, roles y reportes" },
-            { label: "Entrega", value: "Desplegado, con dominio y capacitación" },
-            { label: "Después", value: "30 días de soporte incluido" },
-          ],
-          references: ["Gestión de stock", "Reservas y turnos", "Panel de clientes"],
-          price: "Desde USD 1.200",
-          timeline: "3 a 6 semanas",
-          cta: "Pedir presupuesto",
-          slug: "full-stack-builds" as const,
-        },
-        {
-          number: "03",
-          subtitle: "Lo repetitivo, resuelto",
-          title: "Automatización de reportes y documentos",
-          description:
-            "Lectura automática de PDFs y planillas, generación de reportes y envío programado por email. Los mismos datos, sin la carga manual de todos los días.",
-          details: [
-            { label: "Entrada", value: "PDFs, planillas, correos" },
-            { label: "Salida", value: "Reporte listo y enviado solo" },
-            { label: "Control", value: "Revisión humana donde importa" },
-          ],
-          references: ["Lectura de PDFs", "Reportes programados", "Envío automático"],
-          price: "Desde USD 350",
-          timeline: "1 a 2 semanas",
-          cta: "Consultar factibilidad",
-          slug: "automation-ai" as const,
-        },
-        {
-          number: "04",
-          subtitle: "Claridad antes de invertir",
-          title: "Auditoría técnica",
-          description:
-            "Revisión de arquitectura, performance y deuda técnica. Salís con un diagnóstico claro y un roadmap ejecutable — no con una lista de problemas sin solución.",
-          details: [
-            { label: "Arquitectura", value: "Stack / escalabilidad / deuda" },
-            { label: "Producto", value: "UX / narrativa / prioridades" },
-            { label: "Salida", value: "Diagnóstico + roadmap" },
-          ],
-          references: ["Arquitectura", "Performance", "Deuda técnica"],
-          price: "Desde USD 250",
-          timeline: "5 días hábiles · alcance acordado",
-          cta: "Solicitar auditoría",
-          slug: "product-ux-engineering" as const,
-        },
-      ],
+      title: "Seis servicios, ordenados por el problema que resuelven.",
     },
     howIWork: {
       eyebrow: "Método",
@@ -180,6 +109,7 @@ const copy = {
       ],
     },
     closing: {
+      quote: "A cotizar",
       title: "Contame el problema y te digo qué te conviene",
       description: "Elegí por dónde empezar, o escribime directo si todavía no sabés cuál te sirve.",
       primaryCta: "Agendá tu llamada",
@@ -209,77 +139,7 @@ const copy = {
       pricingNote:
         "Prices are indicative and mark the starting point for each service. The final quote depends on the scope we define together on the call, and is put in writing before any work begins.",
       eyebrow: "Real coverage",
-      title: "Four services. Each backed by real projects.",
-      cards: [
-        {
-          number: "01",
-          subtitle: "Get found and get contacted",
-          title: "Professional website",
-          description:
-            "A one-page or multi-page site, fast and mobile-ready, with a contact form that reaches your inbox and your business visible on Google. Domain and hosting configured.",
-          details: [
-            { label: "Includes", value: "Design, copy and contact form" },
-            { label: "Delivery", value: "Live, on your own domain" },
-            { label: "After", value: "30 days of support included" },
-          ],
-          references: ["Mobile-ready", "Contact form", "Google-ready"],
-          price: "From USD 450",
-          timeline: "1 to 2 weeks",
-          cta: "Request a quote",
-          slug: "web-presence" as const,
-        },
-        {
-          number: "02",
-          subtitle: "Stop running on spreadsheets and chat",
-          title: "Custom management system",
-          description:
-            "End-to-end build: frontend, backend, data, auth, and deploy. Projects that work in production from day one.",
-          details: [
-            { label: "Frontend", value: "Next.js / React / TypeScript" },
-            { label: "Backend", value: "Node.js / Django / Python / APIs" },
-            { label: "Data", value: "PostgreSQL / Supabase / pipelines" },
-          ],
-          references: ["Stock management", "Bookings and scheduling", "Client panel"],
-          price: "From USD 1,200",
-          timeline: "3 to 6 weeks",
-          cta: "Request a quote",
-          slug: "full-stack-builds" as const,
-        },
-        {
-          number: "03",
-          subtitle: "Repetitive work, handled",
-          title: "Report and document automation",
-          description:
-            "Flows that replace repetitive manual work. Classification, extraction, validation, and auditable pipelines, with a human in the loop when it matters.",
-          details: [
-            { label: "Processes", value: "Classification / extraction / validation" },
-            { label: "Tooling", value: "Pipelines / agents / dashboards" },
-            { label: "Goal", value: "Speed with traceability" },
-          ],
-          references: ["PDF parsing", "Scheduled reports", "Automatic delivery"],
-          price: "From USD 350",
-          timeline: "1 to 2 weeks",
-          cta: "Check feasibility",
-          slug: "automation-ai" as const,
-        },
-        {
-          number: "04",
-          subtitle: "Clarity before you invest",
-          title: "Technical audit",
-          description:
-            "Architecture, performance, and tech debt review. You leave with a clear diagnosis and an executable roadmap — not just a list of problems.",
-          details: [
-            { label: "Architecture", value: "Stack / scalability / debt" },
-            { label: "Product", value: "UX / narrative / priorities" },
-            { label: "Output", value: "Diagnosis + roadmap" },
-          ],
-          references: ["Architecture", "Performance", "Technical debt"],
-          price: "From USD 250",
-          timeline: "5 business days · agreed scope",
-          cta: "Request an audit",
-          slug: "product-ux-engineering" as const,
-        },
-      ],
+      title: "Six services, sorted by the problem they solve.",
     },
     howIWork: {
       eyebrow: "Method",
@@ -349,8 +209,8 @@ const copy = {
         },
       ],
     },
-    closing:
-{
+    closing: {
+      quote: "Quoted",
       title: "Tell me the problem and I'll tell you what fits",
       description: "Pick where to start, or write to me directly if you're not sure which one fits.",
       primaryCta: "Book your call",
@@ -389,24 +249,10 @@ export default async function ServicesPage({
   const currentLocale: Locale = resolveLocale(locale);
   const labels = copy[currentLocale];
 
-  const serviceSchemas = labels.services.cards.map((card, index) => ({
-    name: card.title,
-    description: card.description,
-    url: `https://silvanopuccini.dev/${currentLocale}/services#service-${index + 1}`,
-  }));
-
-  // Build ServiceCardData array for the client component
-  const serviceCards: ServiceCardData[] = labels.services.cards.map((card) => ({
-    number: card.number,
-    subtitle: card.subtitle,
-    title: card.title,
-    description: card.description,
-    details: [...card.details],
-    references: [...card.references],
-    price: card.price,
-    timeline: card.timeline,
-    cta: card.cta,
-    slug: card.slug,
+  const serviceSchemas = SERVICIOS.map((servicio) => ({
+    name: servicio.nombre[currentLocale],
+    description: servicio.promesa[currentLocale],
+    url: `https://silvanopuccini.dev/${currentLocale}/services/${servicio.slug}`,
   }));
 
   return (
@@ -475,8 +321,7 @@ export default async function ServicesPage({
         containerClassName="py-10 sm:py-12 lg:py-16"
         surface="plain"
       >
-        <PackageBanner locale={currentLocale} />
-        <ServiceFormFlow locale={currentLocale} cards={serviceCards} />
+        <ServiceCatalog locale={currentLocale} />
 
         {/* Aviso de alcance: fija que los precios son punto de partida y que el
             presupuesto se cierra por escrito. Protege legalmente y ademas
@@ -546,25 +391,27 @@ export default async function ServicesPage({
             </p>
 
             <div className="mx-auto mt-10 grid max-w-3xl items-stretch gap-3 sm:grid-cols-2">
-              {labels.services.cards.map((card) => (
-                <a
-                  key={card.slug}
-                  href={`#service-${card.slug}`}
+              {SERVICIOS.map((servicio) => (
+                <Link
+                  key={servicio.slug}
+                  href={`/${currentLocale}/services/${servicio.slug}`}
                   className="group flex h-full items-center justify-between gap-4 rounded-[var(--radius-soft)] border border-outline-ghost/15 bg-[rgb(var(--surface)/0.55)] px-5 py-4 text-left transition-colors hover:border-brand-primary/40 hover:bg-[rgb(var(--surface-elevated)/0.75)]"
                 >
                   <span className="min-w-0">
                     <span className="block text-base font-semibold leading-snug text-text-primary">
-                      {card.title}
+                      {servicio.nombre[currentLocale]}
                     </span>
                     <span className="mt-0.5 block font-mono text-[11px] uppercase tracking-[0.14em] text-text-secondary">
-                      {card.price} · {card.timeline}
+                      {servicio.desdeUsd === null
+                        ? labels.closing.quote
+                        : `USD ${servicio.desdeUsd.toLocaleString("en-US")}+`}
                     </span>
                   </span>
                   <ArrowRight
                     className="h-4 w-4 shrink-0 text-text-tertiary transition-colors group-hover:text-brand-primary"
                     aria-hidden="true"
                   />
-                </a>
+                </Link>
               ))}
             </div>
 

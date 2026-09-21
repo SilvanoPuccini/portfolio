@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { SERVICIOS } from '@/content/servicios';
 import { getAllBlogPosts } from '@/lib/mdx';
 import { getVisibilityIndex, isPostVisible } from '@/lib/post-publications/visibility';
 
@@ -29,6 +30,22 @@ const STATIC_ROUTES: StaticRoute[] = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+
+  // Cada servicio tiene su URL: es la página a la que se llega desde Google.
+  const serviceEntries: MetadataRoute.Sitemap = SERVICIOS.flatMap((servicio) =>
+    LOCALES.map((locale) => ({
+      url: `${BASE_URL}/${locale}/services/${servicio.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as ChangeFrequency,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          es: `${BASE_URL}/es/services/${servicio.slug}`,
+          en: `${BASE_URL}/en/services/${servicio.slug}`,
+        },
+      },
+    })),
+  );
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.flatMap(
     ({ path, changeFrequency, priority }) =>
@@ -64,5 +81,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
-  return [...staticEntries, ...blogEntries];
+  return [...staticEntries, ...serviceEntries, ...blogEntries];
 }
