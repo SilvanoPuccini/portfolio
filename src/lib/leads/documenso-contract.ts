@@ -55,6 +55,8 @@ export interface ContractData {
   domicilio?: string;
   /** La ley que aplica, según el país del cliente. */
   jurisdiccion?: string;
+  /** Cómo se llama el documento para el cliente. Sin esto sale el nombre del PDF. */
+  titulo?: string;
 }
 
 /**
@@ -187,13 +189,32 @@ export async function createContract(
   const signer = signerOf(template.recipients ?? []);
   if (!signer) throw new Error('La plantilla no tiene un firmante definido');
 
+  const titulo = data.titulo ?? 'Contrato de prestación de servicios';
+
   const payload = {
     ...(esSobre ? { envelopeId: crudo } : { templateId }),
     ...(externalId ? { externalId } : {}),
     recipients: [{ id: signer.id, email: data.email, name: data.nombre }],
     prefillFields: prefillFor(template.fields ?? [], data),
     distributeDocument: true,
-    ...(redirectUrl ? { override: { redirectUrl } } : {}),
+    override: {
+      ...(redirectUrl ? { redirectUrl } : {}),
+      // Sin esto el cliente recibe un correo que nombra el archivo PDF de la
+      // plantilla. Eso no es un contrato: es cómo está hecho el sistema.
+      title: titulo,
+      subject: `Tu contrato: ${titulo}`,
+      message:
+        'Te dejo el contrato para firmar. Es el mismo alcance y el mismo precio que acordamos. '
+        + 'Firmar no dispara ningún cobro: los datos para pagar te llegan después.',
+      // Los avisos que le llegan al cliente los mandamos nosotros, con lo que
+      // sigue explicado. Los de Documenso llegaban antes y en su idioma.
+      emailSettings: {
+        recipientSigningRequest: true,
+        documentPending: false,
+        documentCompleted: false,
+        recipientSigned: false,
+      },
+    },
   };
 
   // `/envelope/use` no acepta JSON: espera multipart con el payload adentro.

@@ -35,6 +35,25 @@ const INTERNACIONAL =
   + 'jurisdicción de los tribunales ordinarios de la Ciudad Autónoma de Buenos Aires, República '
   + 'Argentina.';
 
+/**
+ * La misma cláusula, en una línea.
+ *
+ * El contrato que se firma en Documenso no lleva el párrafo entero: lleva un
+ * campo de una línea dentro de una frase que ya está escrita en el PDF. Un
+ * párrafo ahí se corta a la mitad, y un contrato con la jurisdicción partida
+ * al medio no es un contrato.
+ */
+const CORTAS: Record<string, string> = {
+  AR: 'las leyes de Argentina y los tribunales ordinarios de la Ciudad de Buenos Aires',
+  CL: 'las leyes de Argentina y los tribunales de Buenos Aires, sin afectar la ley chilena del consumidor',
+};
+
+const CORTA_INTERNACIONAL = 'las leyes de Argentina y los tribunales ordinarios de la Ciudad de Buenos Aires';
+
+export function jurisdiccionCorta(pais: string | null | undefined): string {
+  return CORTAS[countryOf(pais)] ?? CORTA_INTERNACIONAL;
+}
+
 export function legalClauseFor(pais: string | null | undefined): string {
   const country = countryOf(pais);
   if (country === 'AR') return ARGENTINA;

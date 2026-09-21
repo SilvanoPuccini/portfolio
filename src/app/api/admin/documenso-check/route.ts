@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { isAuthorized } from '@/lib/admin-auth';
 import { CAMPOS_ESPERADOS, createContract, signerOf } from '@/lib/leads/documenso-contract';
-import { legalClauseFor } from '@/lib/leads/legal-clause';
+import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
       plazo: '1 día hábil.',
       pago: 'Pago único de USD 1.',
       domicilio: 'Prueba',
-      jurisdiccion: legalClauseFor('Argentina'),
+      jurisdiccion: jurisdiccionCorta('Argentina'),
     });
 
     return NextResponse.json({ ok: true, signingUrl: contrato.signingUrl });

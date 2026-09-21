@@ -3,7 +3,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { escapeHtml } from '@/lib/html-escape';
 import { sendContractToLead } from './send-contract';
 import { createContract } from './documenso-contract';
-import { legalClauseFor } from './legal-clause';
+import { jurisdiccionCorta } from './legal-clause';
 import { advanceOn } from './pipeline';
 
 /**
@@ -166,7 +166,7 @@ export async function recordProposalResponse(
       plazo: plazoDe(lead.horas_calculadas),
       pago: formaDePago(lead.pago_unico, inversion),
       domicilio: [lead.localidad, lead.pais].filter(Boolean).join(', '),
-      jurisdiccion: legalClauseFor(lead.pais),
+      jurisdiccion: jurisdiccionCorta(lead.pais),
     }, redirectUrl);
 
     await db.from('leads').update({

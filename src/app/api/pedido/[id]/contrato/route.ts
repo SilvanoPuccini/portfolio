@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { createContract } from '@/lib/leads/documenso-contract';
-import { legalClauseFor } from '@/lib/leads/legal-clause';
+import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { rateLimit } from '@/lib/rate-limit';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -134,12 +134,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           total: fila.total_usd,
           alcance,
           objeto: paquete.resumen.es,
-          plazo: `${paquete.plazoDias} días hábiles desde la acreditación del pago.`,
+          plazo: `${paquete.plazoDias} días hábiles`,
           pago: paquete.pagoUnico
             ? `Pago único de USD ${fila.total_usd.toLocaleString('es-AR')} por adelantado.`
             : 'Seña del 50% para comenzar y el saldo contra entrega.',
           domicilio: pais,
-          jurisdiccion: legalClauseFor(pais || null),
+          jurisdiccion: jurisdiccionCorta(pais || null),
         },
         // Con el idioma adelante: `/gracias` sin idioma es un 404, y el
         // cliente lo ve justo después de firmar, que es el peor momento.

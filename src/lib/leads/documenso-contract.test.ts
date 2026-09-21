@@ -216,6 +216,39 @@ describe('createContract', () => {
     expect(payload.override.redirectUrl).toContain('/propuesta/tok-1');
   });
 
+  it('el documento lleva un título nuestro, no el nombre del archivo PDF', async () => {
+    // El cliente recibía un correo que decía «PLANTILLA-para-documenso.pdf
+    // fue firmado». Eso no es un contrato, es una filtración de cómo está
+    // hecho el sistema.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = mockEnvelope();
+
+    await createContract({ ...DATA, titulo: 'Contrato de servicios · Landing' });
+
+    const payload = JSON.parse((fetchMock.mock.calls[1][1].body as FormData).get('payload') as string);
+    expect(payload.override.title).toBe('Contrato de servicios · Landing');
+    expect(payload.override.subject).toMatch(/contrato/i);
+  });
+
+  it('apaga los correos de Documenso que pisan a los nuestros', async () => {
+    // El aviso de «documento completado» lo mandamos nosotros junto con los
+    // datos de pago. El de Documenso llegaba antes, con su marca y sin decir
+    // qué sigue.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = mockEnvelope();
+
+    await createContract(DATA);
+
+    const payload = JSON.parse((fetchMock.mock.calls[1][1].body as FormData).get('payload') as string);
+    expect(payload.override.emailSettings).toMatchObject({
+      documentCompleted: false,
+      documentPending: false,
+      recipientSigned: false,
+    });
+    // El pedido de firma sí sale: es el respaldo si cierra la pestaña.
+    expect(payload.override.emailSettings.recipientSigningRequest).toBe(true);
+  });
+
   it('con multipart no fuerza el content-type: lo pone fetch con su frontera', async () => {
     process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
     const fetchMock = mockEnvelope();

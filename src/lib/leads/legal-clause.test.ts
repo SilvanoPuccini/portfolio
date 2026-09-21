@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { legalClauseFor } from './legal-clause';
+import { legalClauseFor, jurisdiccionCorta } from './legal-clause';
 
 describe('legalClauseFor', () => {
   it('un cliente argentino se somete a los tribunales de Buenos Aires', () => {
@@ -32,5 +32,24 @@ describe('legalClauseFor', () => {
       expect(clause).not.toMatch(/aquí tienes|propuesta:|^"/i);
       expect(clause.startsWith('El presente contrato')).toBe(true);
     }
+  });
+});
+
+describe('jurisdiccionCorta', () => {
+  it('entra en una línea del contrato', () => {
+    // El campo de Documenso es una caja de una línea: un párrafo entero se
+    // corta a la mitad y el contrato firmado queda con la frase partida.
+    for (const pais of ['Argentina', 'Chile', 'Estados Unidos', null]) {
+      expect(jurisdiccionCorta(pais).length).toBeLessThanOrEqual(120);
+    }
+  });
+
+  it('dice la ley y el fuero, que es lo que tiene que decir', () => {
+    expect(jurisdiccionCorta('Argentina')).toMatch(/Argentina/);
+    expect(jurisdiccionCorta('Argentina')).toMatch(/Buenos Aires/);
+  });
+
+  it('a un chileno le reconoce su ley de consumo', () => {
+    expect(jurisdiccionCorta('Chile')).toMatch(/chilena/i);
   });
 });

@@ -109,14 +109,22 @@ export function buildContract(data: ContractData): Document {
     bodyParagraph(
       'El Proveedor se compromete a prestar servicios de desarrollo web al Cliente, consistentes en:',
     ),
-    bodyParagraph(campo(data.projectDescription, 60), true),
+    bodyParagraph(
+      data.plantilla ? `${hueco(62)}\n${hueco(62)}` : data.projectDescription,
+      true,
+    ),
 
     divider(),
 
     // ── Clause 3: ALCANCE Y ENTREGABLES ──────────────────────────────────────
     clauseHeading('III', 'ALCANCE Y ENTREGABLES'),
     bodyParagraph('Los entregables acordados en el marco del presente contrato son:'),
-    bodyParagraph(data.plantilla ? `${hueco(60)}\n${hueco(60)}\n${hueco(60)}` : data.deliverables, true),
+    bodyParagraph(
+      data.plantilla
+        ? [hueco(62), hueco(62), hueco(62), hueco(62), hueco(62)].join('\n')
+        : data.deliverables,
+      true,
+    ),
     bodyParagraph(
       'Cualquier funcionalidad o desarrollo adicional que no esté contemplado en el presente apartado deberá ser acordado por escrito entre las partes y podrá dar lugar a una modificación del precio y/o los plazos.',
     ),
@@ -162,7 +170,12 @@ export function buildContract(data: ContractData): Document {
 
     // ── Clause 7: LEGISLACIÓN APLICABLE ──────────────────────────────────────
     clauseHeading('VII', 'LEGISLACIÓN APLICABLE Y JURISDICCIÓN'),
-    bodyParagraph(data.plantilla ? `${hueco(60)}\n${hueco(60)}` : data.legalClause),
+    bodyParagraph(
+      data.plantilla
+        ? `El presente contrato se regirá e interpretará conforme a ${hueco(52)}, `
+          + 'renunciando las partes a cualquier otro fuero o jurisdicción que pudiera corresponderles.'
+        : data.legalClause,
+    ),
 
     divider(),
 
