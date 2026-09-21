@@ -131,6 +131,21 @@ describe('totalPedido', () => {
     expect(totalPedido(pkg, ['inventado'], servicio.extras).totalUsd).toBe(790);
   });
 
+  it('un extra mensual no entra en el total del proyecto', () => {
+    const auto = servicioPorSlug('automatizacion')!;
+    const tres = paquetePorSlug('tres-automatizaciones')!;
+    const pedido = totalPedido(tres, ['plan-automatizacion'], auto.extras);
+    expect(pedido.totalUsd).toBe(890);
+    expect(pedido.recurrenteUsd).toBe(60);
+  });
+
+  it('un plan mensual cobra por mes, no por proyecto', () => {
+    const plan = paquetePorSlug('cuidado-completo')!;
+    const pedido = totalPedido(plan, [], []);
+    expect(pedido.totalUsd).toBe(0);
+    expect(pedido.recurrenteUsd).toBe(90);
+  });
+
   it('un paquete a cotizar no tiene total', () => {
     const aMedida = paquetes().find((p) => p.precioUsd === null)!;
     expect(totalPedido(aMedida, [], []).totalUsd).toBeNull();

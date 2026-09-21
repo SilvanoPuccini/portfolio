@@ -47,6 +47,8 @@ export interface Extra {
   label: Localized<string>;
   detalle: Localized<string>;
   precioUsd: number;
+  /** 'mes' para los que se cobran todos los meses y no entran en el total del proyecto. */
+  recurrente?: 'mes';
   /** Los módulos de presupuesto que cubre, para pretildarlos en el panel. */
   modulos?: string[];
 }
@@ -723,6 +725,7 @@ const automatizacion: Servicio = {
         en: 'USD 60 per month: monitoring, alerts when something breaks and AI usage included. An automation that fails silently is worse than no automation.',
       },
       precioUsd: 60,
+      recurrente: 'mes',
     },
   ],
 };
@@ -1094,29 +1097,21 @@ export function totalPedido(paquete: Paquete, extrasIds: string[], disponibles: 
     .map((id) => disponibles.find((e) => e.id === id))
     .filter((e): e is Extra => Boolean(e));
 
+  const suma = (lista: Extra[]) => lista.reduce((total, e) => total + e.precioUsd, 0);
+  const unaVez = suma(elegidos.filter((e) => !e.recurrente));
+  const porMes = suma(elegidos.filter((e) => e.recurrente));
+
   if (paquete.precioUsd === null) {
-    return { paquete, extras: elegidos, totalUsd: null, recurrenteUsd: 0 };
+    return { paquete, extras: elegidos, totalUsd: null, recurrenteUsd: porMes };
   }
 
   if (paquete.recurrente) {
-    return {
-      paquete,
-      extras: elegidos,
-      totalUsd: 0,
-      recurrenteUsd: paquete.precioUsd + elegidos.reduce((t, e) => t + e.precioUsd, 0),
-    };
+    return { paquete, extras: elegidos, totalUsd: unaVez, recurrenteUsd: paquete.precioUsd + porMes };
   }
 
-  return {
-    paquete,
-    extras: elegidos,
-    totalUsd: paquete.precioUsd + elegidos.reduce((t, e) => t + e.precioUsd, 0),
-    recurrenteUsd: 0,
-  };
+  return { paquete, extras: elegidos, totalUsd: paquete.precioUsd + unaVez, recurrenteUsd: porMes };
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Verificación de contenido                                                  */
 /* -------------------------------------------------------------------------- */
 
 function esLocalized(value: unknown): value is Localized<unknown> {
