@@ -10,7 +10,8 @@ Este proyecto es TDD: cada tarea de lógica arranca por el test que falla.
 - [ ] 1.4 GREEN: cargar los 6 servicios con sus paquetes, extras y preguntas de calificación
 - [ ] 1.5 RED+GREEN: `precioCierra(paquete, tarifa)` — falla si el precio se aparta más del 15 % de horas × tarifa
 - [ ] 1.6 RED+GREEN: `calificaParaComprar(paquete, respuestas)` — sin respuestas false; una respuesta fuera de límite false; todas dentro true
-- [ ] 1.7 Mantener los slugs viejos (`web-presence`, `full-stack-builds`, `automation-ai`, `product-ux-engineering`) como alias
+- [ ] 1.7 RED+GREEN: `contenidoCompleto()` falla si algún texto no tiene su versión en inglés
+- [ ] 1.8 Mantener los slugs viejos (`web-presence`, `full-stack-builds`, `automation-ai`, `product-ux-engineering`) como alias
 
 ## Fase 2 · La venta
 
@@ -33,7 +34,10 @@ Este proyecto es TDD: cada tarea de lógica arranca por el test que falla.
 - [ ] 3.4 GREEN: crear `src/app/[locale]/services/[slug]/page.tsx` con banners comparados
 - [ ] 3.5 Ficha sin paquetes (sistema de gestión): explica por qué se cotiza y ofrece agendar
 - [ ] 3.6 Redirección permanente de los slugs viejos a los nuevos
-- [ ] 3.7 Actualizar `src/app/sitemap.ts` con las rutas de servicio
+- [ ] 3.7 Actualizar `src/app/sitemap.ts` con las rutas de servicio en los dos idiomas
+- [ ] 3.8 Cargar la skill `ui-design` antes de maquetar, y seguir el sistema visual del sitio
+- [ ] 3.9 Responsive: tarjetas en una columna desde 360 px; paquetes con desplazamiento lateral con imán en celular y lado a lado desde 1024 px
+- [ ] 3.10 Verificar las dos fichas en `/es` y `/en`
 
 ## Fase 4 · El panel
 

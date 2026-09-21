@@ -98,6 +98,33 @@ El formulario público DEBE mostrar las preguntas del servicio elegido, escritas
 - ENTONCES ve las preguntas de ese servicio
 - Y no ve las de los otros
 
+### Requisito: Dos idiomas
+
+Todo texto del catálogo DEBE existir en español e inglés. Un texto sin traducir DEBE fallar la verificación automática, no mostrarse en el idioma equivocado.
+
+#### Escenario: la ficha en inglés
+
+- DADO un visitante en `/en/services/web`
+- CUANDO carga la página
+- ENTONCES el nombre del servicio, los paquetes y las preguntas están en inglés
+
+#### Escenario: falta una traducción
+
+- DADO un paquete cargado solo en español
+- CUANDO corre la verificación del contenido
+- ENTONCES falla e indica qué texto falta
+
+### Requisito: Responsive
+
+Las pantallas del catálogo DEBEN ser usables desde 360 px de ancho. En celular los paquetes NO DEBEN quedar fuera de pantalla: se desplazan lateralmente con imán, sin rotación automática.
+
+#### Escenario: paquetes en celular
+
+- DADO un visitante en un celular de 360 px
+- CUANDO abre una ficha con tres paquetes
+- ENTONCES ve uno completo y descubre los otros deslizando
+- Y ningún texto se corta ni desborda
+
 ## Requisitos modificados
 
 ### Requisito: La página de servicios
