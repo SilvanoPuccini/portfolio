@@ -64,6 +64,18 @@ export interface ContractData {
  * campo agregado en el medio correría todos los índices y el contrato saldría
  * con el precio en el lugar del nombre.
  */
+/**
+ * Los nueve campos que la plantilla de Documenso tiene que tener.
+ *
+ * Es la lista canónica: `FIELD_LABELS` acepta además algunos sinónimos
+ * («monto» por «precio», «entrega» por «plazo») para no romper plantillas
+ * viejas, pero lo que hay que armar es esto.
+ */
+export const CAMPOS_ESPERADOS = [
+  'cliente', 'domicilio', 'objeto', 'alcance',
+  'plazo', 'precio', 'pago', 'jurisdiccion', 'email',
+] as const;
+
 const FIELD_LABELS: Record<string, (data: ContractData) => string> = {
   cliente: (data) => data.nombre,
   nombre: (data) => data.nombre,

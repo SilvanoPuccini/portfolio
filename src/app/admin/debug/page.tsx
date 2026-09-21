@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { s } from '@/components/admin/AdminShell';
 import { c } from '@/components/admin/tokens';
+import { DocumensoCheck } from '@/components/admin/DocumensoCheck';
 
 type Results = Record<string, string>;
 
@@ -31,7 +32,7 @@ export default function DebugPage() {
   return (
     <div>
       <p style={s.eyebrow}>Sistema</p>
-      <h1 style={{ ...s.heading, fontSize: 24, marginBottom: 20 }}>Test modelos IA</h1>
+      <h1 style={{ ...s.heading, fontSize: 24, marginBottom: 20 }}>Diagnósticos</h1>
 
       {error && <p style={{ ...s.errorText, margin: '0 0 16px' }}>{error}</p>}
 
@@ -70,6 +71,8 @@ export default function DebugPage() {
           </div>
         )}
       </div>
+
+      <DocumensoCheck />
     </div>
   );
 }
