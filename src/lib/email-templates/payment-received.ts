@@ -1,4 +1,5 @@
 import { escapeHtml } from '@/lib/html-escape';
+import { emailLayout, nota, panelDestacado, parrafo } from './layout';
 
 /**
  * El correo de después del pago.
@@ -26,53 +27,41 @@ export interface PaymentReceivedData {
 
 const money = (value: number) => `USD ${value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
+/** Los pasos que siguen, numerados. Cada renglón viene escrito a mano. */
+function pasos(lista: string[]): string {
+  const filas = lista.map((paso, i) => `<tr>
+      <td valign="top" width="30" style="padding:0 0 13px;">
+        <span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(0,212,212,0.14);color:#00d4d4;font-family:ui-monospace,monospace;font-size:11px;font-weight:700;text-align:center;line-height:22px;">${i + 1}</span>
+      </td>
+      <td style="font-family:'Inter',Helvetica,Arial,sans-serif;font-size:14px;color:#94a3b8;line-height:1.65;padding:1px 0 13px;">${escapeHtml(paso)}</td>
+    </tr>`).join('');
+
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 20px;">
+    <tr><td style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#64748b;padding:0 0 14px;" colspan="2">Qué pasa ahora</td></tr>
+    ${filas}
+  </table>`;
+}
+
 export function paymentReceivedHtml(data: PaymentReceivedData): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+  return emailLayout({
+    preheader: `Acreditado ${money(data.amount)}. Arrancamos.`,
+    eyebrow: 'Pago recibido',
+    titulo: `Gracias, ${data.name}. Arrancamos.`,
+    paso: 3,
+    cuerpo: [
+      panelDestacado({
+        etiqueta: 'Acreditado',
+        valor: money(data.amount),
+        nota: data.invoiceNumber
+          ? `Te dejo la factura ${data.invoiceNumber} adjunta.`
+          : undefined,
+      }),
 
-  const steps = data.nextSteps.map((step, index) => `
-        <div style="display:flex;gap:12px;margin-bottom:14px;">
-          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(0,212,212,0.12);color:#00d4d4;font-family:monospace;font-size:11px;font-weight:700;text-align:center;line-height:22px;">${index + 1}</span>
-          <span style="font-size:14px;color:#94a3b8;line-height:1.6;">${escapeHtml(step)}</span>
-        </div>`).join('');
+      pasos(data.nextSteps),
 
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pago recibido — arrancamos</title>
-</head>
-<body style="margin:0;padding:32px 16px;background:#050810;font-family:'Inter',sans-serif;">
-  <div style="max-width:560px;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
-    <div style="height:2px;background:linear-gradient(90deg,transparent,#4ade80,transparent);"></div>
-    <div style="padding:32px;">
-      <p style="font-family:monospace;font-size:10px;color:#4ade80;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 16px;">Pago recibido</p>
-      <h1 style="font-size:20px;font-weight:700;color:#f0f0f0;margin:0 0 16px;">
-        Gracias, ${escapeHtml(data.name)}. Arrancamos.
-      </h1>
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
-        Confirmo la acreditación de ${money(data.amount)}${data.invoiceNumber ? ` y te dejo la factura ${escapeHtml(data.invoiceNumber)} adjunta` : ''}.
-      </p>
+      parrafo(`Tu primera novedad: ${data.firstUpdate}. No hace falta que hagas nada hasta entonces.`),
 
-      <div style="border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:20px;background:rgba(74,222,128,0.04);margin-bottom:24px;">
-        <p style="font-size:11px;color:#64748b;margin:0 0 16px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Qué pasa ahora</p>
-        ${steps}
-      </div>
-
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
-        <strong style="color:#f0f0f0;">Tu primera novedad:</strong> ${escapeHtml(data.firstUpdate)}.
-        No hace falta que hagas nada hasta entonces.
-      </p>
-
-      <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
-        Si en el medio surge cualquier cosa, respondé este email — lo leo yo.
-        También estoy en <a href="${siteUrl}" style="color:#00d4d4;text-decoration:none;">${siteUrl}</a>
-      </p>
-    </div>
-    <div style="padding:14px 32px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0;">Silvano Puccini · silvanopuccini.dev</p>
-    </div>
-  </div>
-</body>
-</html>`;
+      nota('Si en el medio surge cualquier cosa, respondé este correo.'),
+    ].join(''),
+  });
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createContract, prefillFor, signerOf } from './documenso-contract';
+import { createContract, descargarContratoFirmado, prefillFor, signerOf } from './documenso-contract';
 
 const DATA = {
   nombre: 'Ferrelon', email: 'hola@ferrelon.com', total: 4800,
@@ -375,5 +375,69 @@ describe('createContract', () => {
     mockDocumenso({ templateOk: false });
 
     await expect(createContract(DATA)).rejects.toThrow(/Documenso/);
+  });
+});
+
+describe('descargarContratoFirmado', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.DOCUMENSO_API_TOKEN = 'api_test';
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  const sobre = (items: unknown) => ({
+    ok: true,
+    json: async () => ({ envelopeItems: items }),
+  });
+
+  it('trae el PDF firmado para adjuntarlo a nuestro correo', async () => {
+    const pdf = Buffer.from('%PDF-1.7 firmado');
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(sobre([{ id: 'item_1' }]))
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/pdf' }),
+        arrayBuffer: async () => pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const buffer = await descargarContratoFirmado('envelope_abc');
+
+    expect(buffer?.toString()).toContain('firmado');
+    expect(fetchMock.mock.calls[1][0]).toContain('/envelope/item/item_1/download');
+    expect(fetchMock.mock.calls[1][0]).toContain('version=signed');
+  });
+
+  it('sigue el link cuando Documenso devuelve una dirección en vez del archivo', async () => {
+    const pdf = Buffer.from('%PDF desde el link');
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(sobre([{ id: 'item_1' }]))
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ downloadUrl: 'https://cdn.documenso.com/x.pdf' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect((await descargarContratoFirmado('envelope_abc'))?.toString()).toContain('desde el link');
+  });
+
+  it('si falla no rompe nada: el correo de pago sale igual, sin adjunto', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => 'x' }));
+    expect(await descargarContratoFirmado('envelope_abc')).toBeNull();
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('sin red')));
+    expect(await descargarContratoFirmado('envelope_abc')).toBeNull();
+  });
+
+  it('sin sobre no intenta nada', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await descargarContratoFirmado('')).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

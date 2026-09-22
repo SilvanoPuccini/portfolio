@@ -295,3 +295,49 @@ export async function createContract(
   };
 }
 
+
+/**
+ * El contrato firmado, para adjuntarlo a nuestro correo.
+ *
+ * El cliente recibía su copia de Documenso, con la marca de ellos. Con esto
+ * la recibe de nosotros, junto con los datos de pago, que es cuando de verdad
+ * la necesita.
+ *
+ * Nunca lanza: un adjunto que falla no puede impedir que salga el correo con
+ * los datos para cobrar.
+ */
+export async function descargarContratoFirmado(envelopeId: string): Promise<Buffer | null> {
+  if (!envelopeId?.trim()) return null;
+
+  try {
+    const sobre = await call(`/envelope/${envelopeId}`) as {
+      envelopeItems?: { id?: string }[];
+    };
+
+    const itemId = sobre.envelopeItems?.[0]?.id;
+    if (!itemId) return null;
+
+    const token = process.env.DOCUMENSO_API_TOKEN;
+    const respuesta = await fetch(`${API}/envelope/item/${itemId}/download?version=signed`, {
+      headers: { Authorization: token ?? '' },
+      signal: AbortSignal.timeout(20_000),
+    });
+
+    if (!respuesta.ok) return null;
+
+    // Según el caso devuelve el PDF o una dirección donde está.
+    if (respuesta.headers?.get?.('content-type')?.includes('application/json')) {
+      const { downloadUrl } = await respuesta.json() as { downloadUrl?: string };
+      if (!downloadUrl) return null;
+
+      const archivo = await fetch(downloadUrl, { signal: AbortSignal.timeout(20_000) });
+      if (!archivo.ok) return null;
+      return Buffer.from(await archivo.arrayBuffer());
+    }
+
+    return Buffer.from(await respuesta.arrayBuffer());
+  } catch (reason) {
+    console.warn('[documenso] No se pudo bajar el contrato firmado:', reason);
+    return null;
+  }
+}

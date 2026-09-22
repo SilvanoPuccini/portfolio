@@ -8,6 +8,7 @@ import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
 import { archiveSignedContract } from '@/lib/leads/contract-archive';
 import { packageForTemplate, type FixedPackage } from '@/content/packages';
+import { descargarContratoFirmado } from '@/lib/leads/documenso-contract';
 import { paquetePorSlug, servicioPorSlug } from '@/content/servicios';
 
 export const dynamic = 'force-dynamic';
@@ -408,7 +409,11 @@ async function onCompleted(lead: LeadForSignature, envelopeId: string | undefine
       // En pesos para Argentina y Chile; si la cotización no llega, sale solo en USD.
       const localQuote = await quoteFor(lead.pais, amount);
 
-      await sendCrmEmail(lead.email, 'Datos para el pago', paymentRequestHtml({
+      // Su copia firmada, adjunta a NUESTRO correo. Antes la recibía de
+      // Documenso, con la marca de ellos y suelta de todo lo demás.
+      const copia = envelopeId ? await descargarContratoFirmado(envelopeId) : null;
+
+      await sendCrmEmail(lead.email, 'Contrato firmado · datos para el pago', paymentRequestHtml({
         name: lead.nombre,
         amount,
         total,
@@ -416,7 +421,9 @@ async function onCompleted(lead: LeadForSignature, envelopeId: string | undefine
         singlePayment: single,
         paymentInstructions: paymentInstructionsFor(lead.pais),
         localQuote,
-      }));
+      }), copia
+        ? [{ filename: 'Contrato firmado.pdf', content: copia }]
+        : undefined);
       mail = 'enviado';
     } catch (reason) {
       // La firma ocurrió: no se deshace porque el correo falló.

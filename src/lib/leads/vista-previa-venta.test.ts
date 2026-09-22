@@ -4,8 +4,9 @@ import { describe, expect, it } from 'vitest';
 
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { buildContract, Packer, type ContractData } from '@/lib/contract-template';
-import { contractReadyHtml } from '@/lib/email-templates/contract-ready';
+import { contractToSignHtml } from '@/lib/email-templates/contract-to-sign';
 import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
+import { paymentReceivedHtml } from '@/lib/email-templates/payment-received';
 import { proposalReadyHtml } from '@/lib/email-templates/proposal-ready';
 import { questionnaireInviteHtml } from '@/lib/email-templates/questionnaire-invite';
 import { legalClauseFor } from '@/lib/leads/legal-clause';
@@ -149,7 +150,12 @@ describe('vista previa de la venta', () => {
     const correos: Record<string, string> = {
       '1-cuestionario': questionnaireInviteHtml(lead, 'https://silvanopuccini.dev/cliente/TOKEN'),
       '2-propuesta': proposalReadyHtml({ ...lead, responseUrl: 'https://silvanopuccini.dev/cliente/TOKEN' }),
-      '3-contrato': contractReadyHtml(lead),
+      '3-contrato': contractToSignHtml({
+        name: lead.name,
+        paquete: 'Web de cinco secciones + agenda de turnos',
+        totalUsd: 1020,
+        url: 'https://silvanopuccini.dev/es/pedido/PEDIDO',
+      }),
       '4-pago': paymentRequestHtml({
         name: lead.name,
         amount: 1020,
@@ -167,6 +173,18 @@ describe('vista previa de la venta', () => {
         },
       }),
     };
+
+    correos['5-pago-recibido'] = paymentReceivedHtml({
+      name: lead.name,
+      amount: 1020,
+      invoiceNumber: 'A-0001-00000123',
+      nextSteps: [
+        'Te escribo para pedirte el logo, las fotos y los textos que tengas.',
+        'Armo la primera versión y te la muestro para que la revises.',
+        'Aplicamos tus ajustes y sale publicada.',
+      ],
+      firstUpdate: 'el viernes, con la primera versión para ver',
+    });
 
     for (const [nombre, html] of Object.entries(correos)) {
       expect(html).toContain('Estefanía');

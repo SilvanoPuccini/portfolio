@@ -1,5 +1,5 @@
-import { escapeHtml } from '@/lib/html-escape';
 import { FX_MARGIN, type LocalQuote } from '@/lib/leads/exchange-rate';
+import { bloqueDatos, emailLayout, nota, panelDestacado, parrafo } from './layout';
 
 /**
  * El pedido de pago, después de la firma.
@@ -38,64 +38,46 @@ function validUntilLabel(iso: string): string {
   }).replace(/(\d{2})-(\d{2})/, '$1/$2');
 }
 
-function localQuoteHtml(quote: LocalQuote): string {
-  const amount = `${quote.currency} ${quote.amount.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
-  const note = `Cotización ${quote.source} + ${Math.round(FX_MARGIN * 100)}%, redondeada. `
-    + `Vale hasta el ${validUntilLabel(quote.validUntil)} (hora de Argentina); después, pedime el monto actualizado.`;
-  return `
-        <p style="font-size:20px;color:#f0f0f0;margin:0 0 4px;font-weight:600;">= ${escapeHtml(amount)}</p>
-        <p style="font-size:12px;color:#64748b;margin:0 0 10px;line-height:1.5;">${escapeHtml(note)}</p>`;
+/** El monto en pesos y de dónde sale: sin eso, el número parece inventado. */
+function enPesos(quote: LocalQuote) {
+  return {
+    detalle: `= ${quote.currency} ${quote.amount.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`,
+    nota: `Cotización ${quote.source} + ${Math.round(FX_MARGIN * 100)}%, redondeada. `
+      + `Vale hasta el ${validUntilLabel(quote.validUntil)} (hora de Argentina); `
+      + 'después, pedime el monto actualizado.',
+  };
 }
 
 export function paymentRequestHtml(data: PaymentRequestData): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
-
   const detail = data.singlePayment
-    ? `Pago único por el total del proyecto.`
-    : `Seña del ${data.pct}% sobre ${money(data.total)}. El ${100 - data.pct}% restante se abona contra entrega.`;
+    ? 'Pago único por el total del proyecto.'
+    : `Seña del ${data.pct}% sobre ${money(data.total)}. `
+      + `El ${100 - data.pct}% restante se abona contra entrega.`;
 
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Datos para el pago</title>
-</head>
-<body style="margin:0;padding:32px 16px;background:#050810;font-family:'Inter',sans-serif;">
-  <div style="max-width:560px;margin:0 auto;background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
-    <div style="height:2px;background:linear-gradient(90deg,transparent,#00d4d4,transparent);"></div>
-    <div style="padding:32px;">
-      <p style="font-family:monospace;font-size:10px;color:#00d4d4;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 16px;">Silvano Puccini Dev</p>
-      <h1 style="font-size:20px;font-weight:700;color:#f0f0f0;margin:0 0 16px;">
-        Gracias por firmar, ${escapeHtml(data.name)}
-      </h1>
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
-        Con el contrato firmado, el último paso para arrancar es el pago inicial.
-      </p>
+  const pesos = data.localQuote ? enPesos(data.localQuote) : null;
 
-      <div style="border:1px solid rgba(0,212,212,0.24);border-radius:8px;padding:20px;background:rgba(0,212,212,0.04);margin-bottom:24px;">
-        <p style="font-size:11px;color:#64748b;margin:0 0 6px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">A abonar ahora</p>
-        <p style="font-size:30px;color:#00d4d4;margin:0 0 10px;font-weight:700;">${money(data.amount)}</p>${data.localQuote ? localQuoteHtml(data.localQuote) : ''}
-        <p style="font-size:13px;color:#94a3b8;margin:0;line-height:1.6;">${escapeHtml(detail)}</p>
-      </div>
+  return emailLayout({
+    preheader: `${money(data.amount)} para arrancar. El contrato firmado va adjunto.`,
+    eyebrow: 'Silvano Puccini Dev',
+    titulo: `Gracias por firmar, ${data.name}`,
+    paso: 2,
+    cuerpo: [
+      parrafo('Con el contrato firmado, el último paso para arrancar es el pago inicial. '
+        + 'Te adjunto tu copia firmada.'),
 
-      <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;margin-bottom:24px;">
-        <p style="font-size:11px;color:#64748b;margin:0 0 8px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Cómo pagar</p>
-        <p style="font-size:14px;color:#f0f0f0;margin:0;line-height:1.7;white-space:pre-wrap;">${escapeHtml(data.paymentInstructions)}</p>
-      </div>
+      panelDestacado({
+        etiqueta: 'A abonar ahora',
+        valor: money(data.amount),
+        detalle: pesos?.detalle,
+        nota: [pesos?.nota, detail].filter(Boolean).join(' '),
+      }),
 
-      <p style="font-size:14px;color:#94a3b8;line-height:1.7;margin:0 0 24px;">
-        Apenas se acredite te mando la factura y arrancamos. Si preferís otra forma de pago, avisame y lo vemos.
-      </p>
+      bloqueDatos('Cómo pagar', data.paymentInstructions),
 
-      <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
-        Ante cualquier duda, respondé este email o escribime desde <a href="${siteUrl}" style="color:#00d4d4;text-decoration:none;">${siteUrl}</a>
-      </p>
-    </div>
-    <div style="padding:14px 32px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
-      <p style="font-size:11px;color:rgba(140,144,159,0.5);margin:0;">Silvano Puccini · silvanopuccini.dev</p>
-    </div>
-  </div>
-</body>
-</html>`;
+      parrafo('Apenas se acredite te mando la factura y arrancamos. '
+        + 'Si preferís otra forma de pago, avisame y lo vemos.'),
+
+      nota('Si algo no coincide con lo que acordamos, respondé este correo antes de pagar.'),
+    ].join(''),
+  });
 }
