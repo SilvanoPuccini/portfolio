@@ -181,3 +181,47 @@ export function contratoComoTexto(data: DatosDelContrato): string {
     ].filter(Boolean).join('\n'))
     .join('\n\n');
 }
+
+/**
+ * El contrato de una venta del catálogo.
+ *
+ * Lo usan las tres puntas: la pantalla donde el cliente lee antes de firmar,
+ * el servidor cuando registra la firma, y el PDF que se archiva. Si cada una
+ * lo armara por su cuenta, el cliente podría estar leyendo algo distinto de
+ * lo que firma.
+ */
+export function contratoDeVenta(entrada: {
+  paquete: {
+    nombre: { es: string };
+    resumen: { es: string };
+    incluye: { es: string[] };
+    noIncluye: { es: string[] };
+    horas: number;
+    plazoDias: number;
+    pagoUnico: boolean;
+  };
+  extras: { label: { es: string } }[];
+  cliente: { nombre: string; localidad?: string | null; pais?: string | null };
+  totalUsd: number;
+  jurisdiccion: string;
+  tarifaHora?: number;
+}): DatosDelContrato {
+  const { paquete, extras, cliente, totalUsd } = entrada;
+
+  return {
+    clientName: cliente.nombre,
+    clientLocation: cliente.localidad ?? cliente.pais ?? '',
+    clientCountry: cliente.pais ?? '',
+    projectDescription: `${paquete.nombre.es}. ${paquete.resumen.es}`,
+    deliverables: [...paquete.incluye.es, ...extras.map((extra) => extra.label.es)].join('\n'),
+    excluded: paquete.noIncluye.es.join('\n'),
+    totalHours: paquete.horas,
+    totalPrice: totalUsd,
+    hourlyRate: entrada.tarifaHora ?? 30,
+    paymentTerms: paquete.pagoUnico
+      ? `Pago único de USD ${totalUsd.toLocaleString('es-AR')} por adelantado.`
+      : 'Seña del 50% para comenzar y el saldo contra entrega.',
+    estimatedWeeks: Math.max(1, Math.ceil(paquete.plazoDias / 5)),
+    legalClause: entrada.jurisdiccion,
+  };
+}

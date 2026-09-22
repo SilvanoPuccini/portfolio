@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
 import { ContractStep } from '@/components/propuesta/ContractStep';
+import { clausulasDelContrato, contratoDeVenta } from '@/content/contrato';
+import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
+import { FirmaContrato } from './FirmaContrato';
+import type { Extra, Paquete } from '@/content/servicios';
 
 /**
  * Los tres datos que hacen falta para firmar, y después la firma.
@@ -15,9 +19,20 @@ import { ContractStep } from '@/components/propuesta/ContractStep';
 
 const PAISES = ['Argentina', 'Chile', 'Uruguay', 'México', 'España', 'Otro'];
 
-export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
+export function PedidoCheckout({
+  pedidoId,
+  paquete,
+  extras,
+  totalUsd,
+}: {
+  pedidoId: string;
+  paquete: Paquete;
+  extras: Extra[];
+  totalUsd: number;
+}) {
   const [datos, setDatos] = useState({ nombre: '', email: '', pais: PAISES[0] });
   const [firma, setFirma] = useState<{ token: string; signingUrl: string } | null>(null);
+  const [aFirmar, setAFirmar] = useState(false);
   const [demorado, setDemorado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -38,8 +53,14 @@ export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
         body: JSON.stringify(datos),
       });
       const body = await res.json() as {
-        token?: string; signingUrl?: string; error?: string; demorado?: boolean;
+        token?: string; signingUrl?: string; error?: string; demorado?: boolean; modo?: string;
       };
+
+      // La venta quedó creada y el contrato se firma acá mismo, sin terceros.
+      if (body.modo === 'propia') {
+        setAFirmar(true);
+        return;
+      }
 
       // 202: la venta quedó registrada pero el contrato no se pudo crear
       // ahora. Se le avisa que llega por correo en vez de mostrarle un error
@@ -62,6 +83,22 @@ export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
   }
 
   if (firma) return <ContractStep token={firma.token} signingUrl={firma.signingUrl} />;
+
+  if (aFirmar) {
+    return (
+      <FirmaContrato
+        pedidoId={pedidoId}
+        nombreEsperado={datos.nombre}
+        clausulas={clausulasDelContrato(contratoDeVenta({
+          paquete,
+          extras,
+          cliente: { nombre: datos.nombre, pais: datos.pais },
+          totalUsd,
+          jurisdiccion: jurisdiccionCorta(datos.pais),
+        }))}
+      />
+    );
+  }
 
   if (demorado) {
     return (

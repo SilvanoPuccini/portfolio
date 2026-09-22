@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import type { DatosDelContrato } from '@/content/contrato';
+import { contratoDeVenta } from '@/content/contrato';
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
 import { buildContract, Packer } from '@/lib/contract-template';
@@ -31,31 +31,6 @@ const BUCKET = 'contratos';
 
 function getIp(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'desconocida';
-}
-
-/** El contrato de esta venta, con los datos que le tocan. */
-function datosDelContrato(
-  paquete: NonNullable<ReturnType<typeof paquetePorSlug>>,
-  extras: { label: { es: string } }[],
-  lead: { nombre: string; localidad: string | null; pais: string | null },
-  totalUsd: number,
-): DatosDelContrato {
-  return {
-    clientName: lead.nombre,
-    clientLocation: lead.localidad ?? lead.pais ?? '',
-    clientCountry: lead.pais ?? '',
-    projectDescription: `${paquete.nombre.es}. ${paquete.resumen.es}`,
-    deliverables: [...paquete.incluye.es, ...extras.map((e) => e.label.es)].join('\n'),
-    excluded: paquete.noIncluye.es.join('\n'),
-    totalHours: paquete.horas,
-    totalPrice: totalUsd,
-    hourlyRate: 30,
-    paymentTerms: paquete.pagoUnico
-      ? `Pago único de USD ${totalUsd.toLocaleString('es-AR')} por adelantado.`
-      : 'Seña del 50% para comenzar y el saldo contra entrega.',
-    estimatedWeeks: Math.max(1, Math.ceil(paquete.plazoDias / 5)),
-    legalClause: jurisdiccionCorta(lead.pais),
-  };
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -120,7 +95,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const servicio = servicioPorSlug(paquete.servicio);
     const resumen = totalPedido(paquete, pedido.extras ?? [], servicio?.extras ?? []);
-    const contrato = datosDelContrato(paquete, resumen.extras, lead, pedido.total_usd);
+    const contrato = contratoDeVenta({
+      paquete,
+      extras: resumen.extras,
+      cliente: lead,
+      totalUsd: pedido.total_usd,
+      jurisdiccion: jurisdiccionCorta(lead.pais),
+    });
 
     const evidencia = evidenciaDeFirma(contrato, lead.nombre, {
       ip: getIp(req),

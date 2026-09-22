@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { ArrowRight, Check, Download } from 'lucide-react';
 
 import { PagoPedido } from '@/components/pedido/PagoPedido';
+import { FirmaContrato } from '@/components/pedido/FirmaContrato';
 import { PedidoCheckout } from '@/components/pedido/PedidoCheckout';
+import { clausulasDelContrato, contratoDeVenta } from '@/content/contrato';
+import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { ContractStep } from '@/components/propuesta/ContractStep';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import { paquetePorSlug, servicioPorSlug, totalPedido, type Locale } from '@/content/servicios';
@@ -43,6 +46,8 @@ interface PedidoRow {
 }
 
 interface LeadRow {
+  nombre: string;
+  localidad: string | null;
   estado: string | null;
   pais: string | null;
   pago_estado: string | null;
@@ -69,7 +74,7 @@ async function cargarPedido(id: string) {
 
   const { data: venta } = await db
     .from('leads')
-    .select('estado, pais, pago_estado, factura_numero, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
+    .select('nombre, localidad, estado, pais, pago_estado, factura_numero, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
     .eq('id', pedido.lead_id)
     .maybeSingle();
 
@@ -155,13 +160,37 @@ export default async function PedidoPage({ params }: { params: Params }) {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:items-start">
         <div>
-          {etapa === 'datos' && <PedidoCheckout pedidoId={pedido.id} />}
-
-          {etapa === 'firma' && (
-            <ContractStep
-              token={lead?.contrato_firma_token ?? null}
-              signingUrl={lead?.contrato_signing_url ?? null}
+          {etapa === 'datos' && (
+            <PedidoCheckout
+              pedidoId={pedido.id}
+              paquete={paquete}
+              extras={resumen.extras}
+              totalUsd={pedido.total_usd}
             />
+          )}
+
+          {/* Volvió sin haber firmado: el contrato lo espera igual. */}
+          {etapa === 'firma' && (
+            lead?.contrato_firma_token
+              ? <ContractStep
+                  token={lead.contrato_firma_token}
+                  signingUrl={lead.contrato_signing_url}
+                />
+              : <FirmaContrato
+                  pedidoId={pedido.id}
+                  nombreEsperado={lead?.nombre ?? ''}
+                  clausulas={clausulasDelContrato(contratoDeVenta({
+                    paquete,
+                    extras: resumen.extras,
+                    cliente: {
+                      nombre: lead?.nombre ?? '',
+                      localidad: lead?.localidad,
+                      pais: lead?.pais,
+                    },
+                    totalUsd: pedido.total_usd,
+                    jurisdiccion: jurisdiccionCorta(lead?.pais ?? null),
+                  }))}
+                />
           )}
 
           {(etapa === 'pago' || etapa === 'esperando') && (
