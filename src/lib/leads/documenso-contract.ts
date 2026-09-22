@@ -209,31 +209,32 @@ export async function createContract(
 
   const titulo = data.titulo ?? 'Contrato de prestación de servicios';
 
-  const payload = {
+  const base = {
     ...(esSobre ? { envelopeId: crudo } : { templateId }),
     ...(externalId ? { externalId } : {}),
     recipients: [{ id: signer.id, email: data.email, name: data.nombre }],
     prefillFields: prefillFor(template.fields ?? [], data),
     distributeDocument: true,
+  };
+
+  /**
+   * Lo que mejora la experiencia pero depende del plan de Documenso.
+   *
+   * Los correos personalizados y el redirect después de firmar son del plan
+   * Platform. Con un plan menor, Documenso rechaza TODA la llamada con «esta
+   * función no está disponible en tu plan». Entonces se intenta primero con
+   * todo y, si lo rechaza por eso, se reintenta con lo básico: un plan
+   * limitado no puede costar una venta.
+   */
+  const conPlan = {
+    ...base,
     override: {
       ...(redirectUrl ? { redirectUrl } : {}),
-      // Sin esto el cliente recibe un correo que nombra el archivo PDF de la
-      // plantilla. Eso no es un contrato: es cómo está hecho el sistema.
       title: titulo,
       subject: `Tu contrato: ${titulo}`,
       message:
         'Te dejo el contrato para firmar. Es el mismo alcance y el mismo precio que acordamos. '
         + 'Firmar no dispara ningún cobro: los datos para pagar te llegan después.',
-      // Los avisos que le llegan al cliente los mandamos nosotros, con lo que
-      // sigue explicado. Los de Documenso llegaban antes y en su idioma.
-      // Documenso no manda ningún correo. Los nuestros salen de nuestro
-      // dominio, con nuestro diseño y explicando qué sigue; los suyos
-      // llegaban con su marca y rompían la experiencia justo en el momento
-      // más importante de la venta.
-      //
-      // `distributeDocument` queda en true a propósito: es lo que deja el
-      // documento listo para firmar. Apagar la distribución podría dejarlo
-      // en borrador, y un borrador no se puede firmar.
       emailSettings: {
         recipientSigningRequest: false,
         recipientRemoved: false,
@@ -248,22 +249,39 @@ export async function createContract(
     },
   };
 
-  // `/envelope/use` no acepta JSON: espera multipart con el payload adentro.
-  const cuerpo = esSobre
-    ? (() => {
-      const form = new FormData();
-      form.append('payload', JSON.stringify(payload));
-      return form;
-    })()
-    : JSON.stringify(payload);
+  /** El título sí lo permite cualquier plan, y es lo que ve el cliente. */
+  const sinPlan = { ...base, override: { title: titulo } };
 
-  const created = await call(esSobre ? '/envelope/use' : '/template/use', {
-    method: 'POST',
-    body: cuerpo,
-  }) as {
-    id?: string; envelopeId?: string;
-    recipients?: { signingUrl?: string; token?: string }[];
+  const usar = async (payload: object) => {
+    const cuerpo = esSobre
+      ? (() => {
+        const form = new FormData();
+        form.append('payload', JSON.stringify(payload));
+        return form;
+      })()
+      : JSON.stringify(payload);
+
+    return call(esSobre ? '/envelope/use' : '/template/use', {
+      method: 'POST',
+      body: cuerpo,
+    }) as Promise<{
+      id?: string; envelopeId?: string;
+      recipients?: { signingUrl?: string; token?: string }[];
+    }>;
   };
+
+  let created;
+  try {
+    created = await usar(conPlan);
+  } catch (reason) {
+    const detalle = reason instanceof Error ? reason.message : String(reason);
+    const esDelPlan = /no está disponible en tu plan|not available (on|in) your plan|Documenso 403/i
+      .test(detalle);
+    if (!esDelPlan) throw reason;
+
+    console.warn('[documenso] El plan no permite los ajustes de correo y redirect:', detalle);
+    created = await usar(sinPlan);
+  }
 
   const recipient = created.recipients?.[0];
   if (!recipient?.signingUrl || !recipient.token) {

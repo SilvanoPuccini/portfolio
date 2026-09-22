@@ -273,6 +273,59 @@ describe('createContract', () => {
     expect(payload.distributeDocument).toBe(true);
   });
 
+  it('si el plan no permite los ajustes finos, crea el contrato igual', async () => {
+    // Los correos personalizados y el redirect son del plan Platform. Sin
+    // ellos el contrato tiene que salir igual: un plan limitado no puede
+    // costar una venta.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          fields: [{ id: 2, type: 'TEXT', fieldMeta: { label: 'precio' } }],
+          recipients: [{ id: 5, role: 'SIGNER', signingOrder: 1 }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        text: async () => 'Esta función no está disponible en tu plan actual',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 'env_1',
+          recipients: [{ token: 'abc', signingUrl: 'https://app.documenso.com/sign/abc' }],
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await createContract(DATA, 'https://x/gracias');
+
+    expect(result.token).toBe('abc');
+    // El segundo intento va sin lo que el plan no soporta, pero con el
+    // título y el prefill, que es lo que hace al contrato.
+    const segundo = JSON.parse((fetchMock.mock.calls[2][1].body as FormData).get('payload') as string);
+    expect(segundo.override.emailSettings).toBeUndefined();
+    expect(segundo.override.redirectUrl).toBeUndefined();
+    expect(segundo.override.title).toBeTruthy();
+    expect(segundo.prefillFields).toHaveLength(1);
+  });
+
+  it('un error que no es del plan no se reintenta', async () => {
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ fields: [], recipients: [{ id: 5, role: 'SIGNER' }] }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'Internal error' });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(createContract(DATA)).rejects.toThrow('500');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('con multipart no fuerza el content-type: lo pone fetch con su frontera', async () => {
     process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
     const fetchMock = mockEnvelope();
