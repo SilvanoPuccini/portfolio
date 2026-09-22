@@ -4,18 +4,26 @@ import { servicioPorSlug } from './servicios';
 /**
  * Lo que se le pide al cliente para poder arrancar.
  *
- * Sale del paquete que compró y de los extras que tildó: una landing no
- * necesita lo mismo que un catálogo con cobro, y pedirle todo a todos es la
- * forma más rápida de que nadie complete nada.
+ * No es una lista por servicio: es un árbol que se abre según el paquete que
+ * compró y los extras que tildó. Una landing tiene una sección y pregunta por
+ * una; la web de cinco pregunta cinco veces lo mismo. Vender cincuenta
+ * productos no se parece en nada a vender uno.
  *
- * Una regla que no se negocia: acá NO se piden contraseñas. Para entrar a
- * una cuenta del cliente se pide que me sume como colaborador, y si alguna
- * vez hace falta una clave va por un canal que expira, nunca por un
- * formulario. Un formulario con contraseñas adentro es una filtración
- * esperando una fecha.
+ * Pedirle todo a todos es la forma más rápida de que nadie complete nada.
+ *
+ * Una regla que no se negocia: acá NO se piden contraseñas. Para entrar a una
+ * cuenta del cliente se pide que me sume como colaborador, y si alguna vez
+ * hace falta una clave va por un canal que expira. Un formulario con
+ * contraseñas adentro es una filtración esperando una fecha.
  */
 
-export type TipoDato = 'texto' | 'parrafo' | 'archivo' | 'enlace';
+export type TipoDato = 'texto' | 'parrafo' | 'archivo' | 'enlace' | 'opcion';
+
+/** Una pregunta que depende de cómo se contestó otra. */
+export interface Condicion {
+  id: string;
+  valor: string;
+}
 
 export interface DatoKickoff {
   id: string;
@@ -26,9 +34,36 @@ export interface DatoKickoff {
   obligatorio: boolean;
   /** Varios archivos, como las fotos. */
   multiple?: boolean;
+  /** Para las de elegir. */
+  opciones?: Localized<string[]>;
+  visibleSi?: Condicion;
 }
 
-/** Lo que hace falta siempre, sea cual sea el paquete. */
+/**
+ * Un bloque que se repite: las secciones de la web, los productos del catálogo.
+ *
+ * `veces` lo fija el paquete cuando se sabe de antemano (una landing tiene una
+ * sección, la web de cinco tiene cinco). Cuando no se sabe, lo decide el
+ * cliente agregando filas.
+ */
+export interface GrupoKickoff {
+  id: string;
+  label: Localized<string>;
+  ayuda: Localized<string>;
+  veces?: number;
+  campos: DatoKickoff[];
+  visibleSi?: Condicion;
+}
+
+export interface PlanKickoff {
+  datos: DatoKickoff[];
+  grupos: GrupoKickoff[];
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Lo que hace falta siempre                                                  */
+/* -------------------------------------------------------------------------- */
+
 export const DATOS_BASE: DatoKickoff[] = [
   {
     id: 'negocio',
@@ -113,54 +148,185 @@ export const DATOS_BASE: DatoKickoff[] = [
   },
 ];
 
-/** Lo propio de cada servicio, además de lo básico. */
-const POR_SERVICIO: Record<string, DatoKickoff[]> = {
-  web: [
-    {
-      id: 'secciones',
-      label: { es: '¿Qué secciones querés?', en: 'Which sections do you want?' },
-      ayuda: {
-        es: 'Por ejemplo: quiénes somos, servicios, precios, contacto. Si no sabés, propongo yo.',
-        en: 'For example: about, services, pricing, contact. If unsure, I will propose them.',
+/* -------------------------------------------------------------------------- */
+/*  Bloques que se repiten                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** Una sección de la web: lo que dice y lo que se ve. Igual para todas. */
+function secciones(veces: number): GrupoKickoff {
+  return {
+    id: 'secciones',
+    label: { es: 'Las secciones de tu sitio', en: 'Your site sections' },
+    ayuda: {
+      es: veces === 1
+        ? 'Tu página tiene una sola sección. Contame qué va a decir.'
+        : `Tu sitio tiene ${veces} secciones. Completá lo que puedas: lo que falte lo escribo yo.`,
+      en: veces === 1
+        ? 'Your page has a single section. Tell me what it will say.'
+        : `Your site has ${veces} sections. Fill in what you can: I write whatever is missing.`,
+    },
+    veces,
+    campos: [
+      {
+        id: 'titulo',
+        label: { es: 'Título de la sección', en: 'Section title' },
+        ayuda: { es: 'Por ejemplo: Quiénes somos, Servicios, Contacto.', en: 'For example: About, Services, Contact.' },
+        tipo: 'texto',
+        obligatorio: false,
       },
-      tipo: 'parrafo',
+      {
+        id: 'texto',
+        label: { es: '¿Qué querés que diga?', en: 'What should it say?' },
+        ayuda: {
+          es: 'En tus palabras, sin preocuparte por cómo suena. Yo lo redacto después.',
+          en: 'In your own words, no need to polish it. I will write it properly afterwards.',
+        },
+        tipo: 'parrafo',
+        obligatorio: false,
+      },
+      {
+        id: 'imagen',
+        label: { es: 'La imagen de esa sección', en: 'The image for that section' },
+        ayuda: { es: 'Si tenés una propia. Si no, elijo una acorde.', en: 'If you have one. If not, I pick a fitting one.' },
+        tipo: 'archivo',
+        obligatorio: false,
+      },
+    ],
+  };
+}
+
+/** Los primeros artículos del blog, que vienen incluidos en el paquete. */
+const ARTICULOS: GrupoKickoff = {
+  id: 'articulos',
+  label: { es: 'Los primeros artículos', en: 'The first articles' },
+  ayuda: {
+    es: 'Tu paquete incluye tres escritos. Decime de qué querés que hablen y los escribo yo.',
+    en: 'Your package includes three written for you. Tell me what they should cover and I write them.',
+  },
+  veces: 3,
+  campos: [
+    {
+      id: 'tema',
+      label: { es: '¿De qué va a hablar?', en: 'What is it about?' },
+      ayuda: {
+        es: 'Una pregunta que te hagan seguido tus clientes suele ser el mejor artículo.',
+        en: 'A question your clients ask often usually makes the best article.',
+      },
+      tipo: 'texto',
       obligatorio: false,
     },
   ],
-  tienda: [
+};
+
+/** El catálogo cargado uno por uno, cuando el cliente no tiene una planilla. */
+const PRODUCTOS: GrupoKickoff = {
+  id: 'productos',
+  label: { es: 'Tus productos', en: 'Your products' },
+  ayuda: {
+    es: 'Agregá uno por uno. Podés dejarlo a medias y seguir más tarde: se guarda.',
+    en: 'Add them one by one. You can stop halfway and continue later: it is saved.',
+  },
+  visibleSi: { id: 'modo_catalogo', valor: 'uno_por_uno' },
+  campos: [
     {
-      id: 'productos',
-      label: { es: 'Tu lista de productos', en: 'Your product list' },
-      ayuda: {
-        es: 'Una planilla con nombre, precio y descripción. Si la tenés en otro formato, mandala igual.',
-        en: 'A spreadsheet with name, price and description. Any other format works too.',
-      },
+      id: 'nombre',
+      label: { es: 'Nombre', en: 'Name' },
+      ayuda: { es: 'Como lo busca tu cliente.', en: 'As your customer would search for it.' },
+      tipo: 'texto',
+      obligatorio: true,
+    },
+    {
+      id: 'precio',
+      label: { es: 'Precio', en: 'Price' },
+      ayuda: { es: 'Si varía, poné el más común y lo ajustamos.', en: 'If it varies, use the most common one and we adjust.' },
+      tipo: 'texto',
+      obligatorio: true,
+    },
+    {
+      id: 'descripcion',
+      label: { es: 'Descripción', en: 'Description' },
+      ayuda: { es: 'Dos líneas alcanzan. Lo que le importa a quien lo compra.', en: 'Two lines is enough. What matters to the buyer.' },
+      tipo: 'parrafo',
+      obligatorio: false,
+    },
+    {
+      id: 'categoria',
+      label: { es: 'Categoría', en: 'Category' },
+      ayuda: { es: 'Para agrupar en el catálogo. Si son pocos, dejalo vacío.', en: 'To group them in the catalog. If there are few, leave it empty.' },
+      tipo: 'texto',
+      obligatorio: false,
+    },
+    {
+      id: 'foto',
+      label: { es: 'La foto del producto', en: 'The product photo' },
+      ayuda: { es: 'Una por producto. Con fondo claro se ve mejor.', en: 'One per product. A light background works best.' },
       tipo: 'archivo',
-      obligatorio: true,
-    },
-    {
-      id: 'envios',
-      label: { es: '¿Cómo entregás?', en: 'How do you deliver?' },
-      ayuda: {
-        es: 'Retiro en el local, envío propio por zonas, correo. Con los costos si los tenés.',
-        en: 'Pickup, your own delivery by area, courier. With costs if you have them.',
-      },
-      tipo: 'parrafo',
       obligatorio: false,
     },
-    {
-      id: 'cobro',
-      label: { es: 'Tu cuenta para cobrar', en: 'Your account to get paid' },
-      ayuda: {
-        es: 'El alias o CBU que querés mostrar, y si tenés Mercado Pago, el mail de esa cuenta. '
-          + 'No me mandes contraseñas: para conectar Mercado Pago me sumás como usuario desde tu panel.',
-        en: 'The bank alias you want shown, and your Mercado Pago account email if you have one. '
-          + 'Do not send passwords: you add me as a user from your own panel.',
-      },
-      tipo: 'parrafo',
-      obligatorio: true,
-    },
   ],
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Qué pide cada paquete                                                      */
+/* -------------------------------------------------------------------------- */
+
+const COBRO: DatoKickoff = {
+  id: 'cobro',
+  label: { es: 'Tu cuenta para cobrar', en: 'Your account to get paid' },
+  ayuda: {
+    es: 'El alias o CBU que querés mostrar, y el mail de tu cuenta de Mercado Pago si la tenés. '
+      + 'Para conectarla me sumás como usuario desde tu panel: nunca me mandes una clave acá.',
+    en: 'The bank alias you want shown, and your Mercado Pago account email if you have one. '
+      + 'You add me as a user from your own panel: never send a key here.',
+  },
+  tipo: 'parrafo',
+  obligatorio: true,
+};
+
+const MODO_CATALOGO: DatoKickoff = {
+  id: 'modo_catalogo',
+  label: { es: '¿Cómo preferís pasarme los productos?', en: 'How would you rather send me the products?' },
+  ayuda: {
+    es: 'Si ya tenés una planilla, mandala y yo la cargo. Si no, cargalos acá uno por uno y los vas viendo.',
+    en: 'If you already have a spreadsheet, send it and I load it. If not, add them here one by one.',
+  },
+  tipo: 'opcion',
+  obligatorio: true,
+  opciones: {
+    es: ['Te mando un archivo', 'Los cargo uno por uno'],
+    en: ['I send you a file', 'I add them one by one'],
+  },
+};
+
+const PRODUCTOS_ARCHIVO: DatoKickoff = {
+  id: 'productos_archivo',
+  label: { es: 'Tu planilla de productos', en: 'Your product spreadsheet' },
+  ayuda: {
+    es: 'Con nombre, precio y descripción. Excel, Sheets, Word o lo que tengas: yo lo ordeno. '
+      + 'Las fotos van abajo, todas juntas.',
+    en: 'With name, price and description. Excel, Sheets, Word, whatever you have: I sort it out. '
+      + 'Photos go below, all together.',
+  },
+  tipo: 'archivo',
+  obligatorio: true,
+  visibleSi: { id: 'modo_catalogo', valor: 'archivo' },
+};
+
+const FOTOS_PRODUCTOS: DatoKickoff = {
+  id: 'fotos_productos',
+  label: { es: 'Las fotos de los productos', en: 'The product photos' },
+  ayuda: {
+    es: 'Todas juntas. Poneles de nombre el del producto y las emparejo sin preguntarte.',
+    en: 'All together. Name each file after its product and I match them without asking.',
+  },
+  tipo: 'archivo',
+  obligatorio: false,
+  multiple: true,
+  visibleSi: { id: 'modo_catalogo', valor: 'archivo' },
+};
+
+/** Lo propio de cada servicio, que no depende del paquete. */
+const POR_SERVICIO: Record<string, DatoKickoff[]> = {
   automatizacion: [
     {
       id: 'proceso',
@@ -206,6 +372,21 @@ const POR_SERVICIO: Record<string, DatoKickoff[]> = {
   ],
 };
 
+/** Lo que abre cada paquete en particular: acá vive la cascada. */
+const POR_PAQUETE: Record<string, { datos?: DatoKickoff[]; grupos?: GrupoKickoff[] }> = {
+  landing: { grupos: [secciones(1)] },
+  'web-cinco-secciones': { grupos: [secciones(5)] },
+  'web-con-blog': { grupos: [secciones(5), ARTICULOS] },
+  'catalogo-whatsapp': {
+    datos: [MODO_CATALOGO, PRODUCTOS_ARCHIVO, FOTOS_PRODUCTOS],
+    grupos: [PRODUCTOS],
+  },
+  'catalogo-cobro': {
+    datos: [MODO_CATALOGO, PRODUCTOS_ARCHIVO, FOTOS_PRODUCTOS, COBRO],
+    grupos: [PRODUCTOS],
+  },
+};
+
 /** Lo que agrega cada extra que el cliente haya tildado. */
 const POR_EXTRA: Record<string, DatoKickoff[]> = {
   agenda: [
@@ -220,18 +401,7 @@ const POR_EXTRA: Record<string, DatoKickoff[]> = {
       obligatorio: true,
     },
   ],
-  pago: [
-    {
-      id: 'cobro',
-      label: { es: 'Tu cuenta para cobrar', en: 'Your account to get paid' },
-      ayuda: {
-        es: 'El alias o CBU, y el mail de tu cuenta de Mercado Pago si la tenés. Sin contraseñas.',
-        en: 'Your bank alias, and your Mercado Pago account email if you have one. No passwords.',
-      },
-      tipo: 'texto',
-      obligatorio: true,
-    },
-  ],
+  pago: [COBRO],
   idioma: [
     {
       id: 'segundo_idioma',
@@ -255,29 +425,49 @@ const POR_EXTRA: Record<string, DatoKickoff[]> = {
   ],
 };
 
+/* -------------------------------------------------------------------------- */
+/*  El plan de este cliente                                                    */
+/* -------------------------------------------------------------------------- */
+
+function sinRepetir<T extends { id: string }>(lista: T[]): T[] {
+  const vistos = new Set<string>();
+  return lista.filter((item) => (vistos.has(item.id) ? false : (vistos.add(item.id), true)));
+}
+
 /**
- * Todo lo que hay que pedirle a este cliente, sin repetir.
+ * Todo lo que hay que pedirle a este cliente, en el orden en que se pregunta.
  *
- * El orden importa: primero lo básico, que es lo que cualquiera puede
- * contestar de memoria, y después lo específico, que puede requerir buscar
- * algo. Empezar por lo difícil es empezar por el abandono.
+ * Primero lo básico, que cualquiera contesta de memoria; después lo del
+ * paquete, que puede requerir ir a buscar algo. Empezar por lo difícil es
+ * empezar por el abandono.
  */
-export function datosKickoff(
+export function planKickoff(
   paquete: Paquete,
-  extrasIds: string[],
+  extrasIds: string[] = [],
   extrasDisponibles: Extra[] = [],
-): DatoKickoff[] {
+): PlanKickoff {
   const servicio = servicioPorSlug(paquete.servicio);
+  const delPaquete = POR_PAQUETE[paquete.slug] ?? {};
 
   const elegidos = extrasIds.filter((id) =>
     extrasDisponibles.length === 0 || extrasDisponibles.some((extra) => extra.id === id));
 
-  const todos = [
-    ...DATOS_BASE,
-    ...(POR_SERVICIO[servicio?.slug ?? ''] ?? []),
-    ...elegidos.flatMap((id) => POR_EXTRA[id] ?? []),
-  ];
+  return {
+    datos: sinRepetir([
+      ...DATOS_BASE,
+      ...(POR_SERVICIO[servicio?.slug ?? ''] ?? []),
+      ...(delPaquete.datos ?? []),
+      ...elegidos.flatMap((id) => POR_EXTRA[id] ?? []),
+    ]),
+    grupos: sinRepetir(delPaquete.grupos ?? []),
+  };
+}
 
-  const vistos = new Set<string>();
-  return todos.filter((dato) => (vistos.has(dato.id) ? false : (vistos.add(dato.id), true)));
+/** Solo los campos sueltos. Lo usa el panel para ver qué falta de un vistazo. */
+export function datosKickoff(
+  paquete: Paquete,
+  extrasIds: string[] = [],
+  extrasDisponibles: Extra[] = [],
+): DatoKickoff[] {
+  return planKickoff(paquete, extrasIds, extrasDisponibles).datos;
 }
