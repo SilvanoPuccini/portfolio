@@ -17,6 +17,13 @@ export interface DatosDelContrato {
   projectDescription: string;
   /** Un entregable por línea. */
   deliverables: string;
+  /**
+   * Lo que el paquete NO incluye, un renglón por línea.
+   *
+   * Es la mitad que casi nadie escribe y la que evita la discusión de los
+   * tres meses. Decir qué entra es vender; decir qué no entra es entregar.
+   */
+  excluded?: string;
   totalHours: number;
   totalPrice: number;
   hourlyRate: number;
@@ -31,6 +38,8 @@ export interface Clausula {
   parrafos: string[];
   /** Se muestra en bloque aparte: el alcance y el objeto son del cliente. */
   destacado?: string;
+  /** Lo que queda expresamente fuera del alcance. */
+  excluido?: string;
   /** Lo que va después del bloque destacado. */
   parrafosFinales?: string[];
 }
@@ -67,6 +76,7 @@ export function clausulasDelContrato(data: DatosDelContrato): Clausula[] {
       'Los entregables acordados en el marco del presente contrato son:',
       ],
       destacado: data.deliverables,
+      excluido: data.excluded?.trim() ? data.excluded : undefined,
       parrafosFinales: [
         'Cualquier funcionalidad o desarrollo adicional que no esté contemplado en el presente apartado deberá ser acordado por escrito entre las partes y podrá dar lugar a una modificación del precio y/o los plazos.',
       ],
@@ -166,6 +176,7 @@ export function contratoComoTexto(data: DatosDelContrato): string {
       `${clausula.numero}. ${clausula.titulo}`,
       ...clausula.parrafos,
       clausula.destacado ?? '',
+      clausula.excluido ? `No incluye:\n${clausula.excluido}` : '',
       ...(clausula.parrafosFinales ?? []),
     ].filter(Boolean).join('\n'))
     .join('\n\n');

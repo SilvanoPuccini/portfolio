@@ -65,6 +65,7 @@ const DATOS = { nombre: 'Estefanía Ortigosa', email: 'este@ejemplo.com', pais: 
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.ADMIN_EMAIL = 'silvano@ejemplo.com';
+  process.env.FIRMA_CON_DOCUMENSO = '1';
   vi.mocked(rateLimit).mockReturnValue(true);
   supabase();
 });
@@ -169,5 +170,30 @@ describe('POST /api/pedido/[id]/contrato', () => {
   it('frena a quien insiste', async () => {
     vi.mocked(rateLimit).mockReturnValue(false);
     expect((await post(DATOS)).status).toBe(429);
+  });
+});
+
+describe('con la firma propia, Documenso no se usa', () => {
+  beforeEach(() => {
+    delete process.env.FIRMA_CON_DOCUMENSO;
+    supabase();
+  });
+
+  it('crea la venta y devuelve que se firma en la página', async () => {
+    const res = await post(DATOS);
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.modo).toBe('propia');
+    expect(createContract).not.toHaveBeenCalled();
+    expect(insertLead).toHaveBeenCalledWith(expect.objectContaining({
+      email: 'este@ejemplo.com',
+      monto_presupuestado: 940,
+    }));
+  });
+
+  it('no manda el correo de «firmá acá»: el cliente ya está en la pantalla', async () => {
+    await post(DATOS);
+    expect(sendCrmEmail).not.toHaveBeenCalled();
   });
 });

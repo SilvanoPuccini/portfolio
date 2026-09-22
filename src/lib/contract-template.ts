@@ -19,6 +19,8 @@ export type ContractData = {
   clientCountry: string;
   projectDescription: string;
   deliverables: string;
+  /** Lo que el paquete NO incluye, un renglón por línea. */
+  excluded?: string;
   totalHours: number;
   totalPrice: number;
   hourlyRate: number;
@@ -146,6 +148,7 @@ export function buildContract(data: ContractData): Document {
       deliverables: data.plantilla
         ? [hueco(62), hueco(62), hueco(62), hueco(62), hueco(62)].join('\n')
         : data.deliverables,
+      excluded: data.plantilla ? undefined : data.excluded,
       totalHours: data.totalHours,
       totalPrice: data.totalPrice,
       hourlyRate: data.hourlyRate,
@@ -161,6 +164,13 @@ export function buildContract(data: ContractData): Document {
       // se vuelve ilegible justo donde más claro tiene que estar.
       ...(clausula.destacado
         ? clausula.destacado.split('\n').filter(Boolean).map((linea) => bulletParagraph(linea))
+        : []),
+      // Lo que queda expresamente afuera: es la mitad que evita la discusión.
+      ...(clausula.excluido
+        ? [
+          bodyParagraph('No incluye:'),
+          ...clausula.excluido.split('\n').filter(Boolean).map((linea) => bulletParagraph(linea)),
+        ]
         : []),
       ...(clausula.parrafosFinales ?? []).map((parrafo) => bodyParagraph(parrafo)),
       divider(),

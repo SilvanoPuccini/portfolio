@@ -145,6 +145,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
     const locale = fila.locale === 'en' ? 'en' : 'es';
 
+    // Por defecto el contrato se firma en nuestro sitio: sin tope de
+    // documentos, sin correos de terceros y con el diseño nuestro. Documenso
+    // queda detrás de esta variable para cuando un contrato lo justifique.
+    if (process.env.FIRMA_CON_DOCUMENSO !== '1') {
+      return NextResponse.json({ modo: 'propia', leadId: lead.id });
+    }
+
     let contrato;
     try {
       contrato = await createContract(
