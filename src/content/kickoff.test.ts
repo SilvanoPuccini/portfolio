@@ -113,6 +113,38 @@ describe('los extras también abren preguntas', () => {
   });
 });
 
+describe('lo que contestó antes cambia lo que se le pregunta después', () => {
+  const planCon = (slug: string, respuestas: Record<string, string>) => {
+    const paquete = paquetePorSlug(slug)!;
+    const servicio = servicioPorSlug(paquete.servicio)!;
+    return planKickoff(paquete, [], servicio.extras, respuestas);
+  };
+
+  it('con pocos productos propone cargarlos uno por uno', () => {
+    const modo = planCon('catalogo-cobro', { productos: 'hasta-cincuenta' })
+      .datos.find((d) => d.id === 'modo_catalogo');
+    expect(modo?.sugerido).toBe('uno_por_uno');
+  });
+
+  it('con muchos productos propone la planilla: nadie carga trescientos a mano', () => {
+    const modo = planCon('catalogo-cobro', { productos: 'hasta-trescientos' })
+      .datos.find((d) => d.id === 'modo_catalogo');
+    expect(modo?.sugerido).toBe('archivo');
+  });
+
+  it('sin respuesta previa no propone nada y elige el cliente', () => {
+    const modo = planCon('catalogo-cobro', {}).datos.find((d) => d.id === 'modo_catalogo');
+    expect(modo?.sugerido).toBeUndefined();
+  });
+
+  it('lo que ya contestó no se vuelve a preguntar', () => {
+    // Dijo que su sitio no tiene login cuando compró la auditoría: no tiene
+    // sentido preguntárselo de nuevo con otras palabras.
+    const conRespuesta = planCon('auditoria-web', { login: 'no' });
+    expect(conRespuesta.yaSabemos).toMatchObject({ login: 'no' });
+  });
+});
+
 describe('el plan está completo', () => {
   it('no repite ningún identificador', () => {
     for (const slug of ['landing', 'web-cinco-secciones', 'web-con-blog', 'catalogo-cobro']) {

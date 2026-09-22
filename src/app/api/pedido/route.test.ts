@@ -60,6 +60,27 @@ describe('POST /api/pedido', () => {
     expect(body.url).toBe('/en/pedido/pedido-1');
   });
 
+  it('guarda lo que el cliente contestó antes de comprar', async () => {
+    await post({ paquete: 'auditoria-web', extras: [], calificacion: { paginas: 'hasta-quince', login: 'no' } });
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+      calificacion: { paginas: 'hasta-quince', login: 'no' },
+    }));
+  });
+
+  it('descarta una respuesta inventada: viene del navegador del cliente', async () => {
+    await post({
+      paquete: 'auditoria-web',
+      extras: [],
+      calificacion: { paginas: 'mil', inventada: 'x', login: 'no' },
+    });
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ calificacion: { login: 'no' } }));
+  });
+
+  it('sin respuestas guarda un objeto vacío, no null', async () => {
+    await post({ paquete: 'web-cinco-secciones', extras: [] });
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ calificacion: {} }));
+  });
+
   it('un paquete que no existe no crea nada', async () => {
     const res = await post({ paquete: 'inventado', extras: [] });
     expect(res.status).toBe(400);

@@ -50,6 +50,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Solo las respuestas que el paquete de verdad pregunta, y solo valores
+    // que existen: lo que viene del navegador lo escribe el cliente.
+    const enviadas = (body?.calificacion ?? {}) as Record<string, unknown>;
+    const calificacion = Object.fromEntries(
+      paquete.calificacion.flatMap((pregunta) => {
+        const valor = enviadas[pregunta.id];
+        return typeof valor === 'string' && pregunta.opciones.some((o) => o.valor === valor)
+          ? [[pregunta.id, valor]]
+          : [];
+      }),
+    );
+
     const servicio = servicioPorSlug(paquete.servicio);
     const pedidos = Array.isArray(body?.extras) ? body.extras.filter((id: unknown) => typeof id === 'string') : [];
     const resumen = totalPedido(paquete, pedidos, servicio?.extras ?? []);
@@ -63,6 +75,7 @@ export async function POST(req: NextRequest) {
         total_usd: resumen.totalUsd ?? 0,
         mensual_usd: resumen.recurrenteUsd,
         locale,
+        calificacion,
       })
       .select('id')
       .single();

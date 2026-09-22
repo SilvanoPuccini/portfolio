@@ -37,6 +37,12 @@ export interface DatoKickoff {
   /** Para las de elegir. */
   opciones?: Localized<string[]>;
   visibleSi?: Condicion;
+  /**
+   * La opción que el sistema propone, a partir de lo que el cliente ya
+   * contestó cuando compró. Es una sugerencia marcada, no una imposición:
+   * puede cambiarla.
+   */
+  sugerido?: string;
 }
 
 /**
@@ -58,6 +64,8 @@ export interface GrupoKickoff {
 export interface PlanKickoff {
   datos: DatoKickoff[];
   grupos: GrupoKickoff[];
+  /** Lo que ya contestó al comprar. No se le vuelve a preguntar. */
+  yaSabemos: Record<string, string>;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -441,10 +449,27 @@ function sinRepetir<T extends { id: string }>(lista: T[]): T[] {
  * paquete, que puede requerir ir a buscar algo. Empezar por lo difícil es
  * empezar por el abandono.
  */
+/**
+ * Lo que el cliente contestó al comprar, traducido a una sugerencia.
+ *
+ * Es la costura entre las dos puntas del circuito: la pregunta que hizo falta
+ * para venderle sirve después para no hacerle trabajo de más.
+ */
+function sugerencias(respuestas: Record<string, string>): Record<string, string> {
+  const sugeridos: Record<string, string> = {};
+
+  // Cuántos productos dijo que tenía decide cómo conviene cargarlos.
+  if (respuestas.productos === 'hasta-cincuenta') sugeridos.modo_catalogo = 'uno_por_uno';
+  if (respuestas.productos === 'hasta-trescientos') sugeridos.modo_catalogo = 'archivo';
+
+  return sugeridos;
+}
+
 export function planKickoff(
   paquete: Paquete,
   extrasIds: string[] = [],
   extrasDisponibles: Extra[] = [],
+  respuestas: Record<string, string> = {},
 ): PlanKickoff {
   const servicio = servicioPorSlug(paquete.servicio);
   const delPaquete = POR_PAQUETE[paquete.slug] ?? {};
@@ -452,14 +477,19 @@ export function planKickoff(
   const elegidos = extrasIds.filter((id) =>
     extrasDisponibles.length === 0 || extrasDisponibles.some((extra) => extra.id === id));
 
+  const sugeridos = sugerencias(respuestas);
+
+  const datos = sinRepetir([
+    ...DATOS_BASE,
+    ...(POR_SERVICIO[servicio?.slug ?? ''] ?? []),
+    ...(delPaquete.datos ?? []),
+    ...elegidos.flatMap((id) => POR_EXTRA[id] ?? []),
+  ]).map((dato) => (sugeridos[dato.id] ? { ...dato, sugerido: sugeridos[dato.id] } : dato));
+
   return {
-    datos: sinRepetir([
-      ...DATOS_BASE,
-      ...(POR_SERVICIO[servicio?.slug ?? ''] ?? []),
-      ...(delPaquete.datos ?? []),
-      ...elegidos.flatMap((id) => POR_EXTRA[id] ?? []),
-    ]),
+    datos,
     grupos: sinRepetir(delPaquete.grupos ?? []),
+    yaSabemos: respuestas,
   };
 }
 
@@ -468,6 +498,7 @@ export function datosKickoff(
   paquete: Paquete,
   extrasIds: string[] = [],
   extrasDisponibles: Extra[] = [],
+  respuestas: Record<string, string> = {},
 ): DatoKickoff[] {
-  return planKickoff(paquete, extrasIds, extrasDisponibles).datos;
+  return planKickoff(paquete, extrasIds, extrasDisponibles, respuestas).datos;
 }

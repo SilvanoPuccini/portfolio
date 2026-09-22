@@ -99,7 +99,9 @@ export default function PackageCard({
       const res = await fetch('/api/pedido', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paquete: paquete.slug, extras: elegidos, locale }),
+        // Las respuestas viajan con el pedido: son lo que el cliente ya
+        // contestó y lo que después evita volver a preguntárselo.
+        body: JSON.stringify({ paquete: paquete.slug, extras: elegidos, locale, calificacion: respuestas }),
       });
       const body = (await res.json()) as { url?: string };
 
