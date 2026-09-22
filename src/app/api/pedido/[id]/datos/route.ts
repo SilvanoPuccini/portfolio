@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { escapeHtml } from '@/lib/html-escape';
+import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -86,6 +87,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const { id } = await params;
+
+    // El material del cliente está detrás del código que le llegó al mail:
+    // el link solo no alcanza, porque un link se comparte.
+    if (!tieneAcceso(req.cookies.get(COOKIE_ACCESO)?.value, id)) {
+      return NextResponse.json({ error: 'Verificá tu correo para continuar.' }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => null);
     const db = getSupabaseAdmin();
 

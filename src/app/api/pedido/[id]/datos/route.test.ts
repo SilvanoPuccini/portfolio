@@ -8,6 +8,7 @@ vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
+import { firmarSesion } from '@/lib/leads/acceso-cliente';
 import { POST } from './route';
 
 const PEDIDO = { id: 'pedido-1', lead_id: 'lead-1', paquete: 'landing', extras: [] };
@@ -34,10 +35,16 @@ function supabase(pedido: unknown = PEDIDO, lead: unknown = LEAD) {
   } as never);
 }
 
-const post = (body: unknown, id = 'pedido-1') =>
+/** El cliente ya verificó su mail: trae la sesión de ese pedido. */
+const conSesion = (id: string) =>
+  `pedido_acceso=${encodeURIComponent(firmarSesion(id, 'secreto-de-prueba-largo'))}`;
+
+const post = (body: unknown, id = 'pedido-1', cookie = conSesion('pedido-1')) =>
   POST(
     new NextRequest('http://localhost/x', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie },
+      body: JSON.stringify(body),
     }),
     { params: Promise.resolve({ id }) },
   );
@@ -46,6 +53,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(rateLimit).mockReturnValue(true);
   process.env.ADMIN_EMAIL = 'silvano@ejemplo.com';
+  process.env.ADMIN_SESSION_SECRET = 'secreto-de-prueba-largo';
   supabase();
 });
 
@@ -108,6 +116,17 @@ describe('POST /api/pedido/[id]/datos', () => {
 
     expect((await post({ datos: { x: '1' } })).status).toBe(409);
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it('sin verificar el correo no se puede cargar nada', async () => {
+    // El link se comparte; el código que llega al mail, no.
+    expect((await post({ datos: { x: '1' } }, 'pedido-1', '')).status).toBe(401);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('la sesión de otro pedido no sirve para este', async () => {
+    const ajena = conSesion('pedido-9');
+    expect((await post({ datos: { x: '1' } }, 'pedido-1', ajena)).status).toBe(401);
   });
 
   it('un pedido que no existe no guarda nada', async () => {

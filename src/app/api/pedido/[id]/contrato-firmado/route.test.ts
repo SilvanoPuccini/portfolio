@@ -7,6 +7,7 @@ vi.mock('@/lib/leads/documenso-contract', () => ({ descargarContratoFirmado: vi.
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { descargarContratoFirmado } from '@/lib/leads/documenso-contract';
+import { firmarSesion } from '@/lib/leads/acceso-cliente';
 import { GET } from './route';
 
 const PEDIDO = { id: 'pedido-1', lead_id: 'lead-1' };
@@ -28,11 +29,18 @@ function supabase(pedido: unknown = PEDIDO, lead: unknown = LEAD) {
   } as never);
 }
 
-const get = (id = 'pedido-1') =>
-  GET(new NextRequest('http://localhost/x'), { params: Promise.resolve({ id }) });
+const conSesion = (id: string) =>
+  `pedido_acceso=${encodeURIComponent(firmarSesion(id, 'secreto-de-prueba-largo'))}`;
+
+const get = (id = 'pedido-1', cookie = conSesion('pedido-1')) =>
+  GET(
+    new NextRequest('http://localhost/x', { headers: { cookie } }),
+    { params: Promise.resolve({ id }) },
+  );
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.ADMIN_SESSION_SECRET = 'secreto-de-prueba-largo';
   supabase();
   vi.mocked(descargarContratoFirmado).mockResolvedValue(Buffer.from('%PDF firmado'));
 });
@@ -50,6 +58,12 @@ describe('GET /api/pedido/[id]/contrato-firmado', () => {
   it('no entrega el contrato de algo que todavía no se firmó', async () => {
     supabase(PEDIDO, { ...LEAD, contrato_firmado_at: null });
     expect((await get()).status).toBe(404);
+    expect(descargarContratoFirmado).not.toHaveBeenCalled();
+  });
+
+  it('sin verificar el correo no entrega el contrato', async () => {
+    // Lleva el nombre, el domicilio y el precio del cliente.
+    expect((await get('pedido-1', '')).status).toBe(401);
     expect(descargarContratoFirmado).not.toHaveBeenCalled();
   });
 

@@ -81,3 +81,24 @@ export function sesionValida(
   const b = Buffer.from(esperada, 'hex');
   return a.length === b.length && timingSafeEqual(a, b);
 }
+
+/** El nombre de la cookie donde vive la sesión del cliente. */
+export const COOKIE_ACCESO = 'pedido_acceso';
+
+/**
+ * Si quien pide probó su mail para este pedido.
+ *
+ * Se usa en todo lo que expone datos del cliente: su contrato y su material.
+ * El resto del circuito —elegir, firmar, ver cómo pagar— queda sin puerta a
+ * propósito: es el camino de la venta y cada paso de más ahí es alguien que
+ * no compra.
+ */
+export function tieneAcceso(
+  cookie: string | undefined | null,
+  pedidoId: string,
+  ahora: Date = new Date(),
+): boolean {
+  const secreto = process.env.ADMIN_SESSION_SECRET;
+  if (!secreto) return false;
+  return sesionValida(cookie, pedidoId, secreto, ahora);
+}

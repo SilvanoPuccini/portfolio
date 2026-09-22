@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { descargarContratoFirmado } from '@/lib/leads/documenso-contract';
 import { rateLimit } from '@/lib/rate-limit';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -31,6 +32,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params;
+
+  // El contrato lleva el nombre, el domicilio y el precio del cliente: no se
+  // entrega solo con el link.
+  if (!tieneAcceso(req.cookies.get(COOKIE_ACCESO)?.value, id)) {
+    return NextResponse.json({ error: 'Verificá tu correo para continuar.' }, { status: 401 });
+  }
+
   const db = getSupabaseAdmin();
 
   const { data: pedido } = await db
