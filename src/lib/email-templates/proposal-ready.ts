@@ -32,7 +32,6 @@ function responseButtons(url: string): string {
 }
 
 export function proposalReadyHtml(lead: LeadContact): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -61,7 +60,7 @@ export function proposalReadyHtml(lead: LeadContact): string {
       </div>
       ${lead.responseUrl ? responseButtons(lead.responseUrl) : ''}
       <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
-        Ante cualquier duda, respondé este email o contactame en <a href="${siteUrl}" style="color:#00d4d4;text-decoration:none;">${siteUrl}</a>
+        Ante cualquier duda, respondé este correo: lo leo yo.
       </p>
     </div>
     <div style="padding:14px 32px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">

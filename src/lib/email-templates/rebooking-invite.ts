@@ -18,7 +18,6 @@ export interface RebookingData {
 }
 
 export function rebookingInviteHtml(data: RebookingData): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -51,7 +50,7 @@ export function rebookingInviteHtml(data: RebookingData): string {
 
       <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
         Y si ya no es el momento, respondeme una línea y listo — no te escribo más.
-        También estoy en <a href="${siteUrl}" style="color:#00d4d4;text-decoration:none;">${siteUrl}</a>
+        Respondé este correo si preferís coordinar por acá.
       </p>
     </div>
     <div style="padding:14px 32px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
