@@ -93,17 +93,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data } = await db
       .from('leads')
-      .select('id, nombre, email, kickoff_datos, kickoff_completado_at')
+      .select('id, nombre, email, contrato_firmado_at, kickoff_datos, kickoff_completado_at')
       .eq('id', leadId)
       .maybeSingle();
 
     const lead = data as {
       id: string; nombre: string; email: string;
+      contrato_firmado_at: string | null;
       kickoff_datos: Record<string, unknown> | null;
       kickoff_completado_at: string | null;
     } | null;
 
     if (!lead) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+
+    // El link del pedido es un uuid que solo tiene quien compró, pero además
+    // no se escribe nada hasta que la venta existe de verdad: sin contrato
+    // firmado no hay material que cargar.
+    if (!lead.contrato_firmado_at) {
+      return NextResponse.json({ error: 'El contrato todavía no está firmado.' }, { status: 409 });
+    }
 
     // Lo nuevo se suma a lo que ya había: el cliente puede estar completando
     // una sola pantalla y no por eso borra lo anterior.

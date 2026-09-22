@@ -13,6 +13,7 @@ import { POST } from './route';
 const PEDIDO = { id: 'pedido-1', lead_id: 'lead-1', paquete: 'landing', extras: [] };
 const LEAD = {
   id: 'lead-1', nombre: 'Estefanía', email: 'este@ejemplo.com',
+  contrato_firmado_at: '2026-09-22T10:00:00Z',
   kickoff_datos: { negocio: 'Nutrición infantil' },
   kickoff_completado_at: null as string | null,
 };
@@ -98,6 +99,15 @@ describe('POST /api/pedido/[id]/datos', () => {
     await post({ datos: { secciones: [{ titulo: 'Inicio', texto: 'Hola' }] } });
     const guardado = update.mock.calls[0][0] as { kickoff_datos: Record<string, unknown> };
     expect(guardado.kickoff_datos.secciones).toEqual([{ titulo: 'Inicio', texto: 'Hola' }]);
+  });
+
+  it('no se puede cargar material de algo que todavía no se firmó', async () => {
+    // El link es un uuid imposible de adivinar, pero igual no tiene sentido
+    // que se pueda escribir antes de que la venta exista de verdad.
+    supabase(PEDIDO, { ...LEAD, contrato_firmado_at: null });
+
+    expect((await post({ datos: { x: '1' } })).status).toBe(409);
+    expect(update).not.toHaveBeenCalled();
   });
 
   it('un pedido que no existe no guarda nada', async () => {
