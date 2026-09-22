@@ -52,19 +52,26 @@ function limpiar(entrada: unknown): Record<string, unknown> {
 
     if (!Array.isArray(valor)) continue;
 
-    const filas = valor.slice(0, MAX_FILAS).flatMap((fila) => {
-      const suelto = texto(fila);
-      if (suelto !== null) return [suelto];
+    // Una lista puede ser de textos (los archivos ya subidos) o de filas de
+    // un bloque repetido. Se acepta cualquiera de las dos, nada más.
+    const filas: (string | Record<string, string>)[] = [];
 
-      if (!fila || typeof fila !== 'object' || Array.isArray(fila)) return [];
+    for (const fila of valor.slice(0, MAX_FILAS)) {
+      const suelto = texto(fila);
+      if (suelto !== null) {
+        filas.push(suelto);
+        continue;
+      }
+
+      if (!fila || typeof fila !== 'object' || Array.isArray(fila)) continue;
 
       const campos: Record<string, string> = {};
       for (const [k, v] of Object.entries(fila as Record<string, unknown>)) {
-        const t = texto(v);
-        if (t !== null) campos[k] = t;
+        const limpio = texto(v);
+        if (limpio !== null) campos[k] = limpio;
       }
-      return Object.keys(campos).length > 0 ? [campos] : [];
-    });
+      if (Object.keys(campos).length > 0) filas.push(campos);
+    }
 
     limpio[clave] = filas;
   }
