@@ -2,6 +2,7 @@ import {
   Document,
   Paragraph,
   TextRun,
+  ImageRun,
   AlignmentType,
   Packer,
 } from 'docx';
@@ -19,6 +20,17 @@ export type ContractData = {
   paymentTerms: string;
   estimatedWeeks: number;
   legalClause: string;
+  /**
+   * La firma del Proveedor, ya impresa.
+   *
+   * Va como imagen en el propio contrato, no como un campo que haya que
+   * firmar después: el Proveedor emite el documento ya conforme, y el cliente
+   * recibe algo terminado en vez de una hoja a medio firmar.
+   *
+   * Vive solo en el PDF que se sube a Documenso. No entra al repositorio ni
+   * al servidor: es una firma, no un recurso de la aplicación.
+   */
+  firmaProveedor?: Buffer;
   /**
    * El molde para Documenso: las partes que cambian por venta salen en blanco,
    * para poder apoyar encima los campos que el sistema rellena.
@@ -266,11 +278,26 @@ export function buildContract(data: ContractData): Document {
     // asentimiento queda dado al emitirlo, que es cuando define el alcance y
     // el precio. Esperar su firma para habilitar el pago sería ponerle una
     // traba a la propia venta.
+    ...(data.firmaProveedor
+      ? [new Paragraph({
+        children: [new ImageRun({
+          type: 'png',
+          data: data.firmaProveedor,
+          transformation: { width: 170, height: 70 },
+        })],
+        spacing: { before: 400, after: 0 },
+      })]
+      : []),
+
     signatureLine('EL PROVEEDOR'),
     signatureDetail('Silvano Puccini'),
     signatureDetail('Desarrollador web freelance'),
     signatureDetail('Buenos Aires, Argentina'),
-    signatureDetail('Conforme y firmado electrónicamente al emitir el presente contrato.'),
+    signatureDetail(
+      data.firmaProveedor
+        ? 'Firmado al emitir el presente contrato.'
+        : 'Conforme y firmado electrónicamente al emitir el presente contrato.',
+    ),
 
     signatureLine('EL CLIENTE'),
     signatureDetail(data.plantilla ? '' : data.clientName),

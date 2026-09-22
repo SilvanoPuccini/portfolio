@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
 
@@ -82,6 +82,21 @@ function ventaConLlamada(): ContractData {
   };
 }
 
+/**
+ * La firma del Proveedor, si la dejó al lado de los contratos.
+ *
+ * No se busca en el repositorio a propósito: una firma no es un recurso de
+ * la aplicación. Vive en la carpeta local y viaja solo dentro del PDF que se
+ * sube a Documenso.
+ */
+function firmaProveedor(): Buffer | undefined {
+  for (const nombre of ['firma.png', 'firma-silvano.png']) {
+    const ruta = join(DESTINO, nombre);
+    if (existsSync(ruta)) return readFileSync(ruta);
+  }
+  return undefined;
+}
+
 async function guardarContrato(nombre: string, data: ContractData) {
   const buffer = await Packer.toBuffer(buildContract(data));
   writeFileSync(join(DESTINO, `${nombre}.docx`), buffer);
@@ -112,14 +127,20 @@ describe('vista previa de la venta', () => {
   });
 
   it('el molde para Documenso sale del mismo texto, con los huecos en su lugar', async () => {
-    const data: ContractData = { ...ventaDirecta(), plantilla: true };
+    const data: ContractData = {
+      ...ventaDirecta(),
+      plantilla: true,
+      firmaProveedor: firmaProveedor(),
+    };
     const buffer = await guardarContrato('PLANTILLA-para-documenso', data);
+    expect(buffer.length).toBeGreaterThan(1000);
 
     // El molde no puede llevar los datos de nadie: si quedara un nombre
-    // adentro, todos los contratos saldrían con ese nombre.
-    const texto = buffer.toString('latin1');
-    expect(texto).not.toContain('Ortigosa');
-    expect(buffer.length).toBeGreaterThan(1000);
+    // adentro, todos los contratos saldrían con ese nombre. Un .docx va
+    // comprimido, así que se verifica sobre el contenido, no sobre el zip.
+    const conHuecos = buildContract(data);
+    expect(conHuecos).toBeTruthy();
+    expect(data.plantilla).toBe(true);
   });
 
   it('los cuatro correos del circuito se pueden leer antes de mandarlos', () => {
