@@ -354,6 +354,26 @@ describe('createContract', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('si el plan se quedó sin documentos, no reintenta al pedo', async () => {
+    // El tope es de documentos: mandar el mismo pedido otra vez lo rechaza
+    // igual y solo hace esperar más al cliente.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ fields: [], recipients: [{ id: 5, role: 'SIGNER' }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        text: async () => '{"message":"You have reached your document limit.","code":"LIMIT_EXCEEDED"}',
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(createContract(DATA)).rejects.toThrow(/LIMIT_EXCEEDED|document limit/);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('si el segundo intento también falla, avisa con el error original', async () => {
     process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
     const fetchMock = vi.fn()

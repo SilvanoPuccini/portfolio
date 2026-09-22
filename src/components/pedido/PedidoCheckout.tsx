@@ -18,6 +18,7 @@ const PAISES = ['Argentina', 'Chile', 'Uruguay', 'México', 'España', 'Otro'];
 export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
   const [datos, setDatos] = useState({ nombre: '', email: '', pais: PAISES[0] });
   const [firma, setFirma] = useState<{ token: string; signingUrl: string } | null>(null);
+  const [demorado, setDemorado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,7 +37,17 @@ export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datos),
       });
-      const body = await res.json() as { token?: string; signingUrl?: string; error?: string };
+      const body = await res.json() as {
+        token?: string; signingUrl?: string; error?: string; demorado?: boolean;
+      };
+
+      // 202: la venta quedó registrada pero el contrato no se pudo crear
+      // ahora. Se le avisa que llega por correo en vez de mostrarle un error
+      // a alguien que acaba de decidir comprar.
+      if (body.demorado) {
+        setDemorado(true);
+        return;
+      }
 
       if (!res.ok || !body.token || !body.signingUrl) {
         setError(body.error ?? 'No se pudo preparar el contrato. Probá de nuevo en un momento.');
@@ -51,6 +62,18 @@ export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
   }
 
   if (firma) return <ContractStep token={firma.token} signingUrl={firma.signingUrl} />;
+
+  if (demorado) {
+    return (
+      <div className="surface-panel border border-brand-primary/25 px-6 py-8">
+        <h2 className="section-title-sm">Tu pedido quedó registrado</h2>
+        <p className="mt-3 max-w-xl text-base leading-7 text-text-secondary">
+          El contrato tuvo una demora técnica de mi lado. Te lo mando por correo en unos minutos,
+          al mismo mail que acabás de dejar. No hace falta que hagas nada.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={preparar} className="surface-panel border border-outline-ghost/10 px-5 py-6 sm:px-8 sm:py-8">

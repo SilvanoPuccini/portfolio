@@ -64,6 +64,7 @@ const DATOS = { nombre: 'Estefanía Ortigosa', email: 'este@ejemplo.com', pais: 
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.ADMIN_EMAIL = 'silvano@ejemplo.com';
   vi.mocked(rateLimit).mockReturnValue(true);
   supabase();
 });
@@ -146,10 +147,23 @@ describe('POST /api/pedido/[id]/contrato', () => {
     expect((await post(DATOS)).status).toBe(409);
   });
 
-  it('si Documenso falla lo dice, y el pedido igual quedó registrado', async () => {
+  it('si Documenso falla, la venta no se pierde: queda para mandar a mano', async () => {
+    // El lead ya está creado con todo lo que eligió. Lo que falla es el
+    // papel, no la venta: se le avisa al cliente y a Silvano, y el contrato
+    // sale por mail en cuanto se pueda.
     vi.mocked(createContract).mockRejectedValueOnce(new Error('Documenso 500'));
+
     const res = await post(DATOS);
-    expect(res.status).toBe(502);
+    const body = await res.json();
+
+    expect(res.status).toBe(202);
+    expect(body.demorado).toBe(true);
+    expect(insertLead).toHaveBeenCalled();
+
+    // Al cliente le llega un aviso, y a Silvano el pedido de mandarlo a mano.
+    const destinatarios = vi.mocked(sendCrmEmail).mock.calls.map((c) => c[0]);
+    expect(destinatarios).toContain('este@ejemplo.com');
+    expect(destinatarios).toContain('silvano@ejemplo.com');
   });
 
   it('frena a quien insiste', async () => {

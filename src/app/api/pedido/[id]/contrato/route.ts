@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { contractToSignHtml } from '@/lib/email-templates/contract-to-sign';
+import { emailLayout, nota, parrafo } from '@/lib/email-templates/layout';
+import { escapeHtml } from '@/lib/html-escape';
 import { createContract } from '@/lib/leads/documenso-contract';
 import { sendCrmEmail } from '@/lib/resend';
 import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
@@ -38,6 +40,21 @@ interface PedidoRow {
   mensual_usd: number;
   firmado_at: string | null;
   locale: string | null;
+}
+
+/** Cuando el contrato no se pudo crear: el cliente no tiene la culpa. */
+function contratoDemoradoHtml(nombre: string, paquete: string): string {
+  return emailLayout({
+    preheader: 'Tu contrato llega por correo en unos minutos.',
+    eyebrow: 'Silvano Puccini Dev',
+    titulo: `Gracias, ${nombre}`,
+    paso: 1,
+    cuerpo: [
+      parrafo(`Tu pedido de ${paquete} quedó registrado. El contrato tuvo una demora `
+        + 'técnica de mi lado y te lo mando por este mismo correo en unos minutos.'),
+      nota('No hace falta que hagas nada. Si en un rato no te llegó, respondé este correo.'),
+    ].join(''),
+  });
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -150,8 +167,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         fila.id,
       );
     } catch (reason) {
-      console.error('[api/pedido/contrato] Documenso falló:', reason);
-      return NextResponse.json({ error: 'Could not prepare the contract.' }, { status: 502 });
+      const detalle = reason instanceof Error ? reason.message : String(reason);
+      console.error('[api/pedido/contrato] Documenso falló:', detalle);
+
+      // La venta ya está creada con todo lo que eligió: lo que falló es el
+      // papel, no la compra. En vez de mostrarle un error al cliente que
+      // acaba de decidir comprarte, se le avisa que el contrato llega por
+      // mail y se te pide que lo mandes a mano.
+      const admin = process.env.ADMIN_EMAIL;
+      await Promise.allSettled([
+        sendCrmEmail(
+          email,
+          'Tu contrato llega en unos minutos',
+          contratoDemoradoHtml(nombre, paquete.nombre.es),
+        ),
+        admin
+          ? sendCrmEmail(
+            admin,
+            `URGENTE: mandale el contrato a ${nombre}`,
+            `<p>No se pudo crear el contrato en Documenso de ${escapeHtml(nombre)} `
+            + `(${escapeHtml(email)}), por ${escapeHtml(paquete.nombre.es)}.</p>`
+            + `<p>Motivo: ${escapeHtml(detalle.slice(0, 300))}</p>`
+            + '<p>La venta está creada en el panel. Mandale el contrato desde ahí.</p>',
+          )
+          : Promise.resolve(),
+      ]);
+
+      return NextResponse.json({ demorado: true }, { status: 202 });
     }
 
     await db.from('leads').update({

@@ -276,6 +276,10 @@ export async function createContract(
   } catch (reason) {
     const detalle = reason instanceof Error ? reason.message : String(reason);
 
+    // El tope de documentos del plan no se arregla reintentando: el segundo
+    // pedido lo rechaza igual y solo hace esperar más al cliente.
+    if (/LIMIT_EXCEEDED|document limit/i.test(detalle)) throw reason;
+
     // Un 5xx es un problema de ellos: mandar lo mismo otra vez no lo arregla.
     // Un rechazo (4xx) casi siempre viene de los ajustes opcionales, que
     // dependen del plan: el título, el asunto, el redirect. Esos son mejoras;
