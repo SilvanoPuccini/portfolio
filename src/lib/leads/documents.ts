@@ -29,13 +29,21 @@ export interface GeneratedDoc {
   filename: string;
 }
 
-/** Nombre de archivo legible y sin sorpresas en cualquier sistema. */
-function slug(name: string): string {
-  return name
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase() || 'cliente';
+/**
+ * El nombre del cliente, apto para nombrar un archivo.
+ *
+ * Se conservan los acentos y las mayúsculas: el cliente ve este nombre en su
+ * carpeta de descargas y «Contrato · Estefanía Ortigosa» se lee mejor que un
+ * slug. Solo se sacan los caracteres que Windows no admite, que romperían la
+ * descarga entera.
+ */
+function nombreDeArchivo(name: string): string {
+  const limpio = name
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return limpio.slice(0, 60) || 'Cliente';
 }
 
 /** Una línea con lo que se cotizó: es el objeto real del contrato. */
@@ -129,6 +137,9 @@ export async function buildContractDoc(leadId: string, legalClause: string): Pro
   const doc = buildContract(contractData);
   return {
     buffer: await Packer.toBuffer(doc),
-    filename: `contrato-${slug(contractData.clientName)}.docx`,
+    // Con el nombre legible: es lo que el cliente ve en su carpeta de
+    // descargas, no un slug. Los dos puntos no valen en Windows, así que el
+    // separador es el punto medio.
+    filename: `Contrato · ${nombreDeArchivo(contractData.clientName)}.docx`,
   };
 }

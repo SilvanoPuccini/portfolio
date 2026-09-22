@@ -57,7 +57,7 @@ export function proposalReadyHtml(lead: LeadContact): string {
       </p>
       <div style="border:1px solid rgba(0,212,212,0.2);border-radius:8px;padding:16px 20px;background:rgba(0,212,212,0.04);margin-bottom:24px;">
         <p style="font-size:12px;color:#64748b;margin:0 0 4px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Adjunto</p>
-        <p style="font-size:14px;color:#00d4d4;margin:0;font-weight:600;">Propuesta — ${escapeHtml(lead.name)}.docx</p>
+        <p style="font-size:14px;color:#00d4d4;margin:0;font-weight:600;">Propuesta · ${escapeHtml(lead.name)}</p>
       </div>
       ${lead.responseUrl ? responseButtons(lead.responseUrl) : ''}
       <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">

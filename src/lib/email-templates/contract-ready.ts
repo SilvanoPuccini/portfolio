@@ -31,7 +31,7 @@ export function contractReadyHtml(lead: LeadContact): string {
       </p>
       <div style="border:1px solid rgba(129,140,248,0.2);border-radius:8px;padding:16px 20px;background:rgba(129,140,248,0.04);margin-bottom:24px;">
         <p style="font-size:12px;color:#64748b;margin:0 0 4px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;">Adjunto</p>
-        <p style="font-size:14px;color:#818cf8;margin:0;font-weight:600;">Contrato — ${escapeHtml(lead.name)}.docx</p>
+        <p style="font-size:14px;color:#818cf8;margin:0;font-weight:600;">Contrato · ${escapeHtml(lead.name)}</p>
       </div>
       <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
         Ante cualquier duda, respondé este email o contactame en <a href="${siteUrl}" style="color:#00d4d4;text-decoration:none;">${siteUrl}</a>

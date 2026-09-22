@@ -30,8 +30,7 @@ export function questionnaireInviteHtml(lead: LeadContact, url: string): string 
         </a>
       </div>
       <p style="font-size:12px;color:#475569;line-height:1.6;margin:0;">
-        Si el botón no funciona, copiá este enlace en tu navegador:<br/>
-        <a href="${url}" style="color:#00d4d4;word-break:break-all;">${url}</a>
+        Son unos minutos y no hace falta que contestes todo de una: se guarda lo que escribas.
       </p>
     </div>
     <div style="padding:14px 32px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
