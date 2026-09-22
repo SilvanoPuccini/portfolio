@@ -149,6 +149,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // documentos, sin correos de terceros y con el diseño nuestro. Documenso
     // queda detrás de esta variable para cuando un contrato lo justifique.
     if (process.env.FIRMA_CON_DOCUMENSO !== '1') {
+      // El enganche va SIEMPRE antes de devolver: un pedido sin dueño hace
+      // que la firma no encuentre la venta y el cliente reciba un 404 justo
+      // cuando iba a firmar.
+      await db.from('pedidos').update({ lead_id: lead.id }).eq('id', fila.id);
       return NextResponse.json({ modo: 'propia', leadId: lead.id });
     }
 

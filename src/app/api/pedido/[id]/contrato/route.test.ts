@@ -192,6 +192,13 @@ describe('con la firma propia, Documenso no se usa', () => {
     }));
   });
 
+  it('engancha el pedido con la venta antes de devolver', async () => {
+    // Sin esto el pedido queda sin dueño y al firmar no encuentra nada: el
+    // cliente llega a la pantalla de firma y recibe un 404.
+    await post(DATOS);
+    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
+  });
+
   it('no manda el correo de «firmá acá»: el cliente ya está en la pantalla', async () => {
     await post(DATOS);
     expect(sendCrmEmail).not.toHaveBeenCalled();
