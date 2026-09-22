@@ -275,11 +275,14 @@ export async function createContract(
     created = await usar(conPlan);
   } catch (reason) {
     const detalle = reason instanceof Error ? reason.message : String(reason);
-    const esDelPlan = /no está disponible en tu plan|not available (on|in) your plan|Documenso 403/i
-      .test(detalle);
-    if (!esDelPlan) throw reason;
 
-    console.warn('[documenso] El plan no permite los ajustes de correo y redirect:', detalle);
+    // Un 5xx es un problema de ellos: mandar lo mismo otra vez no lo arregla.
+    // Un rechazo (4xx) casi siempre viene de los ajustes opcionales, que
+    // dependen del plan: el título, el asunto, el redirect. Esos son mejoras;
+    // el contrato es la venta. Se reintenta con lo mínimo antes de rendirse.
+    if (/Documenso 5\d\d/.test(detalle)) throw reason;
+
+    console.warn('[documenso] Rechazó el pedido completo, se reintenta sin los ajustes:', detalle);
     created = await usar(sinPlan);
   }
 

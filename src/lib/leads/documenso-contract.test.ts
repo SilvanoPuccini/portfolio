@@ -312,7 +312,35 @@ describe('createContract', () => {
     expect(segundo.prefillFields).toHaveLength(1);
   });
 
-  it('un error que no es del plan no se reintenta', async () => {
+  it('cualquier rechazo del sobre se reintenta sin los ajustes opcionales', async () => {
+    // El título, el asunto y el redirect son mejoras; el contrato es la venta.
+    // Si Documenso rechaza el pedido completo, se manda lo mínimo antes de
+    // darse por vencido, diga lo que diga el mensaje.
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          fields: [{ id: 2, type: 'TEXT', fieldMeta: { label: 'precio' } }],
+          recipients: [{ id: 5, role: 'SIGNER', signingOrder: 1 }],
+        }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 400, text: async () => 'invalid override' })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 'env_1',
+          recipients: [{ token: 'abc', signingUrl: 'https://app.documenso.com/sign/abc' }],
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect((await createContract(DATA)).token).toBe('abc');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('un fallo del servidor de Documenso no se reintenta en vano', async () => {
+    // Un 500 es de ellos: mandar lo mismo otra vez no cambia nada.
     process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({
@@ -324,6 +352,20 @@ describe('createContract', () => {
 
     await expect(createContract(DATA)).rejects.toThrow('500');
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('si el segundo intento también falla, avisa con el error original', async () => {
+    process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ fields: [], recipients: [{ id: 5, role: 'SIGNER' }] }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 400, text: async () => 'campo invalido' })
+      .mockResolvedValueOnce({ ok: false, status: 400, text: async () => 'campo invalido' });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(createContract(DATA)).rejects.toThrow('campo invalido');
   });
 
   it('con multipart no fuerza el content-type: lo pone fetch con su frontera', async () => {
