@@ -168,11 +168,11 @@ export function DocumensoCheck() {
                   ? `Los ${resultado.esperados.length} campos están, con el nombre correcto`
                   : `Faltan estos campos: ${resultado.faltan.join(', ')}`}
               </Linea>
-              <Linea ok={resultado.firmantes >= 2}>
-                {resultado.firmantes >= 2
-                  ? 'Lo firman las dos partes: el cliente y vos'
-                  : resultado.firmantes === 1
-                    ? 'Solo firma una parte: falta tu firma en la plantilla'
+              <Linea ok={resultado.firmantes === 1}>
+                {resultado.firmantes === 1
+                  ? 'Firma solo el cliente: el pago se habilita apenas firma'
+                  : resultado.firmantes > 1
+                    ? `${resultado.firmantes} firmantes: el pago va a esperar a que firmes vos`
                     : 'La plantilla no tiene quién firme'}
               </Linea>
             </>

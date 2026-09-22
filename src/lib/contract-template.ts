@@ -262,14 +262,19 @@ export function buildContract(data: ContractData): Document {
       spacing: { before: 480, after: 240 },
     }),
 
+    // El Proveedor no firma después: emite el contrato ya conforme. Su
+    // asentimiento queda dado al emitirlo, que es cuando define el alcance y
+    // el precio. Esperar su firma para habilitar el pago sería ponerle una
+    // traba a la propia venta.
     signatureLine('EL PROVEEDOR'),
     signatureDetail('Silvano Puccini'),
     signatureDetail('Desarrollador web freelance'),
     signatureDetail('Buenos Aires, Argentina'),
+    signatureDetail('Conforme y firmado electrónicamente al emitir el presente contrato.'),
 
     signatureLine('EL CLIENTE'),
-    signatureDetail(data.clientName),
-    signatureDetail(`${data.clientLocation}, ${data.clientCountry}`),
+    signatureDetail(data.plantilla ? '' : data.clientName),
+    signatureDetail(data.plantilla ? '' : `${data.clientLocation}, ${data.clientCountry}`),
 
     new Paragraph({
       children: [

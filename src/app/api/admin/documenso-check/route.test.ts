@@ -21,10 +21,8 @@ const PLANTILLA = {
     'cliente', 'domicilio', 'objeto', 'alcance', 'plazo',
     'precio', 'pago', 'jurisdiccion', 'email',
   ].map((label, i) => ({ id: i, type: 'text', fieldMeta: { label } })),
-  recipients: [
-    { id: 1, role: 'SIGNER', signingOrder: 1, email: 'cliente@ejemplo.com' },
-    { id: 2, role: 'SIGNER', signingOrder: 2, email: 'silvano@silvanopuccini.dev' },
-  ],
+  // Un solo firmante: el cliente. El Proveedor emite el contrato ya conforme.
+  recipients: [{ id: 1, role: 'SIGNER', signingOrder: 1, email: 'cliente@ejemplo.com' }],
 };
 
 function documenso(respuestas: { ok: boolean; body?: unknown }[]) {
@@ -70,7 +68,7 @@ describe('GET /api/admin/documenso-check', () => {
     expect(body.listo).toBe(true);
     expect(body.ruta).toContain('envelope_abc');
     expect(body.faltan).toEqual([]);
-    expect(body.firmantes).toBe(2);
+    expect(body.firmantes).toBe(1);
   });
 
   it('nunca devuelve el token, solo si está o no', async () => {
@@ -100,16 +98,25 @@ describe('GET /api/admin/documenso-check', () => {
     expect(body.faltan).toContain('jurisdiccion');
   });
 
-  it('avisa si el contrato lo firma una sola parte', async () => {
-    // Un contrato con la firma del cliente y sin la del proveedor es una
-    // copia coja: vale menos y queda mal.
-    documenso([{ ok: true, body: { ...PLANTILLA, recipients: [PLANTILLA.recipients[0]] } }]);
+  it('avisa si hay más de un firmante, porque el pago queda esperando', async () => {
+    // Con dos firmantes el contrato no se cierra hasta que firman los dos, y
+    // el mail con los datos de pago sale recién ahí.
+    documenso([{
+      ok: true,
+      body: {
+        ...PLANTILLA,
+        recipients: [
+          ...PLANTILLA.recipients,
+          { id: 2, role: 'SIGNER', signingOrder: 2, email: 'silvano@silvanopuccini.dev' },
+        ],
+      },
+    }]);
 
     const body = await (await pedido()).json();
 
-    expect(body.firmantes).toBe(1);
+    expect(body.firmantes).toBe(2);
     expect(body.listo).toBe(false);
-    expect(body.problema).toMatch(/firman las dos partes|una sola firma/i);
+    expect(body.problema).toMatch(/esperar a tu firma/i);
   });
 
   it('avisa si la plantilla no tiene a nadie que firme', async () => {

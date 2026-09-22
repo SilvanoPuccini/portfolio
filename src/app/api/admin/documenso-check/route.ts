@@ -127,10 +127,10 @@ export async function GET(req: NextRequest) {
 
   const problema = firmantes === 0
     ? 'La plantilla no tiene ningún firmante. Sin eso, Documenso no puede cerrar el documento.'
-    : firmantes < 2
-      ? 'El contrato lo firman las dos partes. Falta agregar tu firma en la plantilla: hoy el cliente se llevaría una copia con una sola firma.'
-      : !firmante
-        ? 'La plantilla no tiene un firmante para el cliente.'
+    : !firmante
+      ? 'La plantilla no tiene un firmante para el cliente.'
+      : firmantes > 1
+        ? 'La plantilla tiene más de un firmante. El contrato no se cierra hasta que firmen todos, así que el mail con los datos de pago va a esperar a tu firma.'
         : faltan.length > 0
         ? `Le faltan campos a la plantilla: ${faltan.join(', ')}. Ese dato va a salir en blanco en el contrato.`
         : !tablaPedidos
@@ -145,7 +145,9 @@ export async function GET(req: NextRequest) {
     encontrados,
     faltan,
     firmantes,
-    listo: Boolean(firmante) && firmantes >= 2 && faltan.length === 0 && tablaPedidos,
+    // Con un firmante alcanza: el cliente. El Proveedor emite el contrato ya
+    // conforme, y su firma va impresa en el documento.
+    listo: Boolean(firmante) && firmantes === 1 && faltan.length === 0 && tablaPedidos,
     ...(problema ? { problema } : {}),
   });
 }
