@@ -2,9 +2,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Check } from 'lucide-react';
 
+import { PagoPedido } from '@/components/pedido/PagoPedido';
 import { PedidoCheckout } from '@/components/pedido/PedidoCheckout';
+import { ContractStep } from '@/components/propuesta/ContractStep';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import { paquetePorSlug, servicioPorSlug, totalPedido, type Locale } from '@/content/servicios';
+import { etapaDelPedido } from '@/lib/leads/etapa-pedido';
+import { quoteFor } from '@/lib/leads/exchange-rate';
+import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { resolveLocale } from '@/lib/i18n';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -26,17 +31,47 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+interface PedidoRow {
+  id: string;
+  paquete: string;
+  extras: string[] | null;
+  total_usd: number;
+  mensual_usd: number;
+  firmado_at: string | null;
+  lead_id: string | null;
+}
+
+interface LeadRow {
+  estado: string | null;
+  pais: string | null;
+  pago_estado: string | null;
+  contrato_firma_token: string | null;
+  contrato_signing_url: string | null;
+  contrato_firmado_at: string | null;
+}
+
+/** El pedido y su venta: juntos deciden qué ve el cliente al volver. */
 async function cargarPedido(id: string) {
-  const { data } = await getSupabaseAdmin()
+  const db = getSupabaseAdmin();
+
+  const { data } = await db
     .from('pedidos')
-    .select('id, paquete, extras, total_usd, mensual_usd, firmado_at')
+    .select('id, paquete, extras, total_usd, mensual_usd, firmado_at, lead_id')
     .eq('id', id)
     .maybeSingle();
 
-  return data as {
-    id: string; paquete: string; extras: string[] | null;
-    total_usd: number; mensual_usd: number; firmado_at: string | null;
-  } | null;
+  const pedido = data as PedidoRow | null;
+  if (!pedido) return { pedido: null, lead: null };
+
+  if (!pedido.lead_id) return { pedido, lead: null };
+
+  const { data: venta } = await db
+    .from('leads')
+    .select('estado, pais, pago_estado, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
+    .eq('id', pedido.lead_id)
+    .maybeSingle();
+
+  return { pedido, lead: (venta as LeadRow | null) ?? null };
 }
 
 const copy = {
@@ -47,7 +82,8 @@ const copy = {
     total: 'Total',
     porMes: 'Además, por mes',
     entrega: (dias: number) => `Entrega en ${dias} días hábiles desde el pago`,
-    firmado: 'Este pedido ya está firmado. Te llegó una copia por mail.',
+    firmado: 'Pago confirmado',
+    arrancamos: 'Ya está todo listo. Te escribo para pedirte el material y arrancamos.',
     garantia: 'Una ronda de ajustes y 30 días de garantía después de la entrega.',
   },
   en: {
@@ -57,7 +93,8 @@ const copy = {
     total: 'Total',
     porMes: 'Plus, per month',
     entrega: (dias: number) => `Delivered in ${dias} business days from payment`,
-    firmado: 'This order is already signed. A copy was emailed to you.',
+    firmado: 'Payment confirmed',
+    arrancamos: 'Everything is set. I will write to you for the material and we get going.',
     garantia: 'One round of changes and a 30-day warranty after delivery.',
   },
 } as const;
@@ -67,7 +104,7 @@ export default async function PedidoPage({ params }: { params: Params }) {
   const currentLocale = resolveLocale(locale) as Locale;
   const labels = copy[currentLocale];
 
-  const pedido = await cargarPedido(id);
+  const { pedido, lead } = await cargarPedido(id);
   if (!pedido) notFound();
 
   const paquete = paquetePorSlug(pedido.paquete);
@@ -76,6 +113,19 @@ export default async function PedidoPage({ params }: { params: Params }) {
   const servicio = servicioPorSlug(paquete.servicio);
   const resumen = totalPedido(paquete, pedido.extras ?? [], servicio?.extras ?? []);
   const money = (valor: number) => `USD ${valor.toLocaleString(currentLocale === 'es' ? 'es-AR' : 'en-US')}`;
+
+  const etapa = etapaDelPedido(pedido, lead
+    ? {
+      estado: lead.estado,
+      contrato_firma_token: lead.contrato_firma_token,
+      contrato_firmado_at: lead.contrato_firmado_at,
+      pago_estado: lead.pago_estado,
+    }
+    : null);
+
+  // La cotización solo se pide cuando de verdad toca pagar: es una llamada a
+  // una API externa y no tiene sentido hacerla en las otras etapas.
+  const cotizacion = etapa === 'pago' ? await quoteFor(lead?.pais ?? null, pedido.total_usd) : null;
 
   return (
     <main className="site-container py-14 sm:py-20">
@@ -95,12 +145,37 @@ export default async function PedidoPage({ params }: { params: Params }) {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:items-start">
         <div>
-          {pedido.firmado_at ? (
+          {etapa === 'datos' && <PedidoCheckout pedidoId={pedido.id} />}
+
+          {etapa === 'firma' && (
+            <ContractStep
+              token={lead?.contrato_firma_token ?? null}
+              signingUrl={lead?.contrato_signing_url ?? null}
+            />
+          )}
+
+          {(etapa === 'pago' || etapa === 'esperando') && (
+            <PagoPedido
+              pedidoId={pedido.id}
+              montoUsd={money(pedido.total_usd)}
+              montoLocal={cotizacion
+                ? `${cotizacion.currency} ${cotizacion.amount.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`
+                : null}
+              notaCotizacion={cotizacion
+                ? `Cotización ${cotizacion.source} + 3%, redondeada. Si pasan más de 72 horas, pedime el monto actualizado.`
+                : null}
+              instrucciones={paymentInstructionsFor(lead?.pais ?? null)}
+              yaInformado={etapa === 'esperando'}
+            />
+          )}
+
+          {etapa === 'listo' && (
             <Reveal as="div" className="surface-panel border border-brand-primary/25 px-6 py-8">
-              <p className="text-base leading-7 text-text-secondary">{labels.firmado}</p>
+              <h2 className="section-title-sm">{labels.firmado}</h2>
+              <p className="mt-3 max-w-xl text-base leading-7 text-text-secondary">
+                {labels.arrancamos}
+              </p>
             </Reveal>
-          ) : (
-            <PedidoCheckout pedidoId={pedido.id} />
           )}
         </div>
 

@@ -24,7 +24,12 @@ import type { FixedPackage } from '@/content/packages';
 const SECRET = 'secreto-documenso';
 
 function supabaseWithLead(estado: string | null, extra: Record<string, unknown> = {}) {
-  const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+  // `.eq()` resuelve, y además encadena `.is()` para el pedido que se marca
+  // firmado solo si no lo estaba.
+  const eqUpdate = vi.fn().mockReturnValue(
+    Object.assign(Promise.resolve({ error: null }), { is: vi.fn().mockResolvedValue({ error: null }) }),
+  );
+  const update = vi.fn().mockReturnValue({ eq: eqUpdate });
   const from = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
@@ -73,7 +78,12 @@ describe('webhook de Documenso — la firma mueve la venta sola', () => {
     // Si Silvano también firma y figura primero, no puede tomarse su correo:
     // la base solo reconoce el del cliente.
     const looked: string[] = [];
-    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    // `.eq()` resuelve, y además encadena `.is()` para el pedido que se marca
+  // firmado solo si no lo estaba.
+  const eqUpdate = vi.fn().mockReturnValue(
+    Object.assign(Promise.resolve({ error: null }), { is: vi.fn().mockResolvedValue({ error: null }) }),
+  );
+  const update = vi.fn().mockReturnValue({ eq: eqUpdate });
     const from = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn((_col: string, email: string) => {
@@ -382,7 +392,12 @@ describe('webhook de Documenso — link directo de un paquete', () => {
     const insert = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue({ data: created, error: null }) }),
     });
-    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    // `.eq()` resuelve, y además encadena `.is()` para el pedido que se marca
+  // firmado solo si no lo estaba.
+  const eqUpdate = vi.fn().mockReturnValue(
+    Object.assign(Promise.resolve({ error: null }), { is: vi.fn().mockResolvedValue({ error: null }) }),
+  );
+  const update = vi.fn().mockReturnValue({ eq: eqUpdate });
     const from = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }),
@@ -471,7 +486,11 @@ function supabaseConPedido(pedido: Record<string, unknown> | null) {
       }),
     }),
   });
-  const updatePedido = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+  const updatePedido = vi.fn().mockReturnValue({
+    eq: vi.fn().mockReturnValue(
+      Object.assign(Promise.resolve({ error: null }), { is: vi.fn().mockResolvedValue({ error: null }) }),
+    ),
+  });
 
   const from = vi.fn((tabla: string) => (tabla === 'pedidos'
     ? {
@@ -485,7 +504,11 @@ function supabaseConPedido(pedido: Record<string, unknown> | null) {
         eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }),
       }),
       insert: insertLead,
-      update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }),
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue(
+          Object.assign(Promise.resolve({ error: null }), { is: vi.fn().mockResolvedValue({ error: null }) }),
+        ),
+      }),
     }));
 
   vi.mocked(getSupabaseAdmin).mockReturnValue({ from } as never);

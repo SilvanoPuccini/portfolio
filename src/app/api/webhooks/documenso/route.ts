@@ -205,6 +205,17 @@ async function pedidoDe(externalId: string | null | undefined): Promise<PedidoRo
   return (data as PedidoRow | null) ?? null;
 }
 
+/** El pedido de una venta que acaba de firmarse. */
+async function marcarPedidoFirmado(leadId: string) {
+  const { error } = await getSupabaseAdmin()
+    .from('pedidos')
+    .update({ firmado_at: new Date().toISOString() })
+    .eq('lead_id', leadId)
+    .is('firmado_at', null);
+
+  if (error) console.error('[webhook/documenso] No se pudo marcar el pedido:', error);
+}
+
 /** El pedido deja de estar abierto: ya tiene firma y dueño. */
 async function cerrarPedido(pedidoId: string, leadId: string) {
   const { error } = await getSupabaseAdmin()
@@ -395,6 +406,11 @@ async function onCompleted(lead: LeadForSignature, envelopeId: string | undefine
     ...(nextState ? { estado: nextState } : {}),
   });
   if (error) return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+
+  // El pedido también queda firmado. Su página usa esa marca para saber qué
+  // mostrar cuando el cliente vuelve, y sin esto le seguiría pidiendo firmar
+  // algo que ya firmó.
+  await marcarPedidoFirmado(lead.id);
 
   // El pedido de pago solo sale si la venta avanzó: un aviso repetido no
   // vuelve a pedirle plata al cliente.
