@@ -51,6 +51,22 @@ export function clauseHeading(number: string, clauseTitle: string): Paragraph {
     ],
     heading: HeadingLevel.HEADING_2,
     spacing: { before: 360, after: 120 },
+    // Un título de cláusula solo al pie de una página, con su texto en la
+    // siguiente, es lo que hace que un contrato parezca improvisado.
+    keepNext: true,
+    keepLines: true,
+  });
+}
+
+/** Un renglón de una lista: el alcance, los entregables. */
+export function bulletParagraph(text: string): Paragraph {
+  return new Paragraph({
+    children: [
+      new TextRun({ text: `·  ${text}`, size: 24, font: 'Calibri', color: '2D2D2D' }),
+    ],
+    spacing: { after: 100, line: 320 },
+    indent: { left: 720, hanging: 220 },
+    keepLines: true,
   });
 }
 
@@ -67,6 +83,9 @@ export function bodyParagraph(text: string, indent = false): Paragraph {
     alignment: AlignmentType.JUSTIFIED,
     spacing: { after: 160, line: 360 },
     indent: indent ? { left: 720 } : undefined,
+    // Un párrafo partido por la mitad entre dos hojas se lee mal y, en un
+    // contrato, invita a discutir qué decía la parte que quedó del otro lado.
+    keepLines: true,
   });
 }
 

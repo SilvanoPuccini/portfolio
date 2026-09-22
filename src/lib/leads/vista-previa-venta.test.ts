@@ -144,6 +144,22 @@ describe('vista previa de la venta', () => {
     expect(data.plantilla).toBe(true);
   });
 
+  it('así queda el contrato una vez firmado, con su evidencia', async () => {
+    const data: ContractData = {
+      ...ventaDirecta(),
+      firmaProveedor: firmaProveedor(),
+      firmaCliente: {
+        nombre: 'Estefanía Ortigosa',
+        firmadoAt: new Date().toISOString(),
+        ip: '190.194.12.34',
+        huella: 'a3f1c2'.repeat(10) + 'b4d5',
+      },
+    };
+
+    const buffer = await guardarContrato('contrato-FIRMADO', data);
+    expect(buffer.length).toBeGreaterThan(1000);
+  });
+
   it('los cuatro correos del circuito se pueden leer antes de mandarlos', () => {
     const lead = { name: 'Estefanía Ortigosa', email: 'estefania@ejemplo.com' };
 

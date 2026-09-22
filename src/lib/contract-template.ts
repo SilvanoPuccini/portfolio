@@ -3,9 +3,15 @@ import {
   Paragraph,
   TextRun,
   ImageRun,
+  AlignmentType,
+  Footer,
+  PageNumber,
   Packer,
 } from 'docx';
-import { docTitle, docSubtitle, clauseHeading, bodyParagraph, divider } from '@/lib/docx-helpers';
+import {
+  docTitle, docSubtitle, clauseHeading, bodyParagraph, bulletParagraph, divider,
+} from '@/lib/docx-helpers';
+import { clausulasDelContrato } from '@/content/contrato';
 
 export type ContractData = {
   clientName: string;
@@ -19,6 +25,18 @@ export type ContractData = {
   paymentTerms: string;
   estimatedWeeks: number;
   legalClause: string;
+  /**
+   * La firma del cliente, cuando ya firmó en nuestro sitio.
+   *
+   * Va impresa en el documento con su evidencia: sin eso, el PDF archivado no
+   * prueba nada por sí solo y hay que ir a buscar la base de datos.
+   */
+  firmaCliente?: {
+    nombre: string;
+    firmadoAt: string;
+    ip: string;
+    huella: string;
+  };
   /**
    * La firma del Proveedor, ya impresa.
    *
@@ -63,6 +81,26 @@ function signatureLine(label: string): Paragraph {
   });
 }
 
+/** «22 de septiembre de 2026, 15:42 h» — legible y sin ambigüedad de zona. */
+function fechaLegible(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).replace(',', ' a las ') + ' h (hora de Argentina)';
+}
+
+/** El encabezado del bloque cuando la firma ya está: sin renglón que llenar. */
+function signatureTitle(label: string): Paragraph {
+  return new Paragraph({
+    children: [
+      new TextRun({ text: `${label}:`, size: 24, font: 'Calibri', color: '2D2D2D' }),
+    ],
+    spacing: { before: 420, after: 120 },
+    keepNext: true,
+  });
+}
+
 function signatureDetail(text: string): Paragraph {
   return new Paragraph({
     children: [
@@ -86,9 +124,6 @@ function hueco(largo = 34): string {
 }
 
 export function buildContract(data: ContractData): Document {
-  /** El valor real, o el hueco cuando se está armando el molde. */
-  const campo = <T>(valor: T, largo?: number): string =>
-    data.plantilla ? hueco(largo) : String(valor);
 
   const today = new Date().toLocaleDateString('es-AR', {
     day: '2-digit',
@@ -97,169 +132,40 @@ export function buildContract(data: ContractData): Document {
   });
 
   const sections = [
-    // ── Title block ──────────────────────────────────────────────────────────
     title('CONTRATO DE PRESTACIÓN DE SERVICIOS'),
     subtitle(`Buenos Aires, ${today}`),
 
-    // ── Clause 1: PARTES ─────────────────────────────────────────────────────
-    clauseHeading('I', 'PARTES'),
-    bodyParagraph(
-      'El presente contrato se celebra entre las siguientes partes:',
-    ),
-    bodyParagraph(
-      'PROVEEDOR: Silvano Puccini, desarrollador web freelance, con domicilio en la Ciudad Autónoma de Buenos Aires, República Argentina. En adelante denominado "el Proveedor".',
-    ),
-    bodyParagraph(
-      `CLIENTE: ${campo(data.clientName)}, con domicilio en ${campo(`${data.clientLocation}, ${data.clientCountry}`, 40)}. En adelante denominado "el Cliente".`,
-    ),
-
-    divider(),
-
-    // ── Clause 2: OBJETO ─────────────────────────────────────────────────────
-    clauseHeading('II', 'OBJETO'),
-    bodyParagraph(
-      'El Proveedor se compromete a prestar servicios de desarrollo web al Cliente, consistentes en:',
-    ),
-    bodyParagraph(
-      data.plantilla ? `${hueco(62)}\n${hueco(62)}` : data.projectDescription,
-      true,
-    ),
-
-    divider(),
-
-    // ── Clause 3: ALCANCE Y ENTREGABLES ──────────────────────────────────────
-    clauseHeading('III', 'ALCANCE Y ENTREGABLES'),
-    bodyParagraph('Los entregables acordados en el marco del presente contrato son:'),
-    bodyParagraph(
-      data.plantilla
+    // Las cláusulas salen del mismo lugar que la pantalla donde el cliente
+    // las lee y que el texto sobre el que se calcula la huella de la firma.
+    // Si divergieran, la firma dejaría de probar nada.
+    ...clausulasDelContrato({
+      clientName: data.plantilla ? hueco(34) : data.clientName,
+      clientLocation: data.plantilla ? hueco(20) : data.clientLocation,
+      clientCountry: data.plantilla ? '' : data.clientCountry,
+      projectDescription: data.plantilla ? `${hueco(62)}\n${hueco(62)}` : data.projectDescription,
+      deliverables: data.plantilla
         ? [hueco(62), hueco(62), hueco(62), hueco(62), hueco(62)].join('\n')
         : data.deliverables,
-      true,
-    ),
-    bodyParagraph(
-      'Cualquier funcionalidad o desarrollo adicional que no esté contemplado en el presente apartado deberá ser acordado por escrito entre las partes y podrá dar lugar a una modificación del precio y/o los plazos.',
-    ),
-
-    divider(),
-
-    // ── Clause 4: PLAZOS ─────────────────────────────────────────────────────
-    clauseHeading('IV', 'PLAZOS'),
-    bodyParagraph(
-      `Los servicios darán comienzo una vez acreditado el primer pago y se estima una duración de ${campo(`${data.estimatedWeeks} semana${data.estimatedWeeks !== 1 ? 's' : ''}`, 26)}.`,
-    ),
-    bodyParagraph(
-      'Los plazos indicados son estimativos. Demoras atribuibles al Cliente, incluyendo pero no limitándose a retrasos en la entrega de materiales, contenido o feedback, podrán extender los plazos acordados sin que ello implique incumplimiento por parte del Proveedor.',
-    ),
-
-    divider(),
-
-    // ── Clause 5: PRECIO Y FORMA DE PAGO ─────────────────────────────────────
-    clauseHeading('V', 'PRECIO Y FORMA DE PAGO'),
-    bodyParagraph(
-      `El precio total acordado por los servicios descritos es de ${campo(`USD ${data.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 26)}.`,
-    ),
-    bodyParagraph(`Forma de pago: ${campo(data.paymentTerms, 60)}`),
-    bodyParagraph(
-      'El pago deberá realizarse mediante transferencia bancaria internacional o por los medios digitales acordados entre las partes. El Proveedor no iniciará las tareas de cada etapa hasta recibir el pago correspondiente.',
-    ),
-
-    divider(),
-
-    // ── Clause 6: PROPIEDAD INTELECTUAL ──────────────────────────────────────
-    clauseHeading('VI', 'PROPIEDAD INTELECTUAL'),
-    bodyParagraph(
-      'Una vez realizado el pago total acordado, el Cliente adquirirá la titularidad plena sobre el código fuente, diseños y demás entregables desarrollados específicamente para este proyecto.',
-    ),
-    bodyParagraph(
-      'El Proveedor conserva el derecho de mencionar el proyecto en su portfolio profesional y materiales de marketing, salvo expresa instrucción en contrario del Cliente.',
-    ),
-    bodyParagraph(
-      'Las herramientas, librerías de terceros, frameworks y componentes reutilizables de propiedad del Proveedor que se incorporen al proyecto quedan sujetos a sus respectivas licencias de uso.',
-    ),
-
-    divider(),
-
-    // ── Clause 7: LEGISLACIÓN APLICABLE ──────────────────────────────────────
-    clauseHeading('VII', 'LEGISLACIÓN APLICABLE Y JURISDICCIÓN'),
-    bodyParagraph(
-      data.plantilla
-        ? `El presente contrato se regirá e interpretará conforme a ${hueco(52)}, `
-          + 'renunciando las partes a cualquier otro fuero o jurisdicción que pudiera corresponderles.'
+      totalHours: data.totalHours,
+      totalPrice: data.totalPrice,
+      hourlyRate: data.hourlyRate,
+      paymentTerms: data.plantilla ? hueco(60) : data.paymentTerms,
+      estimatedWeeks: data.estimatedWeeks,
+      legalClause: data.plantilla
+        ? `El presente contrato se regirá e interpretará conforme a ${hueco(52)}, renunciando las partes a cualquier otro fuero o jurisdicción que pudiera corresponderles.`
         : data.legalClause,
-    ),
+    }).flatMap((clausula) => [
+      clauseHeading(clausula.numero, clausula.titulo),
+      ...clausula.parrafos.map((parrafo) => bodyParagraph(parrafo)),
+      // Un entregable por renglón: todos pegados en un párrafo, el alcance
+      // se vuelve ilegible justo donde más claro tiene que estar.
+      ...(clausula.destacado
+        ? clausula.destacado.split('\n').filter(Boolean).map((linea) => bulletParagraph(linea))
+        : []),
+      ...(clausula.parrafosFinales ?? []).map((parrafo) => bodyParagraph(parrafo)),
+      divider(),
+    ]),
 
-    divider(),
-
-    // ── Clause 8: CONFIDENCIALIDAD ────────────────────────────────────────────
-    clauseHeading('VIII', 'CONFIDENCIALIDAD'),
-    bodyParagraph(
-      'Ambas partes se comprometen a mantener la más estricta confidencialidad respecto de la información técnica, comercial y estratégica que se intercambie en el marco del presente contrato.',
-    ),
-    bodyParagraph(
-      'La obligación de confidencialidad se extiende por un período de dos (2) años contados desde la finalización del contrato, y subsiste aun en caso de rescisión anticipada.',
-    ),
-
-    divider(),
-
-    // ── Clause 9: GARANTÍA ────────────────────────────────────────────────────
-    clauseHeading('IX', 'GARANTÍA'),
-    bodyParagraph(
-      'El Proveedor garantiza el correcto funcionamiento de los entregables según las especificaciones acordadas durante un período de treinta (30) días corridos contados desde la entrega final.',
-    ),
-    bodyParagraph(
-      'Durante dicho período, el Proveedor corregirá sin cargo adicional los defectos o errores que se detecten y que sean atribuibles al desarrollo realizado. Esta garantía no cubre modificaciones realizadas por el Cliente o terceros, ni errores derivados de integraciones con servicios externos ajenos al alcance del proyecto.',
-    ),
-
-    divider(),
-
-    // ── Clause 10: LIMITACIÓN DE RESPONSABILIDAD ──────────────────────────────
-    clauseHeading('X', 'LIMITACIÓN DE RESPONSABILIDAD'),
-    bodyParagraph(
-      'La responsabilidad total del Proveedor frente al Cliente, por cualquier causa, queda limitada al monto total efectivamente abonado en virtud del presente contrato.',
-    ),
-    bodyParagraph(
-      'El Proveedor no será responsable por daños indirectos, lucro cesante, pérdida de datos o cualquier otro daño consecuencial que pudiera derivarse del uso o la imposibilidad de uso de los entregables, aun cuando hubiera sido advertido de la posibilidad de tales daños.',
-    ),
-
-    divider(),
-
-    // ── Clause 11: TERMINACIÓN ────────────────────────────────────────────────
-    clauseHeading('XI', 'TERMINACIÓN'),
-    bodyParagraph(
-      'Cualquiera de las partes podrá dar por terminado el presente contrato mediante notificación escrita con un preaviso mínimo de quince (15) días corridos.',
-    ),
-    bodyParagraph(
-      'En caso de rescisión, el Cliente abonará los servicios efectivamente prestados hasta la fecha de terminación, calculados en proporción a las horas trabajadas. El Proveedor entregará el trabajo realizado hasta ese momento en el estado en que se encuentre.',
-    ),
-
-    divider(),
-
-    // ── Clause 12: FUERZA MAYOR ──────────────────────────────────────────────
-    clauseHeading('XII', 'FUERZA MAYOR'),
-    bodyParagraph(
-      'Ninguna de las partes será responsable por el incumplimiento de sus obligaciones cuando dicho incumplimiento sea consecuencia de causas ajenas a su control razonable, incluyendo pero no limitándose a: catástrofes naturales, actos de autoridad gubernamental, pandemia, conflictos bélicos, fallas generalizadas de infraestructura de internet u otras causas de fuerza mayor o caso fortuito.',
-    ),
-    bodyParagraph(
-      'La parte afectada deberá notificar a la otra dentro de las cuarenta y ocho (48) horas de producido el evento, indicando su naturaleza y duración estimada. Las obligaciones quedarán suspendidas por el tiempo que dure la situación de fuerza mayor.',
-    ),
-
-    divider(),
-
-    // ── Clause 13: DISPOSICIONES GENERALES ───────────────────────────────────
-    clauseHeading('XIII', 'DISPOSICIONES GENERALES'),
-    bodyParagraph(
-      'Toda modificación al presente contrato deberá constar por escrito y ser suscrita por ambas partes para tener validez.',
-    ),
-    bodyParagraph(
-      'El presente instrumento constituye el acuerdo completo y exclusivo entre las partes respecto de su objeto, y reemplaza cualquier entendimiento o negociación previa, verbal o escrita.',
-    ),
-    bodyParagraph(
-      'Si alguna cláusula del presente contrato fuera declarada nula o inaplicable, el resto del acuerdo continuará vigente y produciendo plenos efectos.',
-    ),
-
-    divider(),
-
-    // ── Signature block ──────────────────────────────────────────────────────
     new Paragraph({
       children: [
         new TextRun({
@@ -292,7 +198,7 @@ export function buildContract(data: ContractData): Document {
       })]
       : []),
 
-    signatureLine('EL PROVEEDOR'),
+    data.firmaProveedor ? signatureTitle('EL PROVEEDOR') : signatureLine('EL PROVEEDOR'),
     signatureDetail('Silvano Puccini'),
     signatureDetail('Desarrollador web freelance'),
     signatureDetail('Buenos Aires, Argentina'),
@@ -302,18 +208,46 @@ export function buildContract(data: ContractData): Document {
         : 'Conforme y firmado electrónicamente al emitir el presente contrato.',
     ),
 
-    signatureLine('EL CLIENTE'),
-    signatureDetail(data.plantilla ? '' : data.clientName),
-    signatureDetail(data.plantilla ? '' : `${data.clientLocation}, ${data.clientCountry}`),
+    data.firmaCliente ? signatureTitle('EL CLIENTE') : signatureLine('EL CLIENTE'),
 
-    // El mail del firmante, en su propio renglón: sin un lugar donde apoyarlo
-    // el campo terminaba flotando sobre el texto de al lado.
-    signatureLine('Email'),
+    // Con la firma hecha, el bloque del cliente lleva su evidencia: quién,
+    // cuándo, desde dónde y sobre qué texto. Un PDF que hay que cruzar con
+    // una base de datos para saber si vale no sirve como comprobante.
+    ...(data.firmaCliente
+      ? [
+        signatureDetail(data.firmaCliente.nombre),
+        signatureDetail(`${data.clientLocation}, ${data.clientCountry}`),
+        signatureDetail(
+          `Firmado electrónicamente el ${fechaLegible(data.firmaCliente.firmadoAt)} `
+          + `desde la dirección ${data.firmaCliente.ip}.`,
+        ),
+        signatureDetail(`Huella del documento firmado: ${data.firmaCliente.huella}`),
+      ]
+      : [
+        signatureDetail(data.plantilla ? '' : data.clientName),
+        signatureDetail(data.plantilla ? '' : `${data.clientLocation}, ${data.clientCountry}`),
+        signatureLine('Email'),
+        signatureLine('Fecha'),
+      ]),
 
-    // La fecha la pone el firmante. Antes salía la fecha en que se generó el
-    // documento, que en el molde queda congelada: todos los contratos
-    // firmados decían el día en que se armó la plantilla.
-    signatureLine('Fecha'),
+    ...(data.firmaCliente
+      ? [new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Este documento fue aceptado de forma electrónica. La huella es el resultado de '
+              + 'aplicar SHA-256 al texto completo del contrato en el momento de la firma: '
+              + 'cualquier modificación posterior daría un resultado distinto.',
+            size: 18,
+            font: 'Calibri',
+            color: '6B6B8A',
+            italics: true,
+          }),
+        ],
+        spacing: { before: 600, after: 0, line: 280 },
+        alignment: AlignmentType.JUSTIFIED,
+      })]
+      : []),
+
   ];
 
   return new Document({
@@ -338,6 +272,21 @@ export function buildContract(data: ContractData): Document {
               left: 1440,
             },
           },
+        },
+        footers: {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({ text: 'Página ', size: 18, font: 'Calibri', color: '9999AA' }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 18, font: 'Calibri', color: '9999AA' }),
+                  new TextRun({ text: ' de ', size: 18, font: 'Calibri', color: '9999AA' }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 18, font: 'Calibri', color: '9999AA' }),
+                ],
+              }),
+            ],
+          }),
         },
         children: sections,
       },
