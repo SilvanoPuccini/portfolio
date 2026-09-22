@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Check } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Check, Download } from 'lucide-react';
 
 import { PagoPedido } from '@/components/pedido/PagoPedido';
 import { PedidoCheckout } from '@/components/pedido/PedidoCheckout';
@@ -45,6 +46,7 @@ interface LeadRow {
   estado: string | null;
   pais: string | null;
   pago_estado: string | null;
+  factura_numero: string | null;
   contrato_firma_token: string | null;
   contrato_signing_url: string | null;
   contrato_firmado_at: string | null;
@@ -67,7 +69,7 @@ async function cargarPedido(id: string) {
 
   const { data: venta } = await db
     .from('leads')
-    .select('estado, pais, pago_estado, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
+    .select('estado, pais, pago_estado, factura_numero, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
     .eq('id', pedido.lead_id)
     .maybeSingle();
 
@@ -83,7 +85,11 @@ const copy = {
     porMes: 'Además, por mes',
     entrega: (dias: number) => `Entrega en ${dias} días hábiles desde el pago`,
     firmado: 'Pago confirmado',
-    arrancamos: 'Ya está todo listo. Te escribo para pedirte el material y arrancamos.',
+    arrancamos: 'Ya está todo listo. El último paso es cargar el material de tu proyecto: el logo, las fotos y los textos que tengas.',
+    factura: 'Factura',
+    facturaPendiente: 'Te mando la factura apenas la emita.',
+    cargarDatos: 'Cargar los datos del proyecto',
+    descargarContrato: 'Descargar el contrato firmado',
     garantia: 'Una ronda de ajustes y 30 días de garantía después de la entrega.',
   },
   en: {
@@ -94,7 +100,11 @@ const copy = {
     porMes: 'Plus, per month',
     entrega: (dias: number) => `Delivered in ${dias} business days from payment`,
     firmado: 'Payment confirmed',
-    arrancamos: 'Everything is set. I will write to you for the material and we get going.',
+    arrancamos: 'Everything is set. The last step is uploading your project material: logo, photos and any copy you have.',
+    factura: 'Invoice',
+    facturaPendiente: 'I will send the invoice as soon as it is issued.',
+    cargarDatos: 'Upload the project details',
+    descargarContrato: 'Download the signed contract',
     garantia: 'One round of changes and a 30-day warranty after delivery.',
   },
 } as const;
@@ -175,7 +185,31 @@ export default async function PedidoPage({ params }: { params: Params }) {
               <p className="mt-3 max-w-xl text-base leading-7 text-text-secondary">
                 {labels.arrancamos}
               </p>
+
+              <p className="mt-5 text-sm leading-6 text-text-tertiary">
+                {lead?.factura_numero
+                  ? `${labels.factura}: ${lead.factura_numero}`
+                  : labels.facturaPendiente}
+              </p>
+
+              <Link href={`/${currentLocale}/pedido/${pedido.id}/datos`} className="button-primary mt-6 gap-2">
+                <span>{labels.cargarDatos}</span>
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+              </Link>
             </Reveal>
+          )}
+
+          {/* Su contrato, siempre a un clic del mismo link. */}
+          {etapa !== 'datos' && etapa !== 'firma' && (
+            <p className="mt-5 text-sm leading-6 text-text-tertiary">
+              <a
+                href={`/api/pedido/${pedido.id}/contrato-firmado`}
+                className="inline-flex items-center gap-2 text-text-secondary underline decoration-outline-ghost/30 underline-offset-4 transition-colors hover:text-text-primary"
+              >
+                <Download className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {labels.descargarContrato}
+              </a>
+            </p>
           )}
         </div>
 
