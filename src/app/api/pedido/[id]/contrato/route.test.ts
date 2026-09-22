@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/rate-limit', () => ({ rateLimit: vi.fn().mockReturnValue(true) }));
+vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 vi.mock('@/lib/leads/documenso-contract', () => ({
   createContract: vi.fn().mockResolvedValue({
     envelopeId: 'env_1', signingUrl: 'https://app.documenso.com/sign/abc', token: 'abc',
@@ -12,6 +13,7 @@ vi.mock('@/lib/leads/documenso-contract', () => ({
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rate-limit';
 import { createContract } from '@/lib/leads/documenso-contract';
+import { sendCrmEmail } from '@/lib/resend';
 import { POST } from './route';
 
 const PEDIDO = {
@@ -105,6 +107,25 @@ describe('POST /api/pedido/[id]/contrato', () => {
       estado: 'contrato_enviado',
     }));
     expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
+  });
+
+  it('manda el respaldo desde nuestro dominio, con el link a la página', async () => {
+    await post(DATOS);
+
+    const [para, asunto, html] = vi.mocked(sendCrmEmail).mock.calls[0];
+    expect(para).toBe('este@ejemplo.com');
+    expect(asunto).toMatch(/firmar/i);
+    expect(html).toContain('/es/pedido/pedido-1');
+    expect(html).toContain('Web de cinco secciones');
+  });
+
+  it('si el correo de respaldo falla, la firma sigue en pie', async () => {
+    vi.mocked(sendCrmEmail).mockRejectedValueOnce(new Error('Resend caído'));
+
+    const res = await post(DATOS);
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).token).toBe('abc');
   });
 
   it('sin nombre o sin mail no crea nada', async () => {

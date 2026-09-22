@@ -256,29 +256,21 @@ describe('createContract', () => {
     expect(payload.override.subject).toMatch(/contrato/i);
   });
 
-  it('apaga los correos de Documenso que pisan a los nuestros', async () => {
-    // El aviso de «documento completado» lo mandamos nosotros junto con los
-    // datos de pago. El de Documenso llegaba antes, con su marca y sin decir
-    // qué sigue.
+  it('Documenso no manda ningún correo: los mandamos nosotros', async () => {
+    // Los correos del circuito salen de nuestro dominio, con nuestro diseño.
+    // Los de Documenso llegaban con su marca en el momento más importante.
     process.env.DOCUMENSO_TEMPLATE_ID = 'envelope_abc';
     const fetchMock = mockEnvelope();
 
     await createContract(DATA);
 
     const payload = JSON.parse((fetchMock.mock.calls[1][1].body as FormData).get('payload') as string);
-    expect(payload.override.emailSettings).toMatchObject({
-      documentCompleted: false,
-      documentPending: false,
-      recipientSigned: false,
-    });
-    // El pedido de firma sí sale: es el respaldo si cierra la pestaña.
-    expect(payload.override.emailSettings.recipientSigningRequest).toBe(true);
-    // Y a Silvano no le llega ninguno: se entera por el panel.
-    expect(payload.override.emailSettings).toMatchObject({
-      ownerDocumentCreated: false,
-      ownerDocumentCompleted: false,
-      ownerRecipientExpired: false,
-    });
+    // Ni uno solo, ni al cliente ni a Silvano.
+    for (const valor of Object.values(payload.override.emailSettings)) {
+      expect(valor).toBe(false);
+    }
+    // Pero el documento sí se distribuye: es lo que lo deja firmable.
+    expect(payload.distributeDocument).toBe(true);
   });
 
   it('con multipart no fuerza el content-type: lo pone fetch con su frontera', async () => {

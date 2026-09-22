@@ -226,15 +226,21 @@ export async function createContract(
         + 'Firmar no dispara ningún cobro: los datos para pagar te llegan después.',
       // Los avisos que le llegan al cliente los mandamos nosotros, con lo que
       // sigue explicado. Los de Documenso llegaban antes y en su idioma.
+      // Documenso no manda ningún correo. Los nuestros salen de nuestro
+      // dominio, con nuestro diseño y explicando qué sigue; los suyos
+      // llegaban con su marca y rompían la experiencia justo en el momento
+      // más importante de la venta.
+      //
+      // `distributeDocument` queda en true a propósito: es lo que deja el
+      // documento listo para firmar. Apagar la distribución podría dejarlo
+      // en borrador, y un borrador no se puede firmar.
       emailSettings: {
-        // El único que queda: es el respaldo si el cliente cierra la pestaña
-        // sin firmar. Va con nuestro asunto y nuestro texto.
-        recipientSigningRequest: true,
+        recipientSigningRequest: false,
+        recipientRemoved: false,
+        recipientSigned: false,
         documentPending: false,
         documentCompleted: false,
-        recipientSigned: false,
-        // A Silvano no le llega nada de Documenso: se entera por el panel y
-        // por los avisos del sistema, que dicen qué hacer con la venta.
+        documentDeleted: false,
         ownerDocumentCreated: false,
         ownerDocumentCompleted: false,
         ownerRecipientExpired: false,

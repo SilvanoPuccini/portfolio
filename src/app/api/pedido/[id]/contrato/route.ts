@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
+import { contractToSignHtml } from '@/lib/email-templates/contract-to-sign';
 import { createContract } from '@/lib/leads/documenso-contract';
+import { sendCrmEmail } from '@/lib/resend';
 import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { rateLimit } from '@/lib/rate-limit';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -124,6 +126,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+    const locale = fila.locale === 'en' ? 'en' : 'es';
 
     let contrato;
     try {
@@ -143,7 +146,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         },
         // Con el idioma adelante: `/gracias` sin idioma es un 404, y el
         // cliente lo ve justo después de firmar, que es el peor momento.
-        `${siteUrl}/${fila.locale === 'en' ? 'en' : 'es'}/gracias`,
+        `${siteUrl}/${locale}/gracias`,
         fila.id,
       );
     } catch (reason) {
@@ -158,6 +161,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }).eq('id', lead.id);
 
     await db.from('pedidos').update({ lead_id: lead.id }).eq('id', fila.id);
+
+    // El respaldo, de nuestro dominio: si cierra la pestaña sin firmar, el
+    // link le queda en el correo. Que falle el envío no puede tirar abajo la
+    // firma, que es lo que el cliente está haciendo ahora mismo.
+    try {
+      await sendCrmEmail(
+        email,
+        'Tu contrato está listo para firmar',
+        contractToSignHtml({
+          name: nombre,
+          paquete: paquete.nombre.es,
+          totalUsd: fila.total_usd,
+          url: `${siteUrl}/${locale}/pedido/${fila.id}`,
+        }),
+      );
+    } catch (reason) {
+      console.warn('[api/pedido/contrato] El correo de respaldo no salió:', reason);
+    }
 
     return NextResponse.json({ token: contrato.token, signingUrl: contrato.signingUrl });
   } catch (err) {

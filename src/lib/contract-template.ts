@@ -3,7 +3,6 @@ import {
   Paragraph,
   TextRun,
   ImageRun,
-  AlignmentType,
   Packer,
 } from 'docx';
 import { docTitle, docSubtitle, clauseHeading, bodyParagraph, divider } from '@/lib/docx-helpers';
@@ -271,7 +270,11 @@ export function buildContract(data: ContractData): Document {
           color: '1A1A2E',
         }),
       ],
-      spacing: { before: 480, after: 240 },
+      // El bloque de firmas entero en una página. Partido entre dos, la firma
+      // queda de un lado y el nombre del otro, y colocar los campos en
+      // Documenso se vuelve un rompecabezas.
+      pageBreakBefore: true,
+      spacing: { before: 240, after: 240 },
     }),
 
     // El Proveedor no firma después: emite el contrato ya conforme. Su
@@ -303,19 +306,14 @@ export function buildContract(data: ContractData): Document {
     signatureDetail(data.plantilla ? '' : data.clientName),
     signatureDetail(data.plantilla ? '' : `${data.clientLocation}, ${data.clientCountry}`),
 
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Fecha de firma: ${today}`,
-          size: 20,
-          font: 'Calibri',
-          color: '9999AA',
-          italics: true,
-        }),
-      ],
-      spacing: { before: 480 },
-      alignment: AlignmentType.CENTER,
-    }),
+    // El mail del firmante, en su propio renglón: sin un lugar donde apoyarlo
+    // el campo terminaba flotando sobre el texto de al lado.
+    signatureLine('Email'),
+
+    // La fecha la pone el firmante. Antes salía la fecha en que se generó el
+    // documento, que en el molde queda congelada: todos los contratos
+    // firmados decían el día en que se armó la plantilla.
+    signatureLine('Fecha'),
   ];
 
   return new Document({
