@@ -64,6 +64,9 @@ export interface Lead {
   cobrado_at: string | null;
   factura_at: string | null;
   factura_numero: string | null;
+  /** El material del proyecto que cargó el cliente. */
+  kickoff_datos: unknown;
+  kickoff_completado_at: string | null;
   entregado_at: string | null;
   propuesta_rechazo_motivo: string | null;
   contract_sent_at: string | null;
