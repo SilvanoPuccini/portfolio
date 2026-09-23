@@ -32,27 +32,12 @@ export function LeadBudgetSection(props: {
   /** Lo que se cobra por mes después de entregar. Va aparte del proyecto. */
   mantenimiento: string;
   onMantenimiento: (value: string) => void;
-  /** El link a la propuesta tal como la ve el cliente, si ya se mandó. */
-  propuestaUrl?: string | null;
-  downloadContract: () => void;
-  contractLoading: boolean;
-  sendProposalEmail: () => void;
-  proposalSending: boolean;
-  proposalEmailSent: boolean;
-  proposalEmailError: string;
-  sendContractEmail: () => void;
-  contractSending: boolean;
-  contractEmailSent: boolean;
-  contractEmailError: string;
   fmt: (iso: string) => string;
 }) {
   const {
     lead, rateConfig, baseModules, featureModules, presupuesto,
     paqueteSlug, extrasIds, onPaquete, onExtra,
     updatePertRow, saveBudget, budgetSaved, mantenimiento, onMantenimiento,
-    propuestaUrl, downloadContract, contractLoading, sendProposalEmail,
-    proposalSending, proposalEmailSent, proposalEmailError, sendContractEmail,
-    contractSending, contractEmailSent, contractEmailError, fmt,
   } = props;
 
   return (
@@ -172,12 +157,6 @@ export function LeadBudgetSection(props: {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
           <button style={s.btn} onClick={saveBudget}>Guardar presupuesto</button>
-          {propuestaUrl && (
-            <a href={propuestaUrl} target="_blank" rel="noopener noreferrer"
-              style={{ ...s.btnGhost, textDecoration: 'none' }}>
-              Ver como lo ve el cliente ↗
-            </a>
-          )}
           {budgetSaved && <p style={s.successText}>Guardado</p>}
         </div>
 
@@ -187,80 +166,6 @@ export function LeadBudgetSection(props: {
           </p>
         )}
 
-        {/* Sin presupuesto guardado no hay propuesta que mandar, y una zona
-            vacía no explica por qué: se dice qué falta. */}
-        {lead.monto_presupuestado == null && (
-          <p style={{ ...s.hint, marginTop: 14, color: c.incomplete }}>
-            Tildá los módulos que entran y tocá «Guardar presupuesto». Recién ahí aparecen los botones para
-            mandarle la propuesta y el contrato.
-          </p>
-        )}
-
-        {lead.monto_presupuestado != null && (
-          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
-            {/* Send Proposal Email — task 8.4 */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button
-                  style={{
-                    ...s.btn,
-                    background: proposalSending ? '#334155' : '#0ea5e9',
-                    opacity: proposalSending ? 0.7 : 1,
-                    cursor: proposalSending ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={sendProposalEmail}
-                  disabled={proposalSending}
-                >
-                  {proposalSending ? 'Enviando...' : 'Enviar propuesta'}
-                </button>
-                {proposalEmailSent && <p style={s.successText}>Propuesta enviada</p>}
-                {proposalEmailError && <p style={s.errorText}>{proposalEmailError}</p>}
-              </div>
-              {lead.proposal_sent_at && (
-                <p style={{ ...s.hint, marginTop: 6 }}>
-                  Enviada el {fmt(lead.proposal_sent_at)}
-                </p>
-              )}
-            </div>
-
-            {/* Send Contract / Download Contract — task 8.4 */}
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button
-                  style={{
-                    ...s.btn,
-                    background: contractLoading ? '#6366f1' : '#818cf8',
-                    opacity: contractLoading ? 0.7 : 1,
-                    cursor: contractLoading ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={downloadContract}
-                  disabled={contractLoading}
-                >
-                  {contractLoading ? 'Generando...' : 'Generar contrato'}
-                </button>
-                <button
-                  style={{
-                    ...s.btn,
-                    background: contractSending ? '#334155' : '#7c3aed',
-                    opacity: contractSending ? 0.7 : 1,
-                    cursor: contractSending ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={sendContractEmail}
-                  disabled={contractSending}
-                >
-                  {contractSending ? 'Enviando...' : 'Enviar contrato'}
-                </button>
-                {contractEmailSent && <p style={s.successText}>Contrato enviado</p>}
-                {contractEmailError && <p style={s.errorText}>{contractEmailError}</p>}
-              </div>
-              {lead.contract_sent_at && (
-                <p style={{ ...s.hint, marginTop: 6 }}>
-                  Enviado el {fmt(lead.contract_sent_at)}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

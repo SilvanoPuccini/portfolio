@@ -114,7 +114,7 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     // En «en conversación» toca el diagnóstico, no el formulario de captación.
     // La ficha sigue el recorrido de la venta: con la llamada ya hecha, lo
     // que toca mirar es el diagnóstico, no quién es el cliente.
-    expect(screen.getByRole('button', { name: /3 · El diagnóstico/ })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /3 · El presupuesto/ })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('button', { name: /1 · El cliente/ })).toHaveAttribute('aria-expanded', 'false');
   });
 

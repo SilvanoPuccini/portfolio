@@ -17,6 +17,7 @@ import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/Lea
 import { LeadEditableForm } from '@/components/admin/leads/LeadEditableForm';
 import { CallGuide } from '@/components/admin/leads/CallGuide';
 import { LeadSaleHistory } from '@/components/admin/leads/LeadSaleHistory';
+import { LeadCierre } from '@/components/admin/leads/LeadCierre';
 import {
   clienteSummary, llamadaSummary, diagnosticoSummary, ventaSummary,
 } from '@/lib/leads/sheet-summary';
@@ -692,7 +693,7 @@ export default function LeadDetailPage() {
       </LeadSection>
 
       {/* Budget Calculator */}
-      <LeadSection title="3 · El diagnóstico" defaultOpen={openSections.diagnostico} hint={diagnosticoSummary(lead)}>
+      <LeadSection title="3 · El presupuesto" defaultOpen={openSections.diagnostico} hint={diagnosticoSummary(lead)}>
         <LeadBudgetSection
           lead={lead}
           rateConfig={rateConfig}
@@ -708,25 +709,6 @@ export default function LeadDetailPage() {
           budgetSaved={budgetSaved}
           mantenimiento={mantenimiento}
           onMantenimiento={setMantenimiento}
-          propuestaUrl={
-            // El link del cliente muestra lo que le toca ahora; el de la
-            // propuesta, solo esa pantalla.
-            lead.lead_token
-              ? `/cliente/${lead.lead_token}`
-              : lead.propuesta_token
-                ? `/propuesta/${lead.propuesta_token}`
-                : null
-          }
-          downloadContract={downloadContract}
-          contractLoading={contractLoading}
-          sendProposalEmail={sendProposalEmail}
-          proposalSending={proposalSending}
-          proposalEmailSent={proposalEmailSent}
-          proposalEmailError={proposalEmailError}
-          sendContractEmail={sendContractEmail}
-          contractSending={contractSending}
-          contractEmailSent={contractEmailSent}
-          contractEmailError={contractEmailError}
           fmt={fmt}
         />
       {/* Proposal Prompt Generator */}
@@ -773,8 +755,39 @@ export default function LeadDetailPage() {
       </LeadSection>
 
       {/* ── 4 · LA VENTA ──────────────────────────────────────────────── */}
-      <LeadSection title="4 · La venta" defaultOpen={openSections.venta} hint={ventaSummary(lead)}>
-        <LeadSaleHistory lead={lead} fmt={fmt} />
+      <LeadSection title="4 · El cierre" defaultOpen={openSections.venta} hint={ventaSummary(lead)}>
+        <LeadCierre
+          lead={lead}
+          fmt={fmt}
+          enviarPropuesta={sendProposalEmail}
+          propuestaEnviando={proposalSending}
+          enviarContrato={sendContractEmail}
+          contratoEnviando={contractSending}
+          descargarContrato={downloadContract}
+          contratoDescargando={contractLoading}
+          urlDelCliente={
+            // El link del cliente muestra lo que le toca ahora; el de la
+            // propuesta, solo esa pantalla.
+            lead.lead_token
+              ? `/cliente/${lead.lead_token}`
+              : lead.propuesta_token
+                ? `/propuesta/${lead.propuesta_token}`
+                : null
+          }
+          aviso={
+            proposalEmailError || contractEmailError
+              ? { texto: proposalEmailError || contractEmailError, error: true }
+              : proposalEmailSent
+                ? { texto: 'Propuesta enviada' }
+                : contractEmailSent
+                  ? { texto: 'Contrato enviado' }
+                  : null
+          }
+        />
+
+        <div style={{ marginTop: 22 }}>
+          <LeadSaleHistory lead={lead} fmt={fmt} />
+        </div>
       </LeadSection>
     </div>
   );
