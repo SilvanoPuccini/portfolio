@@ -36,6 +36,32 @@ function nombreDeArchivo(nombre: string): string {
   return nombre.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Cliente';
 }
 
+/**
+ * El `Content-Disposition`, con el nombre intacto y el header válido.
+ *
+ * El nombre iba crudo: «Contrato Estefanía Ortigosa.pdf». Los headers HTTP
+ * son ASCII por norma, así que una í o una ñ ahí adentro llega corrupta o
+ * hace que el navegador descarte la respuesta entera, y el cliente ve «hay un
+ * problema con el PDF» sobre un archivo que está perfecto.
+ *
+ * El RFC 5987 resuelve justo esto: un nombre plano para el que no entienda
+ * nada, y el de verdad en `filename*`, codificado en UTF-8.
+ */
+function comoSeLlama(nombreCliente: string): string {
+  const limpio = nombreDeArchivo(nombreCliente);
+  const archivo = `Contrato ${limpio}.pdf`;
+
+  // Sin acentos ni nada raro: es el respaldo, no el nombre bueno.
+  const plano = archivo
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x20-\x7E]/g, '')
+    .replace(/["\\]/g, '')
+    .trim() || 'Contrato.pdf';
+
+  return `inline; filename="${plano}"; filename*=UTF-8''${encodeURIComponent(archivo)}`;
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!rateLimit(`contrato-pdf:${getIp(req)}`, 10, 60_000)) {
     return NextResponse.json({ error: 'Too many requests.' }, { status: 429 });
@@ -75,9 +101,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Not found.' }, { status: 404 });
   }
 
-  const pdf = await archivoPropio(id) ?? await archivoDeDocumenso(lead.contrato_envelope_id);
+  const propio = await archivoPropio(id);
+  const pdf = propio.pdf ?? await archivoDeDocumenso(lead.contrato_envelope_id);
+
   if (!pdf) {
-    return NextResponse.json({ error: 'No se pudo obtener el contrato.' }, { status: 502 });
+    // El motivo va en la respuesta a propósito: un fallo mudo no se puede
+    // arreglar. El cliente dice «hay un problema con el PDF» y con un solo
+    // mensaje para los tres caminos no hay nada que mirar del otro lado.
+    // Sin rutas internas: es información para diagnosticar, no para filtrar.
+    console.error(`[contrato-firmado] Sin archivo para el pedido ${id}: ${propio.motivo}`);
+    return NextResponse.json(
+      { error: 'No se pudo obtener el contrato.', motivo: propio.motivo },
+      { status: 502 },
+    );
   }
 
   return new NextResponse(new Uint8Array(pdf), {
@@ -86,15 +122,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       // `inline` y no `attachment`: que lo vea en el navegador y lo guarde si
       // quiere. Bajar a ciegas un archivo que no se puede mirar es pedirle al
       // cliente que confíe en que su contrato dice lo que dijimos.
-      'Content-Disposition':
-        `inline; filename="Contrato ${nombreDeArchivo(lead.nombre)}.pdf"`,
+      'Content-Disposition': comoSeLlama(lead.nombre),
       'Cache-Control': 'private, no-store',
     },
   });
 }
 
-/** El PDF que archivamos al firmar, con la evidencia adentro. */
-async function archivoPropio(pedidoId: string): Promise<Buffer | null> {
+/** Por qué no se pudo entregar el archivo propio. */
+type MotivoSinArchivo = 'sin-archivo' | 'archivo-perdido';
+
+/**
+ * El PDF que archivamos al firmar, con la evidencia adentro.
+ *
+ * Devuelve también por qué falló: no es lo mismo que la firma nunca haya
+ * dejado un archivo —el upload al Storage se cayó al firmar— que el archivo
+ * esté registrado y no aparezca. El primero se arregla mirando el bucket; el
+ * segundo, la firma.
+ */
+async function archivoPropio(
+  pedidoId: string,
+): Promise<{ pdf: Buffer | null; motivo: MotivoSinArchivo }> {
   const db = getSupabaseAdmin();
 
   const { data } = await db
@@ -106,17 +153,17 @@ async function archivoPropio(pedidoId: string): Promise<Buffer | null> {
     .maybeSingle();
 
   const path = (data as { pdf_path: string | null } | null)?.pdf_path;
-  if (!path) return null;
+  if (!path) return { pdf: null, motivo: 'sin-archivo' };
 
   const { data: archivo, error } = await db.storage.from(BUCKET).download(path);
   if (error || !archivo) {
     // El archivo se perdió pero la firma existe: se intenta el otro camino
     // antes de decirle que no hay contrato.
-    console.error('[contrato-firmado] No se pudo bajar del Storage:', error);
-    return null;
+    console.error(`[contrato-firmado] No se pudo bajar «${path}» del Storage:`, error);
+    return { pdf: null, motivo: 'archivo-perdido' };
   }
 
-  return Buffer.from(await archivo.arrayBuffer());
+  return { pdf: Buffer.from(await archivo.arrayBuffer()), motivo: 'archivo-perdido' };
 }
 
 /** Los contratos viejos, firmados cuando la firma la hacía Documenso. */

@@ -140,4 +140,78 @@ describe('GET /api/pedido/[id]/contrato-firmado', () => {
 
     expect((await get()).status).toBe(502);
   });
+
+  /**
+   * El nombre del archivo tiene que sobrevivir al viaje.
+   *
+   * Iba crudo en el header: «Contrato Estefanía Ortigosa.pdf». Los headers
+   * HTTP son ASCII por norma, así que una í o una ñ ahí adentro llega
+   * corrupta o hace que el navegador descarte la respuesta entera — y el
+   * cliente ve «hay un problema con el PDF» sobre un archivo que está sano.
+   *
+   * La forma correcta es la del RFC 5987: un nombre ASCII de respaldo para
+   * los navegadores viejos y el de verdad en `filename*`, codificado.
+   */
+  it('no manda un solo byte fuera de ASCII en el header', async () => {
+    const disposition = (await get()).headers.get('content-disposition') ?? '';
+
+    expect(disposition).toMatch(/^[\x20-\x7E]*$/);
+  });
+
+  it('conserva los acentos del nombre, codificados', async () => {
+    const disposition = (await get()).headers.get('content-disposition') ?? '';
+
+    expect(disposition).toContain("filename*=UTF-8''");
+    expect(disposition).toContain('Estefan%C3%ADa');
+  });
+
+  it('deja un nombre legible para el navegador que no entienda el codificado', async () => {
+    const disposition = (await get()).headers.get('content-disposition') ?? '';
+
+    expect(disposition).toContain('filename="Contrato Estefania Ortigosa.pdf"');
+  });
+
+  it('sigue sacando los caracteres que Windows no admite', async () => {
+    supabase({ lead: { ...LEAD, nombre: 'Ferrelon: Stock / Ventas' } });
+
+    const disposition = (await get()).headers.get('content-disposition') ?? '';
+
+    expect(disposition).toContain('filename="Contrato Ferrelon Stock Ventas.pdf"');
+  });
+
+  /**
+   * Un fallo mudo no se puede arreglar.
+   *
+   * Los tres caminos que terminan sin archivo devolvían el mismo «No se pudo
+   * obtener el contrato». Con eso no hay forma de saber si el PDF nunca se
+   * archivó, si se archivó y desapareció, o si el que pide no verificó su
+   * correo: el cliente dice «hay un problema con el PDF» y del otro lado no
+   * hay nada que mirar.
+   */
+  it('dice cuándo no hay ninguna firma archivada', async () => {
+    supabase({ firma: null });
+    vi.mocked(descargarContratoFirmado).mockResolvedValue(null);
+
+    const body = await (await get()).json() as { motivo?: string };
+
+    expect(body.motivo).toBe('sin-archivo');
+  });
+
+  it('distingue el archivo que se registró pero no está', async () => {
+    supabase({ archivo: null });
+    vi.mocked(descargarContratoFirmado).mockResolvedValue(null);
+
+    const body = await (await get()).json() as { motivo?: string };
+
+    expect(body.motivo).toBe('archivo-perdido');
+  });
+
+  it('el motivo no filtra la ruta interna del archivo', async () => {
+    supabase({ archivo: null });
+    vi.mocked(descargarContratoFirmado).mockResolvedValue(null);
+
+    const crudo = await (await get()).text();
+
+    expect(crudo).not.toContain('lead-1/pedido-1.pdf');
+  });
 });
