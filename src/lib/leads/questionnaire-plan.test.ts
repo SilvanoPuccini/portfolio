@@ -32,11 +32,45 @@ describe('casillerosCubiertos', () => {
   });
 });
 
-describe('planQuestionnaire', () => {
-  it('sin datos manda el cuestionario completo', () => {
+describe('el disparador: qué servicio y por qué no compró', () => {
+  it('a quien no eligió servicio se lo pregunta primero', () => {
     const plan = planQuestionnaire(vacio);
-    expect(plan.length).toBeGreaterThanOrEqual(7);
-    expect(plan.every((q) => q.fuente === 'calificacion')).toBe(true);
+    expect(plan[0].key).toBe('servicio');
+    expect(plan[0].opciones?.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('a quien ya entró por un servicio no se lo vuelve a preguntar', () => {
+    const plan = planQuestionnaire({ ...vacio, service: 'web' });
+    expect(plan.map((q) => q.key)).not.toContain('servicio');
+  });
+
+  it('lo que elige ahí abre las preguntas de ese servicio', () => {
+    // Es la rama: la respuesta cambia lo que se pregunta después.
+    const plan = planQuestionnaire(vacio, 'es', 'automatizacion');
+    expect(plan.map((q) => q.key)).toContain('origen');
+  });
+
+  it('pregunta por qué prefirió hablar antes de contratar', () => {
+    // Es la información más cara del negocio: o el catálogo no se entiende,
+    // o falta un paquete.
+    const pregunta = planQuestionnaire(vacio).find((q) => q.key === 'por_que_llamada');
+    expect(pregunta?.opciones?.join(' ').toLowerCase()).toMatch(/no entend|no entra|precio/);
+  });
+
+  it('si ya contestó por qué, no se lo repite', () => {
+    const plan = planQuestionnaire({ ...vacio, service_data: { por_que_llamada: 'El precio' } });
+    expect(plan.map((q) => q.key)).not.toContain('por_que_llamada');
+  });
+});
+
+describe('planQuestionnaire', () => {
+  it('sin datos manda el cuestionario completo, con el disparador adelante', () => {
+    const plan = planQuestionnaire(vacio);
+
+    expect(plan.length).toBeGreaterThanOrEqual(9);
+    // Primero qué necesita y por qué no lo compró solo; después lo demás.
+    expect(plan.slice(0, 2).map((q) => q.fuente)).toEqual(['disparador', 'disparador']);
+    expect(plan.slice(2).every((q) => q.fuente === 'calificacion')).toBe(true);
   });
 
   it('no vuelve a preguntar lo que el cliente ya contestó', () => {
@@ -87,7 +121,7 @@ describe('planQuestionnaire', () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('con todo contestado queda solo el contexto', () => {
+  it('con todo contestado queda el motivo y el contexto', () => {
     const plan = planQuestionnaire({
       ...vacio,
       presupuesto_rango: 'USD 1000',
@@ -99,7 +133,8 @@ describe('planQuestionnaire', () => {
         'decision.quien': 'Yo',
       },
     });
-    expect(plan).toHaveLength(1);
-    expect(plan[0].para).toBe('Contexto');
+    // Queda el motivo de la llamada, que no se deduce de ningún otro dato, y
+    // el pedido de contexto del final.
+    expect(plan.map((q) => q.key)).toEqual(['servicio', 'por_que_llamada', 'q7']);
   });
 });

@@ -1230,6 +1230,21 @@ export function servicioPorSlug(slug: string | null | undefined): Servicio | nul
   return SERVICIOS.find((s) => s.slug === buscado) ?? null;
 }
 
+/**
+ * El servicio por su nombre, como lo eligió el cliente en una lista.
+ *
+ * El cuestionario guarda texto legible y no slugs: lo lee una persona en el
+ * panel. Para volver del texto al servicio hace falta esto.
+ */
+export function servicioPorNombre(
+  nombre: string | null | undefined,
+  locale: Locale = 'es',
+): Servicio | null {
+  if (!nombre?.trim()) return null;
+  const buscado = nombre.trim().toLowerCase();
+  return SERVICIOS.find((servicio) => servicio.nombre[locale].toLowerCase() === buscado) ?? null;
+}
+
 export function paquetePorSlug(slug: string | null | undefined): Paquete | null {
   if (!slug) return null;
   return paquetes().find((p) => p.slug === slug) ?? null;

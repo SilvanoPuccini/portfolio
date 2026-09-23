@@ -1,4 +1,4 @@
-import { servicioPorSlug, type Locale } from '@/content/servicios';
+import { SERVICIOS, servicioPorSlug, type Locale } from '@/content/servicios';
 import {
   QUESTIONNAIRE,
   fromServicio,
@@ -20,7 +20,70 @@ import {
  */
 
 export interface PlannedQuestion extends ResolvedQuestion {
-  fuente: 'calificacion' | 'servicio';
+  fuente: 'calificacion' | 'servicio' | 'disparador';
+}
+
+/**
+ * La primera pregunta de quien no entró por un servicio.
+ *
+ * Ordena todo lo que viene después: define de qué se habla, abre las
+ * preguntas de ese rubro y deja el lead categorizado desde el minuto uno.
+ * Sin esto, la llamada empieza por «contame qué necesitás», que es la peor
+ * pregunta posible porque la contesta cualquier cosa.
+ */
+function preguntaDeServicio(locale: Locale): PlannedQuestion {
+  return {
+    key: 'servicio',
+    text: locale === 'es'
+      ? '¿Qué es lo que más se parece a lo que necesitás?'
+      : 'Which of these is closest to what you need?',
+    hint: locale === 'es'
+      ? 'Elegí el que más se acerque, aunque no sea exacto. Después lo ajustamos.'
+      : 'Pick the closest one, even if it is not exact. We adjust it later.',
+    para: 'Servicio',
+    fuente: 'disparador',
+    opciones: [
+      ...SERVICIOS.map((servicio) => servicio.nombre[locale]),
+      locale === 'es' ? 'Todavía no sé' : 'Not sure yet',
+    ],
+  };
+}
+
+/**
+ * Por qué eligió hablar en vez de contratar directo.
+ *
+ * Es la información más cara del negocio y la que hoy se pierde en cada
+ * llamada. Si la respuesta es «no entendí qué incluye», el problema es del
+ * catálogo y se arregla una vez para todos. Si es «mi caso no entra», ahí hay
+ * un paquete que falta.
+ */
+function preguntaDelPorQue(locale: Locale): PlannedQuestion {
+  return {
+    key: 'por_que_llamada',
+    text: locale === 'es'
+      ? '¿Por qué preferiste hablar antes de contratar?'
+      : 'Why did you prefer to talk before buying?',
+    hint: locale === 'es'
+      ? 'Contestá con sinceridad: me sirve para mejorar lo que ofrezco.'
+      : 'Be honest: it helps me improve what I offer.',
+    para: 'Motivo',
+    fuente: 'disparador',
+    opciones: locale === 'es'
+      ? [
+        'No entendí bien qué incluye',
+        'Mi caso no entra en ninguno de los paquetes',
+        'Necesito algo que no está en la lista',
+        'El precio: quiero ver alternativas',
+        'Prefiero hablarlo antes de decidir',
+      ]
+      : [
+        'I did not quite understand what is included',
+        'My case does not fit any of the packages',
+        'I need something that is not on the list',
+        'The price: I want to see options',
+        'I would rather talk it through first',
+      ],
+  };
 }
 
 /** Lo que el planificador necesita saber del lead. Nada más que esto. */
@@ -65,15 +128,26 @@ export function casillerosCubiertos(lead: LeadParaPlan): Set<string> {
 }
 
 /** El cuestionario de este lead: lo que falta saber, en el orden en que se pregunta. */
-export function planQuestionnaire(lead: LeadParaPlan, locale: Locale = 'es'): PlannedQuestion[] {
+export function planQuestionnaire(
+  lead: LeadParaPlan,
+  locale: Locale = 'es',
+  /** Lo que acaba de elegir en la primera pregunta, si todavía no está guardado. */
+  servicioElegido?: string,
+): PlannedQuestion[] {
   const cubiertos = casillerosCubiertos(lead);
+  const contestadas = lead.service_data ?? {};
+
+  // El disparador: primero qué necesita, después por qué no lo compró solo.
+  const disparadores = [
+    ...(lead.service || servicioElegido ? [] : [preguntaDeServicio(locale)]),
+    ...(conTexto(contestadas.por_que_llamada) ? [] : [preguntaDelPorQue(locale)]),
+  ];
 
   const calificacion = QUESTIONNAIRE.filter((q) => !cubiertos.has(q.para)).map(
     (q): PlannedQuestion => ({ ...resolveQuestion(q, locale), fuente: 'calificacion' }),
   );
 
-  const servicio = servicioPorSlug(lead.service);
-  const contestadas = lead.service_data ?? {};
+  const servicio = servicioPorSlug(lead.service ?? servicioElegido);
   const delServicio = (servicio?.preguntas ?? [])
     .filter((pregunta) => !conTexto(contestadas[pregunta.key]))
     .map((pregunta): PlannedQuestion => ({ ...fromServicio(pregunta, locale), fuente: 'servicio' }));
@@ -83,7 +157,7 @@ export function planQuestionnaire(lead: LeadParaPlan, locale: Locale = 'es'): Pl
   const contexto = calificacion.filter((q) => q.para === 'Contexto');
   const resto = calificacion.filter((q) => q.para !== 'Contexto');
 
-  const plan = [...resto, ...delServicio, ...contexto];
+  const plan = [...disparadores, ...resto, ...delServicio, ...contexto];
 
   // Una clave repetida guardaría dos respuestas en el mismo lugar.
   const vistas = new Set<string>();

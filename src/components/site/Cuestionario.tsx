@@ -30,19 +30,31 @@ export function Cuestionario({ token, compacto = false }: { token: string; compa
   const [estado, setEstado] = useState<Estado>('cargando');
   const [error, setError] = useState('');
 
+  /**
+   * Las preguntas se vuelven a pedir cuando elige un servicio.
+   *
+   * Es la rama: lo que contesta en la primera pregunta define lo que se le
+   * pregunta después. Pedirlas de nuevo al servidor es más simple y más
+   * confiable que replicar acá la lógica de qué abre cada opción.
+   */
+  const servicio = respuestas.servicio ?? '';
+
   useEffect(() => {
     if (!token) return;
 
-    fetch(`/api/questionnaire/check?token=${encodeURIComponent(token)}`)
+    const url = `/api/questionnaire/check?token=${encodeURIComponent(token)}`
+      + (servicio ? `&servicio=${encodeURIComponent(servicio)}` : '');
+
+    fetch(url)
       .then(async (res) => {
         if (!res.ok) return setEstado('error');
         const body = await res.json() as { completed?: boolean; questions?: Pregunta[] };
         if (body.completed) return setEstado('completado');
         setPreguntas(body.questions ?? []);
-        setEstado('listo');
+        setEstado((actual) => (actual === 'cargando' ? 'listo' : actual));
       })
       .catch(() => setEstado('error'));
-  }, [token]);
+  }, [token, servicio]);
 
   async function enviar(event: React.FormEvent) {
     event.preventDefault();

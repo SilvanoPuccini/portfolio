@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { servicioPorNombre } from '@/content/servicios';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const { data: questionnaire, error: selectError } = await supabase
       .from('questionnaires')
-      .select('id, completed_at')
+      .select('id, lead_id, completed_at')
       .eq('token', token)
       .single();
 
@@ -44,6 +45,14 @@ export async function POST(req: NextRequest) {
       .eq('id', questionnaire.id);
 
     if (updateError) throw updateError;
+
+    // El servicio que eligió en la primera pregunta queda en la venta: es lo
+    // que después pretilda el presupuesto y categoriza al cliente. Si no se
+    // copia acá, esa respuesta queda enterrada en un jsonb.
+    const elegido = servicioPorNombre((answers as Record<string, unknown>)?.servicio as string);
+    if (elegido && questionnaire.lead_id) {
+      await supabase.from('leads').update({ service: elegido.slug }).eq('id', questionnaire.lead_id);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

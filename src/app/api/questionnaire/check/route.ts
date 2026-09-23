@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { Locale } from '@/content/servicios';
+import { servicioPorNombre, type Locale } from '@/content/servicios';
 import { planQuestionnaire } from '@/lib/leads/questionnaire-plan';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -45,9 +45,13 @@ export async function GET(req: NextRequest) {
     // Por defecto en español: el cliente es de la región, no de Silicon Valley.
     const locale: Locale = searchParams.get('lang') === 'en' ? 'en' : 'es';
 
+    // Lo que acaba de elegir en la primera pregunta, todavía sin guardar:
+    // con eso se abren las preguntas de ese servicio en la misma pantalla.
+    const elegido = servicioPorNombre(searchParams.get('servicio'), locale);
+
     return NextResponse.json({
       completed: false,
-      questions: planQuestionnaire(lead ?? {}, locale),
+      questions: planQuestionnaire(lead ?? {}, locale, elegido?.slug),
     });
   } catch (err) {
     console.error('[api/questionnaire/check] GET error:', err);
