@@ -132,7 +132,6 @@ export default async function PedidoPage({ params }: { params: Params }) {
   const etapa = etapaDelPedido(pedido, lead
     ? {
       estado: lead.estado,
-      contrato_firma_token: lead.contrato_firma_token,
       contrato_firmado_at: lead.contrato_firmado_at,
       pago_estado: lead.pago_estado,
     }

@@ -16,7 +16,6 @@ export interface PedidoParaEtapa {
 
 export interface LeadParaEtapa {
   estado: string | null;
-  contrato_firma_token: string | null;
   contrato_firmado_at: string | null;
   pago_estado: string | null;
 }
@@ -28,11 +27,16 @@ export function etapaDelPedido(
   pedido: PedidoParaEtapa,
   lead: LeadParaEtapa | null,
 ): EtapaPedido {
+  // Sin venta no hay a quién ponerle el contrato: lo primero son sus datos.
   if (!pedido.lead_id || !lead) return 'datos';
 
-  // Sin contrato creado no hay nada que firmar: se vuelve a pedir los datos.
-  if (!lead.contrato_firma_token) return 'datos';
-
+  // Antes acá se exigía el token de Documenso. Desde que la firma se hace en
+  // nuestro sitio ese campo queda null para siempre, así que el cliente
+  // firmaba, la página recargaba, no encontraba token y lo devolvía al primer
+  // paso: el botón del contrato otra vez habilitado y el pago inalcanzable.
+  //
+  // El contrato se arma del catálogo, no de un tercero: si la venta existe,
+  // hay contrato que firmar.
   const firmado = Boolean(pedido.firmado_at || lead.contrato_firmado_at);
   if (!firmado) return 'firma';
 

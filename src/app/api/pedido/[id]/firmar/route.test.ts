@@ -147,3 +147,58 @@ describe('POST /api/pedido/[id]/firmar', () => {
     expect((await post(FIRMA)).status).toBe(429);
   });
 });
+
+/**
+ * Firmar abre la sesión del cliente.
+ *
+ * La cookie de acceso se daba solo por el circuito de verificación por
+ * correo, que existe para el material del proyecto. El que acababa de firmar
+ * no la tenía: pasaba al pago, tocaba «descargar el contrato firmado» y
+ * recibía «verificá tu correo para continuar», sobre el documento que acababa
+ * de firmar él mismo.
+ *
+ * Firmar es la acción más fuerte del circuito: si le confiamos el link para
+ * obligarse, le confiamos el link para leer lo que firmó.
+ */
+describe('POST /api/pedido/[id]/firmar — la sesión del que firmó', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(rateLimit).mockReturnValue(true);
+    process.env.ADMIN_SESSION_SECRET = 'secreto-de-prueba-largo';
+    supabase();
+  });
+
+  it('deja abierta la sesión del cliente al firmar', async () => {
+    const res = await post(FIRMA);
+
+    expect(res.status).toBe(200);
+    expect(res.cookies.get('pedido_acceso')?.value).toContain('pedido-1');
+  });
+
+  it('la sesión es httpOnly y no viaja en claro', async () => {
+    const cookie = (await post(FIRMA)).cookies.get('pedido_acceso');
+
+    expect(cookie?.httpOnly).toBe(true);
+    expect(cookie?.secure).toBe(true);
+  });
+
+  it('no abre ninguna sesión si la firma no se registró', async () => {
+    insertFirma.mockResolvedValue({ error: { message: 'se cayó' } });
+
+    const res = await post(FIRMA);
+
+    expect(res.status).toBe(500);
+    expect(res.cookies.get('pedido_acceso')).toBeUndefined();
+  });
+
+  it('sin el secreto configurado, la firma no se pierde', async () => {
+    // Una firma vale más que una comodidad: se registra igual y el cliente
+    // llega a su contrato por el circuito de verificación de siempre.
+    delete process.env.ADMIN_SESSION_SECRET;
+
+    const res = await post(FIRMA);
+
+    expect(res.status).toBe(200);
+    expect(insertFirma).toHaveBeenCalled();
+  });
+});

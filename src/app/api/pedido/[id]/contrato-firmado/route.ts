@@ -6,16 +6,26 @@ import { rateLimit } from '@/lib/rate-limit';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
- * El contrato firmado, descargable desde la página del pedido.
+ * El contrato firmado, a un clic de la página del pedido.
  *
  * El cliente lo recibe por correo, pero un correo se borra y un adjunto se
- * pierde. Su contrato tiene que estar siempre a un clic del mismo link que ya
- * conoce, sin tener que buscar nada.
+ * pierde. Su contrato tiene que estar siempre en el mismo link que ya conoce,
+ * sin tener que buscar nada.
  *
- * El id del pedido es un uuid: quien lo tiene es quien compró.
+ * Buscaba el archivo SOLO en Documenso, por su `contrato_envelope_id`. Desde
+ * que se firma en nuestro sitio ese campo queda null y el PDF vive en nuestro
+ * Storage: el cliente firmaba, pedía su copia y se encontraba con un error.
+ * Ahora sale del archivo propio, y Documenso queda de respaldo para los
+ * contratos viejos que se firmaron allá.
+ *
+ * El id del pedido es un uuid, pero no alcanza: el contrato lleva el nombre,
+ * el domicilio y el precio del cliente, así que además hay que haber
+ * verificado el correo.
  */
 
 export const dynamic = 'force-dynamic';
+
+const BUCKET = 'contratos';
 
 function getIp(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
@@ -60,11 +70,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     nombre: string; contrato_envelope_id: string | null; contrato_firmado_at: string | null;
   } | null;
 
-  if (!lead?.contrato_firmado_at || !lead.contrato_envelope_id) {
+  // Sin firma no hay copia que dar: lo que se descarga es el contrato firmado.
+  if (!lead?.contrato_firmado_at) {
     return NextResponse.json({ error: 'Not found.' }, { status: 404 });
   }
 
-  const pdf = await descargarContratoFirmado(lead.contrato_envelope_id);
+  const pdf = await archivoPropio(id) ?? await archivoDeDocumenso(lead.contrato_envelope_id);
   if (!pdf) {
     return NextResponse.json({ error: 'No se pudo obtener el contrato.' }, { status: 502 });
   }
@@ -72,9 +83,44 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
+      // `inline` y no `attachment`: que lo vea en el navegador y lo guarde si
+      // quiere. Bajar a ciegas un archivo que no se puede mirar es pedirle al
+      // cliente que confíe en que su contrato dice lo que dijimos.
       'Content-Disposition':
-        `attachment; filename="Contrato ${nombreDeArchivo(lead.nombre)}.pdf"`,
+        `inline; filename="Contrato ${nombreDeArchivo(lead.nombre)}.pdf"`,
       'Cache-Control': 'private, no-store',
     },
   });
+}
+
+/** El PDF que archivamos al firmar, con la evidencia adentro. */
+async function archivoPropio(pedidoId: string): Promise<Buffer | null> {
+  const db = getSupabaseAdmin();
+
+  const { data } = await db
+    .from('firmas')
+    .select('pdf_path')
+    .eq('pedido_id', pedidoId)
+    .order('firmado_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const path = (data as { pdf_path: string | null } | null)?.pdf_path;
+  if (!path) return null;
+
+  const { data: archivo, error } = await db.storage.from(BUCKET).download(path);
+  if (error || !archivo) {
+    // El archivo se perdió pero la firma existe: se intenta el otro camino
+    // antes de decirle que no hay contrato.
+    console.error('[contrato-firmado] No se pudo bajar del Storage:', error);
+    return null;
+  }
+
+  return Buffer.from(await archivo.arrayBuffer());
+}
+
+/** Los contratos viejos, firmados cuando la firma la hacía Documenso. */
+async function archivoDeDocumenso(envelopeId: string | null): Promise<Buffer | null> {
+  if (!envelopeId) return null;
+  return descargarContratoFirmado(envelopeId);
 }

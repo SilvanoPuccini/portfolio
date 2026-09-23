@@ -25,7 +25,7 @@ export function FirmaContrato({
   pedidoId: string;
   clausulas: Clausula[];
   nombreEsperado: string;
-  /** Sin esto se recarga: la página vuelve a calcular su etapa y cae en el pago. */
+  /** Sin esto navega sola al paso siguiente, que es lo que quiere el que firmó. */
   onFirmado?: () => void;
 }) {
   const [nombre, setNombre] = useState('');
@@ -50,8 +50,16 @@ export function FirmaContrato({
         setError(body.error ?? 'No se pudo firmar. Probá de nuevo en un momento.');
         return;
       }
-      if (onFirmado) onFirmado();
-      else window.location.reload();
+      if (onFirmado) return onFirmado();
+
+      // Al mismo link, que ahora resuelve en el paso del pago: el que firmó
+      // quiere pagar, no leer que le va a llegar un correo.
+      //
+      // `replace` y no `reload`: el paso de la firma no queda en el historial,
+      // así que volver atrás no lo devuelve a firmar algo que ya firmó. Y
+      // navegar en vez de recargar lo deja arriba de la página nueva, no
+      // parado donde estaba leyendo el contrato.
+      window.location.replace(window.location.pathname);
     } catch {
       setError('Se cortó la conexión. Probá de nuevo: no se firmó nada.');
     } finally {

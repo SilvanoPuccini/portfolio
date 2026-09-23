@@ -4,6 +4,7 @@ import { contratoDeVenta } from '@/content/contrato';
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
 import { buildContract, Packer } from '@/lib/contract-template';
+import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
 import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
 import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
@@ -203,7 +204,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    return NextResponse.json({ ok: true, firmadoAt: evidencia.firmadoAt });
+    // Queda con la sesión abierta. Antes la cookie de acceso se daba solo por
+    // el circuito de verificación por correo, así que el que acababa de
+    // firmar tocaba «descargar el contrato firmado» y recibía «verificá tu
+    // correo»: sobre el documento que él mismo acababa de firmar.
+    //
+    // Firmar es la acción más fuerte del circuito. Si le confiamos el link
+    // para obligarse, le confiamos el link para leer lo que firmó.
+    const res = NextResponse.json({ ok: true, firmadoAt: evidencia.firmadoAt });
+
+    const secreto = process.env.ADMIN_SESSION_SECRET;
+    if (secreto) {
+      res.cookies.set(COOKIE_ACCESO, firmarSesion(pedido.id, secreto), {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 30 * 86_400,
+      });
+    } else {
+      // Una firma vale más que una comodidad: ya quedó registrada, y al
+      // contrato se llega igual por la verificación de siempre.
+      console.error('[api/pedido/firmar] Falta ADMIN_SESSION_SECRET: sin sesión de cliente');
+    }
+
+    return res;
   } catch (err) {
     console.error('[api/pedido/firmar] POST error:', err);
     return NextResponse.json({ error: 'No se pudo firmar.' }, { status: 500 });
