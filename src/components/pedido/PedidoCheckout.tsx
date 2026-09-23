@@ -89,6 +89,7 @@ export function PedidoCheckout({
       <FirmaContrato
         pedidoId={pedidoId}
         nombreEsperado={datos.nombre}
+        email={datos.email}
         clausulas={clausulasDelContrato(contratoDeVenta({
           paquete,
           extras,

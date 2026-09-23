@@ -202,3 +202,36 @@ describe('POST /api/pedido/[id]/firmar — la sesión del que firmó', () => {
     expect(insertFirma).toHaveBeenCalled();
   });
 });
+
+/**
+ * El correo de la firma tiene que traer el link de vuelta.
+ *
+ * Decía «avisame desde tu página» y no había ninguna página a la que ir: el
+ * cliente quedaba con los datos para transferir y sin forma de volver a su
+ * pedido ni de avisar que pagó. El link es un uuid que vive en la barra del
+ * navegador; si cerró la pestaña, se le fue.
+ */
+describe('POST /api/pedido/[id]/firmar — el correo trae el camino de vuelta', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(rateLimit).mockReturnValue(true);
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://silvanopuccini.dev';
+    supabase();
+  });
+
+  it('manda el link del pedido junto con los datos para pagar', async () => {
+    await post(FIRMA);
+
+    const [, , html] = vi.mocked(sendCrmEmail).mock.calls[0] as [string, string, string];
+    expect(html).toContain('https://silvanopuccini.dev/es/pedido/pedido-1');
+  });
+
+  it('respeta el idioma del pedido', async () => {
+    supabase({ ...PEDIDO, locale: 'en' });
+
+    await post(FIRMA);
+
+    const [, , html] = vi.mocked(sendCrmEmail).mock.calls[0] as [string, string, string];
+    expect(html).toContain('/en/pedido/pedido-1');
+  });
+});

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, FileText } from 'lucide-react';
+import { Check, FileText, Mail } from 'lucide-react';
 
 import type { Clausula } from '@/content/contrato';
 
@@ -20,11 +20,14 @@ export function FirmaContrato({
   pedidoId,
   clausulas,
   nombreEsperado,
+  email,
   onFirmado,
 }: {
   pedidoId: string;
   clausulas: Clausula[];
   nombreEsperado: string;
+  /** A dónde le llegó el link, para que sepa que no depende de esta pestaña. */
+  email?: string;
   /** Sin esto navega sola al paso siguiente, que es lo que quiere el que firmó. */
   onFirmado?: () => void;
 }) {
@@ -76,6 +79,18 @@ export function FirmaContrato({
         </div>
         <p className="mt-3 text-sm leading-6 text-text-secondary">
           Leelo con calma. Firmar no dispara ningún cobro: los datos para pagar aparecen después.
+        </p>
+
+        {/* El link de este pedido es un uuid que vive en la barra del
+            navegador. Quien no sabe que también le llegó por correo cierra la
+            pestaña y da la compra por perdida. Decirlo acá cuesta un renglón. */}
+        <p className="mt-4 flex items-start gap-2.5 rounded-[var(--radius-soft)] border border-outline-ghost/10 bg-[rgb(var(--surface)/0.5)] px-4 py-3 text-sm leading-6 text-text-tertiary">
+          <Mail className="mt-1 h-3.5 w-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
+          <span>
+            Te mandé el link de este pedido
+            {email ? <> a <strong className="text-text-secondary">{email}</strong></> : ' por correo'}.
+            Si cerrás esta página, entrá desde ahí y seguís donde quedaste.
+          </span>
         </p>
 
         {/* El contrato entero, no un resumen: lo que se firma es esto. */}

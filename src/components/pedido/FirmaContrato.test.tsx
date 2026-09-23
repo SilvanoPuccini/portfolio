@@ -90,4 +90,29 @@ describe('FirmaContrato', () => {
     await waitFor(() => expect(onFirmado).toHaveBeenCalled());
     expect(replace).not.toHaveBeenCalled();
   });
+
+  /**
+   * El cliente tiene que saber que no depende de esta pestaña.
+   *
+   * El link del pedido es un uuid que vive en la barra del navegador. Quien
+   * no sabe que le llegó por correo, cierra la página y da la compra por
+   * perdida: ya le pasó a alguien probando el circuito.
+   */
+  it('avisa que el link también le llegó por correo', () => {
+    render(
+      <FirmaContrato
+        pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS}
+        email="este@ejemplo.com"
+      />,
+    );
+
+    expect(screen.getByText(/este@ejemplo.com/)).toBeInTheDocument();
+    expect(screen.getByText(/cerrás esta página/i)).toBeInTheDocument();
+  });
+
+  it('sin el correo a mano, lo dice igual sin inventarlo', () => {
+    render(<FirmaContrato pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
+
+    expect(screen.getByText(/cerrás esta página/i)).toBeInTheDocument();
+  });
 });

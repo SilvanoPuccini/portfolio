@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { contratoDeVenta } from '@/content/contrato';
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
-import { emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
+import { boton, emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
 import { buildContract, Packer } from '@/lib/contract-template';
 import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
 import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
@@ -160,6 +160,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const cotizacion = await quoteFor(lead.pais, pedido.total_usd);
     const monto = `USD ${pedido.total_usd.toLocaleString('es-AR')}`;
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+    const locale = pedido.locale === 'en' ? 'en' : 'es';
+    const urlDelPedido = `${siteUrl}/${locale}/pedido/${pedido.id}`;
+
     try {
       await sendCrmEmail(
         lead.email,
@@ -180,7 +184,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
               nota: contrato.paymentTerms,
             }),
             bloqueDatos('Cómo pagar', paymentInstructionsFor(lead.pais)),
-            parrafo('Cuando transfieras, avisame desde tu página y te confirmo la acreditación.'),
+            parrafo('Cuando transfieras, avisame desde tu pedido y te confirmo la acreditación.'),
+
+            // El link de vuelta. Decía «avisame desde tu página» sin dar
+            // ninguna: el cliente quedaba con los datos para transferir y sin
+            // forma de volver a su pedido. Es un uuid que vive en la barra
+            // del navegador, así que si cerró la pestaña se le fue.
+            boton('Volver a mi pedido', urlDelPedido),
+            nota('Guardá este correo: este link es el camino a tu pedido, al contrato y al material del proyecto.'),
+
             nota('Si algo no coincide con lo que acordamos, respondé este correo antes de pagar.'),
           ].join(''),
         }),

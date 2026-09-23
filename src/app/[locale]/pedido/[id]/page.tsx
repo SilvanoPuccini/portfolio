@@ -47,6 +47,7 @@ interface PedidoRow {
 
 interface LeadRow {
   nombre: string;
+  email: string;
   localidad: string | null;
   estado: string | null;
   pais: string | null;
@@ -74,7 +75,7 @@ async function cargarPedido(id: string) {
 
   const { data: venta } = await db
     .from('leads')
-    .select('nombre, localidad, estado, pais, pago_estado, factura_numero, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
+    .select('nombre, email, localidad, estado, pais, pago_estado, factura_numero, contrato_firma_token, contrato_signing_url, contrato_firmado_at')
     .eq('id', pedido.lead_id)
     .maybeSingle();
 
@@ -178,6 +179,7 @@ export default async function PedidoPage({ params }: { params: Params }) {
               : <FirmaContrato
                   pedidoId={pedido.id}
                   nombreEsperado={lead?.nombre ?? ''}
+                  email={lead?.email}
                   clausulas={clausulasDelContrato(contratoDeVenta({
                     paquete,
                     extras: resumen.extras,

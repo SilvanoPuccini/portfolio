@@ -153,6 +153,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       // que la firma no encuentre la venta y el cliente reciba un 404 justo
       // cuando iba a firmar.
       await db.from('pedidos').update({ lead_id: lead.id }).eq('id', fila.id);
+
+      await mandarElLink({ email, nombre, paquete: paquete.nombre.es, totalUsd: fila.total_usd, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
+
       return NextResponse.json({ modo: 'propia', leadId: lead.id });
     }
 
@@ -215,27 +218,45 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     await db.from('pedidos').update({ lead_id: lead.id }).eq('id', fila.id);
 
-    // El respaldo, de nuestro dominio: si cierra la pestaña sin firmar, el
-    // link le queda en el correo. Que falle el envío no puede tirar abajo la
-    // firma, que es lo que el cliente está haciendo ahora mismo.
-    try {
-      await sendCrmEmail(
-        email,
-        'Tu contrato está listo para firmar',
-        contractToSignHtml({
-          name: nombre,
-          paquete: paquete.nombre.es,
-          totalUsd: fila.total_usd,
-          url: `${siteUrl}/${locale}/pedido/${fila.id}`,
-        }),
-      );
-    } catch (reason) {
-      console.warn('[api/pedido/contrato] El correo de respaldo no salió:', reason);
-    }
+    await mandarElLink({ email, nombre, paquete: paquete.nombre.es, totalUsd: fila.total_usd, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
 
     return NextResponse.json({ token: contrato.token, signingUrl: contrato.signingUrl });
   } catch (err) {
     console.error('[api/pedido/contrato] POST error:', err);
     return NextResponse.json({ error: 'Could not prepare the contract.' }, { status: 500 });
+  }
+}
+
+/**
+ * El link del pedido, al correo del cliente.
+ *
+ * Es el único respaldo que tiene: el link es un uuid que vive en la barra del
+ * navegador y en ningún otro lado. Si cierra la pestaña sin esto, pierde una
+ * venta que ya había decidido y no tiene cómo volver.
+ *
+ * Sale apenas deja su correo, antes de firmar, que es justo cuando todavía
+ * puede perderlo todo. Durante un tiempo salió solo por el camino de
+ * Documenso: el `return` de la firma propia estaba antes, así que en el
+ * circuito que se usa de verdad no se mandaba nunca.
+ *
+ * Que falle el envío no puede tirar abajo la firma, que es lo que el cliente
+ * está haciendo ahora mismo.
+ */
+async function mandarElLink(datos: {
+  email: string; nombre: string; paquete: string; totalUsd: number; url: string;
+}): Promise<void> {
+  try {
+    await sendCrmEmail(
+      datos.email,
+      'Tu contrato está listo para firmar',
+      contractToSignHtml({
+        name: datos.nombre,
+        paquete: datos.paquete,
+        totalUsd: datos.totalUsd,
+        url: datos.url,
+      }),
+    );
+  } catch (reason) {
+    console.warn('[api/pedido/contrato] El correo con el link no salió:', reason);
   }
 }

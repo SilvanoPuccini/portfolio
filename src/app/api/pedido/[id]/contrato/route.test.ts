@@ -199,8 +199,42 @@ describe('con la firma propia, Documenso no se usa', () => {
     expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
   });
 
-  it('no manda el correo de «firmá acá»: el cliente ya está en la pantalla', async () => {
+  /**
+   * El link del pedido tiene que viajar al correo apenas hay a dónde mandarlo.
+   *
+   * Acá vivía la decisión contraria: «no manda el correo, el cliente ya está
+   * en la pantalla». Es cierto hasta que cierra la pestaña. El link del
+   * pedido es un uuid que solo vive en la barra del navegador: si se pierde,
+   * se pierde una venta que ya estaba decidida, y el cliente no tiene ningún
+   * modo de volver.
+   *
+   * Se manda en cuanto deja su correo, antes de firmar, que es justo el
+   * momento en que todavía puede perderlo todo.
+   */
+  it('le manda el link de su pedido apenas deja sus datos', async () => {
     await post(DATOS);
-    expect(sendCrmEmail).not.toHaveBeenCalled();
+
+    const [para, asunto, html] = vi.mocked(sendCrmEmail).mock.calls[0];
+    expect(para).toBe('este@ejemplo.com');
+    expect(asunto).toContain('firmar');
+    expect(html).toContain('/es/pedido/pedido-1');
+  });
+
+  it('el correo no puede tirar abajo la firma que el cliente está haciendo', async () => {
+    vi.mocked(sendCrmEmail).mockRejectedValueOnce(new Error('Resend caído'));
+
+    const res = await post(DATOS);
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).modo).toBe('propia');
+  });
+
+  it('manda el link antes de contestar, no después', async () => {
+    // Si se contestara primero y se mandara después, una respuesta cortada
+    // dejaría al cliente en la pantalla de firma sin correo de respaldo.
+    await post(DATOS);
+
+    expect(sendCrmEmail).toHaveBeenCalled();
+    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
   });
 });
