@@ -1,5 +1,9 @@
 import { randomUUID } from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
+
+import { leerComprobante } from '@/lib/leads/leer-comprobante';
+import { resumenDeRevision } from '@/lib/leads/comprobante-ocr';
+import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 
 import {
   motivoLegible, nombreVisible, revisarComprobante, rutaDelComprobante,
@@ -64,12 +68,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: lead } = await db
       .from('leads')
-      .select('id, nombre, email, estado, contrato_firmado_at, pago_estado')
+      .select('id, nombre, email, estado, pais, contrato_firmado_at, pago_estado')
       .eq('id', fila.lead_id)
       .maybeSingle();
 
     const venta = lead as {
-      id: string; nombre: string; email: string;
+      id: string; nombre: string; email: string; pais: string | null;
       contrato_firmado_at: string | null; pago_estado: string | null;
     } | null;
 
@@ -135,6 +139,34 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
+    // La lectura del comprobante va DESPUÉS de contestar: el cliente no tiene
+    // por qué esperar a que un modelo mire su captura. Si tarda o falla, él ya
+    // sabe que su aviso llegó.
+    if (guardado && adjunto.archivo) {
+      const archivo = adjunto.archivo;
+      // Envuelto a propósito: `after` tira si no hay contexto de request, y
+      // sin esto ese error caía en el catch general y devolvía 500. El cliente
+      // ya transfirió: perder su aviso porque falló una ayuda opcional sería
+      // exactamente al revés de lo que hay que hacer.
+      try {
+        after(async () => {
+          await revisarYAvisar({
+            pedidoId: fila.id,
+            archivo,
+            nombreArchivo: guardado.nombre,
+            esperado: {
+              montoUsd: fila.total_usd,
+              instruccionesDePago: paymentInstructionsFor(venta.pais),
+              nombreCliente: venta.nombre,
+              firmadoAt: venta.contrato_firmado_at,
+            },
+          });
+        });
+      } catch (reason) {
+        console.warn('[api/pedido/pago] No se pudo programar la revisión:', reason);
+      }
+    }
+
     return NextResponse.json({ ok: true, estado: 'informado' });
   } catch (err) {
     console.error('[api/pedido/pago] POST error:', err);
@@ -191,5 +223,51 @@ async function archivarComprobante(
   } catch (reason) {
     console.error('[api/pedido/pago] El comprobante no se pudo leer:', reason);
     return null;
+  }
+}
+
+/**
+ * Lee el comprobante y deja el resultado donde se lo va a mirar.
+ *
+ * Corre después de haberle contestado al cliente: leer una imagen con un
+ * modelo tarda unos segundos y él ya hizo su parte. Si falla, el comprobante
+ * sigue archivado y se mira a mano, como siempre — una ayuda que se cae no
+ * puede frenar un cobro.
+ */
+async function revisarYAvisar(params: {
+  pedidoId: string;
+  archivo: File;
+  nombreArchivo: string;
+  esperado: Parameters<typeof leerComprobante>[2];
+}): Promise<void> {
+  try {
+    const bytes = Buffer.from(await params.archivo.arrayBuffer());
+    const lectura = await leerComprobante(bytes, params.archivo.type, params.esperado);
+    if (!lectura) return;
+
+    await getSupabaseAdmin().from('pedidos').update({
+      comprobante_revision: lectura,
+      comprobante_veredicto: lectura.revision.veredicto,
+    }).eq('id', params.pedidoId);
+
+    const admin = process.env.ADMIN_EMAIL;
+    if (!admin) return;
+
+    const lineas = lectura.revision.hallazgos
+      .map((h) => {
+        const marca = h.senal === 'ok' ? '✓' : h.senal === 'atencion' ? '!' : '✕';
+        return `<li>${marca} ${escapeHtml(h.detalle)}</li>`;
+      })
+      .join('');
+
+    await sendCrmEmail(
+      admin,
+      `${resumenDeRevision(lectura.revision)} · ${escapeHtml(params.nombreArchivo)}`,
+      `<p>Revisé el comprobante automáticamente. <strong>Esto no aprueba nada</strong>: `
+      + 'confirmalo vos desde el panel.</p>'
+      + `<ul>${lineas}</ul>`,
+    );
+  } catch (reason) {
+    console.warn('[api/pedido/pago] No se pudo revisar el comprobante:', reason);
   }
 }

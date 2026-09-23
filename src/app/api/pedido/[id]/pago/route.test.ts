@@ -193,4 +193,14 @@ describe('POST /api/pedido/[id]/pago — con el comprobante adjunto', () => {
     expect(res.status).toBe(200);
     expect(updateLead).toHaveBeenCalledWith(expect.objectContaining({ pago_estado: 'informado' }));
   });
+
+  it('si la revisión automática no se puede programar, el aviso igual queda', async () => {
+    // `after` tira fuera de un contexto de request. Sin envolverlo, ese error
+    // caía en el catch general y devolvía 500: el cliente ya transfirió y
+    // perdía su aviso por una ayuda que es opcional.
+    const res = await conComprobante(captura());
+
+    expect(res.status).toBe(200);
+    expect(updateLead).toHaveBeenCalledWith(expect.objectContaining({ pago_estado: 'informado' }));
+  });
 });

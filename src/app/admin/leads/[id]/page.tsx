@@ -16,6 +16,7 @@ import {
 import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/LeadReadOnlySections';
 import { LeadEditableForm } from '@/components/admin/leads/LeadEditableForm';
 import { CallGuide } from '@/components/admin/leads/CallGuide';
+import { ComprobantePago } from '@/components/admin/leads/ComprobantePago';
 import { LeadSaleHistory } from '@/components/admin/leads/LeadSaleHistory';
 import { LeadCierre } from '@/components/admin/leads/LeadCierre';
 import {
@@ -471,6 +472,10 @@ export default function LeadDetailPage() {
           </p>
         </div>
       )}
+
+      {/* El comprobante y lo que la lectura vio en él. Aparece apenas el
+          cliente informa: es justo cuando hay que decidir si cobrar. */}
+      {lead.pago_estado && <ComprobantePago leadId={lead.id} />}
 
       {/* Recording + Transcription badges */}
       {(lead.grabacion_url || lead.transcripcion) && (

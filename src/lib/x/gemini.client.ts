@@ -70,3 +70,46 @@ export async function callGeminiJson<T>(
   }
   throw lastError ?? new Error('[x/gemini] Sin respuesta');
 }
+
+/**
+ * Lo mismo, pero mirando un archivo.
+ *
+ * Gemini lee imágenes y PDF si van como `inlineData` en base64. Comparte el
+ * retry y el contrato de JSON con la llamada de texto porque los errores del
+ * proveedor son los mismos: duplicar el backoff acá terminaría con dos
+ * políticas distintas para el mismo 503.
+ *
+ * La temperatura va en cero: de un comprobante no se quiere creatividad, se
+ * quiere lo que dice.
+ */
+export async function callGeminiVision<T>(
+  system: string,
+  archivo: { datos: string; tipo: string },
+  instruccion: string,
+  schema: Schema,
+): Promise<{ data: T; tokens: number }> {
+  const model = client().getGenerativeModel({
+    model: MODEL,
+    systemInstruction: system,
+    generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 0 },
+  });
+
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    if (BACKOFF_MS[attempt]) await sleep(BACKOFF_MS[attempt]);
+    try {
+      const result = await model.generateContent([
+        { inlineData: { data: archivo.datos, mimeType: archivo.tipo } },
+        instruccion,
+      ]);
+      const text = result.response.text();
+      const tokens = result.response.usageMetadata?.totalTokenCount ?? 0;
+      return { data: JSON.parse(jsonrepair(text)) as T, tokens };
+    } catch (reason) {
+      lastError = reason instanceof Error ? reason : new Error(String(reason));
+      if (isQuotaError(reason)) throw lastError;
+      if (!isRetryable(lastError)) throw lastError;
+    }
+  }
+  throw lastError ?? new Error('[x/gemini] Sin respuesta');
+}
