@@ -3,36 +3,26 @@
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
-import { ContractStep } from '@/components/propuesta/ContractStep';
-import { clausulasDelContrato, contratoDeVenta } from '@/content/contrato';
-import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
-import { FirmaContrato } from './FirmaContrato';
-import type { Extra, Paquete } from '@/content/servicios';
 
 /**
- * Los tres datos que hacen falta para firmar, y después la firma.
+ * Los tres datos que hacen falta para firmar. Nada más.
  *
  * Tres y no más: el nombre y el mail van escritos en el contrato, y el país
  * define la ley que aplica y la moneda en la que se cobra. Todo lo demás se
  * pide después de firmar, cuando ya hay una venta y no un visitante.
+ *
+ * Antes este mismo componente se transformaba en el contrato sin cambiar de
+ * dirección. El cliente dejaba sus datos, aparecía el contrato, y la URL
+ * seguía siendo la misma: tocar «atrás» lo sacaba del pedido entero porque
+ * para el navegador nunca había avanzado. Ahora navega al paso de la firma,
+ * que tiene su propia dirección, y volver atrás lo trae de vuelta acá a
+ * corregir lo que haya escrito mal.
  */
 
 const PAISES = ['Argentina', 'Chile', 'Uruguay', 'México', 'España', 'Otro'];
 
-export function PedidoCheckout({
-  pedidoId,
-  paquete,
-  extras,
-  totalUsd,
-}: {
-  pedidoId: string;
-  paquete: Paquete;
-  extras: Extra[];
-  totalUsd: number;
-}) {
+export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
   const [datos, setDatos] = useState({ nombre: '', email: '', pais: PAISES[0] });
-  const [firma, setFirma] = useState<{ token: string; signingUrl: string } | null>(null);
-  const [aFirmar, setAFirmar] = useState(false);
   const [demorado, setDemorado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -56,12 +46,6 @@ export function PedidoCheckout({
         token?: string; signingUrl?: string; error?: string; demorado?: boolean; modo?: string;
       };
 
-      // La venta quedó creada y el contrato se firma acá mismo, sin terceros.
-      if (body.modo === 'propia') {
-        setAFirmar(true);
-        return;
-      }
-
       // 202: la venta quedó registrada pero el contrato no se pudo crear
       // ahora. Se le avisa que llega por correo en vez de mostrarle un error
       // a alguien que acaba de decidir comprar.
@@ -70,35 +54,21 @@ export function PedidoCheckout({
         return;
       }
 
-      if (!res.ok || !body.token || !body.signingUrl) {
-        setError(body.error ?? 'No se pudo preparar el contrato. Probá de nuevo en un momento.');
+      // La venta quedó creada, con contrato propio o de Documenso. El paso de
+      // la firma decide cuál mostrar: acá solo hay que llevarlo hasta ahí.
+      if (body.modo === 'propia' || (res.ok && body.token)) {
+        // `assign` y no `replace`: atrás tiene que devolverlo a esta pantalla
+        // si escribió mal su nombre y lo quiere corregir.
+        window.location.assign(`${window.location.pathname}/firmar`);
         return;
       }
-      setFirma({ token: body.token, signingUrl: body.signingUrl });
+
+      setError(body.error ?? 'No se pudo preparar el contrato. Probá de nuevo en un momento.');
     } catch {
       setError('Se cortó la conexión. Nada se perdió: probá de nuevo.');
     } finally {
       setEnviando(false);
     }
-  }
-
-  if (firma) return <ContractStep token={firma.token} signingUrl={firma.signingUrl} />;
-
-  if (aFirmar) {
-    return (
-      <FirmaContrato
-        pedidoId={pedidoId}
-        nombreEsperado={datos.nombre}
-        email={datos.email}
-        clausulas={clausulasDelContrato(contratoDeVenta({
-          paquete,
-          extras,
-          cliente: { nombre: datos.nombre, pais: datos.pais },
-          totalUsd,
-          jurisdiccion: jurisdiccionCorta(datos.pais),
-        }))}
-      />
-    );
   }
 
   if (demorado) {

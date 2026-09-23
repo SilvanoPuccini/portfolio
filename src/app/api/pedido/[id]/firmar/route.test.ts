@@ -10,6 +10,12 @@ import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
 import { POST } from './route';
 
+// Cada caso arma un .docx de verdad con `docx`, que tarda. Con la suite
+// completa corriendo en paralelo eso rozaba los 5 segundos del default y el
+// archivo fallaba de a ratos: un test que a veces se cae enseña a ignorar los
+// rojos, que es peor que no tenerlo.
+vi.setConfig({ testTimeout: 20_000 });
+
 const PEDIDO = {
   id: 'pedido-1', lead_id: 'lead-1', paquete: 'landing', extras: [],
   total_usd: 450, mensual_usd: 0, locale: 'es', firmado_at: null as string | null,

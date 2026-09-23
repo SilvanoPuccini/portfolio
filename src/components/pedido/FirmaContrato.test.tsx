@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { FirmaContrato } from './FirmaContrato';
@@ -25,6 +25,8 @@ function firmar() {
 }
 
 const replace = vi.fn();
+
+const locationReal = window.location;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -115,4 +117,15 @@ describe('FirmaContrato', () => {
 
     expect(screen.getByText(/cerrás esta página/i)).toBeInTheDocument();
   });
+});
+
+/**
+ * `window.location` se repone al terminar.
+ *
+ * Pisarlo sin restaurarlo deja el objeto falso puesto para todo lo que corra
+ * después en el mismo worker de jsdom, y el que se rompe es otro archivo,
+ * lejos de acá. Un test que ensucia el entorno hace fallar a un inocente.
+ */
+afterEach(() => {
+  Object.defineProperty(window, 'location', { configurable: true, value: locationReal });
 });
