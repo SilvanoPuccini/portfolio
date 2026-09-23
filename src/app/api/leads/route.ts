@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
 import { newLeadHtml } from '@/lib/email-templates/new-lead';
+import { asegurarCuestionario } from '@/lib/leads/cuestionario';
 
 export const dynamic = 'force-dynamic';
 
@@ -121,7 +122,15 @@ export async function POST(req: NextRequest) {
       ).catch((err) => console.error('[leads] Admin notification failed:', err));
     }
 
-    return NextResponse.json({ success: true, id: data.id });
+    // El cuestionario se prepara acá mismo, para poder ofrecérselo en la
+    // misma pantalla donde elige el horario. El que lo contesta en el momento
+    // ya no necesita abrir ningún correo.
+    //
+    // Si falla, el lead ya está creado y eso es lo que no se puede perder:
+    // el cuestionario le llega igual por correo al agendar.
+    const cuestionario = await asegurarCuestionario(data.id).catch(() => null);
+
+    return NextResponse.json({ success: true, id: data.id, cuestionario });
   } catch (err) {
     console.error('[leads] Unexpected error:', err);
     return NextResponse.json(

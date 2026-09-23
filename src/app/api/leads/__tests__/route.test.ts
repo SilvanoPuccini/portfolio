@@ -2,6 +2,9 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // Mock Supabase
+vi.mock('@/lib/leads/cuestionario', () => ({
+  asegurarCuestionario: vi.fn().mockResolvedValue('tok-cuestionario'),
+}));
 vi.mock('@/lib/supabase', () => ({
   getSupabaseAdmin: vi.fn(),
 }));

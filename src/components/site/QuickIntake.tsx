@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
 import type { Locale } from '@/content/servicios';
+import { Cuestionario } from './Cuestionario';
 
 /**
  * Lo mínimo para que la llamada exista, y después el calendario.
@@ -30,6 +31,11 @@ const copy = {
     enviando: 'Un segundo…',
     error: 'No se pudo guardar. Revisá el mail y probá de nuevo: no se perdió lo que escribiste.',
     calendario: 'Agendar la llamada',
+    adelantar: 'Opcional, cinco minutos',
+    adelantarTitulo: 'Ya que estás, contame un poco',
+    adelantarBajada: 'Si me contestás esto ahora, llego a la llamada entendiendo tu situación y '
+      + 'los 45 minutos los usamos para resolver. También te llega por correo: si preferís, lo '
+      + 'hacés más tarde.',
     sinCalendario: 'Estoy configurando el calendario. Escribime y coordinamos por mail.',
     escribir: 'Escribime un mail',
     paises: ['Argentina', 'Chile', 'Uruguay', 'México', 'España', 'Otro'],
@@ -46,6 +52,10 @@ const copy = {
     enviando: 'One moment…',
     error: 'Could not save it. Check the email and try again: nothing you wrote was lost.',
     calendario: 'Schedule the call',
+    adelantar: 'Optional, five minutes',
+    adelantarTitulo: 'While you are here, tell me a bit',
+    adelantarBajada: 'If you answer this now, I arrive at the call already understanding your '
+      + 'situation. It also goes to your inbox: do it later if you prefer.',
     sinCalendario: 'I am setting up the calendar. Write to me and we will coordinate by email.',
     escribir: 'Send me an email',
     paises: ['Argentina', 'Chile', 'Uruguay', 'Mexico', 'Spain', 'Other'],
@@ -69,6 +79,7 @@ export default function QuickIntake({
 }) {
   const labels = copy[locale];
   const [estado, setEstado] = useState<Estado>('form');
+  const [cuestionario, setCuestionario] = useState<string | null>(null);
   const [datos, setDatos] = useState({
     nombre: '',
     email: '',
@@ -102,6 +113,10 @@ export default function QuickIntake({
         }),
       });
 
+      if (res.ok) {
+        const body = await res.json().catch(() => ({})) as { cuestionario?: string | null };
+        setCuestionario(body.cuestionario ?? null);
+      }
       setEstado(res.ok ? 'listo' : 'error');
     } catch {
       setEstado('error');
@@ -130,8 +145,26 @@ export default function QuickIntake({
     }).toString()}`;
 
     return (
-      <div className="surface-panel overflow-hidden border border-outline-ghost/10">
-        <iframe src={url} title={labels.calendario} className="h-[700px] w-full border-0" loading="lazy" />
+      <div className="space-y-6">
+        <div className="surface-panel overflow-hidden border border-outline-ghost/10">
+          <iframe src={url} title={labels.calendario} className="h-[700px] w-full border-0" loading="lazy" />
+        </div>
+
+        {/* Las preguntas, acá mismo. El que las contesta ahora no tiene que
+            abrir ningún correo, y el que no, las recibe igual: son las mismas
+            y el link es el mismo. */}
+        {cuestionario && (
+          <div className="surface-panel border border-outline-ghost/10 px-5 py-7 sm:px-8">
+            <p className="technical-label">{labels.adelantar}</p>
+            <h2 className="section-title-sm mt-3">{labels.adelantarTitulo}</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
+              {labels.adelantarBajada}
+            </p>
+            <div className="mt-6">
+              <Cuestionario token={cuestionario} />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
