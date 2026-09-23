@@ -168,3 +168,42 @@ export function planQuestionnaire(
 export function clavesEsperadas(lead: LeadParaPlan): string[] {
   return planQuestionnaire(lead).map((q) => q.key);
 }
+
+/**
+ * Dónde va, en la guía de la llamada, cada cosa que el cliente ya escribió.
+ *
+ * Sin esto la guía le pregunta en vivo lo mismo que contestó por escrito, y
+ * el trabajo previo no sirve de nada: el cliente siente que nadie lo leyó.
+ *
+ * No se completa solo a propósito. En la llamada eso se confirma y se
+ * profundiza: lo que escribió es el punto de partida, no la respuesta final.
+ */
+const DONDE_VA: Record<string, string> = {
+  q1: 'situacion.proceso',
+  q2: 'problema.costo',
+  q3: 'alcance.referencias',
+  q4: 'decision.quien',
+  q5: 'plata.cuando',
+  q6: 'plata.rango',
+  q7: 'encuadre.motivo',
+  por_que_llamada: 'encuadre.motivo',
+};
+
+export function respuestasPrevias(answers: unknown): Record<string, string> {
+  if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return {};
+
+  const guardadas = answers as Record<string, unknown>;
+  const ubicadas: Record<string, string> = {};
+
+  for (const [clave, destino] of Object.entries(DONDE_VA)) {
+    const valor = guardadas[clave];
+    if (typeof valor !== 'string' || !valor.trim()) continue;
+
+    // Dos respuestas pueden caer en la misma pregunta: se suman, no se pisan.
+    ubicadas[destino] = ubicadas[destino]
+      ? `${ubicadas[destino]}\n${valor.trim()}`
+      : valor.trim();
+  }
+
+  return ubicadas;
+}

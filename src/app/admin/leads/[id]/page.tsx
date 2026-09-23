@@ -21,6 +21,7 @@ import {
   clienteSummary, llamadaSummary, diagnosticoSummary, ventaSummary,
 } from '@/lib/leads/sheet-summary';
 import { diagnosisFromAnswers, parseAnswers, type GuideAnswers } from '@/lib/leads/call-guide';
+import { respuestasPrevias } from '@/lib/leads/questionnaire-plan';
 import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
 import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
 import {
@@ -109,7 +110,7 @@ export default function LeadDetailPage() {
   /** Qué pasó con el cuestionario: null mientras no se sabe. */
   const [questionnaireState, setQuestionnaireState] = useState<{
     enviado: boolean; enviadoEl?: string; completadoEl?: string | null; url?: string;
-    respuestas?: { question: { text: string; para: string }; answer: string }[];
+    respuestas?: { question: { key: string; text: string; para: string }; answer: string }[];
   } | null>(null);
 
   // Send proposal email
@@ -657,6 +658,12 @@ export default function LeadDetailPage() {
           leadId={lead.id}
           form={lead}
           answers={guideAnswers}
+          // Lo que el cliente escribió antes de la llamada, ubicado en la
+          // pregunta que le corresponde: la guía deja de pedir de nuevo lo
+          // que ya está contestado.
+          previas={respuestasPrevias(Object.fromEntries(
+            (questionnaireState?.respuestas ?? []).map((r) => [r.question.key, r.answer]),
+          ))}
           onAnswer={(questionId, value) => setGuideAnswers((prev) => ({ ...prev, [questionId]: value }))}
           service={lead.tipo_proyecto}
           onSave={() => void saveDiagnosis()}

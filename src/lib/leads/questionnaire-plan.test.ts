@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { planQuestionnaire, casillerosCubiertos } from './questionnaire-plan';
+import { planQuestionnaire, casillerosCubiertos, respuestasPrevias } from './questionnaire-plan';
 
 const vacio = {
   presupuesto_rango: null,
@@ -136,5 +136,33 @@ describe('planQuestionnaire', () => {
     // Queda el motivo de la llamada, que no se deduce de ningún otro dato, y
     // el pedido de contexto del final.
     expect(plan.map((q) => q.key)).toEqual(['servicio', 'por_que_llamada', 'q7']);
+  });
+});
+
+describe('lo que ya contestó, ubicado en la guía de la llamada', () => {
+  it('pone cada respuesta en la pregunta que le corresponde', () => {
+    const previas = respuestasPrevias({
+      q1: 'Los pedidos me llegan por WhatsApp',
+      q6: 'Entre mil y dos mil dólares',
+    });
+
+    expect(previas['situacion.proceso']).toContain('WhatsApp');
+    expect(previas['plata.rango']).toContain('mil');
+  });
+
+  it('ignora lo vacío y lo que no es texto', () => {
+    expect(respuestasPrevias({ q1: '   ', q2: 42, q6: null })).toEqual({});
+  });
+
+  it('sin respuestas no devuelve nada', () => {
+    expect(respuestasPrevias(null)).toEqual({});
+    expect(respuestasPrevias('cualquier cosa')).toEqual({});
+  });
+
+  it('también ubica lo que contestó del servicio', () => {
+    // «¿Por qué preferiste hablar?» es lo primero que hay que retomar en la
+    // llamada: es la objeción escrita por el propio cliente.
+    const previas = respuestasPrevias({ por_que_llamada: 'Mi caso no entra en ninguno' });
+    expect(previas['encuadre.motivo']).toContain('no entra');
   });
 });

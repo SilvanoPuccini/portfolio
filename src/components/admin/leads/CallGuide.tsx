@@ -55,8 +55,11 @@ function ClientContext({ form, service }: { form: FormAnswers; service?: string 
 }
 
 /** Una pregunta con su casilla y, si el navegador lo permite, su dictado. */
-function Question({ id, text, hint, value, onChange }: {
-  id: string; text: string; hint?: string; value: string; onChange: (value: string) => void;
+function Question({ id, text, hint, value, previa, onChange }: {
+  id: string; text: string; hint?: string; value: string;
+  /** Lo que el cliente ya escribió antes de la llamada para esta pregunta. */
+  previa?: string;
+  onChange: (value: string) => void;
 }) {
   const { supported, listening, toggle } = useDictation((chunk) => {
     onChange(value ? `${value} ${chunk}` : chunk);
@@ -84,6 +87,31 @@ function Question({ id, text, hint, value, onChange }: {
       {hint && (
         <p style={{ margin: 0, fontSize: 12, color: c.textDim, lineHeight: 1.5 }}>{hint}</p>
       )}
+
+      {/* Lo que ya contestó por escrito. No se completa solo: en la llamada
+          esto se confirma y se profundiza. Pero preguntárselo de nuevo como
+          si nadie lo hubiera leído es la peor forma de empezar. */}
+      {previa && !value && (
+        <div style={{
+          borderLeft: `2px solid ${c.ready}`, paddingLeft: 10,
+          display: 'grid', gap: 6, margin: '2px 0 4px',
+        }}>
+          <p style={{ margin: 0, fontSize: 12.5, color: c.textSoft, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+            <strong style={{ color: c.ready }}>Ya te escribió:</strong> {previa}
+          </p>
+          <button
+            type="button"
+            onClick={() => onChange(previa)}
+            style={{
+              background: 'transparent', border: `1px solid ${c.border}`, borderRadius: 6,
+              cursor: 'pointer', fontSize: 11.5, padding: '3px 10px', color: c.textDim,
+              justifySelf: 'start',
+            }}
+          >
+            Tomarlo como respuesta
+          </button>
+        </div>
+      )}
       <textarea
         id={id}
         value={value}
@@ -95,11 +123,15 @@ function Question({ id, text, hint, value, onChange }: {
   );
 }
 
-export function CallGuide({ leadId, form, service, answers, onAnswer, onSave, saved, onApplyModules }: {
+export function CallGuide({
+  leadId, form, service, answers, previas = {}, onAnswer, onSave, saved, onApplyModules,
+}: {
   leadId: string;
   form: FormAnswers;
   service?: string | null;
   answers: GuideAnswers;
+  /** Lo que el cliente contestó en el cuestionario, ya ubicado por pregunta. */
+  previas?: Record<string, string>;
   onAnswer: (questionId: string, value: string) => void;
   onSave: () => void;
   saved: boolean;
@@ -231,6 +263,7 @@ export function CallGuide({ leadId, form, service, answers, onAnswer, onSave, sa
             text={question.text}
             hint={question.hint}
             value={answers[question.id] ?? ''}
+            previa={previas[question.id]}
             onChange={(value) => onAnswer(question.id, value)}
           />
         ))}
