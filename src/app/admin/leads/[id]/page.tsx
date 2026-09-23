@@ -10,7 +10,7 @@ import { LeadAdvanceBar } from '@/components/admin/leads/LeadAdvanceBar';
 import { LeadSection } from '@/components/admin/leads/LeadSection';
 import { sectionsFor, type SectionId } from '@/lib/leads/sections';
 import {
-  buildPertRows, pertHours,
+  buildPertRows,
   type Lead, type LeadModule, type PertRow, type RateConfig,
 } from '@/lib/leads/types';
 import { LeadFormFields, LeadServiceDetails } from '@/components/admin/leads/LeadReadOnlySections';
@@ -80,12 +80,6 @@ export default function LeadDetailPage() {
   // Editable diagnosis fields
   const [guideAnswers, setGuideAnswers] = useState<GuideAnswers>({});
   const [mantenimiento, setMantenimiento] = useState('');
-  const [diagObjetivo, setDiagObjetivo] = useState('');
-  const [diagSituacion, setDiagSituacion] = useState('');
-  const [diagRequerimiento, setDiagRequerimiento] = useState('');
-  const [diagDolor, setDiagDolor] = useState('');
-  const [diagDeseo, setDiagDeseo] = useState('');
-  const [diagPreocupaciones, setDiagPreocupaciones] = useState('');
   const [diagSaved, setDiagSaved] = useState(false);
 
   // Budget calculator
@@ -124,10 +118,6 @@ export default function LeadDetailPage() {
   const [contractEmailSent, setContractEmailSent] = useState(false);
   const [contractEmailError, setContractEmailError] = useState('');
 
-  // Proposal prompt
-  const [promptVisible, setPromptVisible] = useState(false);
-  const [promptCopied, setPromptCopied] = useState(false);
-
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/admin/leads/${id}`);
@@ -141,12 +131,6 @@ export default function LeadDetailPage() {
     setNotasLlamada(l.notas_llamada ?? '');
     setGuideAnswers(parseAnswers(l.guia_respuestas));
     setMantenimiento(l.mantenimiento_mensual != null ? String(l.mantenimiento_mensual) : '');
-    setDiagObjetivo(l.diagnostico_objetivo ?? '');
-    setDiagSituacion(l.diagnostico_situacion ?? '');
-    setDiagRequerimiento(l.diagnostico_requerimiento ?? '');
-    setDiagDolor(l.diagnostico_dolor ?? '');
-    setDiagDeseo(l.diagnostico_deseo ?? '');
-    setDiagPreocupaciones(l.diagnostico_preocupaciones ?? '');
     setLoading(false);
   }, [id]);
 
@@ -198,9 +182,6 @@ export default function LeadDetailPage() {
 
     setBudgetInit(false); // prevent re-run
   }, [lead, allModules, budgetInit]);
-
-  // Budget calculations
-  const selectedRows = useMemo(() => pertRows.filter((r) => r.selected), [pertRows]);
 
   const presupuesto = useMemo(
     () =>
@@ -290,61 +271,7 @@ export default function LeadDetailPage() {
     }
   }
 
-  function buildProposalPrompt(): string {
-    if (!lead) return '';
-    const modules = selectedRows.map((r) => `- ${r.label}: ${pertHours(r.o, r.m, r.p).toFixed(0)}h`).join('\n');
-    return [
-      '# BRIEF PARA PROPUESTA VISUAL',
-      '',
-      '## Cliente',
-      `- Nombre: ${lead.titular || lead.nombre}`,
-      lead.que_construir ? `- Negocio: ${lead.que_construir}` : null,
-      lead.localidad || lead.pais ? `- Ubicación: ${[lead.localidad, lead.pais].filter(Boolean).join(', ')}` : null,
-      '',
-      '## Diagnóstico',
-      diagObjetivo ? `**Objetivo:** ${diagObjetivo}` : null,
-      diagSituacion ? `**Situación:** ${diagSituacion}` : null,
-      diagRequerimiento ? `**Requerimiento:** ${diagRequerimiento}` : null,
-      diagDolor ? `**Dolor:** ${diagDolor}` : null,
-      diagDeseo ? `**Deseo:** ${diagDeseo}` : null,
-      diagPreocupaciones ? `**Preocupaciones:** ${diagPreocupaciones}` : null,
-      '',
-      '## Alcance del proyecto',
-      `- Tipo: ${lead.tipo_proyecto || 'No definido'}`,
-      lead.secciones ? `- Secciones: ${lead.secciones}` : null,
-      lead.tiene_login === true ? '- Login de usuarios: Sí' : null,
-      lead.tiene_pagos === true ? '- Pagos online: Sí' : null,
-      lead.tiene_admin === 'yes' ? '- Panel admin: Sí' : null,
-      lead.integraciones?.length ? `- Integraciones: ${lead.integraciones.join(', ')}` : null,
-      lead.idiomas && lead.idiomas > 1 ? `- Multi-idioma: ${lead.idiomas} idiomas` : null,
-      '',
-      '## Módulos incluidos',
-      modules || '(ninguno seleccionado)',
-      '',
-      '## Presupuesto',
-      `- Horas estimadas: ${presupuesto.horasMedida.toFixed(1)}h (PERT + ${rateConfig.buffer_pct}% buffer)`,
-      `- Tarifa: $${rateConfig.tarifa_hora}/hr`,
-      `- Total: $${presupuesto.totalUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
-      lead.plazo ? `- Plazo deseado: ${lead.plazo}` : null,
-      '',
-      '## Instrucciones',
-      'Generá una propuesta visual profesional para este cliente con:',
-      '1. Portada con el nombre del proyecto y el logo de Silvano Puccini Dev',
-      '2. Resumen del problema y la solución propuesta',
-      '3. Desglose de módulos con horas estimadas',
-      '4. Inversión total con condiciones de pago (50% inicio, 50% entrega)',
-      '5. Timeline estimado en semanas',
-      '6. Sección de garantía (30 días de corrección de bugs post-entrega)',
-      '7. Diseño limpio, oscuro, minimalista, tipografía moderna',
-    ].filter((line) => line !== null).join('\n');
-  }
 
-  async function copyPrompt() {
-    const prompt = buildProposalPrompt();
-    await navigator.clipboard.writeText(prompt);
-    setPromptCopied(true);
-    setTimeout(() => setPromptCopied(false), 3000);
-  }
 
 
   /**
@@ -641,8 +568,8 @@ export default function LeadDetailPage() {
             </div>
           ) : (
             <LeadActionButton
-              hint="Mandale el cuestionario ANTES de la llamada: llegás con la mitad contestada y la charla se usa para profundizar, no para recolectar datos."
-              label="Enviar cuestionario"
+              hint="Se manda solo cuando agenda la llamada. Este botón es para el que llegó por otro lado: por teléfono, por recomendación o cargado a mano."
+              label="Mandarle el cuestionario"
               tone="#0ea5e9"
               busy={questionnaireSending}
               done={questionnaireSent}
@@ -711,47 +638,6 @@ export default function LeadDetailPage() {
           onMantenimiento={setMantenimiento}
           fmt={fmt}
         />
-      {/* Proposal Prompt Generator */}
-        {lead.monto_presupuestado != null && (
-          <div style={{ marginTop: 18 }}>
-            <p style={s.sectionTitle}>Prompt para la propuesta</p>
-          <p style={s.hint}>
-            Compilá los datos del lead en un prompt listo para generar la propuesta visual.
-          </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
-            <button
-              style={{ ...s.btn, background: '#f59e0b', color: '#0a0a14' }}
-              onClick={() => setPromptVisible(!promptVisible)}
-            >
-              {promptVisible ? 'Ocultar prompt' : 'Ver prompt'}
-            </button>
-            {promptVisible && (
-              <button style={s.btn} onClick={copyPrompt}>
-                {promptCopied ? 'Copiado!' : 'Copiar al portapapeles'}
-              </button>
-            )}
-            {promptCopied && <p style={s.successText}>Copiado</p>}
-          </div>
-
-          {promptVisible && (
-            <textarea
-              readOnly
-              value={buildProposalPrompt()}
-              style={{
-                ...s.input,
-                marginTop: 14,
-                minHeight: 320,
-                resize: 'vertical' as React.CSSProperties['resize'],
-                fontSize: 13,
-                lineHeight: 1.6,
-                fontFamily: 'monospace',
-                color: '#94a3b8',
-              }}
-            />
-          )}
-          </div>
-        )}
       </LeadSection>
 
       {/* ── 4 · LA VENTA ──────────────────────────────────────────────── */}
