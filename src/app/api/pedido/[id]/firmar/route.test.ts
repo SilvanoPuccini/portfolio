@@ -105,14 +105,36 @@ describe('POST /api/pedido/[id]/firmar', () => {
     }));
   });
 
-  it('archiva el PDF firmado y le manda la copia con los datos de pago', async () => {
+  it('archiva el contrato firmado y le manda la copia con los datos de pago', async () => {
     await post(FIRMA);
 
     expect(upload).toHaveBeenCalled();
     const [para, asunto, , adjuntos] = vi.mocked(sendCrmEmail).mock.calls[0];
     expect(para).toBe('este@ejemplo.com');
     expect(asunto).toMatch(/firmado/i);
-    expect((adjuntos as { filename: string }[])[0].filename).toMatch(/\.pdf$/);
+    // `.docx` y no `.pdf`: el documento lo genera `docx`, y adjuntarlo como
+    // PDF le daba al cliente un archivo de Word que su lector no abría.
+    expect((adjuntos as { filename: string }[])[0].filename).toMatch(/\.docx$/);
+  });
+
+  it('archiva el documento con la extensión y el tipo que de verdad tiene', async () => {
+    // Se guardaba como «.pdf» con contentType application/pdf. El archivo
+    // estaba sano: lo que estaba mal era cómo se lo presentaba.
+    await post(FIRMA);
+
+    const [ruta, , opciones] = upload.mock.calls[0] as [string, unknown, { contentType: string }];
+    expect(ruta).toMatch(/\.docx$/);
+    expect(opciones.contentType).toContain('wordprocessingml');
+  });
+
+  it('el adjunto del correo y el archivo guardado son el mismo documento', async () => {
+    await post(FIRMA);
+
+    const [, contenido] = upload.mock.calls[0] as [string, Uint8Array];
+    const [, , , adjuntos] = vi.mocked(sendCrmEmail).mock.calls[0];
+    const delCorreo = (adjuntos as { content: Buffer }[])[0].content;
+
+    expect(Buffer.from(contenido).equals(delCorreo)).toBe(true);
   });
 
   it('el nombre tiene que ser el del contrato', async () => {

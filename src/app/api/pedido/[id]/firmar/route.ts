@@ -6,6 +6,7 @@ import { boton, emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '
 import { buildContract, Packer } from '@/lib/contract-template';
 import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
 import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
+import { nombreConExtension, tipoDeDocumento } from '@/lib/leads/tipo-de-archivo';
 import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
@@ -109,9 +110,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       navegador: req.headers.get('user-agent') ?? 'desconocido',
     });
 
-    // El PDF sale con la evidencia adentro: tiene que sostenerse solo, sin
-    // que haya que cruzarlo con la base para saber si vale.
-    const pdf = await Packer.toBuffer(buildContract({
+    // El documento sale con la evidencia adentro: tiene que sostenerse solo,
+    // sin que haya que cruzarlo con la base para saber si vale.
+    const documento = Buffer.from(await Packer.toBuffer(buildContract({
       ...contrato,
       firmaCliente: {
         nombre: evidencia.nombre,
@@ -119,15 +120,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         ip: evidencia.ip,
         huella: evidencia.huella,
       },
-    }));
+    })));
 
-    const pdfPath = `${lead.id}/${pedido.id}.pdf`;
+    // El tipo se mira, no se declara. Durante un tiempo todo este camino dijo
+    // «application/pdf» porque la variable se llamaba `pdf`, y lo que sale de
+    // `Packer` es un .docx: el cliente recibía un archivo de Word diciendo que
+    // era un PDF y no lo podía abrir, ni desde la página ni desde el correo.
+    const tipo = tipoDeDocumento(documento);
+
+    const pdfPath = `${lead.id}/${pedido.id}${tipo.extension}`;
     const { error: errorPdf } = await db.storage.from(BUCKET).upload(
       pdfPath,
-      new Uint8Array(pdf),
-      { contentType: 'application/pdf', upsert: true },
+      new Uint8Array(documento),
+      { contentType: tipo.mime, upsert: true },
     );
-    if (errorPdf) console.error('[api/pedido/firmar] No se pudo archivar el PDF:', errorPdf);
+    if (errorPdf) console.error('[api/pedido/firmar] No se pudo archivar el contrato:', errorPdf);
 
     const { error } = await db.from('firmas').insert({
       lead_id: lead.id,
@@ -196,7 +203,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             nota('Si algo no coincide con lo que acordamos, respondé este correo antes de pagar.'),
           ].join(''),
         }),
-        [{ filename: `Contrato · ${lead.nombre}.pdf`, content: Buffer.from(pdf) }],
+        [{
+          filename: nombreConExtension(`Contrato · ${lead.nombre}`, tipo),
+          content: documento,
+        }],
       );
     } catch (reason) {
       // La firma ya ocurrió: no se deshace porque falle un correo.

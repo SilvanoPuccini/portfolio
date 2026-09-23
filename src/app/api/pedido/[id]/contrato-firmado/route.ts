@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { descargarContratoFirmado } from '@/lib/leads/documenso-contract';
 import { rateLimit } from '@/lib/rate-limit';
+import { nombreConExtension, tipoDeDocumento, type TipoDeArchivo } from '@/lib/leads/tipo-de-archivo';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -47,9 +48,9 @@ function nombreDeArchivo(nombre: string): string {
  * El RFC 5987 resuelve justo esto: un nombre plano para el que no entienda
  * nada, y el de verdad en `filename*`, codificado en UTF-8.
  */
-function comoSeLlama(nombreCliente: string): string {
+function comoSeLlama(nombreCliente: string, tipo: TipoDeArchivo): string {
   const limpio = nombreDeArchivo(nombreCliente);
-  const archivo = `Contrato ${limpio}.pdf`;
+  const archivo = nombreConExtension(`Contrato ${limpio}`, tipo);
 
   // Sin acentos ni nada raro: es el respaldo, no el nombre bueno.
   const plano = archivo
@@ -57,7 +58,7 @@ function comoSeLlama(nombreCliente: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^\x20-\x7E]/g, '')
     .replace(/["\\]/g, '')
-    .trim() || 'Contrato.pdf';
+    .trim() || `Contrato${tipo.extension}`;
 
   return `inline; filename="${plano}"; filename*=UTF-8''${encodeURIComponent(archivo)}`;
 }
@@ -116,13 +117,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     );
   }
 
+  // El tipo se mira, no se declara. Esto se servía como «application/pdf»
+  // porque la variable se llamaba `pdf`, y el documento que genera `Packer` es
+  // un .docx: el navegador recibía un archivo de Word diciendo que era un PDF
+  // y no lo podía abrir. Detectarlo acá arregla también los que ya están
+  // guardados con el nombre equivocado.
+  const tipo = tipoDeDocumento(pdf);
+
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
-      'Content-Type': 'application/pdf',
+      'Content-Type': tipo.mime,
       // `inline` y no `attachment`: que lo vea en el navegador y lo guarde si
       // quiere. Bajar a ciegas un archivo que no se puede mirar es pedirle al
       // cliente que confíe en que su contrato dice lo que dijimos.
-      'Content-Disposition': comoSeLlama(lead.nombre),
+      'Content-Disposition': comoSeLlama(lead.nombre, tipo),
       'Cache-Control': 'private, no-store',
     },
   });

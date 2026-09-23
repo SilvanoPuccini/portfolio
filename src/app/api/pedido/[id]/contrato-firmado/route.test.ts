@@ -25,13 +25,23 @@ const LEAD = {
   contrato_envelope_id: null as string | null,
   contrato_firmado_at: '2026-09-22T10:00:00Z',
 };
-const FIRMA = { pdf_path: 'lead-1/pedido-1.pdf' };
+const FIRMA = { pdf_path: 'lead-1/pedido-1.docx' };
+
+/**
+ * Lo que de verdad archivamos: un .docx, que es un ZIP.
+ *
+ * El fixture decía «%PDF nuestro» y el código servía «application/pdf» sin
+ * mirar: los dos estaban de acuerdo en una mentira, así que el test pasaba
+ * mientras el cliente no podía abrir su contrato.
+ */
+const DOCX = Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.from(' docx nuestro')]);
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 function supabase({
   pedido = PEDIDO as unknown,
   lead = LEAD as unknown,
   firma = FIRMA as unknown,
-  archivo = new Blob([Buffer.from('%PDF nuestro')]) as Blob | null,
+  archivo = new Blob([DOCX]) as Blob | null,
 } = {}) {
   const download = vi.fn().mockResolvedValue(
     archivo ? { data: archivo, error: null } : { data: null, error: { message: 'no está' } },
@@ -72,16 +82,27 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.ADMIN_SESSION_SECRET = 'secreto-de-prueba-largo';
   supabase();
-  vi.mocked(descargarContratoFirmado).mockResolvedValue(Buffer.from('%PDF de documenso'));
+  vi.mocked(descargarContratoFirmado).mockResolvedValue(Buffer.from('%PDF-1.7 de documenso'));
 });
 
 describe('GET /api/pedido/[id]/contrato-firmado', () => {
-  it('entrega el PDF que archivamos al firmar', async () => {
+  it('entrega el documento que archivamos al firmar, con su tipo real', async () => {
+    // El contrato lo genera `docx`, así que es un .docx. Servirlo como PDF
+    // —que es lo que hacía— le daba al navegador un archivo de Word diciendo
+    // que era otra cosa, y no lo podía abrir.
     const res = await get();
 
     expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('application/pdf');
+    expect(res.headers.get('content-type')).toBe(DOCX_MIME);
     expect(Buffer.from(await res.arrayBuffer()).toString()).toContain('nuestro');
+  });
+
+  it('un PDF de verdad se sirve como PDF', async () => {
+    // El día que el contrato pase a ser un PDF, el tipo sale solo: se mira el
+    // archivo en vez de declararlo.
+    supabase({ archivo: new Blob([Buffer.from('%PDF-1.7 real')]) });
+
+    expect((await get()).headers.get('content-type')).toBe('application/pdf');
   });
 
   it('no sale a buscarlo a Documenso teniendo el nuestro', async () => {
@@ -168,7 +189,7 @@ describe('GET /api/pedido/[id]/contrato-firmado', () => {
   it('deja un nombre legible para el navegador que no entienda el codificado', async () => {
     const disposition = (await get()).headers.get('content-disposition') ?? '';
 
-    expect(disposition).toContain('filename="Contrato Estefania Ortigosa.pdf"');
+    expect(disposition).toContain('filename="Contrato Estefania Ortigosa.docx"');
   });
 
   it('sigue sacando los caracteres que Windows no admite', async () => {
@@ -176,7 +197,7 @@ describe('GET /api/pedido/[id]/contrato-firmado', () => {
 
     const disposition = (await get()).headers.get('content-disposition') ?? '';
 
-    expect(disposition).toContain('filename="Contrato Ferrelon Stock Ventas.pdf"');
+    expect(disposition).toContain('filename="Contrato Ferrelon Stock Ventas.docx"');
   });
 
   /**
