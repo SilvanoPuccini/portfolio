@@ -35,12 +35,25 @@ export function clienteSummary(lead: FormAnswers & { nombre?: string | null }): 
   return parts.join(' · ');
 }
 
-/** Momento 2: cuánto se avanzó en la llamada y si califica. */
-export function llamadaSummary(answers: GuideAnswers): string {
+/**
+ * Momento 2: cuánto se avanzó en la llamada y si califica.
+ *
+ * La calificación cuenta también lo que el cliente escribió antes. Si no, el
+ * renglón anuncia «califica 0/7 · le falta para sostenerse» sobre una venta
+ * que adentro muestra 3/7: dos números sobre lo mismo, y el de afuera es el
+ * que se lee sin abrir la sección.
+ *
+ * El avance de preguntas, en cambio, sigue siendo solo lo anotado: eso mide
+ * la llamada, y una llamada sin empezar no avanzó porque el cliente escribiera.
+ */
+export function llamadaSummary(
+  answers: GuideAnswers,
+  previas: Record<string, string> = {},
+): string {
   const progress = guideProgress(answers);
   if (progress.filled === 0) return 'Sin anotar · la guía arranca cuando empieza la llamada';
 
-  const score = qualificationScore(answers);
+  const score = qualificationScore(answers, previas);
   const warning = score.ok <= 3 ? ' · le falta para sostenerse' : '';
   return `${progress.filled} de ${progress.total} preguntas · califica ${score.ok}/${score.total}${warning}`;
 }

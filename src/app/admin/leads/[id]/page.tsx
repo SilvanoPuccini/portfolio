@@ -23,6 +23,7 @@ import {
 } from '@/lib/leads/sheet-summary';
 import { diagnosisFromAnswers, parseAnswers, type GuideAnswers } from '@/lib/leads/call-guide';
 import { respuestasPrevias } from '@/lib/leads/questionnaire-plan';
+import { volcarRespuestas } from '@/lib/leads/volcado';
 import { LeadActionButton } from '@/components/admin/leads/LeadActionButton';
 import { LeadBudgetSection } from '@/components/admin/leads/LeadBudgetSection';
 import {
@@ -182,6 +183,32 @@ export default function LeadDetailPage() {
 
     setBudgetInit(false); // prevent re-run
   }, [lead, allModules, budgetInit]);
+
+  /**
+   * Lo que el cliente escribió en el cuestionario, por su clave.
+   *
+   * De acá salen las dos cosas que la llamada necesita saber de antes: dónde
+   * va cada respuesta dentro de la guía, y qué huecos de la venta ya están
+   * tapados. Se calcula una vez y no dos, porque si se separan un día van a
+   * decir cosas distintas.
+   */
+  const respuestasCuestionario = useMemo(
+    () => Object.fromEntries((questionnaireState?.respuestas ?? []).map((r) => [r.question.key, r.answer])),
+    [questionnaireState],
+  );
+
+  /**
+   * La venta con lo del cuestionario ya aplicado.
+   *
+   * El volcado de verdad lo hace el endpoint al contestarse, pero las ventas
+   * que contestaron antes de que eso existiera tienen las columnas vacías. Se
+   * usa la MISMA función para mostrarlo: dos caminos para la misma pregunta
+   * terminan contestando distinto.
+   */
+  const leadConCuestionario = useMemo(
+    () => (lead ? { ...lead, ...volcarRespuestas(respuestasCuestionario, lead) } : lead),
+    [lead, respuestasCuestionario],
+  );
 
   const presupuesto = useMemo(
     () =>
@@ -498,7 +525,7 @@ export default function LeadDetailPage() {
           «Formulario», «Detalles del servicio», «Cuestionario» y «Datos del
           cliente» eran cuatro cajas para la misma pregunta: quién es y qué
           pidió. Ahora es una sola, con el resumen a la vista. */}
-      <LeadSection title="1 · El cliente" defaultOpen={openSections.cliente} hint={clienteSummary(lead)}>
+      <LeadSection title="1 · El cliente" defaultOpen={openSections.cliente} hint={clienteSummary(leadConCuestionario ?? lead)}>
         <LeadFormFields lead={lead} />
 
         {(lead.service || lead.service_data) && (
@@ -581,17 +608,15 @@ export default function LeadDetailPage() {
         </div>
       </LeadSection>
 
-      <LeadSection title="2 · La llamada" defaultOpen={openSections.llamada} hint={llamadaSummary(guideAnswers)}>
+      <LeadSection title="2 · La llamada" defaultOpen={openSections.llamada} hint={llamadaSummary(guideAnswers, respuestasPrevias(respuestasCuestionario))}>
         <CallGuide
           leadId={lead.id}
-          form={lead}
+          form={leadConCuestionario ?? lead}
           answers={guideAnswers}
           // Lo que el cliente escribió antes de la llamada, ubicado en la
           // pregunta que le corresponde: la guía deja de pedir de nuevo lo
           // que ya está contestado.
-          previas={respuestasPrevias(Object.fromEntries(
-            (questionnaireState?.respuestas ?? []).map((r) => [r.question.key, r.answer]),
-          ))}
+          previas={respuestasPrevias(respuestasCuestionario)}
           onAnswer={(questionId, value) => setGuideAnswers((prev) => ({ ...prev, [questionId]: value }))}
           service={lead.tipo_proyecto}
           onSave={() => void saveDiagnosis()}

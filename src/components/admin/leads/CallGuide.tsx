@@ -161,7 +161,12 @@ export function CallGuide({
 
   const stage: GuideStage = CALL_GUIDE[index];
   const progress = guideProgress(answers);
-  const score = qualificationScore(answers);
+  // Lo que el cliente escribió antes cuenta para el semáforo: si ya lo sabés,
+  // lo sabés. Abrir en 0/7 una venta con el presupuesto y el plazo contestados
+  // era el panel avisando que no se sostenía algo que sí se sostenía.
+  const checks = qualification(answers, previas);
+  const score = qualificationScore(answers, previas);
+  const porConfirmar = checks.filter((check) => check.estado === 'escrito').length;
   const stageDone = stageProgress(stage, answers);
   const missing = missingFromForm(form);
 
@@ -214,22 +219,38 @@ export function CallGuide({
         </span>
       </div>
 
-      {/* El semáforo: sin estas siete cosas la venta no se sostiene. */}
+      {/* El semáforo: sin estas siete cosas la venta no se sostiene.
+
+          Un casillero puede venir de dos lados y no da lo mismo: lo que el
+          cliente escribió antes ya lo sabés, pero todavía no se lo miraste a
+          la cara. Por eso el tilde lleno es lo confirmado hablando y el hueco
+          es lo que te escribió y falta confirmar. */}
       <div style={{
         display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
         border: `1px solid ${score.ok >= 5 ? c.published : c.border}`, borderRadius: 8, padding: '9px 12px',
       }}>
         <span style={{ ...s.label, marginBottom: 0 }}>Calificación {score.ok}/{score.total}</span>
-        {qualification(answers).map((check) => (
+        {checks.map((check) => (
           <span
             key={check.id}
+            title={
+              check.estado === 'hablado' ? 'Lo confirmó en la llamada'
+                : check.estado === 'escrito' ? 'Te lo escribió antes — confirmalo hablando'
+                  : 'Todavía no lo sabés'
+            }
             style={{
               fontSize: 11.5, fontFamily: 'monospace', padding: '2px 7px', borderRadius: 5,
               color: check.ok ? c.published : c.textDim,
               border: `1px solid ${check.ok ? c.published : c.border}`,
+              borderStyle: check.estado === 'escrito' ? 'dashed' : 'solid',
             }}
-          >{check.ok ? '✓' : '·'} {check.label}</span>
+          >{check.estado === 'hablado' ? '✓' : check.estado === 'escrito' ? '◇' : '·'} {check.label}</span>
         ))}
+        {porConfirmar > 0 && (
+          <span style={{ fontSize: 12, color: c.textDim }}>
+            ◇ {porConfirmar} {porConfirmar === 1 ? 'te lo escribió' : 'te los escribió'}: confirmalos hablando.
+          </span>
+        )}
         {score.ok <= 3 && (
           <span style={{ fontSize: 12, color: c.incomplete }}>Con menos de cuatro, esa propuesta se enfría.</span>
         )}

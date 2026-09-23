@@ -77,6 +77,57 @@ describe('qualification — el semáforo', () => {
   it('una respuesta en blanco no cuenta como contestada', () => {
     expect(qualificationScore({ 'problema.costo': '   ' })).toEqual({ ok: 0, total: 7 });
   });
+
+  /**
+   * Lo que el cliente ya escribió también cuenta.
+   *
+   * El semáforo arrancaba en 0/7 aunque el cliente hubiera contestado seis
+   * preguntas por escrito la semana anterior. Decía «esta venta no se sostiene»
+   * sobre una venta con el presupuesto, el plazo y el decisor sabidos.
+   */
+  it('marca lo que el cliente contestó por escrito antes de la llamada', () => {
+    const checks = qualification({}, { 'plata.rango': 'Entre 1500 y 2500' });
+
+    expect(checks.find((c) => c.id === 'presupuesto')?.ok).toBe(true);
+    expect(checks.find((c) => c.id === 'presupuesto')?.estado).toBe('escrito');
+  });
+
+  it('distingue lo escrito de lo confirmado hablando', () => {
+    // No es lo mismo: un rango tipeado en un formulario todavía no se miró a
+    // la cara. La llamada lo confirma, y el semáforo tiene que poder mostrarlo.
+    const checks = qualification(
+      { 'plata.rango': 'Cerramos en 2000' },
+      { 'plata.rango': 'Entre 1500 y 2500' },
+    );
+
+    expect(checks.find((c) => c.id === 'presupuesto')?.estado).toBe('hablado');
+  });
+
+  it('deja en vacío lo que no contestó por ningún lado', () => {
+    const checks = qualification({}, { 'plata.rango': 'Entre 1500 y 2500' });
+
+    expect(checks.find((c) => c.id === 'decisor')?.estado).toBe('vacio');
+    expect(checks.find((c) => c.id === 'decisor')?.ok).toBe(false);
+  });
+
+  it('suma lo escrito al puntaje: si ya lo sabés, lo sabés', () => {
+    expect(qualificationScore({}, {
+      'plata.rango': 'Entre 1500 y 2500',
+      'plata.cuando': 'Antes del verano',
+      'decision.quien': 'Lo decido con mi socio',
+    })).toEqual({ ok: 3, total: 7 });
+  });
+
+  it('no cuenta dos veces lo mismo contestado por escrito y hablado', () => {
+    expect(qualificationScore(
+      { 'plata.rango': 'Cerramos en 2000' },
+      { 'plata.rango': 'Entre 1500 y 2500' },
+    )).toEqual({ ok: 1, total: 7 });
+  });
+
+  it('una previa en blanco no marca nada', () => {
+    expect(qualificationScore({}, { 'plata.rango': '   ' })).toEqual({ ok: 0, total: 7 });
+  });
 });
 
 describe('stageSummary y diagnosisFromAnswers', () => {
@@ -128,13 +179,27 @@ describe('progreso', () => {
   });
 });
 
+/**
+ * Lo que falta averiguar antes de poder cotizar.
+ *
+ * Pedía once cosas, de las cuales diez no las llena nadie: venían del
+ * formulario largo que el sitio dejó de tener. El panel avisaba «averiguá si
+ * necesita usuarios y login» en TODA llamada, para siempre. Un aviso que
+ * siempre grita es un aviso que se aprende a ignorar, y ahí se pierden también
+ * los que sí importaban.
+ *
+ * Quedan los cuatro que deciden si la venta se puede cotizar y que el circuito
+ * de verdad llena: el cuestionario los vuelca a la venta al contestarse. Lo
+ * técnico no se perdió — login y cobros los define el paquete del catálogo,
+ * las integraciones las pregunta la guía en su etapa de alcance, y la marca,
+ * el contenido y las secciones los pide el kickoff con el detalle real, ya
+ * vendido.
+ */
 describe('missingFromForm', () => {
-  it('con el formulario completo no falta nada', () => {
+  it('con lo que hace falta para cotizar, no falta nada', () => {
     expect(missingFromForm({
-      que_construir: 'Un catálogo', problema: 'Pierden pedidos', secciones: 'Home, catálogo',
-      presupuesto_rango: 'USD 3000-5000', plazo: '2 meses', tiene_login: true,
-      tiene_pagos: false, tiene_admin: 'sí', integraciones: ['MercadoPago'],
-      tiene_marca: true, tiene_contenido: false,
+      que_construir: 'Un catálogo', problema: 'Pierden pedidos',
+      presupuesto_rango: 'USD 3000-5000', plazo: '2 meses',
     })).toEqual([]);
   });
 
@@ -145,8 +210,33 @@ describe('missingFromForm', () => {
     expect(missing).not.toContain('Qué quiere construir');
   });
 
-  it('un «no» del cliente es una respuesta, no un hueco', () => {
-    expect(missingFromForm({ tiene_pagos: false })).not.toContain('Si necesita cobrar online');
-    expect(missingFromForm({ tiene_pagos: null })).toContain('Si necesita cobrar online');
+  it('no pide lo que ningún formulario llena', () => {
+    const missing = missingFromForm({});
+
+    expect(missing).not.toContain('Si necesita usuarios y login');
+    expect(missing).not.toContain('Si necesita cobrar online');
+    expect(missing).not.toContain('Si necesita panel de administración');
+    expect(missing).not.toContain('Si ya tiene marca y diseño');
+    expect(missing).not.toContain('Si ya tiene el contenido');
+    expect(missing).not.toContain('Qué secciones o pantallas necesita');
+    expect(missing).not.toContain('Con qué sistemas hay que conectarlo');
+  });
+
+  it('un lead recién entrado pide cuatro cosas, no once', () => {
+    expect(missingFromForm({})).toHaveLength(4);
+  });
+
+  it('el cuestionario contestado apaga el aviso', () => {
+    // Las cuatro llegan volcadas desde el cuestionario previo a la llamada.
+    expect(missingFromForm({
+      que_construir: 'Anoto los pedidos en un cuaderno',
+      problema: 'Pierdo 2 horas por día',
+      plazo: 'Antes del verano',
+      presupuesto_rango: 'Entre 1500 y 2500',
+    })).toEqual([]);
+  });
+
+  it('un espacio en blanco no apaga nada', () => {
+    expect(missingFromForm({ problema: '   ' })).toContain('Qué problema lo trajo');
   });
 });

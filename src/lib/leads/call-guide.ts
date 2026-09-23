@@ -324,12 +324,51 @@ export const QUALIFICATION: { id: string; label: string; questionId: string }[] 
   { id: 'plazo', label: 'Plazo', questionId: 'plata.cuando' },
 ];
 
-export function qualification(answers: GuideAnswers): { id: string; label: string; ok: boolean }[] {
-  return QUALIFICATION.map(({ id, label, questionId }) => ({ id, label, ok: filled(answers, questionId) }));
+/**
+ * De dónde salió lo que sabés de este casillero.
+ *
+ * `hablado` es lo anotado en la llamada; `escrito`, lo que el cliente contestó
+ * por su cuenta antes. No es lo mismo: un rango tipeado en un formulario
+ * todavía no se miró a la cara. Pero tampoco es no saberlo.
+ */
+export type EstadoCasillero = 'hablado' | 'escrito' | 'vacio';
+
+export interface CasilleroCalificacion {
+  id: string;
+  label: string;
+  /** Si el dato está, venga de donde venga. */
+  ok: boolean;
+  estado: EstadoCasillero;
 }
 
-export function qualificationScore(answers: GuideAnswers): { ok: number; total: number } {
-  const checks = qualification(answers);
+/**
+ * El semáforo, contando también lo que el cliente ya había escrito.
+ *
+ * Antes miraba solo lo anotado en la llamada: un cliente que había contestado
+ * seis preguntas la semana anterior abría la ficha en 0/7, con el panel
+ * avisando que esa venta no se sostenía. Lo sabido es sabido; de dónde vino se
+ * muestra aparte.
+ */
+export function qualification(
+  answers: GuideAnswers,
+  previas: Record<string, string> = {},
+): CasilleroCalificacion[] {
+  return QUALIFICATION.map(({ id, label, questionId }) => {
+    const estado: EstadoCasillero = filled(answers, questionId)
+      ? 'hablado'
+      : filled(previas, questionId)
+        ? 'escrito'
+        : 'vacio';
+
+    return { id, label, ok: estado !== 'vacio', estado };
+  });
+}
+
+export function qualificationScore(
+  answers: GuideAnswers,
+  previas: Record<string, string> = {},
+): { ok: number; total: number } {
+  const checks = qualification(answers, previas);
   return { ok: checks.filter((check) => check.ok).length, total: checks.length };
 }
 
@@ -385,11 +424,19 @@ export interface FormAnswers {
 }
 
 /**
- * Lo que el cliente NO contestó en el formulario de la web.
+ * Lo que falta saber antes de poder cotizar.
  *
- * Sirve para lo contrario de lo que parece: lo que YA contestó no se vuelve a
- * preguntar —hacerlo dice que no lo leíste—, y lo que falta hay que
- * averiguarlo sí o sí en la llamada.
+ * Pedía once cosas y diez no las llenaba nadie: venían del formulario largo
+ * que el sitio dejó de tener. El panel avisaba «averiguá si necesita usuarios
+ * y login» en TODA llamada, para siempre. Un aviso que siempre grita es un
+ * aviso que se aprende a ignorar, y con él se pierden los que sí importaban.
+ *
+ * Quedan los cuatro que deciden si la venta se puede cotizar y que el circuito
+ * de verdad llena: el cuestionario previo a la llamada los vuelca a la venta
+ * al contestarse. Lo técnico no se perdió de vista — login y cobros los define
+ * el paquete del catálogo, las integraciones las pregunta la guía en su etapa
+ * de alcance, y la marca, el contenido y las secciones los pide el kickoff con
+ * el detalle real, cuando ya está vendido y sirve de algo preguntarlos.
  */
 export function missingFromForm(form: FormAnswers): string[] {
   const missing: string[] = [];
@@ -397,15 +444,8 @@ export function missingFromForm(form: FormAnswers): string[] {
 
   if (empty(form.que_construir)) missing.push('Qué quiere construir');
   if (empty(form.problema)) missing.push('Qué problema lo trajo');
-  if (empty(form.secciones)) missing.push('Qué secciones o pantallas necesita');
   if (empty(form.presupuesto_rango)) missing.push('Con qué presupuesto se maneja');
   if (empty(form.plazo)) missing.push('Para cuándo lo necesita');
-  if (form.tiene_login == null) missing.push('Si necesita usuarios y login');
-  if (form.tiene_pagos == null) missing.push('Si necesita cobrar online');
-  if (empty(form.tiene_admin)) missing.push('Si necesita panel de administración');
-  if (!form.integraciones || form.integraciones.length === 0) missing.push('Con qué sistemas hay que conectarlo');
-  if (form.tiene_marca == null) missing.push('Si ya tiene marca y diseño');
-  if (form.tiene_contenido == null) missing.push('Si ya tiene el contenido');
 
   return missing;
 }

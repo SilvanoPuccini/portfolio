@@ -38,6 +38,42 @@ describe('llamadaSummary', () => {
     expect(line).toContain('califica 1/7');
   });
 
+  /**
+   * El renglón y el semáforo de adentro tienen que decir lo mismo.
+   *
+   * El resumen contaba solo lo anotado en la llamada, así que una venta con
+   * el cuestionario contestado se anunciaba como «califica 0/7 · le falta
+   * para sostenerse» y adentro el semáforo mostraba 3/7. Dos números sobre lo
+   * mismo, y el de afuera es el que se lee sin abrir.
+   */
+  it('cuenta también lo que el cliente contestó por escrito', () => {
+    const line = llamadaSummary(
+      { 'problema.donde': 'Se pierden pedidos' },
+      { 'plata.rango': 'Entre 1500 y 2500', 'plata.cuando': 'Antes del verano' },
+    );
+
+    expect(line).toContain('califica 3/7');
+  });
+
+  it('no avisa que se enfría una venta que ya tiene lo suyo contestado', () => {
+    const line = llamadaSummary(
+      { 'problema.donde': 'Se pierden pedidos' },
+      {
+        'plata.rango': 'Entre 1500 y 2500',
+        'plata.cuando': 'Antes del verano',
+        'decision.quien': 'Lo decido con mi socio',
+        'problema.costo': 'Dos horas por día',
+      },
+    );
+
+    expect(line).not.toContain('le falta para sostenerse');
+  });
+
+  it('sigue diciendo «sin anotar» aunque haya contestado por escrito', () => {
+    // La guía todavía no se tocó: el renglón habla del avance de la llamada.
+    expect(llamadaSummary({}, { 'plata.rango': 'Entre 1500 y 2500' })).toContain('Sin anotar');
+  });
+
   it('avisa cuando la venta no se sostiene', () => {
     expect(llamadaSummary({ 'problema.donde': 'algo' })).toContain('le falta para sostenerse');
   });
