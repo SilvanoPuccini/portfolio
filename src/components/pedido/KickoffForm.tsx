@@ -26,6 +26,8 @@ const copy = {
     guardado: 'Guardado',
     subir: 'Elegir archivo',
     subiendo: 'Subiendo…',
+    subido: 'Subido',
+    noSubio: 'No se pudo subir',
     opcional: 'opcional',
     falta: 'Falta',
     listo: 'Ya está, terminé',
@@ -40,6 +42,8 @@ const copy = {
     guardado: 'Saved',
     subir: 'Choose file',
     subiendo: 'Uploading…',
+    subido: 'Uploaded',
+    noSubio: 'Could not upload',
     opcional: 'optional',
     falta: 'Missing',
     listo: 'That is it, I am done',
@@ -58,6 +62,8 @@ function Campo({
   valor,
   onChange,
   onArchivo,
+  miniaturas,
+  fallidos,
   subiendo,
 }: {
   dato: DatoKickoff;
@@ -65,6 +71,10 @@ function Campo({
   valor: Valor | undefined;
   onChange: (valor: Valor) => void;
   onArchivo: (archivos: FileList) => void;
+  /** Vista previa local de lo recién subido, por nombre. */
+  miniaturas: Record<string, string>;
+  /** Lo que no se pudo subir, para que no se vaya en silencio. */
+  fallidos: string[];
   subiendo: boolean;
 }) {
   const labels = copy[locale];
@@ -142,14 +152,43 @@ function Campo({
             />
           </span>
 
+          {/* Confirmar que llegó es la mitad del trabajo. El cliente sube el
+              logo de su negocio y se queda sin saber si se adjuntó: el tilde
+              y la miniatura son lo que lo dejan seguir tranquilo. */}
           {archivos.length > 0 && (
-            <span className="mt-2 block space-y-1">
+            <span className="mt-3 block space-y-2">
               {archivos.map((nombre) => (
-                <span key={nombre} className="flex items-center gap-2 text-xs text-text-tertiary">
-                  <Paperclip className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  {nombre.split('/').pop()}
+                <span
+                  key={nombre}
+                  className="flex items-center gap-2.5 rounded-[var(--radius-soft)] border border-brand-primary/25 bg-brand-primary/[0.04] px-3 py-2"
+                >
+                  {miniaturas[nombre]
+                    ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={miniaturas[nombre]}
+                        alt=""
+                        className="h-9 w-9 shrink-0 rounded object-cover"
+                      />
+                    )
+                    : <Paperclip className="h-3.5 w-3.5 shrink-0 text-text-tertiary" aria-hidden="true" />}
+
+                  <span className="min-w-0 flex-1 truncate text-xs text-text-secondary">
+                    {nombre.split('/').pop()}
+                  </span>
+
+                  <Check className="h-3.5 w-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
+                  <span className="sr-only">{labels.subido}</span>
                 </span>
               ))}
+            </span>
+          )}
+
+          {/* Un archivo que no sube ya no frena a los demás, pero tampoco
+              puede irse en silencio: el cliente creía que estaba todo. */}
+          {fallidos.length > 0 && (
+            <span role="alert" className="mt-2 block text-xs leading-5 text-red-400">
+              {labels.noSubio}: {fallidos.join(', ')}
             </span>
           )}
         </span>
@@ -175,6 +214,13 @@ export function KickoffForm({
   const [datos, setDatos] = useState<Datos>(iniciales);
   const [estado, setEstado] = useState<'quieto' | 'guardando' | 'guardado'>('quieto');
   const [subiendo, setSubiendo] = useState<string | null>(null);
+
+  // La vista previa de lo que se acaba de subir, y lo que no pudo subirse.
+  // Los archivos viven en un bucket privado, así que la miniatura sale del
+  // archivo que el cliente tiene en la mano: alcanza para confirmarle que lo
+  // que eligió es lo que se fue.
+  const [miniaturas, setMiniaturas] = useState<Record<string, string>>({});
+  const [fallidos, setFallidos] = useState<Record<string, string[]>>({});
   const [completado, setCompletado] = useState(yaCompletado);
   const [avisando, setAvisando] = useState(false);
 
@@ -223,9 +269,13 @@ export function KickoffForm({
 
   async function subir(campo: string, archivos: FileList, multiple: boolean) {
     setSubiendo(campo);
+    setFallidos((previos) => ({ ...previos, [campo]: [] }));
+
     const subidos: string[] = Array.isArray(datos[campo]) && multiple
       ? [...(datos[campo] as string[])]
       : [];
+    const noPudieron: string[] = [];
+    const vistas: Record<string, string> = {};
 
     for (const archivo of Array.from(archivos)) {
       const form = new FormData();
@@ -235,15 +285,36 @@ export function KickoffForm({
       try {
         const res = await fetch(`/api/pedido/${pedidoId}/archivo`, { method: 'POST', body: form });
         const body = await res.json() as { path?: string; nombre?: string };
-        if (res.ok && body.path) subidos.push(body.nombre ?? body.path);
+
+        if (res.ok && body.path) {
+          const nombre = body.nombre ?? body.path;
+          subidos.push(nombre);
+          // Solo las imágenes: de un PDF o una planilla no hay nada que mirar.
+          if (archivo.type.startsWith('image/')) vistas[nombre] = URL.createObjectURL(archivo);
+        } else {
+          noPudieron.push(archivo.name);
+        }
       } catch {
-        // Un archivo que no sube no puede frenar a los demás.
+        // Un archivo que no sube no frena a los demás, pero tampoco se va en
+        // silencio: el cliente creía que estaba todo cargado.
+        noPudieron.push(archivo.name);
       }
     }
 
+    setMiniaturas((previas) => ({ ...previas, ...vistas }));
+    setFallidos((previos) => ({ ...previos, [campo]: noPudieron }));
     setSubiendo(null);
     set(campo, subidos);
   }
+
+  // Las vistas previas ocupan memoria hasta que se las suelta. Se leen de una
+  // ref para soltarlas SOLO al desmontar: hacerlo en cada cambio borraría las
+  // miniaturas que el cliente está mirando.
+  const vivas = useRef<Record<string, string>>({});
+  vivas.current = miniaturas;
+  useEffect(() => () => {
+    Object.values(vivas.current).forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   /** Lo obligatorio que todavía está vacío. */
   const faltan = plan.datos.filter((dato) => {
@@ -295,6 +366,8 @@ export function KickoffForm({
               valor={datos[dato.id] ?? (dato.sugerido ? dato.opciones?.es[dato.sugerido === 'archivo' ? 0 : 1] : undefined)}
               onChange={(valor) => set(dato.id, valor)}
               onArchivo={(archivos) => subir(dato.id, archivos, Boolean(dato.multiple))}
+              miniaturas={miniaturas}
+              fallidos={fallidos[dato.id] ?? []}
               subiendo={subiendo === dato.id}
             />
           </div>
@@ -326,6 +399,8 @@ export function KickoffForm({
                           set(grupo.id, filas);
                         }}
                         onArchivo={(archivos) => subir(`${grupo.id}_${indice}_${campo.id}`, archivos, false)}
+                        miniaturas={miniaturas}
+                        fallidos={fallidos[`${grupo.id}_${indice}_${campo.id}`] ?? []}
                         subiendo={subiendo === `${grupo.id}_${indice}_${campo.id}`}
                       />
                     </div>
