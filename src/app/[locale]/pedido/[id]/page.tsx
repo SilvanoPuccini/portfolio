@@ -48,7 +48,7 @@ export default async function PedidoPage({ params }: { params: Params }) {
       paso="resumen"
       titulo={titulo[currentLocale]}
     >
-      <PedidoCheckout pedidoId={datos.pedido.id} />
+      <PedidoCheckout pedidoId={datos.pedido.id} locale={currentLocale} />
     </PedidoLayout>
   );
 }

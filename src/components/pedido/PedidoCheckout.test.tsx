@@ -79,6 +79,23 @@ describe('PedidoCheckout', () => {
     expect(await screen.findByText(/quedó registrado/i)).toBeInTheDocument();
     expect(assign).not.toHaveBeenCalled();
   });
+
+  it('ofrece volver al pedido que ya había empezado', () => {
+    // Acá nacía el lead duplicado: el que perdió su link arrancaba de cero y
+    // quedaban dos pedidos a medias del mismo cliente.
+    render(<PedidoCheckout pedidoId="abc" locale="es" />);
+
+    const link = screen.getByRole('link', { name: /Volvé al tuyo con tu correo/i });
+    expect(link).toHaveAttribute('href', '/es/pedido/recuperar');
+  });
+
+  it('respeta el idioma en el link de vuelta', () => {
+    render(<PedidoCheckout pedidoId="abc" locale="en" />);
+
+    expect(screen.getByRole('link', { name: /Volvé al tuyo/i })).toHaveAttribute(
+      'href', '/en/pedido/recuperar',
+    );
+  });
 });
 
 /**

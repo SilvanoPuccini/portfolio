@@ -21,7 +21,14 @@ import { ArrowRight } from 'lucide-react';
 
 const PAISES = ['Argentina', 'Chile', 'Uruguay', 'México', 'España', 'Otro'];
 
-export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
+export function PedidoCheckout({
+  pedidoId,
+  locale = 'es',
+}: {
+  pedidoId: string;
+  /** Para el link de vuelta al pedido que ya empezó. */
+  locale?: string;
+}) {
   const [datos, setDatos] = useState({ nombre: '', email: '', pais: PAISES[0] });
   const [demorado, setDemorado] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -118,6 +125,19 @@ export function PedidoCheckout({ pedidoId }: { pedidoId: string }) {
         <span>{enviando ? 'Preparando el contrato…' : 'Ver el contrato y firmar'}</span>
         {!enviando && <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />}
       </button>
+
+      {/* Acá es donde nacía el lead duplicado: el que perdió su link volvía a
+          empezar de cero y quedaban dos pedidos a medias del mismo cliente. */}
+      <p className="mt-6 border-t border-outline-ghost/10 pt-5 text-sm leading-6 text-text-tertiary">
+        ¿Ya habías empezado un pedido?{' '}
+        <a
+          href={`/${locale}/pedido/recuperar`}
+          className="text-text-secondary underline decoration-outline-ghost/30 underline-offset-4 transition-colors hover:text-text-primary"
+        >
+          Volvé al tuyo con tu correo
+        </a>{' '}
+        en vez de arrancar de nuevo.
+      </p>
     </form>
   );
 }
