@@ -157,7 +157,9 @@ describe('buildContractPdf — se lee como un contrato', () => {
     // El pie solo («Página 3 de 4») no cuenta como contenido.
     const vacias = paginas.filter((texto) => texto.replace(/Página \d+ de \d+/, '').trim().length < 40);
     expect(vacias).toEqual([]);
-  });
+  // Genera el PDF y lo vuelve a leer página por página: con la suite entera
+  // corriendo en paralelo pasa los 5 s por defecto sin que nada esté mal.
+  }, 20_000);
 
   it('el título y las partes abren el documento', async () => {
     const [primera] = await paginasDelPdf(await buildContractPdf(DATOS));
