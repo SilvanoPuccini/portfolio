@@ -6,8 +6,9 @@ import { boton, emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '
 import { buildContractPdf } from '@/lib/contrato-pdf';
 import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
 import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
+import { firmaDelProveedor } from '@/lib/leads/firma-proveedor';
 import { nombreConExtension, tipoDeDocumento } from '@/lib/leads/tipo-de-archivo';
-import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
+import { legalClauseFor } from '@/lib/leads/legal-clause';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
 import { advanceOn } from '@/lib/leads/pipeline';
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       extras: resumen.extras,
       cliente: lead,
       totalUsd: pedido.total_usd,
-      jurisdiccion: jurisdiccionCorta(lead.pais),
+      jurisdiccion: legalClauseFor(lead.pais),
     });
 
     const evidencia = evidenciaDeFirma(contrato, lead.nombre, {
@@ -120,6 +121,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // sostener es justamente que dice lo que decía.
     const documento = await buildContractPdf({
       ...contrato,
+      // El Proveedor emite el contrato ya firmado. Sin esto el PDF salía con
+      // un renglón vacío: el generador sabía dibujar la firma y nadie se la
+      // pasaba.
+      firmaProveedor: await firmaDelProveedor(),
       firmaCliente: {
         nombre: evidencia.nombre,
         firmadoAt: evidencia.firmadoAt,
