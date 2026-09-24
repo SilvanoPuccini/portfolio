@@ -50,8 +50,8 @@ export type ContractData = {
    * firmar después: el Proveedor emite el documento ya conforme, y el cliente
    * recibe algo terminado en vez de una hoja a medio firmar.
    *
-   * No entra al repositorio: es una firma, no un recurso de la aplicación.
-   * La carga `firmaDelProveedor()` desde el Storage privado de contratos.
+   * Solo la usa el .docx heredado de Documenso. El PDF firma siempre con
+   * la firma caligráfica fija de `contrato-pdf.ts`.
    */
   firmaProveedor?: Buffer;
   /**

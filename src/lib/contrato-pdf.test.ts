@@ -222,3 +222,19 @@ describe('buildContractPdf — se lee como un contrato', () => {
     expect(todo).toContain('Fecha');
   });
 });
+
+describe('buildContractPdf — la firma del Proveedor', () => {
+  // Salía un renglón vacío: el generador esperaba una imagen que en
+  // producción nadie le pasaba. Ahora es fija y va en caligrafía.
+  it('va siempre, en caligrafía, sin que nadie tenga que pasarla', async () => {
+    const bytes = await buildContractPdf({ ...DATOS, firmaCliente: FIRMA });
+
+    expect(textoDelPdf(bytes)).toContain('GreatVibes');
+  });
+
+  it('también en un contrato todavía sin firmar por el cliente', async () => {
+    const bytes = await buildContractPdf(DATOS);
+
+    expect(textoDelPdf(bytes)).toContain('GreatVibes');
+  });
+});

@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import PDFDocument from 'pdfkit';
 
 import { clausulasDelContrato } from '@/content/contrato';
@@ -32,6 +35,8 @@ const COLOR = {
 const FUENTE = 'Helvetica';
 const FUENTE_NEGRITA = 'Helvetica-Bold';
 const FUENTE_ITALICA = 'Helvetica-Oblique';
+
+export const FIRMA_PROVEEDOR = 'SilvanoPuccini.dev';
 
 /** «22 de septiembre de 2026 a las 15:42 h» — legible y sin ambigüedad de zona. */
 function fechaLegible(iso: string): string {
@@ -125,6 +130,55 @@ function detalleDeFirma(doc: Doc, texto: string): void {
   doc.font(FUENTE_ITALICA).fontSize(9.5).fillColor(COLOR.tenue);
   doc.text(texto, { lineGap: 1.5 });
   doc.moveDown(0.2);
+}
+
+/**
+ * La caligrafía de la firma del Proveedor: Great Vibes (SIL Open Font
+ * License, ver `GreatVibes-OFL.txt`). Se lee una vez y queda en memoria.
+ */
+let caligrafia: Buffer | null | undefined;
+
+function fuenteDeFirma(): Buffer | null {
+  if (caligrafia === undefined) {
+    try {
+      caligrafia = readFileSync(join(process.cwd(), 'src/assets/fonts/GreatVibes-Regular.ttf'));
+    } catch (reason) {
+      console.error('[contrato-pdf] No se encontró la fuente de la firma; sale en itálica común:', reason);
+      caligrafia = null;
+    }
+  }
+  return caligrafia;
+}
+
+/**
+ * La firma del Proveedor, fija en todos los contratos.
+ *
+ * El Proveedor emite el contrato ya conforme: define el alcance y el precio,
+ * y su firma va puesta desde el principio. Antes el generador esperaba una
+ * imagen que en producción nadie le pasaba, y todos los contratos salían con
+ * un renglón vacío. Ahora es texto en caligrafía: vectorial, nítido a
+ * cualquier zoom, y sin ningún archivo externo del que depender.
+ *
+ * Etiqueta, firma, línea: el orden en que se lee un bloque de firma impreso.
+ */
+function firmaDelProveedor(doc: Doc): void {
+  encabezadoDeFirma(doc, 'EL PROVEEDOR');
+  doc.moveDown(0.2);
+
+  const fuente = fuenteDeFirma();
+  if (fuente) doc.font(fuente).fontSize(30);
+  else doc.font(FUENTE_ITALICA).fontSize(20);
+
+  // Con `lineBreak: false` pdfkit no avanza el cursor: el alto de la firma
+  // se reserva a mano, o el nombre de abajo se le monta encima.
+  const arriba = doc.y;
+  doc.fillColor(COLOR.titulo).text(FIRMA_PROVEEDOR, doc.page.margins.left + 6, arriba, { lineBreak: false });
+
+  const y = arriba + (fuente ? 40 : 26);
+  doc.moveTo(doc.page.margins.left, y).lineTo(doc.page.margins.left + 230, y)
+    .lineWidth(0.6).strokeColor(COLOR.linea).stroke();
+  doc.x = doc.page.margins.left;
+  doc.y = y + 6;
 }
 
 /** El renglón para firmar a mano, cuando todavía no hay firma electrónica. */
@@ -262,31 +316,12 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
   // asentimiento queda dado al emitirlo, que es cuando define el alcance y el
   // precio. Esperar su firma para habilitar el pago sería ponerle una traba a
   // la propia venta.
-  if (data.firmaProveedor) {
-    // Etiqueta, firma, línea, nombre: el orden en que se lee un bloque de
-    // firma impreso. La imagen arriba de la etiqueta quedaba flotando.
-    encabezadoDeFirma(doc, 'EL PROVEEDOR');
-    try {
-      doc.image(data.firmaProveedor, doc.page.margins.left, doc.y, { fit: [190, 56] });
-      doc.y += 58;
-    } catch {
-      // Una firma que no se puede dibujar no puede tirar abajo el contrato:
-      // el bloque sigue con el nombre y la conformidad escritos.
-    }
-    const y = doc.y;
-    doc.moveTo(doc.page.margins.left, y).lineTo(doc.page.margins.left + 220, y)
-      .lineWidth(0.6).strokeColor(COLOR.linea).stroke();
-    doc.moveDown(0.4);
-  } else {
-    renglonParaFirmar(doc, 'EL PROVEEDOR');
-  }
+  firmaDelProveedor(doc);
 
   detalleDeFirma(doc, 'Silvano Puccini');
   detalleDeFirma(doc, 'Desarrollador web freelance');
   detalleDeFirma(doc, 'Buenos Aires, Argentina');
-  detalleDeFirma(doc, data.firmaProveedor
-    ? 'Firmado al emitir el presente contrato.'
-    : 'Conforme y firmado electrónicamente al emitir el presente contrato.');
+  detalleDeFirma(doc, 'Conforme y firmado al emitir el presente contrato.');
 
   if (data.firmaCliente) {
     encabezadoDeFirma(doc, 'EL CLIENTE');

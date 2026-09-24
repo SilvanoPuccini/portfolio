@@ -1,7 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { parseSelectedModules } from './selected-modules';
 import { buildContractPdf } from '@/lib/contrato-pdf';
-import { firmaDelProveedor } from '@/lib/leads/firma-proveedor';
 import type { ContractData } from '@/lib/contract-template';
 
 /**
@@ -138,7 +137,7 @@ export async function buildContractDoc(leadId: string, legalClause: string): Pro
   };
 
   return {
-    buffer: await buildContractPdf({ ...contractData, firmaProveedor: await firmaDelProveedor() }),
+    buffer: await buildContractPdf(contractData),
     // Con el nombre legible: es lo que el cliente ve en su carpeta de
     // descargas, no un slug. Los dos puntos no valen en Windows, así que el
     // separador es el punto medio.

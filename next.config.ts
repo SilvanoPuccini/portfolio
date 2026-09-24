@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
   // si el bundler lo empaqueta, en producción no las encuentra y el
   // contrato no se genera.
   serverExternalPackages: ["pdfjs-dist", "pdfkit"],
+  // La firma del Proveedor es una fuente caligráfica que se lee del disco al
+  // generar el contrato. Sin esto el trazado de archivos de Next no la sube
+  // y el contrato sale con la firma en letra común.
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./src/assets/fonts/**"],
+  },
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;
