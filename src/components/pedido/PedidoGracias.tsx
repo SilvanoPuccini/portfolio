@@ -1,4 +1,4 @@
-import { Check, Download, Mail } from 'lucide-react';
+import { Check, Download, Mail, MessageCircle } from 'lucide-react';
 
 import Reveal from '@/components/site/Reveal';
 import type { Locale } from '@/content/servicios';
@@ -19,27 +19,31 @@ const copy = {
     titulo: (nombre: string, paquete: string) => `¡Gracias, ${nombre}! Tu ${paquete} ya está en marcha`,
     bajada: 'Recibí todo tu material. Desde acá el trabajo es mío: te escribo con cada avance, así no tenés que preguntar.',
     camino: 'Lo que viene',
-    firma: 'Voy a trabajar yo en tu proyecto, de punta a punta. Si necesitás algo, respondé cualquiera de mis correos y te contesto yo.',
+    firma: 'Voy a trabajar yo en tu proyecto, de punta a punta. Si necesitás algo, escribime y te contesto yo.',
+    whatsapp: 'Escribime por WhatsApp',
+    volver: 'Guardá el correo que te mandé: tiene el link para volver acá cuando quieras.',
     contrato: 'Tu contrato firmado',
     factura: (numero: string) => `Factura ${numero}`,
     facturaPendiente: 'La factura te llega por correo apenas la emita.',
-    escribir: 'Escribirme',
+    escribir: 'o por correo',
   },
   en: {
     eyebrow: 'Project underway',
     titulo: (nombre: string, paquete: string) => `Thank you, ${nombre}! Your ${paquete} is underway`,
     bajada: 'I have all your material. From here the work is on me: I will write to you with every step, so you never have to ask.',
     camino: 'What comes next',
-    firma: 'I will personally work on your project, end to end. If you need anything, reply to any of my emails and I will answer myself.',
+    firma: 'I will personally work on your project, end to end. If you need anything, write to me and I will answer myself.',
+    whatsapp: 'Message me on WhatsApp',
+    volver: 'Keep the email I sent you: it has the link to come back here any time.',
     contrato: 'Your signed contract',
     factura: (numero: string) => `Invoice ${numero}`,
     facturaPendiente: 'The invoice will reach you by email as soon as it is issued.',
-    escribir: 'Email me',
+    escribir: 'or by email',
   },
 } as const;
 
 export function PedidoGracias({
-  pedidoId, nombre, paquete, pasos, factura, contacto, locale,
+  pedidoId, nombre, paquete, pasos, factura, contacto, whatsapp, locale,
 }: {
   pedidoId: string;
   nombre: string;
@@ -47,6 +51,8 @@ export function PedidoGracias({
   pasos: PasoDelProyecto[];
   factura: string | null;
   contacto: string | null;
+  /** El chat con el mensaje ya escrito. Es el canal principal. */
+  whatsapp: string;
   locale: Locale;
 }) {
   const t = copy[locale];
@@ -94,11 +100,34 @@ export function PedidoGracias({
         </ol>
       </Reveal>
 
-      <Reveal as="section" className="surface-panel px-6 py-6">
+      <Reveal as="section" className="surface-panel px-6 py-7">
         <p className="max-w-xl text-base leading-7 text-text-secondary">{t.firma}</p>
-        <p className="mt-2 font-serif text-2xl italic text-text-primary">Silvano</p>
+        {/* La firma de la marca, la misma que va en el contrato. */}
+        <p
+          className="mt-3 text-4xl leading-none text-text-primary"
+          style={{ fontFamily: 'var(--font-firma), cursive' }}
+          aria-label="Silvano Puccini"
+        >
+          SilvanoPuccini.dev
+        </p>
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+        <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-primary gap-2">
+            <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{t.whatsapp}</span>
+          </a>
+          {contacto && (
+            <a
+              href={`mailto:${contacto}`}
+              className="inline-flex items-center gap-2 text-sm text-text-secondary underline decoration-outline-ghost/30 underline-offset-4 transition-colors hover:text-text-primary"
+            >
+              <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {t.escribir} ({contacto})
+            </a>
+          )}
+        </div>
+
+        <div className="mt-7 grid gap-2 border-t border-outline-ghost/10 pt-5 text-sm">
           <a
             href={`/api/pedido/${pedidoId}/contrato-firmado`}
             target="_blank"
@@ -108,16 +137,8 @@ export function PedidoGracias({
             <Download className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             {t.contrato}
           </a>
-          {contacto && (
-            <a
-              href={`mailto:${contacto}`}
-              className="inline-flex items-center gap-2 text-text-secondary underline decoration-outline-ghost/30 underline-offset-4 transition-colors hover:text-text-primary"
-            >
-              <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              {t.escribir}
-            </a>
-          )}
           <span className="text-text-tertiary">{factura ? t.factura(factura) : t.facturaPendiente}</span>
+          <span className="text-text-tertiary">{t.volver}</span>
         </div>
       </Reveal>
     </div>

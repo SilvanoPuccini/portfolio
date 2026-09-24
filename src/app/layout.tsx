@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Great_Vibes, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import ThemeProvider from "@/components/providers/ThemeProvider";
@@ -21,6 +21,18 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   display: "swap",
+});
+
+/**
+ * La caligrafía de la firma: la misma del contrato. Sin precarga, porque
+ * solo la usa el cierre de la compra y no tiene por qué pesar en el resto.
+ */
+const firma = Great_Vibes({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-firma",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -75,7 +87,7 @@ export default async function RootLayout({
   return (
     <html lang={lang} suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+        className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${firma.variable}`}
       >
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeProvider>{children}</ThemeProvider>

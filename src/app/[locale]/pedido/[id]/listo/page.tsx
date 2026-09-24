@@ -10,6 +10,7 @@ import { cargarPedidoCompleto } from '@/lib/leads/cargar-pedido';
 import { redirigirA } from '@/lib/leads/pedido-pasos';
 import { resolveLocale } from '@/lib/i18n';
 import { plazoDelPedido, type Locale } from '@/content/servicios';
+import { whatsappDelPedido } from '@/lib/leads/contacto';
 import { lineaDeTiempo } from '@/lib/leads/linea-de-tiempo';
 import { replyToAddress } from '@/lib/resend';
 
@@ -84,6 +85,7 @@ export default async function ListoPage({ params }: { params: Params }) {
           paquete={paquete.nombre[currentLocale]}
           factura={lead.factura_numero}
           contacto={replyToAddress() ?? null}
+          whatsapp={whatsappDelPedido({ paquete: paquete.nombre[currentLocale], cliente: lead.nombre, locale: currentLocale })}
           locale={currentLocale}
           pasos={lineaDeTiempo({
             cobradoAt: lead.cobrado_at,
