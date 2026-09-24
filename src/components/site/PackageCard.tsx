@@ -8,6 +8,8 @@ import {
   calificaParaComprar,
   destinoDe,
   paquetePorSlug,
+  rangoComoTexto,
+  rangoDelPedido,
   servicioPorSlug,
   totalPedido,
   type Destino,
@@ -28,7 +30,7 @@ import {
 const copy = {
   es: {
     destacado: 'El que más se elige',
-    dias: (n: number) => `Entrega en ${n} días hábiles`,
+    dias: (rango: string) => `Entrega en ${rango} días hábiles`,
     porMes: 'por mes',
     aCotizar: 'Se cotiza en la llamada',
     desde: (n: number) => `Desde USD ${n.toLocaleString('es-AR')}`,
@@ -46,7 +48,7 @@ const copy = {
   },
   en: {
     destacado: 'Most chosen',
-    dias: (n: number) => `Delivered in ${n} business days`,
+    dias: (rango: string) => `Delivered in ${rango} business days`,
     porMes: 'per month',
     aCotizar: 'Quoted on the call',
     desde: (n: number) => `From USD ${n.toLocaleString('en-US')}`,
@@ -163,7 +165,7 @@ export default function PackageCard({
           )}
         </p>
         {paquete.plazoDias > 0 && (
-          <p className="mt-1 text-sm text-text-tertiary">{labels.dias(paquete.plazoDias)}</p>
+          <p className="mt-1 text-sm text-text-tertiary">{labels.dias(rangoComoTexto(rangoDelPedido(paquete, []), locale))}</p>
         )}
       </div>
 

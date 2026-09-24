@@ -86,7 +86,7 @@ describe('POST /api/pedido/[id]/contrato', () => {
       domicilio: 'Argentina',
     });
     expect(data.alcance).toContain('Agenda de turnos');
-    expect(data.plazo).toContain('10');
+    expect(data.plazo).toContain('15');
     expect(data.pago).toMatch(/único/i);
     expect(data.jurisdiccion).toMatch(/Argentina/);
     // El pedido viaja con el sobre: así la firma se reconoce sin adivinar.

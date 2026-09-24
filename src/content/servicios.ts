@@ -71,7 +71,16 @@ export interface Paquete {
   /** 'mes' para los planes; los demás son de pago único. */
   recurrente?: 'mes';
   horas: number;
+  /**
+   * El máximo de días hábiles que se compromete en el contrato. Es la
+   * promesa: si se entrega antes, mejor, pero este número se cumple siempre.
+   */
   plazoDias: number;
+  /**
+   * El mínimo del rango que se muestra en la página («5 a 7 días hábiles»).
+   * Es lo que tarda con agenda libre; el contrato no lo promete.
+   */
+  plazoDesdeDias?: number;
   destacado?: boolean;
   incluye: Localized<string[]>;
   noIncluye: Localized<string[]>;
@@ -382,7 +391,8 @@ const web: Servicio = {
       },
       precioUsd: 450,
       horas: 15,
-      plazoDias: 5,
+      plazoDesdeDias: 5,
+      plazoDias: 7,
       incluye: {
         es: [
           'Los textos los escribo yo a partir de lo que me contás',
@@ -420,7 +430,8 @@ const web: Servicio = {
       },
       precioUsd: 790,
       horas: 26,
-      plazoDias: 10,
+      plazoDesdeDias: 10,
+      plazoDias: 15,
       destacado: true,
       incluye: {
         es: [
@@ -457,7 +468,8 @@ const web: Servicio = {
       },
       precioUsd: 1090,
       horas: 36,
-      plazoDias: 15,
+      plazoDesdeDias: 15,
+      plazoDias: 20,
       incluye: {
         es: [
           'Todo lo de Web de cinco secciones',
@@ -615,7 +627,8 @@ const tienda: Servicio = {
       },
       precioUsd: 890,
       horas: 30,
-      plazoDias: 12,
+      plazoDesdeDias: 10,
+      plazoDias: 15,
       incluye: {
         es: [
           'Catálogo con categorías, buscador y fichas de producto',
@@ -651,7 +664,8 @@ const tienda: Servicio = {
       },
       precioUsd: 1190,
       horas: 40,
-      plazoDias: 15,
+      plazoDesdeDias: 15,
+      plazoDias: 25,
       destacado: true,
       incluye: {
         es: [
@@ -873,7 +887,8 @@ const automatizacion: Servicio = {
       },
       precioUsd: 390,
       horas: 13,
-      plazoDias: 7,
+      plazoDesdeDias: 7,
+      plazoDias: 10,
       incluye: {
         es: [
           'El proceso relevado y escrito antes de programar nada',
@@ -907,7 +922,8 @@ const automatizacion: Servicio = {
       },
       precioUsd: 890,
       horas: 30,
-      plazoDias: 15,
+      plazoDesdeDias: 15,
+      plazoDias: 25,
       destacado: true,
       incluye: {
         es: [
@@ -999,7 +1015,8 @@ const auditoria: Servicio = {
       },
       precioUsd: 250,
       horas: 8,
-      plazoDias: 5,
+      plazoDesdeDias: 5,
+      plazoDias: 7,
       destacado: true,
       incluye: {
         es: [
@@ -1331,7 +1348,26 @@ export interface Pedido {
  * cada uno lo calculara por su lado, prometerían cosas distintas.
  */
 export function plazoDelPedido(paquete: Paquete, extras: Extra[]): number {
-  return paquete.plazoDias + extras.reduce((total, e) => total + (e.diasHabiles ?? 0), 0);
+  return paquete.plazoDias + diasDeExtras(extras);
+}
+
+/** El rango que se muestra: con agenda libre, y el máximo que se firma. */
+export function rangoDelPedido(paquete: Paquete, extras: Extra[]): { desde: number; hasta: number } {
+  const suma = diasDeExtras(extras);
+  return {
+    desde: (paquete.plazoDesdeDias ?? paquete.plazoDias) + suma,
+    hasta: paquete.plazoDias + suma,
+  };
+}
+
+function diasDeExtras(extras: Extra[]): number {
+  return extras.reduce((total, e) => total + (e.diasHabiles ?? 0), 0);
+}
+
+/** «5 a 7» o «7», según haya rango o no. */
+export function rangoComoTexto({ desde, hasta }: { desde: number; hasta: number }, locale: Locale): string {
+  if (desde >= hasta) return String(hasta);
+  return locale === 'es' ? `${desde} a ${hasta}` : `${desde} to ${hasta}`;
 }
 
 /** Lo que el cliente eligió, con su total. Es la base del presupuesto y del contrato. */

@@ -52,7 +52,7 @@ describe('PackageCard', () => {
   it('muestra precio, plazo, qué incluye y qué no', () => {
     render(<PackageCard locale="es" paquete={web} extras={[]} />);
     expect(screen.getByText(/790/)).toBeInTheDocument();
-    expect(screen.getByText(/10 días/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 a 15 días hábiles/i)).toBeInTheDocument();
     expect(screen.getByText(web.incluye.es[0])).toBeInTheDocument();
     expect(screen.getByText(web.noIncluye.es[0])).toBeInTheDocument();
   });
