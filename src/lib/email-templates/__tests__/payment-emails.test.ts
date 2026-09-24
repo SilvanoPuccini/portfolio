@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { paymentRequestHtml } from '../payment-request';
-import { paymentReceivedHtml } from '../payment-received';
+import { PASOS_CON_MATERIAL, paymentReceivedHtml } from '../payment-received';
 
 describe('paymentRequestHtml', () => {
   const base = {
@@ -114,5 +114,26 @@ describe('paymentReceivedHtml', () => {
   it('escapa los pasos, que pueden venir escritos a mano', () => {
     const html = paymentReceivedHtml({ ...base, nextSteps: ['<img src=x onerror=alert(1)>'] });
     expect(html).not.toContain('<img src=x');
+  });
+});
+
+describe('paymentReceivedHtml — venta del catálogo', () => {
+  // Decía «no hace falta que hagas nada» cuando faltaba justo el material,
+  // que es lo que destraba el trabajo.
+  const html = paymentReceivedHtml({
+    name: 'Nutrición Infantil',
+    amount: 530,
+    nextSteps: PASOS_CON_MATERIAL,
+    firstUpdate: 'dentro de la primera semana',
+    materialUrl: 'https://silvanopuccini.dev/es/pedido/p1/datos',
+  });
+
+  it('lleva a cargar el material', () => {
+    expect(html).toContain('https://silvanopuccini.dev/es/pedido/p1/datos');
+    expect(html).toContain('Cargar el material');
+  });
+
+  it('no dice que no hace falta hacer nada', () => {
+    expect(html).not.toContain('No hace falta que hagas nada');
   });
 });

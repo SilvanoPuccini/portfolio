@@ -6,7 +6,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { paymentRequestHtml } from '@/lib/email-templates/payment-request';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
-import { paymentReceivedHtml } from '@/lib/email-templates/payment-received';
+import { PASOS_CON_MATERIAL, paymentReceivedHtml } from '@/lib/email-templates/payment-received';
 
 export const dynamic = 'force-dynamic';
 
@@ -159,12 +159,21 @@ async function notifyClient(event: ManualEvent, id: string, body: Body) {
     }
 
     if (event === 'pago_recibido') {
+      // En una venta del catálogo lo que falta es el material, y el correo
+      // tiene que llevar ahí. Decía «no hace falta que hagas nada».
+      const pedido = await pedidoDelLead(id);
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+      const materialUrl = pedido ? `${siteUrl}/${pedido.locale}/pedido/${pedido.id}/datos` : null;
+
       await sendCrmEmail(lead.email, 'Pago recibido — arrancamos', paymentReceivedHtml({
         name: lead.nombre,
-        amount: body.sena_monto ?? lead.sena_monto ?? lead.monto_presupuestado ?? 0,
+        amount: body.sena_monto ?? lead.sena_monto ?? pedido?.total_usd ?? lead.monto_presupuestado ?? 0,
         invoiceNumber: lead.factura_numero,
-        nextSteps: body.nextSteps?.length ? body.nextSteps : DEFAULT_NEXT_STEPS,
+        nextSteps: body.nextSteps?.length
+          ? body.nextSteps
+          : materialUrl ? PASOS_CON_MATERIAL : DEFAULT_NEXT_STEPS,
         firstUpdate: body.firstUpdate ?? 'dentro de la primera semana',
+        materialUrl,
       }));
       return { ok: true, tipo: 'pago_recibido' };
     }
@@ -174,6 +183,23 @@ async function notifyClient(event: ManualEvent, id: string, body: Body) {
     const detail = reason instanceof Error ? reason.message : String(reason);
     console.warn(`[leads/advance] El correo de ${event} no salió:`, detail);
     return { ok: false, detail };
+  }
+}
+
+/** El pedido del catálogo de esta venta, si vino por ahí. Nunca tira. */
+async function pedidoDelLead(leadId: string): Promise<{ id: string; locale: string; total_usd: number } | null> {
+  try {
+    const { data } = await getSupabaseAdmin()
+      .from('pedidos')
+      .select('id, locale, total_usd')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const fila = data as { id: string; locale: string | null; total_usd: number } | null;
+    return fila ? { ...fila, locale: fila.locale === 'en' ? 'en' : 'es' } : null;
+  } catch {
+    return null;
   }
 }
 

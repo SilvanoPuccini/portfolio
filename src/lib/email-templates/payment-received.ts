@@ -1,5 +1,5 @@
 import { escapeHtml } from '@/lib/html-escape';
-import { emailLayout, nota, panelDestacado, parrafo } from './layout';
+import { boton, emailLayout, nota, panelDestacado, parrafo } from './layout';
 
 /**
  * El correo de después del pago.
@@ -23,7 +23,21 @@ export interface PaymentReceivedData {
   nextSteps: string[];
   /** Cuándo tiene la primera novedad concreta. */
   firstUpdate: string;
+  /**
+   * Dónde cargar el material, en las ventas del catálogo. Con esto el correo
+   * deja de decir «no hace falta que hagas nada»: falta justo lo que destraba
+   * el trabajo, y tiene que estar a un clic.
+   */
+  materialUrl?: string | null;
 }
+
+/** Los pasos cuando falta el material: el primero es del cliente. */
+export const PASOS_CON_MATERIAL = [
+  'Cargá el material de tu proyecto: el logo, las fotos y los textos que tengas',
+  'Arranco apenas lo tengo: el plazo del contrato corre desde ahí',
+  'Te muestro el primer avance para que lo revises',
+  'Ajustamos sobre tu devolución y te entrego',
+];
 
 const money = (value: number) => `USD ${value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
@@ -59,7 +73,12 @@ export function paymentReceivedHtml(data: PaymentReceivedData): string {
 
       pasos(data.nextSteps),
 
-      parrafo(`Tu primera novedad: ${data.firstUpdate}. No hace falta que hagas nada hasta entonces.`),
+      ...(data.materialUrl
+        ? [
+          boton('Cargar el material', data.materialUrl),
+          nota('Se guarda solo mientras cargás: podés hacerlo en partes y volver con este mismo botón.'),
+        ]
+        : [parrafo(`Tu primera novedad: ${data.firstUpdate}. No hace falta que hagas nada hasta entonces.`)]),
 
       nota('Si en el medio surge cualquier cosa, respondé este correo.'),
     ].join(''),
