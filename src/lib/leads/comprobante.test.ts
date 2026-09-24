@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MAX_COMPROBANTE, extensionDe, motivoLegible, nombreVisible,
-  revisarComprobante, rutaDelComprobante,
+  revisarComprobante, rutaDelComprobante, tipoReal,
 } from './comprobante';
 
 /**
@@ -95,5 +95,36 @@ describe('nombreVisible', () => {
 
   it('nunca queda vacío', () => {
     expect(nombreVisible('   ')).toBe('comprobante');
+  });
+});
+
+describe('tipoReal — el tipo se mira en los bytes, no en lo que dice el navegador', () => {
+  const bytes = (...partes: (number[] | string)[]) =>
+    Buffer.concat(partes.map((p) => (typeof p === 'string' ? Buffer.from(p, 'latin1') : Buffer.from(p))));
+
+  it('reconoce PNG, JPG, WEBP, PDF, AVIF y HEIC', () => {
+    expect(tipoReal(bytes([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 'resto'))?.mime).toBe('image/png');
+    expect(tipoReal(bytes([0xff, 0xd8, 0xff, 0xe0], 'resto'))?.mime).toBe('image/jpeg');
+    expect(tipoReal(bytes('RIFF', [0, 0, 0, 0], 'WEBPVP8 '))?.mime).toBe('image/webp');
+    expect(tipoReal(bytes('%PDF-1.7\n'))?.mime).toBe('application/pdf');
+    expect(tipoReal(bytes([0, 0, 0, 0x1c], 'ftypavif', 'resto'))?.mime).toBe('image/avif');
+    expect(tipoReal(bytes([0, 0, 0, 0x18], 'ftypheic', 'resto'))?.mime).toBe('image/heic');
+  });
+
+  it('rechaza un HTML que dice ser una imagen', () => {
+    expect(tipoReal(bytes('<!doctype html><script>alert(1)</script>'))).toBeNull();
+  });
+
+  it('rechaza un SVG, que puede llevar scripts adentro', () => {
+    expect(tipoReal(bytes('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'))).toBeNull();
+  });
+
+  it('rechaza un ejecutable y un ZIP', () => {
+    expect(tipoReal(bytes('MZ', [0x90, 0, 3, 0]))).toBeNull();
+    expect(tipoReal(bytes([0x50, 0x4b, 0x03, 0x04], 'resto'))).toBeNull();
+  });
+
+  it('la extensión la pone el tipo real, no el nombre que mandaron', () => {
+    expect(tipoReal(bytes('%PDF-1.4'))?.extension).toBe('.pdf');
   });
 });

@@ -29,8 +29,12 @@ export interface DatosComprobante {
 
 export interface LoEsperado {
   montoUsd: number;
-  /** Lo cotizado en moneda local, cuando corresponde. */
-  montoLocal?: { moneda: string; monto: number } | null;
+  /**
+   * Lo cotizado en moneda local, cuando corresponde. `tasa` son los pesos por
+   * dólar sin margen: el monto cotizado lleva margen y redondeo para arriba,
+   * así que quien paga a la cotización pura paga menos y no le falta nada.
+   */
+  montoLocal?: { moneda: string; monto: number; tasa?: number } | null;
   /** Mis datos de cobro, tal como los ve el cliente. */
   instruccionesDePago: string;
   nombreCliente: string;
@@ -82,14 +86,101 @@ export function destinoEsMio(destino: string | null, instrucciones: string): boo
   return normalizarDestino(instrucciones).includes(limpio);
 }
 
-/** El monto esperado en la moneda en que se pagó. */
-function esperadoEn(moneda: string | null, esperado: LoEsperado): number | null {
-  const m = (moneda ?? '').toUpperCase();
-  if (!m || m.includes('USD') || m.includes('DOLAR')) return esperado.montoUsd;
-  if (esperado.montoLocal && m.includes(esperado.montoLocal.moneda.toUpperCase())) {
-    return esperado.montoLocal.monto;
+/**
+ * La moneda en código ISO, a partir de como la escribió el banco.
+ * `null` es «no se sabe»: un «$» solo lo usan el peso argentino, el chileno y
+ * el dólar, así que no dice nada por sí mismo.
+ */
+export function monedaISO(texto: string | null | undefined): string | null {
+  const t = (texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/\s/g, '');
+  if (!t || t === '$') return null;
+  if (/USD|US\$|U\$S|U\$D|DOLAR/.test(t)) return 'USD';
+  if (/CLP|CL\$|CHILEN/.test(t)) return 'CLP';
+  if (/ARS|AR\$|PESO/.test(t)) return 'ARS';
+  if (/^[A-Z]{3}$/.test(t)) return t;
+  return null;
+}
+
+interface MontoEsperado {
+  moneda: string;
+  /** Lo mínimo que se acepta sin decir que falta plata. */
+  minimo: number;
+  /** Lo que se le pidió. Por encima, pagó de más. */
+  pedido: number;
+}
+
+/** Los montos que valen para este pedido: en dólares y, si hay, en moneda local. */
+function montosEsperados(esperado: LoEsperado): MontoEsperado[] {
+  const lista: MontoEsperado[] = [{ moneda: 'USD', minimo: esperado.montoUsd, pedido: esperado.montoUsd }];
+  const local = esperado.montoLocal;
+  if (local) {
+    const puro = local.tasa ? esperado.montoUsd * local.tasa : local.monto;
+    lista.push({ moneda: local.moneda.toUpperCase(), minimo: Math.min(puro, local.monto), pedido: local.monto });
   }
-  return esperado.montoLocal?.monto ?? null;
+  return lista;
+}
+
+/** Qué tan lejos está un monto de otro, sin importar la escala. */
+function distancia(monto: number, esperado: MontoEsperado): number {
+  return Math.abs(Math.log(monto / esperado.pedido));
+}
+
+const fmt = (n: number) => Math.round(n).toLocaleString('es-AR');
+
+function hallazgoDeMonto(datos: DatosComprobante, esperado: LoEsperado): Hallazgo {
+  if (datos.monto == null || datos.monto <= 0) {
+    return { campo: 'monto', senal: 'atencion', detalle: 'No se pudo leer el monto.' };
+  }
+
+  const opciones = montosEsperados(esperado);
+  const iso = monedaISO(datos.moneda);
+
+  let elegido: MontoEsperado | undefined;
+  let deducida = false;
+
+  if (iso) {
+    elegido = opciones.find((o) => o.moneda === iso);
+    if (!elegido) {
+      return {
+        campo: 'monto',
+        senal: 'mal',
+        detalle: `Pagó en ${iso}, y este pedido se cobra en ${opciones.map((o) => o.moneda).join(' o ')}.`,
+      };
+    }
+  } else {
+    // Sin moneda clara, la escala la delata: 675.000 contra 450 no es «pagó
+    // de más», es que pagó en pesos.
+    elegido = [...opciones].sort((x, y) => distancia(datos.monto!, x) - distancia(datos.monto!, y))[0];
+    deducida = true;
+  }
+
+  // Más de 5 veces de diferencia no es un error de monto: es otra moneda.
+  if (distancia(datos.monto, elegido) > Math.log(5)) {
+    return {
+      campo: 'monto',
+      senal: 'atencion',
+      detalle: `El monto (${fmt(datos.monto)}) parece estar en otra moneda: se esperaban `
+        + `${opciones.map((o) => `${o.moneda} ${fmt(o.pedido)}`).join(' o ')}.`,
+    };
+  }
+
+  const cual = `${elegido.moneda} ${fmt(datos.monto)}${deducida ? ' (moneda deducida por el monto)' : ''}`;
+
+  if (datos.monto < elegido.minimo * (1 - TOLERANCIA)) {
+    return {
+      campo: 'monto',
+      senal: 'mal',
+      detalle: `Falta plata: transfirió ${cual} y esperabas ${elegido.moneda} ${fmt(elegido.minimo)}.`,
+    };
+  }
+  if (datos.monto > elegido.pedido * (1 + TOLERANCIA)) {
+    return {
+      campo: 'monto',
+      senal: 'atencion',
+      detalle: `Pagó de más: ${cual} contra ${elegido.moneda} ${fmt(elegido.pedido)} pedidos.`,
+    };
+  }
+  return { campo: 'monto', senal: 'ok', detalle: `Coincide: ${cual}.` };
 }
 
 /**
@@ -127,29 +218,8 @@ export function revisarPago(datos: DatosComprobante, esperado: LoEsperado): Revi
     });
   }
 
-  // --- El monto.
-  const esperadoMonto = esperadoEn(datos.moneda, esperado);
-  if (datos.monto == null || esperadoMonto == null) {
-    hallazgos.push({ campo: 'monto', senal: 'atencion', detalle: 'No se pudo comparar el monto.' });
-  } else {
-    const diferencia = (datos.monto - esperadoMonto) / esperadoMonto;
-
-    if (Math.abs(diferencia) <= TOLERANCIA) {
-      hallazgos.push({ campo: 'monto', senal: 'ok', detalle: `Coincide: ${datos.monto} ${datos.moneda ?? ''}`.trim() });
-    } else if (diferencia < 0) {
-      hallazgos.push({
-        campo: 'monto',
-        senal: 'mal',
-        detalle: `Falta plata: transfirió ${datos.monto} y esperabas ${Math.round(esperadoMonto)}.`,
-      });
-    } else {
-      hallazgos.push({
-        campo: 'monto',
-        senal: 'atencion',
-        detalle: `Pagó de más: ${datos.monto} contra ${Math.round(esperadoMonto)} esperados.`,
-      });
-    }
-  }
+  // --- El monto, en la moneda en que pagó.
+  hallazgos.push(hallazgoDeMonto(datos, esperado));
 
   // --- La fecha: una transferencia anterior a la firma es de otra cosa.
   if (!datos.fecha) {
@@ -192,4 +262,41 @@ export function resumenDeRevision(revision: Revision): string {
     case 'revisar': return 'El comprobante necesita una mirada';
     case 'no-cuadra': return 'El comprobante no cuadra';
   }
+}
+
+/** Un texto del comprobante, sin marcado, sin controles y de largo razonable. */
+function textoLimpio(valor: unknown, largo: number): string | null {
+  if (typeof valor !== 'string') return null;
+  const limpio = valor
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f<>`]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, largo);
+  return limpio || null;
+}
+
+/**
+ * Lo que devolvió el modelo, antes de usarlo.
+ *
+ * La imagen la sube cualquiera, y lo que el modelo transcribe de ella es tan
+ * poco confiable como la imagen misma: puede traer marcado, un párrafo de
+ * instrucciones o tipos que no son los pedidos. Nada de eso llega crudo al
+ * panel, al correo ni a la revisión.
+ */
+export function limpiarLectura(datos: DatosComprobante): DatosComprobante {
+  const monto = typeof datos.monto === 'number' && Number.isFinite(datos.monto) && datos.monto > 0
+    ? datos.monto
+    : null;
+  const fecha = textoLimpio(datos.fecha, 10);
+
+  return {
+    esComprobante: datos.esComprobante === true,
+    titular: textoLimpio(datos.titular, 80),
+    destino: textoLimpio(datos.destino, 80),
+    monto,
+    moneda: textoLimpio(datos.moneda, 12),
+    fecha: fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha : null,
+    banco: textoLimpio(datos.banco, 60),
+  };
 }

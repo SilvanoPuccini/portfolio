@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  destinoEsMio, normalizarDestino, resumenDeRevision, revisarPago,
+  destinoEsMio, limpiarLectura, normalizarDestino, resumenDeRevision, revisarPago,
   type DatosComprobante, type LoEsperado,
 } from './comprobante-ocr';
 
@@ -141,5 +141,92 @@ describe('destinoEsMio', () => {
 
   it('normaliza sin perder lo que identifica', () => {
     expect(normalizarDestino(' CBU: 000-111.222 ')).toBe('cbu:000111222');
+  });
+});
+
+describe('revisarPago — la moneda en que pagó', () => {
+  // Caso real: el comprobante decía «$ 180.000» y la revisión dijo «Pagó de
+  // más: 180000 contra 450 esperados». Comparaba pesos contra dólares.
+  const AR: LoEsperado = {
+    ...ESPERADO,
+    montoUsd: 450,
+    montoLocal: { moneda: 'ARS', monto: 700_000, tasa: 1_500 },
+  };
+
+  it('un «$» solo se resuelve por el monto: 675.000 son pesos, no dólares', () => {
+    const revision = revisarPago(comprobante({ monto: 675_000, moneda: '$' }), AR);
+    const monto = revision.hallazgos.find((h) => h.campo === 'monto')!;
+
+    expect(monto.senal).toBe('ok');
+    expect(monto.detalle).toContain('ARS');
+  });
+
+  it('pagar a la cotización sin el margen no es «falta plata»', () => {
+    // 450 × 1.500 = 675.000. El monto cotizado lleva margen y redondeo.
+    expect(revisarPago(comprobante({ monto: 675_000, moneda: 'ARS' }), AR)
+      .hallazgos.find((h) => h.campo === 'monto')?.senal).toBe('ok');
+  });
+
+  it('en pesos, lo que está por debajo de la cotización sí falta', () => {
+    const monto = revisarPago(comprobante({ monto: 400_000, moneda: 'ARS' }), AR)
+      .hallazgos.find((h) => h.campo === 'monto')!;
+
+    expect(monto.senal).toBe('mal');
+    expect(monto.detalle).toContain('Falta plata');
+  });
+
+  it('reconoce la moneda escrita de muchas formas', () => {
+    for (const moneda of ['U$S', 'US$', 'USD', 'Dólares']) {
+      expect(revisarPago(comprobante({ monto: 450, moneda }), AR)
+        .hallazgos.find((h) => h.campo === 'monto')?.senal, moneda).toBe('ok');
+    }
+    for (const moneda of ['ARS', '$ARS', 'Pesos', 'AR$']) {
+      expect(revisarPago(comprobante({ monto: 690_000, moneda }), AR)
+        .hallazgos.find((h) => h.campo === 'monto')?.senal, moneda).toBe('ok');
+    }
+  });
+
+  it('pesos chilenos a un pedido que se cobra en dólares o pesos argentinos: mal', () => {
+    const monto = revisarPago(comprobante({ monto: 420_000, moneda: 'CLP' }), AR)
+      .hallazgos.find((h) => h.campo === 'monto')!;
+
+    expect(monto.senal).toBe('mal');
+    expect(monto.detalle).toContain('CLP');
+  });
+
+  it('sin cotización local, un monto de otra escala se señala como otra moneda', () => {
+    const soloUsd: LoEsperado = { ...ESPERADO, montoUsd: 450, montoLocal: null };
+    const monto = revisarPago(comprobante({ monto: 180_000, moneda: '$' }), soloUsd)
+      .hallazgos.find((h) => h.campo === 'monto')!;
+
+    expect(monto.senal).toBe('atencion');
+    expect(monto.detalle).toContain('otra moneda');
+    expect(monto.detalle).not.toContain('Pagó de más');
+  });
+});
+
+describe('limpiarLectura — lo que devuelve el modelo no se usa crudo', () => {
+  // La imagen la sube cualquiera. Si trae escrito «<script>» o un párrafo de
+  // instrucciones, eso no puede llegar entero al panel ni al correo.
+  it('saca marcado y caracteres de control, y corta lo largo', () => {
+    const limpio = limpiarLectura({
+      ...comprobante(),
+      titular: '<img src=x onerror=alert(1)>Juan\u0000',
+      destino: 'x'.repeat(500),
+    });
+
+    expect(limpio.titular).not.toMatch(/[<>]/);
+    expect(limpio.titular).not.toContain(String.fromCharCode(0));
+    expect(limpio.destino!.length).toBeLessThanOrEqual(80);
+  });
+
+  it('un monto que no es un número finito y positivo no se usa', () => {
+    expect(limpiarLectura({ ...comprobante(), monto: Number.NaN }).monto).toBeNull();
+    expect(limpiarLectura({ ...comprobante(), monto: -5 }).monto).toBeNull();
+    expect(limpiarLectura({ ...comprobante(), monto: '450' as unknown as number }).monto).toBeNull();
+  });
+
+  it('esComprobante tiene que ser true de verdad, no algo que se parezca', () => {
+    expect(limpiarLectura({ ...comprobante(), esComprobante: 'true' as unknown as boolean }).esComprobante).toBe(false);
   });
 });

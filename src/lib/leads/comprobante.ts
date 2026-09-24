@@ -68,3 +68,45 @@ export function rutaDelComprobante(leadId: string, pedidoId: string, nombre: str
 export function nombreVisible(nombre: string): string {
   return nombre.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) || 'comprobante';
 }
+
+export interface TipoComprobante {
+  mime: string;
+  extension: string;
+  /** Imagen se muestra con <img>; PDF, en el visor del navegador. */
+  clase: 'imagen' | 'pdf';
+}
+
+/**
+ * El tipo de verdad del archivo, por sus primeros bytes.
+ *
+ * `revisarComprobante` mira el tipo que declara el navegador, y eso lo
+ * escribe quien sube el archivo: un HTML o un SVG con scripts llegaba como
+ * «image/png» y se guardaba como tal. Esto mira lo que el archivo ES. Lo que
+ * no es una imagen conocida o un PDF devuelve `null` y no se guarda.
+ */
+export function tipoReal(bytes: Buffer | Uint8Array): TipoComprobante | null {
+  const b = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+  const ascii = (desde: number, hasta: number) => b.subarray(desde, hasta).toString('latin1');
+
+  if (b.length >= 8 && b.readUInt32BE(0) === 0x89504e47 && b.readUInt32BE(4) === 0x0d0a1a0a) {
+    return { mime: 'image/png', extension: '.png', clase: 'imagen' };
+  }
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) {
+    return { mime: 'image/jpeg', extension: '.jpg', clase: 'imagen' };
+  }
+  if (b.length >= 12 && ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') {
+    return { mime: 'image/webp', extension: '.webp', clase: 'imagen' };
+  }
+  if (b.length >= 5 && ascii(0, 5) === '%PDF-') {
+    return { mime: 'application/pdf', extension: '.pdf', clase: 'pdf' };
+  }
+  // AVIF y HEIC son contenedores ISO: «ftyp» en el byte 4 y la marca después.
+  if (b.length >= 12 && ascii(4, 8) === 'ftyp') {
+    const marca = ascii(8, 12);
+    if (marca === 'avif' || marca === 'avis') return { mime: 'image/avif', extension: '.avif', clase: 'imagen' };
+    if (['heic', 'heix', 'hevc', 'mif1', 'msf1'].includes(marca)) {
+      return { mime: 'image/heic', extension: '.heic', clase: 'imagen' };
+    }
+  }
+  return null;
+}
