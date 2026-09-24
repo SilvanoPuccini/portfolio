@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { escapeHtml } from '@/lib/html-escape';
 import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { rateLimit } from '@/lib/rate-limit';
+import { asuntoDeAviso, avisoAdmin } from '@/lib/email-templates/aviso-admin';
 import { sendCrmEmail } from '@/lib/resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -151,11 +151,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const admin = process.env.ADMIN_EMAIL;
     if (termina && admin) {
       try {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
         await sendCrmEmail(
           admin,
-          `${lead.nombre} completó los datos de su proyecto`,
-          `<p>${escapeHtml(lead.nombre)} (${escapeHtml(lead.email)}) terminó de cargar el material.</p>`
-          + '<p>Está todo en su ficha del panel, listo para arrancar.</p>',
+          asuntoDeAviso('material', lead.nombre, 'cargó el material, listo para arrancar'),
+          avisoAdmin({
+            tipo: 'material',
+            titulo: `${lead.nombre} cargó el material`,
+            resumen: 'Terminó de cargar todo lo del proyecto. Está en su ficha, listo para arrancar.',
+            filas: [{ label: 'Cliente', valor: `${lead.nombre} · ${lead.email}` }],
+            siguiente: 'Revisá el material y arrancá: el plazo del contrato corre desde hoy.',
+            urlFicha: `${siteUrl}/admin/leads/${lead.id}`,
+          }),
         );
       } catch (reason) {
         console.warn('[api/pedido/datos] El aviso no salió:', reason);
