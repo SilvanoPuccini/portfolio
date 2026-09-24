@@ -19,7 +19,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pdfjs-dist"],
+  // pdfkit trae sus fuentes estándar como archivos .afm y las lee del disco:
+  // si el bundler lo empaqueta, en producción no las encuentra y el
+  // contrato no se genera.
+  serverExternalPackages: ["pdfjs-dist", "pdfkit"],
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;

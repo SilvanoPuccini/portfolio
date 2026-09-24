@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { contratoDeVenta } from '@/content/contrato';
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { boton, emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
-import { buildContract, Packer } from '@/lib/contract-template';
+import { buildContractPdf } from '@/lib/contrato-pdf';
 import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
 import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
 import { nombreConExtension, tipoDeDocumento } from '@/lib/leads/tipo-de-archivo';
@@ -112,7 +112,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // El documento sale con la evidencia adentro: tiene que sostenerse solo,
     // sin que haya que cruzarlo con la base para saber si vale.
-    const documento = Buffer.from(await Packer.toBuffer(buildContract({
+    //
+    // Y sale en PDF. Durante un tiempo se generaba con `docx` y se servía
+    // diciendo que era un PDF, así que no abría en ningún lado. Pero el
+    // arreglo no era etiquetarlo bien y dejarlo en Word: un contrato firmado
+    // en .docx es un documento editable, y lo que este documento tiene que
+    // sostener es justamente que dice lo que decía.
+    const documento = await buildContractPdf({
       ...contrato,
       firmaCliente: {
         nombre: evidencia.nombre,
@@ -120,7 +126,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         ip: evidencia.ip,
         huella: evidencia.huella,
       },
-    })));
+    });
 
     // El tipo se mira, no se declara. Durante un tiempo todo este camino dijo
     // «application/pdf» porque la variable se llamaba `pdf`, y lo que sale de

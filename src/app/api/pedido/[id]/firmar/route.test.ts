@@ -112,19 +112,22 @@ describe('POST /api/pedido/[id]/firmar', () => {
     const [para, asunto, , adjuntos] = vi.mocked(sendCrmEmail).mock.calls[0];
     expect(para).toBe('este@ejemplo.com');
     expect(asunto).toMatch(/firmado/i);
-    // `.docx` y no `.pdf`: el documento lo genera `docx`, y adjuntarlo como
-    // PDF le daba al cliente un archivo de Word que su lector no abría.
-    expect((adjuntos as { filename: string }[])[0].filename).toMatch(/\.docx$/);
+    // PDF, y con la extensión que de verdad le corresponde. Durante un tiempo
+    // fue un .docx adjuntado como .pdf: el cliente recibía un archivo de Word
+    // que su lector no abría.
+    expect((adjuntos as { filename: string }[])[0].filename).toMatch(/\.pdf$/);
   });
 
   it('archiva el documento con la extensión y el tipo que de verdad tiene', async () => {
-    // Se guardaba como «.pdf» con contentType application/pdf. El archivo
-    // estaba sano: lo que estaba mal era cómo se lo presentaba.
+    // El tipo se detecta del archivo, no se declara de memoria: así el día que
+    // el formato cambie, la ruta y el Content-Type cambian solos. Cuando esto
+    // se declaraba a mano, un .docx viajaba diciendo que era un PDF.
     await post(FIRMA);
 
-    const [ruta, , opciones] = upload.mock.calls[0] as [string, unknown, { contentType: string }];
-    expect(ruta).toMatch(/\.docx$/);
-    expect(opciones.contentType).toContain('wordprocessingml');
+    const [ruta, contenido, opciones] = upload.mock.calls[0] as [string, Uint8Array, { contentType: string }];
+    expect(ruta).toMatch(/\.pdf$/);
+    expect(opciones.contentType).toBe('application/pdf');
+    expect(Buffer.from(contenido).subarray(0, 5).toString('latin1')).toBe('%PDF-');
   });
 
   it('el adjunto del correo y el archivo guardado son el mismo documento', async () => {

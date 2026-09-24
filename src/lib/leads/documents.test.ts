@@ -13,13 +13,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  */
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
-vi.mock('@/lib/contract-template', () => ({
-  buildContract: vi.fn(() => ({ doc: true })),
-  Packer: { toBuffer: vi.fn().mockResolvedValue(Buffer.from('docx')) },
+// Se intercepta el generador del PDF para mirar el `ContractData` que recibe:
+// lo que se prueba acá es la traducción de la fila de `leads` al contrato, no
+// el dibujo del documento —eso vive en contrato-pdf.test.ts.
+vi.mock('@/lib/contrato-pdf', () => ({
+  buildContractPdf: vi.fn().mockResolvedValue(Buffer.from('%PDF-1.7 fake')),
 }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { buildContract } from '@/lib/contract-template';
+import { buildContractPdf } from '@/lib/contrato-pdf';
 import { buildContractDoc } from './documents';
 
 /** Una fila de `leads` y su `rate_config`. `single` sirve a las dos consultas. */
@@ -42,7 +44,7 @@ function supabaseConLead(lead: Record<string, unknown> | null) {
 async function contratoDe(lead: Record<string, unknown>) {
   supabaseConLead(lead);
   const doc = await buildContractDoc('lead-1', 'Jurisdicción de los tribunales de Córdoba.');
-  return { doc, data: vi.mocked(buildContract).mock.calls[0][0] };
+  return { doc, data: vi.mocked(buildContractPdf).mock.calls[0][0] };
 }
 
 const BASE = { titular: 'Estefanía Ortigosa', pais: 'Argentina', monto_presupuestado: 4800, horas_calculadas: 120 };
@@ -186,13 +188,13 @@ describe('buildContractDoc — el archivo que se descarga', () => {
   it('nombra el archivo con el nombre legible del cliente, acentos incluidos', async () => {
     const { doc } = await contratoDe({ ...BASE });
 
-    expect(doc?.filename).toBe('Contrato · Estefanía Ortigosa.docx');
+    expect(doc?.filename).toBe('Contrato · Estefanía Ortigosa.pdf');
   });
 
   it('saca los caracteres que Windows rechaza en vez de romper la descarga', async () => {
     const { doc } = await contratoDe({ ...BASE, titular: 'Ferrelon: Stock / Ventas' });
 
-    expect(doc?.filename).toBe('Contrato · Ferrelon Stock Ventas.docx');
+    expect(doc?.filename).toBe('Contrato · Ferrelon Stock Ventas.pdf');
   });
 
   it('pasa la cláusula de jurisdicción tal cual se la dieron', async () => {
@@ -207,6 +209,6 @@ describe('buildContractDoc — el archivo que se descarga', () => {
     const doc = await buildContractDoc('no-existe', 'x');
 
     expect(doc).toBeNull();
-    expect(buildContract).not.toHaveBeenCalled();
+    expect(buildContractPdf).not.toHaveBeenCalled();
   });
 });

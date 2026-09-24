@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { parseSelectedModules } from './selected-modules';
-import { buildContract, Packer, type ContractData } from '@/lib/contract-template';
+import { buildContractPdf } from '@/lib/contrato-pdf';
+import type { ContractData } from '@/lib/contract-template';
 
 /**
  * El contrato que firma el cliente.
@@ -11,7 +12,8 @@ import { buildContract, Packer, type ContractData } from '@/lib/contract-templat
  * que se firma.
  *
  * Descargarlo y enviarlo producen exactamente el mismo archivo, porque es el
- * mismo código.
+ * mismo código. Y sale en PDF, igual que el firmado: dos formatos del mismo
+ * documento es la forma más rápida de que un día digan cosas distintas.
  */
 
 /** «estefania ortigosa» → «Estefania Ortigosa». Sin tocar las preposiciones. */
@@ -134,12 +136,11 @@ export async function buildContractDoc(leadId: string, legalClause: string): Pro
     legalClause,
   };
 
-  const doc = buildContract(contractData);
   return {
-    buffer: await Packer.toBuffer(doc),
+    buffer: await buildContractPdf(contractData),
     // Con el nombre legible: es lo que el cliente ve en su carpeta de
     // descargas, no un slug. Los dos puntos no valen en Windows, así que el
     // separador es el punto medio.
-    filename: `Contrato · ${nombreDeArchivo(contractData.clientName)}.docx`,
+    filename: `Contrato · ${nombreDeArchivo(contractData.clientName)}.pdf`,
   };
 }

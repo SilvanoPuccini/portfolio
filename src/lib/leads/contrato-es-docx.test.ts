@@ -6,16 +6,15 @@ import { paquetePorSlug } from '@/content/servicios';
 import { tipoDeDocumento } from './tipo-de-archivo';
 
 /**
- * Qué archivo genera de verdad el contrato.
+ * Qué archivo genera `buildContract`, el molde en Word.
  *
- * Esto no es una prueba de layout: es la prueba de que el sistema no vuelva a
- * mentir sobre el tipo. Todo el camino declaraba «application/pdf» porque la
- * variable se llamaba `pdf`, y lo que sale de `Packer` es un .docx. El cliente
- * recibía un archivo de Word diciendo que era un PDF y no lo podía abrir.
- *
- * Si algún día el contrato pasa a ser un PDF de verdad, este test se cae y
- * avisa que hay que revisar todo el camino — que es exactamente lo que se
- * quiere que pase.
+ * El contrato del circuito ya NO pasa por acá: sale en PDF, por
+ * `buildContractPdf`. Esto queda para que `buildContract` no se vuelva a
+ * confundir con un generador de PDF — que es exactamente lo que pasó: todo el
+ * camino declaraba «application/pdf» porque la variable se llamaba `pdf`, y lo
+ * que sale de `Packer` es un .docx. El cliente recibía un archivo de Word
+ * diciendo que era un PDF y no lo podía abrir, ni desde la página ni desde el
+ * correo.
  */
 
 const PAQUETE = paquetePorSlug('landing')!;
