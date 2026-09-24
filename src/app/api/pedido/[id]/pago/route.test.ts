@@ -49,12 +49,14 @@ function conComprobante(archivo: File, id = 'pedido-1') {
   );
 }
 
-const captura = (over: { type?: string; bytes?: number; name?: string } = {}) =>
-  new File(
-    [new Uint8Array(over.bytes ?? 1024)],
-    over.name ?? 'comprobante.png',
-    { type: over.type ?? 'image/png' },
-  );
+/** Los primeros bytes de un PNG de verdad: el tipo ahora se mira, no se cree. */
+const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+const captura = (over: { type?: string; bytes?: number; name?: string; contenido?: Uint8Array } = {}) => {
+  const contenido = over.contenido ?? new Uint8Array(over.bytes ?? 1024);
+  if (!over.contenido) contenido.set(PNG);
+  return new File([contenido as Uint8Array<ArrayBuffer>], over.name ?? 'comprobante.png', { type: over.type ?? 'image/png' });
+};
 
 const post = (id = 'pedido-1') =>
   POST(new NextRequest('http://localhost/x', { method: 'POST' }), { params: Promise.resolve({ id }) });
@@ -151,11 +153,36 @@ describe('POST /api/pedido/[id]/pago — con el comprobante adjunto', () => {
     expect(ruta).not.toContain('..');
   });
 
-  it('avisa que hay un comprobante para revisar, no solo que avisó', async () => {
+  it('avisa en UN solo correo, con el comprobante adentro', async () => {
+    // Eran dos correos sobre lo mismo: el aviso y, un minuto después, la
+    // revisión. Ahora es uno, con la imagen para verla sin descargarla.
     await conComprobante(captura());
 
-    const [, asunto] = vi.mocked(sendCrmEmail).mock.calls[0];
-    expect(asunto).toContain('comprobante');
+    expect(sendCrmEmail).toHaveBeenCalledTimes(1);
+    const [, asunto, html, adjuntos] = vi.mocked(sendCrmEmail).mock.calls[0];
+    expect(asunto).toMatch(/^💳/);
+    expect(html).toContain('subió el comprobante');
+    expect(html).toContain('src="cid:comprobante"');
+    expect(adjuntos?.[0]).toMatchObject({ contentId: 'comprobante', contentType: 'image/png' });
+  });
+
+  it('rechaza un HTML disfrazado de imagen', async () => {
+    // El tipo lo declara el navegador, y eso lo escribe quien sube el archivo.
+    const res = await conComprobante(captura({
+      contenido: new TextEncoder().encode('<!doctype html><script>alert(1)</script>'),
+    }));
+
+    expect(res.status).toBe(415);
+    expect(upload).not.toHaveBeenCalled();
+    expect(updateLead).not.toHaveBeenCalled();
+  });
+
+  it('guarda con el tipo real, no con el que declaró el navegador', async () => {
+    await conComprobante(captura({ type: 'application/pdf', name: 'x.pdf' }));
+
+    const [ruta, , opciones] = upload.mock.calls[0] as [string, unknown, { contentType: string }];
+    expect(ruta.endsWith('.png')).toBe(true);
+    expect(opciones.contentType).toBe('image/png');
   });
 
   it('rechaza lo que no es un comprobante, y lo explica', async () => {

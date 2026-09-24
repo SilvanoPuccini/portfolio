@@ -29,6 +29,9 @@ export function replyToField(): { replyTo?: string } {
 export interface CrmAttachment {
   filename: string;
   content: Buffer;
+  /** Para mostrarlo dentro del correo con `<img src="cid:…">`. */
+  contentId?: string;
+  contentType?: string;
 }
 
 /**

@@ -2,13 +2,14 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { leerComprobante } from '@/lib/leads/leer-comprobante';
-import { resumenDeRevision } from '@/lib/leads/comprobante-ocr';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 
 import {
-  motivoLegible, nombreVisible, revisarComprobante, rutaDelComprobante,
+  motivoLegible, nombreVisible, revisarComprobante, rutaDelComprobante, tipoReal,
+  type TipoComprobante,
 } from '@/lib/leads/comprobante';
-import { escapeHtml } from '@/lib/html-escape';
+import { asuntoDeAviso, avisoAdmin } from '@/lib/email-templates/aviso-admin';
+import { quoteFor } from '@/lib/leads/exchange-rate';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -92,8 +93,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // El archivo va primero, pero su fallo no frena el aviso: el cliente ya
     // transfirió y perder lo que informó por un problema de nuestro storage
     // sería castigarlo por algo que no hizo.
-    const guardado = adjunto.archivo
-      ? await archivarComprobante(fila.lead_id, fila.id, adjunto.archivo)
+    const guardado = adjunto.archivo && adjunto.bytes && adjunto.tipo
+      ? await archivarComprobante(fila.lead_id, fila.id, adjunto.archivo, adjunto.bytes, adjunto.tipo)
       : null;
 
     const { error } = await db
@@ -114,57 +115,41 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }).eq('id', fila.id);
     }
 
-    // Que falle el aviso no puede borrar lo que el cliente ya informó.
-    const admin = process.env.ADMIN_EMAIL;
-    if (admin) {
-      try {
-        const monto = `USD ${Math.round(fila.total_usd).toLocaleString('es-AR')}`;
+    const aviso: DatosDelAviso = {
+      leadId: venta.id,
+      pedidoId: fila.id,
+      cliente: venta.nombre,
+      email: venta.email,
+      totalUsd: fila.total_usd,
+      comprobante: guardado && adjunto.archivo
+        ? { bytes: adjunto.bytes!, tipo: adjunto.tipo!, nombre: guardado.nombre }
+        : null,
+      esperado: {
+        montoUsd: fila.total_usd,
+        instruccionesDePago: paymentInstructionsFor(venta.pais),
+        nombreCliente: venta.nombre,
+        firmadoAt: venta.contrato_firmado_at,
+      },
+      pais: venta.pais,
+    };
 
-        // El asunto dice si hay algo que mirar: no es lo mismo un aviso suelto
-        // que un aviso con el comprobante esperando en el panel.
-        await sendCrmEmail(
-          admin,
-          guardado
-            ? `${venta.nombre} subió el comprobante de ${monto}`
-            : `${venta.nombre} informó el pago de ${monto}`,
-          `<p>${escapeHtml(venta.nombre)} (${escapeHtml(venta.email)}) avisó que transfirió `
-          + `${escapeHtml(monto)}.</p>`
-          + (guardado
-            ? `<p>Adjuntó el comprobante «${escapeHtml(guardado.nombre)}». Lo tenés en su ficha.</p>`
-            : '<p>No adjuntó comprobante.</p>')
-          + '<p>Verificá la cuenta y confirmalo en el panel para que salga la factura.</p>',
-        );
-      } catch (reason) {
-        console.warn('[api/pedido/pago] El aviso no salió:', reason);
-      }
-    }
-
-    // La lectura del comprobante va DESPUÉS de contestar: el cliente no tiene
-    // por qué esperar a que un modelo mire su captura. Si tarda o falla, él ya
-    // sabe que su aviso llegó.
-    if (guardado && adjunto.archivo) {
-      const archivo = adjunto.archivo;
-      // Envuelto a propósito: `after` tira si no hay contexto de request, y
-      // sin esto ese error caía en el catch general y devolvía 500. El cliente
-      // ya transfirió: perder su aviso porque falló una ayuda opcional sería
-      // exactamente al revés de lo que hay que hacer.
+    // Un solo aviso, con el comprobante adentro y lo que vio la lectura. Eran
+    // dos correos sobre lo mismo, llegando al mismo minuto.
+    //
+    // La lectura va DESPUÉS de contestar: el cliente no tiene por qué esperar
+    // a que un modelo mire su captura. Sin comprobante no hay nada que leer y
+    // el aviso sale ya.
+    if (aviso.comprobante) {
       try {
-        after(async () => {
-          await revisarYAvisar({
-            pedidoId: fila.id,
-            archivo,
-            nombreArchivo: guardado.nombre,
-            esperado: {
-              montoUsd: fila.total_usd,
-              instruccionesDePago: paymentInstructionsFor(venta.pais),
-              nombreCliente: venta.nombre,
-              firmadoAt: venta.contrato_firmado_at,
-            },
-          });
-        });
+        after(() => revisarYAvisar(aviso));
       } catch (reason) {
+        // `after` tira sin contexto de request. El cliente ya transfirió: si
+        // la ayuda no se puede programar, el aviso sale igual, sin revisión.
         console.warn('[api/pedido/pago] No se pudo programar la revisión:', reason);
+        await avisar(aviso, null);
       }
+    } else {
+      await avisar(aviso, null);
     }
 
     return NextResponse.json({ ok: true, estado: 'informado' });
@@ -186,7 +171,16 @@ async function comprobanteDe(req: NextRequest) {
     const archivo = form.get('comprobante');
     if (!(archivo instanceof File)) return { archivo: null, rechazo: 'vacio' as const };
 
-    return { archivo, rechazo: revisarComprobante(archivo) };
+    const rechazo = revisarComprobante(archivo);
+    if (rechazo) return { archivo, rechazo };
+
+    // El tipo que declara el navegador lo escribe quien sube: un HTML con
+    // scripts llegaba diciendo ser «image/png». Se mira el archivo.
+    const bytes = Buffer.from(await archivo.arrayBuffer());
+    const tipo = tipoReal(bytes);
+    if (!tipo) return { archivo, rechazo: 'tipo' as const };
+
+    return { archivo, rechazo: null, bytes, tipo };
   } catch {
     // Un formulario que no se puede leer no puede frenar un aviso de pago.
     return { archivo: null, rechazo: 'vacio' as const };
@@ -204,14 +198,18 @@ async function archivarComprobante(
   leadId: string,
   pedidoId: string,
   archivo: File,
+  bytes: Buffer,
+  tipo: TipoComprobante,
 ): Promise<{ path: string; nombre: string } | null> {
   try {
-    const path = rutaDelComprobante(leadId, pedidoId, archivo.name, randomUUID());
+    // La extensión y el tipo salen de los bytes, no del nombre ni de lo que
+    // declaró el navegador: eso lo escribe quien sube el archivo.
+    const path = rutaDelComprobante(leadId, pedidoId, `comprobante${tipo.extension}`, randomUUID());
 
     const { error } = await getSupabaseAdmin().storage.from('comprobantes').upload(
       path,
-      new Uint8Array(await archivo.arrayBuffer()),
-      { contentType: archivo.type, upsert: false },
+      new Uint8Array(bytes),
+      { contentType: tipo.mime, upsert: false },
     );
 
     if (error) {
@@ -226,48 +224,98 @@ async function archivarComprobante(
   }
 }
 
-/**
- * Lee el comprobante y deja el resultado donde se lo va a mirar.
- *
- * Corre después de haberle contestado al cliente: leer una imagen con un
- * modelo tarda unos segundos y él ya hizo su parte. Si falla, el comprobante
- * sigue archivado y se mira a mano, como siempre — una ayuda que se cae no
- * puede frenar un cobro.
- */
-async function revisarYAvisar(params: {
+interface DatosDelAviso {
+  leadId: string;
   pedidoId: string;
-  archivo: File;
-  nombreArchivo: string;
+  cliente: string;
+  email: string;
+  totalUsd: number;
+  pais: string | null;
+  comprobante: { bytes: Buffer; tipo: TipoComprobante; nombre: string } | null;
   esperado: Parameters<typeof leerComprobante>[2];
-}): Promise<void> {
+}
+
+/**
+ * Lee el comprobante, guarda lo que vio y manda el aviso con todo junto.
+ *
+ * Si la lectura falla, el aviso sale igual sin revisión: una ayuda que se
+ * cae no puede frenar un cobro.
+ */
+async function revisarYAvisar(aviso: DatosDelAviso): Promise<void> {
+  let lectura: Awaited<ReturnType<typeof leerComprobante>> = null;
+
   try {
-    const bytes = Buffer.from(await params.archivo.arrayBuffer());
-    const lectura = await leerComprobante(bytes, params.archivo.type, params.esperado);
-    if (!lectura) return;
+    const { bytes, tipo } = aviso.comprobante!;
 
-    await getSupabaseAdmin().from('pedidos').update({
-      comprobante_revision: lectura,
-      comprobante_veredicto: lectura.revision.veredicto,
-    }).eq('id', params.pedidoId);
+    // Con la cotización del día, para comparar también en moneda local: sin
+    // esto un pago en pesos se comparaba contra dólares.
+    const cotizacion = await quoteFor(aviso.pais, aviso.totalUsd);
+    lectura = await leerComprobante(bytes, tipo.mime, {
+      ...aviso.esperado,
+      montoLocal: cotizacion
+        ? { moneda: cotizacion.currency, monto: cotizacion.amount, tasa: cotizacion.rate }
+        : null,
+    });
 
-    const admin = process.env.ADMIN_EMAIL;
-    if (!admin) return;
-
-    const lineas = lectura.revision.hallazgos
-      .map((h) => {
-        const marca = h.senal === 'ok' ? '✓' : h.senal === 'atencion' ? '!' : '✕';
-        return `<li>${marca} ${escapeHtml(h.detalle)}</li>`;
-      })
-      .join('');
-
-    await sendCrmEmail(
-      admin,
-      `${resumenDeRevision(lectura.revision)} · ${escapeHtml(params.nombreArchivo)}`,
-      `<p>Revisé el comprobante automáticamente. <strong>Esto no aprueba nada</strong>: `
-      + 'confirmalo vos desde el panel.</p>'
-      + `<ul>${lineas}</ul>`,
-    );
+    if (lectura) {
+      await getSupabaseAdmin().from('pedidos').update({
+        comprobante_revision: lectura,
+        comprobante_veredicto: lectura.revision.veredicto,
+      }).eq('id', aviso.pedidoId);
+    }
   } catch (reason) {
     console.warn('[api/pedido/pago] No se pudo revisar el comprobante:', reason);
+  }
+
+  await avisar(aviso, lectura);
+}
+
+/** El aviso a Silvano. Nunca tira: lo que el cliente informó ya quedó guardado. */
+async function avisar(
+  aviso: DatosDelAviso,
+  lectura: Awaited<ReturnType<typeof leerComprobante>>,
+): Promise<void> {
+  const admin = process.env.ADMIN_EMAIL;
+  if (!admin) return;
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+  const monto = `USD ${Math.round(aviso.totalUsd).toLocaleString('es-AR')}`;
+  const comprobante = aviso.comprobante;
+  const esImagen = comprobante?.tipo.clase === 'imagen' && comprobante.tipo.mime !== 'image/heic';
+
+  try {
+    await sendCrmEmail(
+      admin,
+      asuntoDeAviso('pago', aviso.cliente, monto, lectura?.revision.veredicto ?? null),
+      avisoAdmin({
+        tipo: 'pago',
+        titulo: comprobante
+          ? `${aviso.cliente} subió el comprobante`
+          : `${aviso.cliente} avisó que pagó`,
+        resumen: comprobante
+          ? `Avisó que transfirió ${monto} y adjuntó el comprobante.`
+          : `Avisó que transfirió ${monto}. No adjuntó comprobante.`,
+        filas: [
+          { label: 'Cliente', valor: `${aviso.cliente} · ${aviso.email}` },
+          { label: 'Monto', valor: monto },
+          ...(lectura?.datos.banco ? [{ label: 'Banco', valor: lectura.datos.banco }] : []),
+        ],
+        veredicto: lectura?.revision.veredicto ?? null,
+        hallazgos: comprobante ? (lectura?.revision.hallazgos ?? []) : undefined,
+        imagenCid: esImagen ? 'comprobante' : undefined,
+        siguiente: 'Verificá la cuenta y confirmá el pago en el panel para que salga la factura.',
+        urlFicha: `${siteUrl}/admin/leads/${aviso.leadId}`,
+      }),
+      comprobante
+        ? [{
+          filename: `comprobante${comprobante.tipo.extension}`,
+          content: comprobante.bytes,
+          contentType: comprobante.tipo.mime,
+          ...(esImagen ? { contentId: 'comprobante' } : {}),
+        }]
+        : undefined,
+    );
+  } catch (reason) {
+    console.warn('[api/pedido/pago] El aviso no salió:', reason);
   }
 }
