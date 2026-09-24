@@ -49,6 +49,12 @@ export interface Extra {
   precioUsd: number;
   /** 'mes' para los que se cobran todos los meses y no entran en el total del proyecto. */
   recurrente?: 'mes';
+  /**
+   * Días hábiles que suma al plazo de entrega. Un logo con dos propuestas y
+   * una ronda de ajustes espera respuesta del cliente: no entra gratis en el
+   * plazo del paquete, y prometerlo así es prometer algo que no se cumple.
+   */
+  diasHabiles?: number;
   /** Los módulos de presupuesto que cubre, para pretildarlos en el panel. */
   modulos?: string[];
 }
@@ -484,6 +490,7 @@ const web: Servicio = {
       label: { es: 'Logo tipográfico', en: 'Typographic logo' },
       detalle: { es: 'Dos propuestas y una ronda de ajustes.', en: 'Two options and one round of changes.' },
       precioUsd: 80,
+      diasHabiles: 3,
     },
     {
       id: 'agenda',
@@ -493,6 +500,7 @@ const web: Servicio = {
         en: 'Clients book themselves and the slot lands in your calendar.',
       },
       precioUsd: 150,
+      diasHabiles: 2,
       modulos: ['agenda-turnos'],
     },
     {
@@ -503,6 +511,7 @@ const web: Servicio = {
         en: 'You change the copy and photos yourself, without messaging me.',
       },
       precioUsd: 250,
+      diasHabiles: 3,
       modulos: ['panel-contenido'],
     },
     {
@@ -513,6 +522,7 @@ const web: Servicio = {
         en: 'A Mercado Pago link to charge a deposit or a single product.',
       },
       precioUsd: 60,
+      diasHabiles: 1,
       modulos: ['pago-link'],
     },
     {
@@ -520,6 +530,7 @@ const web: Servicio = {
       label: { es: 'Segundo idioma', en: 'Second language' },
       detalle: { es: 'El sitio completo en inglés o portugués.', en: 'The whole site in English or Portuguese.' },
       precioUsd: 120,
+      diasHabiles: 3,
       modulos: ['i18n'],
     },
     {
@@ -530,6 +541,7 @@ const web: Servicio = {
         en: 'Thirty animated seconds with your brand, for the homepage and social media.',
       },
       precioUsd: 180,
+      diasHabiles: 4,
     },
   ],
 };
@@ -708,6 +720,7 @@ const tienda: Servicio = {
         en: 'Deducts on sale and warns you when something is running out.',
       },
       precioUsd: 220,
+      diasHabiles: 3,
       modulos: ['stock'],
     },
     {
@@ -715,6 +728,7 @@ const tienda: Servicio = {
       label: { es: 'Cupones de descuento', en: 'Discount codes' },
       detalle: { es: 'Códigos con vencimiento y tope de usos.', en: 'Codes with expiry and usage limits.' },
       precioUsd: 90,
+      diasHabiles: 1,
     },
     {
       id: 'envios',
@@ -724,12 +738,14 @@ const tienda: Servicio = {
         en: 'Cost per zone and pickup at your location.',
       },
       precioUsd: 140,
+      diasHabiles: 2,
     },
     {
       id: 'idioma',
       label: { es: 'Segundo idioma', en: 'Second language' },
       detalle: { es: 'La tienda completa en inglés o portugués.', en: 'The whole store in English or Portuguese.' },
       precioUsd: 120,
+      diasHabiles: 3,
       modulos: ['i18n'],
     },
   ],
@@ -1307,6 +1323,15 @@ export interface Pedido {
   /** null cuando el paquete se cotiza en la llamada. */
   totalUsd: number | null;
   recurrenteUsd: number;
+}
+
+/**
+ * Los días hábiles que se comprometen para este pedido: los del paquete más
+ * los que suma cada extra. Es el número del contrato y de la pantalla: si
+ * cada uno lo calculara por su lado, prometerían cosas distintas.
+ */
+export function plazoDelPedido(paquete: Paquete, extras: Extra[]): number {
+  return paquete.plazoDias + extras.reduce((total, e) => total + (e.diasHabiles ?? 0), 0);
 }
 
 /** Lo que el cliente eligió, con su total. Es la base del presupuesto y del contrato. */

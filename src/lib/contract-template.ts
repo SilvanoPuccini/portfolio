@@ -26,6 +26,10 @@ export type ContractData = {
   hourlyRate: number;
   paymentTerms: string;
   estimatedWeeks: number;
+  /** Ver `DatosDelContrato`: si está, el plazo se escribe en días hábiles. */
+  plazoDiasHabiles?: number;
+  detallePrecio?: string[];
+  cargoMensual?: string;
   legalClause: string;
   /**
    * La firma del cliente, cuando ya firmó en nuestro sitio.
@@ -46,8 +50,8 @@ export type ContractData = {
    * firmar después: el Proveedor emite el documento ya conforme, y el cliente
    * recibe algo terminado en vez de una hoja a medio firmar.
    *
-   * Vive solo en el PDF que se sube a Documenso. No entra al repositorio ni
-   * al servidor: es una firma, no un recurso de la aplicación.
+   * No entra al repositorio: es una firma, no un recurso de la aplicación.
+   * La carga `firmaDelProveedor()` desde el Storage privado de contratos.
    */
   firmaProveedor?: Buffer;
   /**

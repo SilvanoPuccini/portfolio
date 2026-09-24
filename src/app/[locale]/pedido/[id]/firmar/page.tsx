@@ -6,7 +6,7 @@ import { PedidoLayout } from '@/components/pedido/PedidoLayout';
 import { ContractStep } from '@/components/propuesta/ContractStep';
 import { clausulasDelContrato, contratoDeVenta } from '@/content/contrato';
 import { cargarPedidoCompleto } from '@/lib/leads/cargar-pedido';
-import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
+import { legalClauseFor } from '@/lib/leads/legal-clause';
 import { redirigirA } from '@/lib/leads/pedido-pasos';
 import { resolveLocale } from '@/lib/i18n';
 import type { Locale } from '@/content/servicios';
@@ -73,7 +73,7 @@ export default async function FirmarPage({ params }: { params: Params }) {
                 pais: lead?.pais,
               },
               totalUsd: pedido.total_usd,
-              jurisdiccion: jurisdiccionCorta(lead?.pais ?? null),
+              jurisdiccion: legalClauseFor(lead?.pais ?? null),
             }))}
           />
         )}

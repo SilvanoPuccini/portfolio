@@ -97,6 +97,9 @@ function renglonConVinieta(doc: Doc, texto: string): void {
     lineGap: 2,
   });
   doc.moveDown(0.3);
+  // pdfkit se queda con la x de la sangría: sin esto, todo lo que sigue a
+  // una lista sale corrido a la derecha.
+  doc.x = doc.page.margins.left;
 }
 
 function separador(doc: Doc): void {
@@ -164,6 +167,14 @@ function pieDeTodasLasPaginas(doc: Doc): void {
   }
 }
 
+/** «Córdoba, Argentina», o solo «Argentina»: sin comas colgando ni repetidos. */
+function domicilioDe(data: ContractData): string {
+  return [data.clientLocation, data.clientCountry]
+    .map((parte) => parte?.trim() ?? '')
+    .filter((parte, i, partes) => parte && partes.indexOf(parte) === i)
+    .join(', ');
+}
+
 /** En el molde, lo que cambia por venta se deja en blanco para el campo. */
 function hueco(largo = 34): string {
   return '_'.repeat(largo);
@@ -211,6 +222,11 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
     hourlyRate: data.hourlyRate,
     paymentTerms: data.plantilla ? hueco(60) : data.paymentTerms,
     estimatedWeeks: data.estimatedWeeks,
+    // Estos tres se perdían acá: la pantalla decía «7 días hábiles» y el PDF
+    // «2 semanas». El PDF tiene que ser exactamente lo que el cliente leyó.
+    plazoDiasHabiles: data.plantilla ? undefined : data.plazoDiasHabiles,
+    detallePrecio: data.plantilla ? undefined : data.detallePrecio,
+    cargoMensual: data.plantilla ? undefined : data.cargoMensual,
     legalClause: data.plantilla
       ? `El presente contrato se regirá e interpretará conforme a ${hueco(52)}, renunciando las partes a cualquier otro fuero o jurisdicción que pudiera corresponderles.`
       : data.legalClause,
@@ -247,14 +263,20 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
   // precio. Esperar su firma para habilitar el pago sería ponerle una traba a
   // la propia venta.
   if (data.firmaProveedor) {
-    doc.moveDown(0.6);
+    // Etiqueta, firma, línea, nombre: el orden en que se lee un bloque de
+    // firma impreso. La imagen arriba de la etiqueta quedaba flotando.
+    encabezadoDeFirma(doc, 'EL PROVEEDOR');
     try {
-      doc.image(data.firmaProveedor, { width: 170 });
+      doc.image(data.firmaProveedor, doc.page.margins.left, doc.y, { fit: [190, 56] });
+      doc.y += 58;
     } catch {
       // Una firma que no se puede dibujar no puede tirar abajo el contrato:
       // el bloque sigue con el nombre y la conformidad escritos.
     }
-    encabezadoDeFirma(doc, 'EL PROVEEDOR');
+    const y = doc.y;
+    doc.moveTo(doc.page.margins.left, y).lineTo(doc.page.margins.left + 220, y)
+      .lineWidth(0.6).strokeColor(COLOR.linea).stroke();
+    doc.moveDown(0.4);
   } else {
     renglonParaFirmar(doc, 'EL PROVEEDOR');
   }
@@ -273,7 +295,7 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
     // cuándo, desde dónde y sobre qué texto. Un documento que hay que cruzar
     // con una base de datos para saber si vale no sirve como comprobante.
     detalleDeFirma(doc, data.firmaCliente.nombre);
-    detalleDeFirma(doc, `${data.clientLocation}, ${data.clientCountry}`);
+    detalleDeFirma(doc, domicilioDe(data));
     detalleDeFirma(
       doc,
       `Firmado electrónicamente el ${fechaLegible(data.firmaCliente.firmadoAt)} `
@@ -292,7 +314,7 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
   } else {
     encabezadoDeFirma(doc, 'EL CLIENTE');
     detalleDeFirma(doc, data.plantilla ? '' : data.clientName);
-    detalleDeFirma(doc, data.plantilla ? '' : `${data.clientLocation}, ${data.clientCountry}`);
+    detalleDeFirma(doc, data.plantilla ? '' : domicilioDe(data));
     renglonParaFirmar(doc, 'Email');
     renglonParaFirmar(doc, 'Fecha');
   }

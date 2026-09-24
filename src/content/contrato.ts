@@ -1,3 +1,5 @@
+import { ALCANCE_POR_EXTRA, ALCANCE_POR_PAQUETE } from '@/content/alcance-contractual';
+
 /**
  * El contrato, como datos.
  *
@@ -29,6 +31,16 @@ export interface DatosDelContrato {
   hourlyRate: number;
   paymentTerms: string;
   estimatedWeeks: number;
+  /**
+   * El plazo en días hábiles, cuando se conoce exacto. La venta del catálogo
+   * lo promete así en la página («Entrega en 5 días hábiles») y el contrato
+   * decía «1 semana»: dos promesas distintas para lo mismo. Si está, manda.
+   */
+  plazoDiasHabiles?: number;
+  /** El precio desglosado, un renglón por concepto. */
+  detallePrecio?: string[];
+  /** Lo que se cobra todos los meses, aparte del precio del proyecto. */
+  cargoMensual?: string;
   legalClause: string;
 }
 
@@ -47,9 +59,43 @@ export interface Clausula {
 const money = (valor: number) =>
   valor.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const NUMEROS = [
+  'cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez',
+  'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho',
+  'diecinueve', 'veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco',
+  'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve', 'treinta',
+];
+
+/** «siete (7)»: en un contrato los plazos se escriben en letras y en número. */
+function enLetras(n: number): string {
+  return NUMEROS[n] ? `${NUMEROS[n]} (${n})` : String(n);
+}
+
+function clausulaDePlazos(data: DatosDelContrato): string[] {
+  const demoras = 'Las demoras atribuibles al Cliente, incluyendo pero no limitándose a retrasos en la entrega de materiales, contenido, accesos o respuestas, extenderán el plazo por el mismo tiempo, sin que ello implique incumplimiento por parte del Proveedor.';
+
+  if (data.plazoDiasHabiles) {
+    return [
+      `El Proveedor se compromete a entregar los trabajos descritos en un plazo máximo de ${enLetras(data.plazoDiasHabiles)} días hábiles.`,
+      'El plazo comienza a correr cuando se cumplen las dos condiciones siguientes: la acreditación del pago y la recepción del material que el Cliente debe suministrar para el proyecto. Si el Proveedor entrega antes, la entrega anticipada no modifica ninguna otra condición de este contrato.',
+      'Luego de la entrega, el Cliente dispone de una (1) ronda de ajustes sobre lo entregado, que deberá solicitar por escrito dentro de los diez (10) días corridos siguientes. Los ajustes se realizarán dentro de los cinco (5) días hábiles posteriores al pedido.',
+      demoras,
+    ];
+  }
+
+  const semanas = `${data.estimatedWeeks} semana${data.estimatedWeeks !== 1 ? 's' : ''}`;
+  return [
+    `Los servicios darán comienzo una vez acreditado el primer pago y se estima una duración de ${semanas}.`,
+    'Los plazos indicados son estimativos. Demoras atribuibles al Cliente, incluyendo pero no limitándose a retrasos en la entrega de materiales, contenido o feedback, podrán extender los plazos acordados sin que ello implique incumplimiento por parte del Proveedor.',
+  ];
+}
+
 /** Las trece cláusulas, con los datos de esta venta adentro. */
 export function clausulasDelContrato(data: DatosDelContrato): Clausula[] {
-  const semanas = `${data.estimatedWeeks} semana${data.estimatedWeeks !== 1 ? 's' : ''}`;
+  const domicilio = [data.clientLocation, data.clientCountry]
+    .map((parte) => parte.trim())
+    .filter((parte, i, partes) => parte && partes.indexOf(parte) === i)
+    .join(', ');
 
   return [
     {
@@ -58,7 +104,9 @@ export function clausulasDelContrato(data: DatosDelContrato): Clausula[] {
       parrafos: [
       'El presente contrato se celebra entre las siguientes partes:',
       'PROVEEDOR: Silvano Puccini, desarrollador web freelance, con domicilio en la Ciudad Autónoma de Buenos Aires, República Argentina. En adelante denominado "el Proveedor".',
-        `CLIENTE: ${data.clientName}, con domicilio en ${data.clientLocation}, ${data.clientCountry}. En adelante denominado "el Cliente".`,
+        // «con domicilio en Argentina, Argentina»: sin localidad, el país se
+        // repetía. Cada parte va una vez.
+        `CLIENTE: ${data.clientName}, con domicilio en ${domicilio || 'el domicilio que informe'}. En adelante denominado "el Cliente".`,
       ],
     },
     {
@@ -84,17 +132,16 @@ export function clausulasDelContrato(data: DatosDelContrato): Clausula[] {
     {
       numero: 'IV',
       titulo: 'PLAZOS',
-      parrafos: [
-        `Los servicios darán comienzo una vez acreditado el primer pago y se estima una duración de ${semanas}.`,
-      'Los plazos indicados son estimativos. Demoras atribuibles al Cliente, incluyendo pero no limitándose a retrasos en la entrega de materiales, contenido o feedback, podrán extender los plazos acordados sin que ello implique incumplimiento por parte del Proveedor.',
-      ],
+      parrafos: clausulaDePlazos(data),
     },
     {
       numero: 'V',
       titulo: 'PRECIO Y FORMA DE PAGO',
       parrafos: [
         `El precio total acordado por los servicios descritos es de USD ${money(data.totalPrice)}.`,
+        ...(data.detallePrecio?.length ? [`Detalle: ${data.detallePrecio.join('; ')}.`] : []),
         `Forma de pago: ${data.paymentTerms}`,
+        ...(data.cargoMensual ? [data.cargoMensual] : []),
       'El pago deberá realizarse mediante transferencia bancaria internacional o por los medios digitales acordados entre las partes. El Proveedor no iniciará las tareas de cada etapa hasta recibir el pago correspondiente.',
       ],
     },
@@ -189,31 +236,75 @@ export function contratoComoTexto(data: DatosDelContrato): string {
  * el servidor cuando registra la firma, y el PDF que se archiva. Si cada una
  * lo armara por su cuenta, el cliente podría estar leyendo algo distinto de
  * lo que firma.
+ *
+ * El alcance sale de `ALCANCE_POR_PAQUETE`, no de los textos de venta: esos
+ * le hablan al cliente en primera persona («los escribo yo a partir de lo que
+ * me contás») y un contrato los copiaba tal cual. Los extras van con su
+ * detalle y su precio, y el precio va desglosado: el cliente eligió Landing +
+ * Logo y tiene que poder leer eso mismo en lo que firma.
  */
 export function contratoDeVenta(entrada: {
   paquete: {
+    slug: string;
     nombre: { es: string };
     resumen: { es: string };
     incluye: { es: string[] };
     noIncluye: { es: string[] };
     horas: number;
     plazoDias: number;
+    precioUsd: number | null;
+    recurrente?: 'mes';
     pagoUnico: boolean;
   };
-  extras: { label: { es: string } }[];
+  extras: { id: string; label: { es: string }; precioUsd: number; recurrente?: 'mes'; diasHabiles?: number }[];
   cliente: { nombre: string; localidad?: string | null; pais?: string | null };
   totalUsd: number;
+  /** El párrafo completo de ley aplicable y jurisdicción. */
   jurisdiccion: string;
   tarifaHora?: number;
 }): DatosDelContrato {
   const { paquete, extras, cliente, totalUsd } = entrada;
+  const alcance = ALCANCE_POR_PAQUETE[paquete.slug];
+
+  const unaVez = extras.filter((extra) => !extra.recurrente);
+  const mensuales = extras.filter((extra) => extra.recurrente);
+
+  const entregables = [
+    ...(alcance?.entregables ?? paquete.incluye.es),
+    ...unaVez.map((extra) => `Adicional contratado — ${ALCANCE_POR_EXTRA[extra.id] ?? extra.label.es}`),
+  ];
+
+  const usd = (valor: number) => `USD ${valor.toLocaleString('es-AR')}`;
+
+  // Un plan mensual no tiene precio de proyecto: su paquete ES el cargo.
+  const detallePrecio = paquete.recurrente
+    ? unaVez.map((extra) => `${extra.label.es}: ${usd(extra.precioUsd)}`)
+    : [
+      `${paquete.nombre.es}: ${usd(paquete.precioUsd ?? totalUsd)}`,
+      ...unaVez.map((extra) => `${extra.label.es}: ${usd(extra.precioUsd)}`),
+    ];
+
+  const conceptosMensuales = [
+    ...(paquete.recurrente && paquete.precioUsd ? [{ nombre: `Plan ${paquete.nombre.es}`, precio: paquete.precioUsd }] : []),
+    ...mensuales.map((extra) => ({ nombre: extra.label.es, precio: extra.precioUsd })),
+  ];
+  const totalMensual = conceptosMensuales.reduce((total, concepto) => total + concepto.precio, 0);
+
+  const cargoMensual = conceptosMensuales.length
+    ? `Además, el Cliente abonará un cargo mensual de ${usd(totalMensual)} (${conceptosMensuales.map((c) => `${c.nombre}: ${usd(c.precio)}`).join('; ')}), `
+      + 'por mes adelantado, desde la entrega y mientras el servicio esté vigente. Cualquiera de las partes puede darlo de baja con un aviso de treinta (30) días corridos.'
+    : undefined;
+
+  const plazo = plazoDiasHabiles(paquete.plazoDias, extras);
 
   return {
     clientName: cliente.nombre,
-    clientLocation: cliente.localidad ?? cliente.pais ?? '',
+    clientLocation: cliente.localidad ?? '',
     clientCountry: cliente.pais ?? '',
-    projectDescription: `${paquete.nombre.es}. ${paquete.resumen.es}`,
-    deliverables: [...paquete.incluye.es, ...extras.map((extra) => extra.label.es)].join('\n'),
+    projectDescription: alcance
+      ? `${paquete.nombre.es}: ${alcance.objeto}${unaVez.length ? `, con los adicionales detallados en la cláusula III` : ''}.`
+      : `${paquete.nombre.es}. ${paquete.resumen.es}`,
+    deliverables: entregables.join('\n'),
     excluded: paquete.noIncluye.es.join('\n'),
     totalHours: paquete.horas,
     totalPrice: totalUsd,
@@ -221,7 +312,16 @@ export function contratoDeVenta(entrada: {
     paymentTerms: paquete.pagoUnico
       ? `Pago único de USD ${totalUsd.toLocaleString('es-AR')} por adelantado.`
       : 'Seña del 50% para comenzar y el saldo contra entrega.',
-    estimatedWeeks: Math.max(1, Math.ceil(paquete.plazoDias / 5)),
+    estimatedWeeks: Math.max(1, Math.ceil(plazo / 5)),
+    plazoDiasHabiles: plazo > 0 ? plazo : undefined,
+    detallePrecio: totalUsd > 0 && detallePrecio.length > 1 ? detallePrecio : undefined,
+    cargoMensual,
     legalClause: entrada.jurisdiccion,
   };
+}
+
+/** Los mismos días que promete la pantalla: los del paquete más los de cada extra. */
+function plazoDiasHabiles(base: number, extras: { diasHabiles?: number }[]): number {
+  if (base <= 0) return 0;
+  return base + extras.reduce((total, extra) => total + (extra.diasHabiles ?? 0), 0);
 }

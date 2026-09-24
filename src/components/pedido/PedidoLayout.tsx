@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import { PASOS, type PasoPedido } from '@/lib/leads/pedido-pasos';
 import { money } from '@/lib/leads/cargar-pedido';
-import type { Locale, Paquete, Pedido } from '@/content/servicios';
+import { plazoDelPedido, type Locale, type Paquete, type Pedido } from '@/content/servicios';
 
 /**
  * El marco de la compra: dónde está parado y qué está comprando.
@@ -20,7 +20,7 @@ const copy = {
     sumaste: 'Le sumaste',
     total: 'Total',
     porMes: 'Además, por mes',
-    entrega: (dias: number) => `Entrega en ${dias} días hábiles desde el pago`,
+    entrega: (dias: number) => `Entrega en hasta ${dias} días hábiles, desde el pago y tu material`,
     garantia: 'Una ronda de ajustes y 30 días de garantía después de la entrega.',
     paso: (numero: number, total: number) => `Paso ${numero} de ${total}`,
   },
@@ -29,7 +29,7 @@ const copy = {
     sumaste: 'You added',
     total: 'Total',
     porMes: 'Plus, per month',
-    entrega: (dias: number) => `Delivered in ${dias} business days from payment`,
+    entrega: (dias: number) => `Delivered within ${dias} business days of payment and your material`,
     garantia: 'One round of changes and a 30-day warranty after delivery.',
     paso: (numero: number, total: number) => `Step ${numero} of ${total}`,
   },
@@ -151,8 +151,11 @@ export function PedidoLayout({
                 {labels.porMes}: {money(mensualUsd, locale)}
               </p>
             )}
+            {/* Con los días de cada extra: es el mismo número que firma. */}
             {paquete.plazoDias > 0 && (
-              <p className="mt-3 text-sm leading-6 text-text-tertiary">{labels.entrega(paquete.plazoDias)}</p>
+              <p className="mt-3 text-sm leading-6 text-text-tertiary">
+                {labels.entrega(plazoDelPedido(paquete, resumen.extras))}
+              </p>
             )}
             <p className="mt-2 text-sm leading-6 text-text-tertiary">{labels.garantia}</p>
           </div>
