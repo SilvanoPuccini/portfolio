@@ -65,6 +65,13 @@ function paqueteSugerido(service: string | null | undefined): string | null {
   return destacado?.slug ?? null;
 }
 
+/** El estado del pago en palabras: el valor crudo de la base no dice qué hacer. */
+const ESTADO_DEL_PAGO: Record<string, string> = {
+  iniciado: 'Pago iniciado',
+  informado: 'El cliente avisó que pagó · falta que lo confirmes',
+  pagado: 'Pago confirmado',
+};
+
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -468,7 +475,7 @@ export default function LeadDetailPage() {
         }}>
           <span style={{ fontSize: 16 }}>💳</span>
           <p style={{ fontSize: 13, fontWeight: 600, color: lead.pago_estado === 'pagado' ? '#4ade80' : '#f59e0b', margin: 0 }}>
-            Pago {lead.pago_estado}
+            {ESTADO_DEL_PAGO[lead.pago_estado] ?? `Pago ${lead.pago_estado}`}
           </p>
         </div>
       )}

@@ -69,6 +69,17 @@ describe('POST /api/admin/leads/[id]/advance', () => {
     }));
   });
 
+  it('confirmar el pago apaga el aviso de pago informado', async () => {
+    // El cartel del panel lee `pago_estado`. Confirmar guardaba la fecha y
+    // el estado del lead, pero dejaba `pago_estado` en «informado»: el aviso
+    // amarillo seguía ahí después de haber cobrado.
+    const update = supabaseWithLead('contrato_firmado');
+
+    await post({ event: 'pago_recibido' });
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ pago_estado: 'pagado' }));
+  });
+
   it('exige el número de factura', async () => {
     const update = supabaseWithLead('cerrado');
 

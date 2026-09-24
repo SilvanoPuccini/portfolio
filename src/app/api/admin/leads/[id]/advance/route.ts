@@ -94,6 +94,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (nextState) updates.estado = nextState;
   if (event === 'facturado') updates.factura_numero = body.factura_numero?.trim();
   if (event === 'pago_recibido') {
+    // El aviso del panel y la página del cliente leen `pago_estado`. Sin
+    // esto quedaba en «informado» después de cobrar: el cartel amarillo no
+    // se iba nunca y el cliente seguía viendo «estamos verificando».
+    updates.pago_estado = 'pagado';
     // El porcentaje lo elige una persona: el panel solo sugiere.
     if (typeof body.sena_pct === 'number') updates.sena_pct = body.sena_pct;
     if (typeof body.sena_monto === 'number') updates.sena_monto = body.sena_monto;
