@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Check, CloudUpload, Loader2, Paperclip } from 'lucide-react';
 
 import type { DatoKickoff, GrupoKickoff, PlanKickoff } from '@/content/kickoff';
@@ -211,6 +212,7 @@ export function KickoffForm({
   locale: Locale;
 }) {
   const labels = copy[locale];
+  const router = useRouter();
   const [datos, setDatos] = useState<Datos>(iniciales);
   const [estado, setEstado] = useState<'quieto' | 'guardando' | 'guardado'>('quieto');
   const [subiendo, setSubiendo] = useState<string | null>(null);
@@ -328,6 +330,8 @@ export function KickoffForm({
     await guardar(datos, true);
     setCompletado(true);
     setAvisando(false);
+    // Al cierre de la compra: gracias, qué compró y qué viene, con fechas.
+    router.push(`/${locale}/pedido/${pedidoId}/listo`);
   }
 
   if (completado) {
