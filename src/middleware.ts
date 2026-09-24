@@ -19,15 +19,22 @@ const STATIC_CSP = [
   // Documenso entra acá porque el contrato se firma embebido: el componente
   // habla con su API desde el navegador del cliente mientras firma.
   "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://app.documenso.com",
-  "frame-src https://www.openstreetmap.org https://cal.com https://app.documenso.com",
+  "frame-src 'self' https://www.openstreetmap.org https://cal.com https://app.documenso.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
 ];
 
+const ARCHIVO_DE_COMPROBANTE = /^\/api\/admin\/leads\/[^/]+\/comprobante\/archivo$/;
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // El comprobante que se mira dentro del panel trae su propia política: la
+  // del sitio dice `frame-ancestors 'none'` y no dejaría ver un PDF embebido
+  // en la ficha. Esa ruta exige sesión de admin y sirve solo imágenes o PDF.
+  if (ARCHIVO_DE_COMPROBANTE.test(pathname)) return NextResponse.next();
 
   // Un nonce por request. Con esto se puede sacar 'unsafe-inline' de
   // script-src: sin sacarlo, la CSP no protege de nada, porque cualquier

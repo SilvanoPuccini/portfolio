@@ -28,3 +28,17 @@ describe('la política de seguridad del navegador', () => {
     expect(csp()).toMatch(/connect-src[^;]*documenso/);
   });
 });
+
+describe('middleware — el comprobante del panel', () => {
+  it('deja que la ruta del archivo defina su propia política', () => {
+    const res = middleware(new NextRequest('http://localhost/api/admin/leads/abc/comprobante/archivo'));
+
+    expect(res.headers.get('content-security-policy')).toBeNull();
+  });
+
+  it('el resto del sitio sigue sin poder ser embebido', () => {
+    const res = middleware(new NextRequest('http://localhost/api/admin/leads/abc/comprobante'));
+
+    expect(res.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
+  });
+});
