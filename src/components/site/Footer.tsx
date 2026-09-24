@@ -95,12 +95,21 @@ export default function Footer({ locale }: { locale: Locale }) {
             ® 2026 Silvano Puccini.{" "}
             {locale === "es" ? "Todos los derechos reservados." : "All rights reserved."}
           </p>
-          <a
-            href={`/${locale}/privacy`}
-            className="font-mono text-[10px] tracking-[0.12em] text-text-tertiary/50 transition-colors hover:text-text-tertiary"
-          >
-            {locale === "es" ? "Política de privacidad" : "Privacy policy"}
-          </a>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {/* El camino de vuelta para quien ya compró y perdió el link. */}
+            <a
+              href={`/${locale}/pedido/recuperar`}
+              className="font-mono text-[10px] tracking-[0.12em] text-text-tertiary/70 transition-colors hover:text-text-secondary"
+            >
+              {locale === "es" ? "¿Ya compraste? Volvé a tu pedido" : "Already bought? Back to your order"}
+            </a>
+            <a
+              href={`/${locale}/privacy`}
+              className="font-mono text-[10px] tracking-[0.12em] text-text-tertiary/50 transition-colors hover:text-text-tertiary"
+            >
+              {locale === "es" ? "Política de privacidad" : "Privacy policy"}
+            </a>
+          </div>
         </div>
       </div>
     </footer>

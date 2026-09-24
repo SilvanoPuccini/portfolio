@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { rateLimit } from '@/lib/rate-limit';
 import { asuntoDeAviso, avisoAdmin } from '@/lib/email-templates/aviso-admin';
+import { proyectoEnMarchaHtml } from '@/lib/email-templates/proyecto-en-marcha';
+import { plazoDelPedido } from '@/content/servicios';
+import { cargarPedidoCompleto } from '@/lib/leads/cargar-pedido';
+import { lineaDeTiempo } from '@/lib/leads/linea-de-tiempo';
 import { sendCrmEmail } from '@/lib/resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -169,9 +173,43 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
+    // Al cliente: la confirmación con fechas y el link para volver. No le
+    // llegaba nada, y si cerraba la pestaña se quedaba sin camino.
+    if (termina) await confirmarAlCliente(id, lead.email);
+
     return NextResponse.json({ ok: true, completado: termina || yaEstaba });
   } catch (err) {
     console.error('[api/pedido/datos] POST error:', err);
     return NextResponse.json({ error: 'Could not save.' }, { status: 500 });
+  }
+}
+
+/** «Tu proyecto está en marcha». Nunca tira: el material ya quedó guardado. */
+async function confirmarAlCliente(pedidoId: string, email: string): Promise<void> {
+  try {
+    const completo = await cargarPedidoCompleto(pedidoId);
+    if (!completo?.lead) return;
+
+    const { lead, paquete, resumen, espera, pedido } = completo;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://silvanopuccini.dev';
+
+    await sendCrmEmail(
+      email,
+      `Tu ${paquete.nombre.es} ya está en marcha`,
+      proyectoEnMarchaHtml({
+        nombre: lead.nombre,
+        paquete: paquete.nombre.es,
+        urlPedido: `${siteUrl}/es/pedido/${pedido.id}/listo`,
+        pasos: lineaDeTiempo({
+          cobradoAt: lead.cobrado_at,
+          materialAt: lead.kickoff_completado_at ?? new Date().toISOString(),
+          plazoMaximo: paquete.plazoDias > 0 ? plazoDelPedido(paquete, resumen.extras) + espera : 0,
+          espera,
+          locale: 'es',
+        }),
+      }),
+    );
+  } catch (reason) {
+    console.warn('[api/pedido/datos] La confirmación al cliente no salió:', reason);
   }
 }
