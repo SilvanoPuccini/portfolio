@@ -1,0 +1,131 @@
+---
+title: 'Docker como contrato de ejecución'
+date: '2026-10-04'
+category: 'Automatización'
+displayCategory: 'Automatización'
+excerpt: 'Si para volver a levantar un proyecto hay que recordar qué instalaste a mano en el servidor, una parte del sistema vive en tu memoria. Mientras esa memoria está disponible, parece funcionar. El problema aparece cuando necesitás reconstruirlo.'
+featured: false
+linkedinCarousel: false
+readingTime: '8 min'
+keyword: 'Docker'
+ogImage: '/api/og/docker-como-contrato-de-ejecucion'
+---
+
+Si para volver a levantar un proyecto hay que recordar qué instalaste a mano en el servidor, una parte del sistema vive en tu memoria. Mientras esa memoria está disponible, parece funcionar. El problema aparece cuando necesitás reconstruirlo.
+
+En el artículo anterior hablé del segundo deploy: el que llega cuando ya hay usuarios, datos y una versión que funcionaba. Ahora quiero detenerme en una condición previa. Antes de decidir cómo reemplazar esa versión, tenemos que poder explicar qué necesita para ejecutarse.
+
+Ahí es donde Docker se ganó un lugar en mi trabajo.
+
+## El problema que quiero resolver
+
+Trabajo con proyectos desplegados de distintas maneras: plataformas administradas, contenedores sobre un servidor propio y sitios estáticos conectados a servicios externos. Esa variedad me obliga a separar dos preguntas que suelen mezclarse: qué necesita la aplicación y quién se encarga de proporcionárselo.
+
+En el sistema donde elegí contenedores, la necesidad era tener un entorno reproducible. Acepté administrar más piezas para poder describir cómo corren los procesos y reducir las diferencias entre ambientes.
+
+Eso tiene valor especialmente cuando la persona que desarrolla también despliega y atiende los problemas. Una configuración que depende de acordarse de cinco pasos manuales termina compitiendo con el tiempo que necesitás para construir el producto.
+
+Esta nota parte de ese escenario. Docker no es obligatorio para cada deploy. Una plataforma puede resolver el entorno de una aplicación sencilla con menos trabajo propio. La elección tiene sentido cuando la definición explícita del entorno compensa el mantenimiento que agrega.
+
+## Qué significa un contrato de ejecución
+
+Uso la palabra contrato para hablar de condiciones que deberían poder revisarse: qué versión del entorno necesita el código, qué dependencias se instalan, cómo arranca el proceso y qué espera recibir desde afuera.
+
+Si alguna de esas condiciones cambia, quiero poder encontrar el cambio. No descubrirlo porque el servidor tiene una biblioteca que mi computadora no tiene.
+
+Conviene distinguir tres piezas. El Dockerfile describe cómo construir; la imagen es el resultado empaquetado; el contenedor es una instancia en ejecución. Una misma imagen puede originar varios contenedores. La imagen contiene capas inmutables y el contenedor agrega su propia capa escribible. Docker explica esta separación en su [documentación sobre imágenes](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/).
+
+| Pieza                   | Qué deja explícito                                  | Qué no resuelve por sí sola                   |
+| ----------------------- | --------------------------------------------------- | --------------------------------------------- |
+| Dockerfile              | Cómo preparar el entorno y empaquetar la aplicación | Qué credenciales usará producción             |
+| Imagen                  | Qué artefacto se va a ejecutar                      | Si el servidor tiene recursos suficientes     |
+| Contenedor              | Qué proceso está corriendo con qué configuración    | La conservación y recuperación de los datos   |
+| Definición de servicios | Cómo se conectan las piezas                         | Que el negocio esté funcionando correctamente |
+
+Para mí, el avance está en poder discutir esas condiciones mirando archivos y versiones. La infraestructura deja de depender tanto de instrucciones informales.
+
+Pero el contrato también tiene límites. Si no los nombramos, terminamos prometiendo con Docker lo mismo que antes prometíamos con un script: que todo va a andar porque arrancó una vez.
+
+## La misma imagen reduce diferencias; no las elimina todas
+
+Un contenedor no lleva una computadora completa adentro. En el modelo habitual de contenedores Linux, los procesos comparten el kernel del entorno que los ejecuta. Eso los diferencia de una máquina virtual y explica por qué siguen importando la plataforma y la arquitectura compatibles. Así lo describe Docker al explicar los [contenedores](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/).
+
+También siguen existiendo diferencias de memoria, red, permisos y configuración. Una aplicación puede usar la misma imagen en dos lugares y comportarse distinto porque en uno la base de datos está cerca y en el otro cada consulta cruza una región.
+
+La reproducibilidad empieza antes del arranque. Si la construcción descarga dependencias sin versiones controladas o usa una etiqueta de imagen base que cambió, reconstruir mañana puede producir otro resultado. Fijar dependencias y, cuando corresponde, identificar la base por digest ayuda a controlar eso. A cambio, hay que actualizarla de forma deliberada: fijar una versión no la mantiene segura indefinidamente. Estas decisiones forman parte de las [recomendaciones de construcción de Docker](https://docs.docker.com/build/building/best-practices/).
+
+El criterio que me interesa es sencillo: poder identificar qué artefacto se probó y cuál llegó a producción. Promover esa imagen evita introducir una reconstrucción distinta justo en el momento de entregar.
+
+No necesito que todos los entornos sean idénticos. Necesito conocer las diferencias que pueden afectar el resultado.
+
+## Lo que tiene que quedar afuera de la imagen
+
+Una imagen útil para distintos entornos no debería depender de llevar adentro las credenciales de uno de ellos.
+
+El código puede ser el mismo mientras cambian la dirección de un servicio, el dominio público o la credencial para conectarse. Esas diferencias pertenecen a la configuración de ejecución y al mecanismo elegido para entregar secretos.
+
+Hay un detalle que suele pasarse por alto: si durante el build necesitás una credencial para descargar una dependencia privada, tampoco conviene incorporarla mediante instrucciones que la dejen persistida. Docker ofrece [montajes de secretos para ese paso](https://docs.docker.com/build/building/secrets/). Borrar después un archivo sensible no garantiza que haya desaparecido de las capas anteriores. La documentación distingue los secretos de build de los argumentos y variables persistidos.
+
+Desde el producto, la consecuencia es más importante que la sintaxis: alguien debería poder obtener la imagen para ejecutarla sin recibir por ese solo hecho las llaves de producción.
+
+## El proceso se reemplaza; los datos tienen otra vida
+
+Pensemos en una aplicación que recibe archivos de usuarios. Si esos archivos quedan exclusivamente en la capa escribible del contenedor, eliminarlo para crear otro puede llevarse también esos datos.
+
+Los volúmenes permiten que los datos sobrevivan al ciclo de vida del contenedor. Sin embargo, un volumen ubicado en el mismo servidor sigue dependiendo de ese servidor. Persistencia y backup resuelven problemas distintos: conservar al reemplazar un proceso no equivale a recuperar después de perder un disco. Docker documenta el ciclo de vida y la administración de los [volúmenes](https://docs.docker.com/engine/storage/volumes/).
+
+Esta separación cambia la manera de pensar una entrega. El contenedor puede ser reemplazable; los pedidos, historias clínicas o documentos subidos necesitan una estrategia propia.
+
+Y tampoco alcanza con volver a una imagen anterior si el esquema de datos dejó de ser compatible. El problema del artículo pasado sigue ahí. Docker conserva una forma de ejecutar código; no decide cómo deshacer una transformación del negocio.
+
+## Un ejemplo para ver dónde termina cada responsabilidad
+
+Tomemos un caso didáctico: una aplicación con una API, un proceso de tareas y una base de datos. No es una descripción exacta de uno de mis despliegues; sirve para mostrar la separación.
+
+| Componente        | Qué ejecuta                         | Qué debe sobrevivir a su reemplazo                    |
+| ----------------- | ----------------------------------- | ----------------------------------------------------- |
+| API               | Atiende solicitudes y aplica reglas | Los datos del negocio, guardados fuera del contenedor |
+| Proceso de tareas | Ejecuta trabajos pendientes         | El registro durable de esos trabajos                  |
+| Base de datos     | Conserva y consulta información     | Sus datos y las copias necesarias para recuperarlos   |
+
+La API y el proceso de tareas podrían partir de la misma imagen de aplicación y usar comandos distintos. Compartir código no obliga a mezclar todos los procesos dentro de un único contenedor.
+
+La base podría ejecutarse en el servidor o ser administrada por un proveedor. Esa decisión cambia quién mantiene el motor y cómo se recupera, aunque la aplicación siga empaquetada igual.
+
+Este es el punto que me importa: poder reemplazar una parte sin confundir su función con la de las demás. Un gráfico con tres cajas solo aporta si esas fronteras existen también en la operación.
+
+## Compose describe la relación; la disponibilidad hay que comprobarla
+
+Cuando aparecen varios servicios, Compose permite declarar su configuración conjunta. Puede usarse también en producción sobre un solo servidor, con ajustes específicos del entorno. No obliga por sí mismo a incorporar un sistema de orquestación más grande. Docker incluye una [guía para ese uso en producción](https://docs.docker.com/compose/how-tos/production/).
+
+Hay dos detalles pequeños que tienen consecuencias grandes.
+
+Primero, dentro de un contenedor, `localhost` se refiere a ese contenedor. Para conectar servicios en una red de Compose se usan sus nombres de servicio y los puertos correspondientes. Confundir eso puede hacer que la aplicación busque la base de datos dentro de sí misma. La [red de Compose](https://docs.docker.com/compose/how-tos/networking/) ofrece resolución por nombre de servicio.
+
+Segundo, haber arrancado no significa estar listo. Una base puede tener un proceso vivo y todavía no aceptar conexiones. Las dependencias con una condición de salud permiten esperar una comprobación definida; aun así, la aplicación necesita manejar fallos posteriores. Docker distingue el orden de arranque de la disponibilidad del servicio en su guía sobre [el orden de inicio](https://docs.docker.com/compose/how-tos/startup-order/).
+
+La consecuencia práctica es que un archivo prolijo no reemplaza una entrega verificada. El contrato describe cómo debería funcionar el conjunto. Después hay que comprobarlo.
+
+## El costo que acepto cuando elijo contenedores
+
+En mi elección de contenedores sobre un servidor propio gané control sobre el entorno y acepté más responsabilidad operativa. Es el intercambio que sostiene esta decisión.
+
+Hay imágenes para actualizar, espacio que vigilar, registros que administrar y recursos que repartir. También hay un servidor debajo. Encapsular procesos no hace desaparecer el sistema que los sostiene.
+
+La configuración de permisos importa: ejecutar con privilegios innecesarios o exponer el control de Docker amplía lo que un fallo puede afectar. El aislamiento es una capacidad que hay que configurar y mantener. La [documentación de seguridad de Docker](https://docs.docker.com/engine/security/) explica esas fronteras y el papel del daemon.
+
+Por eso no tomaría la cantidad de contenedores como señal de madurez. La pregunta que me sirve es cuánto trabajo repetible quedó documentado y cuánto mantenimiento adicional acepté para conseguirlo.
+
+Si una sola aplicación entra bien en una plataforma administrada, la comparación sigue abierta. Tener control sobre cada capa es valioso cuando necesitás ejercerlo. En otros casos puede consumir el tiempo que el producto necesita en otra parte.
+
+## Qué puedo reconstruir
+
+El Dockerfile deja explícita una parte del entorno, pero no alcanza por sí solo para volver a operar. También necesito la configuración de cada entorno, acceso seguro a los secretos, los datos persistentes y una secuencia de recuperación. Cada pieza tiene su propio ciclo de vida.
+
+Si mañana cambia el servidor, la pregunta no es solo si puedo volver a crear el contenedor. También necesito saber qué puedo levantar desde los archivos, qué depende del proveedor y qué pasos requieren una intervención manual.
+
+Docker me permite hacer explícito cómo se ejecuta la aplicación. La decisión siguiente es dónde ejecutar ese contrato y qué parte de la operación delegar. La próxima nota compara VPS, PaaS, BaaS y serverless: qué trabajo delegás y cuál sigue siendo tuyo.
+
+---
+
+El Radar es donde documento las decisiones técnicas que tomo al construir productos, con lo que resuelven y el costo que tienen. Si querés seguir la serie, podés suscribirte acá abajo.
