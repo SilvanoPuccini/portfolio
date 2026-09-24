@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { contratoDeVenta } from '@/content/contrato';
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { boton, emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
+import { asuntoDeAviso, avisoAdmin } from '@/lib/email-templates/aviso-admin';
 import { buildContractPdf } from '@/lib/contrato-pdf';
 import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
+import { esperaDelPedido } from '@/lib/leads/capacidad';
 import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
 import { nombreConExtension, tipoDeDocumento } from '@/lib/leads/tipo-de-archivo';
 import { legalClauseFor } from '@/lib/leads/legal-clause';
@@ -103,6 +105,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       cliente: lead,
       totalUsd: pedido.total_usd,
       jurisdiccion: legalClauseFor(lead.pais),
+      // La misma espera que leyó en pantalla: congelada en el pedido.
+      diasDeEspera: await esperaDelPedido(pedido.id),
     });
 
     const evidencia = evidenciaDeFirma(contrato, lead.nombre, {
@@ -222,10 +226,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const admin = process.env.ADMIN_EMAIL;
     if (admin) {
       try {
+        const loQueCompro = [paquete.nombre.es, ...resumen.extras.map((extra) => extra.label.es)].join(' + ');
         await sendCrmEmail(
           admin,
-          `${lead.nombre} firmó el contrato · ${monto}`,
-          `<p>Firmó ${paquete.nombre.es} por ${monto}. Ya tiene los datos para pagar.</p>`,
+          asuntoDeAviso('firma', lead.nombre, `${paquete.nombre.es} · ${monto}`),
+          avisoAdmin({
+            tipo: 'firma',
+            titulo: `${lead.nombre} firmó el contrato`,
+            resumen: `Firmó ${loQueCompro} por ${monto}. Ya tiene los datos para pagar.`,
+            filas: [
+              { label: 'Cliente', valor: `${lead.nombre} · ${lead.email}` },
+              { label: 'Compró', valor: loQueCompro },
+              { label: 'Total', valor: monto },
+              ...(contrato.plazoDiasHabiles ? [{ label: 'Plazo', valor: `${contrato.plazoDiasHabiles} días hábiles` }] : []),
+            ],
+            siguiente: 'Te va a llegar el aviso de pago con el comprobante.',
+            urlFicha: `${siteUrl}/admin/leads/${lead.id}`,
+          }),
         );
       } catch {
         // Un aviso que no llega no cambia nada de lo que pasó.

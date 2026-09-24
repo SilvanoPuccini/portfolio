@@ -1,4 +1,5 @@
 import { paquetePorSlug, servicioPorSlug, totalPedido, type Locale, type Paquete, type Pedido } from '@/content/servicios';
+import { esperaDelPedido } from './capacidad';
 import { etapaDelPedido, type EtapaPedido } from './etapa-pedido';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -32,6 +33,8 @@ export interface LeadRow {
   contrato_firma_token: string | null;
   contrato_signing_url: string | null;
   contrato_firmado_at: string | null;
+  cobrado_at: string | null;
+  kickoff_completado_at: string | null;
 }
 
 export interface PedidoCompleto {
@@ -40,10 +43,12 @@ export interface PedidoCompleto {
   paquete: Paquete;
   resumen: Pedido;
   etapa: EtapaPedido;
+  /** Días hábiles de espera por la agenda, congelados al pedir. */
+  espera: number;
 }
 
 const COLUMNAS_LEAD = 'nombre, email, localidad, estado, pais, pago_estado, factura_numero, '
-  + 'contrato_firma_token, contrato_signing_url, contrato_firmado_at';
+  + 'contrato_firma_token, contrato_signing_url, contrato_firmado_at, cobrado_at, kickoff_completado_at';
 
 /**
  * El pedido con su venta y su etapa. `null` si no existe o si el paquete que
@@ -86,7 +91,7 @@ export async function cargarPedidoCompleto(id: string): Promise<PedidoCompleto |
     }
     : null);
 
-  return { pedido, lead, paquete, resumen, etapa };
+  return { pedido, lead, paquete, resumen, etapa, espera: await esperaDelPedido(pedido.id) };
 }
 
 /** El precio como lo lee el cliente, en el idioma en que compró. */

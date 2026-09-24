@@ -43,7 +43,7 @@ export default async function FirmarPage({ params }: { params: Params }) {
   const destino = redirigirA(datos.etapa, 'firmar', currentLocale, id);
   if (destino) redirect(destino);
 
-  const { lead, paquete, pedido, resumen } = datos;
+  const { lead, paquete, pedido, resumen, espera } = datos;
 
   return (
     <PedidoLayout
@@ -51,6 +51,7 @@ export default async function FirmarPage({ params }: { params: Params }) {
       resumen={resumen}
       totalUsd={pedido.total_usd}
       mensualUsd={pedido.mensual_usd}
+      esperaDias={espera}
       locale={currentLocale}
       paso="firmar"
       titulo={titulo[currentLocale]}
@@ -74,6 +75,7 @@ export default async function FirmarPage({ params }: { params: Params }) {
               },
               totalUsd: pedido.total_usd,
               jurisdiccion: legalClauseFor(lead?.pais ?? null),
+              diasDeEspera: espera,
             }))}
           />
         )}

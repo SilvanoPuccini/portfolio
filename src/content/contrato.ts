@@ -37,6 +37,8 @@ export interface DatosDelContrato {
    * decía «1 semana»: dos promesas distintas para lo mismo. Si está, manda.
    */
   plazoDiasHabiles?: number;
+  /** Cuántos de esos días son espera por la agenda: se dice, no se esconde. */
+  diasDeEspera?: number;
   /** El precio desglosado, un renglón por concepto. */
   detallePrecio?: string[];
   /** Lo que se cobra todos los meses, aparte del precio del proyecto. */
@@ -76,7 +78,10 @@ function clausulaDePlazos(data: DatosDelContrato): string[] {
 
   if (data.plazoDiasHabiles) {
     return [
-      `El Proveedor se compromete a entregar los trabajos descritos en un plazo máximo de ${enLetras(data.plazoDiasHabiles)} días hábiles.`,
+      `El Proveedor se compromete a entregar los trabajos descritos en un plazo máximo de ${enLetras(data.plazoDiasHabiles)} días hábiles.`
+      + (data.diasDeEspera
+        ? ` Este plazo incluye ${enLetras(data.diasDeEspera)} días hábiles de espera por los proyectos en curso al momento de la contratación.`
+        : ''),
       'El plazo comienza a correr cuando se cumplen las dos condiciones siguientes: la acreditación del pago y la recepción del material que el Cliente debe suministrar para el proyecto. Si el Proveedor entrega antes, la entrega anticipada no modifica ninguna otra condición de este contrato.',
       'Luego de la entrega, el Cliente dispone de una (1) ronda de ajustes sobre lo entregado, que deberá solicitar por escrito dentro de los diez (10) días corridos siguientes. Los ajustes se realizarán dentro de los cinco (5) días hábiles posteriores al pedido.',
       demoras,
@@ -262,6 +267,8 @@ export function contratoDeVenta(entrada: {
   /** El párrafo completo de ley aplicable y jurisdicción. */
   jurisdiccion: string;
   tarifaHora?: number;
+  /** Días hábiles que se suman por el trabajo en curso al momento de pedir. */
+  diasDeEspera?: number;
 }): DatosDelContrato {
   const { paquete, extras, cliente, totalUsd } = entrada;
   const alcance = ALCANCE_POR_PAQUETE[paquete.slug];
@@ -295,7 +302,8 @@ export function contratoDeVenta(entrada: {
       + 'por mes adelantado, desde la entrega y mientras el servicio esté vigente. Cualquiera de las partes puede darlo de baja con un aviso de treinta (30) días corridos.'
     : undefined;
 
-  const plazo = plazoDiasHabiles(paquete.plazoDias, extras);
+  const espera = Math.max(0, entrada.diasDeEspera ?? 0);
+  const plazo = plazoDiasHabiles(paquete.plazoDias, extras) + (paquete.plazoDias > 0 ? espera : 0);
 
   return {
     clientName: cliente.nombre,
@@ -314,6 +322,7 @@ export function contratoDeVenta(entrada: {
       : 'Seña del 50% para comenzar y el saldo contra entrega.',
     estimatedWeeks: Math.max(1, Math.ceil(plazo / 5)),
     plazoDiasHabiles: plazo > 0 ? plazo : undefined,
+    diasDeEspera: espera > 0 && plazo > 0 ? espera : undefined,
     detallePrecio: totalUsd > 0 && detallePrecio.length > 1 ? detallePrecio : undefined,
     cargoMensual,
     legalClause: entrada.jurisdiccion,

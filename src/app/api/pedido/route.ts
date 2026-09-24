@@ -7,6 +7,7 @@ import {
   type Locale,
 } from '@/content/servicios';
 import { rateLimit } from '@/lib/rate-limit';
+import { diasDeEspera, horasEnCurso } from '@/lib/leads/capacidad';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -67,18 +68,30 @@ export async function POST(req: NextRequest) {
     const resumen = totalPedido(paquete, pedidos, servicio?.extras ?? []);
     const extras = resumen.extras.map((extra) => extra.id);
 
-    const { data, error } = await getSupabaseAdmin()
+    const fila = {
+      paquete: paquete.slug,
+      extras,
+      total_usd: resumen.totalUsd ?? 0,
+      mensual_usd: resumen.recurrenteUsd,
+      locale,
+      calificacion,
+    };
+
+    // La espera por la agenda se congela acá: es la que va a leer en el
+    // contrato y la que va a firmar, aunque mañana entren más pedidos.
+    const espera = diasDeEspera(await horasEnCurso());
+
+    let { data, error } = await getSupabaseAdmin()
       .from('pedidos')
-      .insert({
-        paquete: paquete.slug,
-        extras,
-        total_usd: resumen.totalUsd ?? 0,
-        mensual_usd: resumen.recurrenteUsd,
-        locale,
-        calificacion,
-      })
+      .insert({ ...fila, espera_dias: espera })
       .select('id')
       .single();
+
+    // Sin la migración 045 la columna no existe: el pedido se registra igual,
+    // sin espera, que es exactamente como funcionaba antes.
+    if (error && /espera_dias/.test(error.message ?? '')) {
+      ({ data, error } = await getSupabaseAdmin().from('pedidos').insert(fila).select('id').single());
+    }
 
     if (error || !data) {
       console.error('[api/pedido] No se pudo registrar el pedido:', error);

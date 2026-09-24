@@ -115,3 +115,21 @@ describe('alcance contractual — el catálogo entero', () => {
     expect(sinDias).toEqual([]);
   });
 });
+
+describe('contratoDeVenta — con la agenda cargada', () => {
+  it('suma la espera al plazo y lo dice, no lo esconde', () => {
+    const paquete = paquetePorSlug('catalogo-cobro')!;
+    const sin = contratoDeVenta({
+      paquete, extras: [], cliente: { nombre: 'X', pais: 'Argentina' },
+      totalUsd: 1190, jurisdiccion: legalClauseFor('Argentina'),
+    });
+    const con = contratoDeVenta({
+      paquete, extras: [], cliente: { nombre: 'X', pais: 'Argentina' },
+      totalUsd: 1190, jurisdiccion: legalClauseFor('Argentina'), diasDeEspera: 12,
+    });
+
+    expect(con.plazoDiasHabiles).toBe(sin.plazoDiasHabiles! + 12);
+    expect(contratoComoTexto(con)).toContain('doce (12) días hábiles de espera');
+    expect(contratoComoTexto(sin)).not.toContain('de espera');
+  });
+});

@@ -64,6 +64,7 @@ export default async function PagarPage({ params }: { params: Params }) {
       resumen={resumen}
       totalUsd={pedido.total_usd}
       mensualUsd={pedido.mensual_usd}
+      esperaDias={datos.espera}
       locale={currentLocale}
       paso="pagar"
       titulo={labels.titulo}

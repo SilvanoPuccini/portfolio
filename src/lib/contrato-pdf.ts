@@ -279,6 +279,7 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
     // Estos tres se perdían acá: la pantalla decía «7 días hábiles» y el PDF
     // «2 semanas». El PDF tiene que ser exactamente lo que el cliente leyó.
     plazoDiasHabiles: data.plantilla ? undefined : data.plazoDiasHabiles,
+    diasDeEspera: data.plantilla ? undefined : data.diasDeEspera,
     detallePrecio: data.plantilla ? undefined : data.detallePrecio,
     cargoMensual: data.plantilla ? undefined : data.cargoMensual,
     legalClause: data.plantilla

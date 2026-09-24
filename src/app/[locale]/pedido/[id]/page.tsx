@@ -44,6 +44,7 @@ export default async function PedidoPage({ params }: { params: Params }) {
       resumen={datos.resumen}
       totalUsd={datos.pedido.total_usd}
       mensualUsd={datos.pedido.mensual_usd}
+      esperaDias={datos.espera}
       locale={currentLocale}
       paso="resumen"
       titulo={titulo[currentLocale]}

@@ -22,6 +22,7 @@ const copy = {
     porMes: 'Además, por mes',
     entrega: (rango: string) => `Entrega en ${rango} días hábiles, desde el pago y tu material`,
     garantia: 'Una ronda de ajustes y 30 días de garantía después de la entrega.',
+    espera: (dias: number) => `Incluye ${dias} ${dias === 1 ? 'día hábil' : 'días hábiles'} de espera: hay proyectos en curso antes que el tuyo.`,
     paso: (numero: number, total: number) => `Paso ${numero} de ${total}`,
   },
   en: {
@@ -31,9 +32,14 @@ const copy = {
     porMes: 'Plus, per month',
     entrega: (rango: string) => `Delivered in ${rango} business days from payment and your material`,
     garantia: 'One round of changes and a 30-day warranty after delivery.',
+    espera: (dias: number) => `Includes ${dias} business ${dias === 1 ? 'day' : 'days'} of wait: there are projects in progress ahead of yours.`,
     paso: (numero: number, total: number) => `Step ${numero} of ${total}`,
   },
 } as const;
+
+function conEspera(rango: { desde: number; hasta: number }, espera: number) {
+  return { desde: rango.desde + espera, hasta: rango.hasta + espera };
+}
 
 /** La cuenta de pasos. Lo hecho se tilda, lo que falta queda tenue. */
 function Pasos({ actual, etiqueta }: { actual: PasoPedido; etiqueta: string }) {
@@ -80,12 +86,14 @@ function Pasos({ actual, etiqueta }: { actual: PasoPedido; etiqueta: string }) {
 }
 
 export function PedidoLayout({
-  paquete, resumen, totalUsd, mensualUsd, locale, paso, titulo, children,
+  paquete, resumen, totalUsd, mensualUsd, esperaDias = 0, locale, paso, titulo, children,
 }: {
   paquete: Paquete;
   resumen: Pedido;
   totalUsd: number;
   mensualUsd: number;
+  /** Días hábiles de espera por la agenda, ya incluidos en el plazo. */
+  esperaDias?: number;
   locale: Locale;
   paso: PasoPedido;
   /** Qué se hace en este paso. El nombre del paquete queda de subtítulo. */
@@ -154,8 +162,12 @@ export function PedidoLayout({
             {/* Con los días de cada extra. El máximo es el mismo número que firma. */}
             {paquete.plazoDias > 0 && (
               <p className="mt-3 text-sm leading-6 text-text-tertiary">
-                {labels.entrega(rangoComoTexto(rangoDelPedido(paquete, resumen.extras), locale))}
+                {labels.entrega(rangoComoTexto(conEspera(rangoDelPedido(paquete, resumen.extras), esperaDias), locale))}
               </p>
+            )}
+            {/* La espera se dice: esconderla es prometer un plazo que no se cumple. */}
+            {paquete.plazoDias > 0 && esperaDias > 0 && (
+              <p className="mt-1 text-sm leading-6 text-text-tertiary">{labels.espera(esperaDias)}</p>
             )}
             <p className="mt-2 text-sm leading-6 text-text-tertiary">{labels.garantia}</p>
           </div>

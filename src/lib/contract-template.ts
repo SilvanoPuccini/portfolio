@@ -28,6 +28,7 @@ export type ContractData = {
   estimatedWeeks: number;
   /** Ver `DatosDelContrato`: si está, el plazo se escribe en días hábiles. */
   plazoDiasHabiles?: number;
+  diasDeEspera?: number;
   detallePrecio?: string[];
   cargoMensual?: string;
   legalClause: string;
