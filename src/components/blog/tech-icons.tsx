@@ -123,7 +123,8 @@ export const TECH_ICONS: Record<string, TechIcon> = {
    * como de poder volver atrás.
    */
   Deploy: {
-    color: "#22D3D3",
+    // Gris claro: el cian es el acento del sitio y en la portada competía con él.
+    color: "#C9D1D9",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
         <rect x="3" y="12.5" width="18" height="4" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
