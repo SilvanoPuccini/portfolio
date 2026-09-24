@@ -22,7 +22,8 @@ import {
   FrontendScenariosBlock,
 } from './diagrams/FrontendStacksDiagrams';
 import { BackendLineupBlock, BackendComplexityBlock } from './diagrams/BackendStacksDiagrams';
-import { DeliveryStagesBlock, RollbackOptionsBlock } from './diagrams/DeliveryDiagrams';
+import { CheckoutGapBlock, DeliveryStagesBlock, RollbackOptionsBlock } from './diagrams/DeliveryDiagrams';
+import { DockerBoundariesBlock, DockerContractBlock } from './diagrams/DockerDiagrams';
 import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
@@ -33,7 +34,8 @@ const mdxComponents = {
   FiveDecisionsDiagramBlock, StackHeroBlock, StackReferenceTable,
   FrontendLineupBlock, FrontendMatrixBlock, FrontendScenariosBlock,
   BackendLineupBlock, BackendComplexityBlock,
-  DeliveryStagesBlock, RollbackOptionsBlock,
+  DeliveryStagesBlock, RollbackOptionsBlock, CheckoutGapBlock,
+  DockerContractBlock, DockerBoundariesBlock,
 };
 
 const mdxOptions = {

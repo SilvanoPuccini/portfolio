@@ -7,7 +7,7 @@ excerpt: 'En local, si algo se rompe, lo arreglás y volvés a correr. En produc
 featured: false
 linkedinCarousel: false
 readingTime: '7 min'
-keyword: 'deploy'
+keyword: 'Deploy'
 ogImage: '/api/og/deploy-no-es-subir-una-carpeta'
 ---
 
@@ -83,7 +83,7 @@ Acá se concentra la mayor cantidad de confusión, y es la que más caro sale. T
 
 El fallo más útil que tuve no fue de código. Apareció un problema de acceso a un servicio administrado que estaba conectado desde otra plataforma. El repositorio estaba bien, el build estaba bien y no había nada que revertir, porque el problema no estaba en ninguna versión mía.
 
-La decisión ahí fue no tocar el código, que era la reacción instintiva. Se resolvió del lado del acceso. Lo que me dejó es la lección más cara de las tres: cuando delegás parte de tu sistema a un servicio, delegás también parte de tu diagnóstico.
+La decisión ahí fue no tocar el código, que era la reacción instintiva. Se resolvió del lado del acceso. Lo que me dejó vale para cualquier proyecto que dependa de terceros: cuando delegás parte de tu sistema a un servicio, delegás también parte de tu diagnóstico.
 
 ## Lo que sacrifiqué en cada decisión
 
@@ -95,16 +95,18 @@ Elegir servicios administrados en un tercer caso significó descartar escribir y
 
 ## El límite del rollback
 
-Volver a una versión anterior recupera el código, pero no necesariamente las operaciones que ya ocurrieron.
+Las tres formas de volver atrás actúan sobre lo que es tuyo: el código y los datos. Hay una parte que ninguna alcanza, y es lo que ya salió hacia otros sistemas.
 
-En un checkout, por ejemplo, un pago puede aprobarse y la aplicación fallar antes de registrar la orden. Revertir el deploy no anula ese cobro. Restaurar un backup completo también puede borrar compras legítimas hechas después de esa copia.
+En un checkout, por ejemplo, un pago puede aprobarse y la aplicación fallar antes de registrar la orden. Revertir el deploy no anula ese cobro. Restaurar un backup tampoco ayuda, y además puede borrar compras legítimas hechas después de esa copia.
 
-Para recuperar el sistema hay que reconciliar lo que registró la aplicación con lo que confirmó el proveedor de pagos, y resolver cada operación sin duplicar cobros ni perder órdenes válidas. Esa decisión depende del flujo y del costo que tendría dejarlo en un estado inconsistente.
+<CheckoutGapBlock />
 
-Por eso, volver atrás no es una sola acción: hay que considerar la versión del código, los cambios en los datos y las operaciones que ya llegaron a otros sistemas.
+Para recuperar el sistema hay que reconciliar lo que registró la aplicación con lo que confirmó el proveedor de pagos, y resolver cada operación sin duplicar cobros ni perder órdenes válidas. Cómo se resuelve cada caso depende del flujo y de cuánto cuesta dejarlo inconsistente mientras tanto.
 
-También importa poder ejecutar la versión anterior en un entorno compatible con producción. El próximo artículo parte de esa pregunta y revisa qué puede hacer Docker más reproducible, y qué responsabilidades quedan fuera del contenedor.
+Volver atrás, entonces, no es una sola acción. Es decidir qué pasa con la versión del código, con los cambios en los datos y con las operaciones que ya llegaron a otros sistemas.
+
+Y hay una condición previa que di por sentada: poder volver a ejecutar la versión anterior en un entorno compatible con producción. ¿Podrías levantar hoy la versión del mes pasado sin acordarte de ningún paso manual? De esa pregunta parte el próximo artículo, sobre qué puede hacer Docker más reproducible y qué queda fuera del contenedor.
 
 ---
 
-En El Radar documento decisiones técnicas de proyectos reales, por qué las tomé y qué costo tuvieron. Si querés seguir la serie, podés suscribirte acá abajo.
+Qué se puede deshacer, qué no y cuánto cuesta enterarse tarde es el tipo de decisión que documento en El Radar, con proyectos reales, por qué elegí lo que elegí y qué me costó. Si querés seguir la serie, suscribite acá abajo.

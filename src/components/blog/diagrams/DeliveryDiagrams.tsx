@@ -258,3 +258,153 @@ export function RollbackOptionsBlock() {
     </Diagram>
   );
 }
+
+/* ── 3. Lo que el rollback no alcanza ─────────────────────────── */
+
+const PASOS_CHECKOUT = [
+  { n: '01', que: 'El cliente confirma el pago', donde: 'Tu aplicación', color: MUTED },
+  { n: '02', que: 'El proveedor aprueba el cobro', donde: 'Otro sistema', color: '#a78bfa' },
+  { n: '03', que: 'La aplicación falla antes de guardar la orden', donde: 'Tu aplicación', color: '#f87171' },
+  { n: '04', que: 'Revertís el deploy', donde: 'Vuelve el código, el cobro sigue', color: '#4ade80' },
+];
+
+const APP_ROWS = [
+  { id: '#1041', estado: 'Orden registrada', ok: true },
+  { id: '#1042', estado: 'Orden registrada', ok: true },
+  { id: '#1043', estado: 'Sin orden', ok: false },
+];
+
+const PROVEEDOR_ROWS = [
+  { id: '#1041', estado: 'Cobro aprobado', ok: true },
+  { id: '#1042', estado: 'Cobro aprobado', ok: true },
+  { id: '#1043', estado: 'Cobro aprobado', ok: false },
+];
+
+function Registro({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { id: string; estado: string; ok: boolean }[];
+}) {
+  return (
+    <div
+      style={{
+        flex: '1',
+        background: PANEL,
+        border: `1px solid ${LINE}`,
+        borderRadius: '10px',
+        padding: '16px 18px',
+      }}
+    >
+      <div style={{ fontSize: '10.5px', color: MUTED, letterSpacing: '.1em', marginBottom: '10px' }}>
+        {title.toUpperCase()}
+      </div>
+      {rows.map((r) => (
+        <div
+          key={r.id}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '8px 10px',
+            marginTop: '4px',
+            borderRadius: '6px',
+            fontSize: '12.5px',
+            color: r.ok ? INK : '#f87171',
+            background: r.ok ? 'transparent' : 'rgba(248,113,113,.08)',
+            border: r.ok ? `1px solid ${LINE}` : '1px solid rgba(248,113,113,.45)',
+          }}
+        >
+          <span style={{ fontFamily: 'ui-monospace,monospace' }}>{r.id}</span>
+          <span>{r.estado}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CheckoutGap() {
+  return (
+    <div
+      style={{
+        boxSizing: 'border-box',
+        width: '880px',
+        background: CARD,
+        border: '1px solid #1a2230',
+        borderRadius: '14px',
+        padding: '32px 30px',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'ui-monospace,monospace',
+          fontSize: '12px',
+          letterSpacing: '.16em',
+          color: MUTED,
+          marginBottom: '20px',
+        }}
+      >
+        LO QUE YA SALIÓ DE TU SISTEMA
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        {PASOS_CHECKOUT.map((p, i) => (
+          <div key={p.n} style={{ display: 'flex', alignItems: 'center', flex: '1' }}>
+            <div
+              style={{
+                flex: '1',
+                background: PANEL,
+                border: `1px solid ${LINE}`,
+                borderTop: `2px solid ${p.color}`,
+                borderRadius: '10px',
+                padding: '14px 14px',
+                minHeight: '120px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              <div style={{ fontFamily: 'ui-monospace,monospace', fontSize: '12px', color: p.color }}>
+                {p.n}
+              </div>
+              <div style={{ fontSize: '13.5px', color: INK, lineHeight: '1.4' }}>{p.que}</div>
+              <div style={{ fontSize: '11.5px', color: MUTED, marginTop: 'auto' }}>{p.donde}</div>
+            </div>
+            {i < PASOS_CHECKOUT.length - 1 ? (
+              <div style={{ color: LINE, fontSize: '18px', padding: '0 7px', flexShrink: 0 }}>→</div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: '16px', marginTop: '22px' }}>
+        <Registro title="Lo que registró la aplicación" rows={APP_ROWS} />
+        <Registro title="Lo que confirmó el proveedor" rows={PROVEEDOR_ROWS} />
+      </div>
+
+      <div
+        style={{
+          marginTop: '18px',
+          padding: '14px 18px',
+          background: PANEL,
+          border: `1px solid ${LINE}`,
+          borderLeft: `2px solid ${ACCENT}`,
+          borderRadius: '8px',
+          fontSize: '14px',
+          color: MUTED,
+        }}
+      >
+        Reconciliar es resolver cada diferencia por separado: crear la orden que falta o devolver el
+        cobro, sin duplicar ninguno de los dos.
+      </div>
+    </div>
+  );
+}
+
+export function CheckoutGapBlock() {
+  return (
+    <Diagram w={880} caption="El rollback recupera tu versión. El cobro ya vive en el sistema del proveedor">
+      <CheckoutGap />
+    </Diagram>
+  );
+}

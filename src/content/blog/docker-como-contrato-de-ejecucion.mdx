@@ -17,7 +17,7 @@ En el artículo anterior hablé del segundo deploy: el que llega cuando ya hay u
 
 Ahí es donde Docker se ganó un lugar en mi trabajo.
 
-## El problema que quiero resolver
+## Qué necesita la aplicación y quién se lo da
 
 Trabajo con proyectos desplegados de distintas maneras: plataformas administradas, contenedores sobre un servidor propio y sitios estáticos conectados a servicios externos. Esa variedad me obliga a separar dos preguntas que suelen mezclarse: qué necesita la aplicación y quién se encarga de proporcionárselo.
 
@@ -33,7 +33,11 @@ Uso la palabra contrato para hablar de condiciones que deberían poder revisarse
 
 Si alguna de esas condiciones cambia, quiero poder encontrar el cambio. No descubrirlo porque el servidor tiene una biblioteca que mi computadora no tiene.
 
-Conviene distinguir tres piezas. El Dockerfile describe cómo construir; la imagen es el resultado empaquetado; el contenedor es una instancia en ejecución. Una misma imagen puede originar varios contenedores. La imagen contiene capas inmutables y el contenedor agrega su propia capa escribible. Docker explica esta separación en su [documentación sobre imágenes](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/).
+Conviene distinguir tres piezas. El Dockerfile describe cómo construir, la imagen es el resultado empaquetado y el contenedor es una instancia en ejecución. Una misma imagen puede originar varios contenedores. La imagen contiene capas inmutables y cada contenedor agrega su propia capa escribible. Docker explica esta separación en su [documentación sobre imágenes](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/).
+
+<DockerContractBlock />
+
+Cuando hay más de un servicio aparece una cuarta pieza: la definición de cómo se conectan. Ninguna de las cuatro cubre todo, y lo que cada una deja afuera importa tanto como lo que fija.
 
 | Pieza                   | Qué deja explícito                                  | Qué no resuelve por sí sola                   |
 | ----------------------- | --------------------------------------------------- | --------------------------------------------- |
@@ -46,7 +50,7 @@ Para mí, el avance está en poder discutir esas condiciones mirando archivos y 
 
 Pero el contrato también tiene límites. Si no los nombramos, terminamos prometiendo con Docker lo mismo que antes prometíamos con un script: que todo va a andar porque arrancó una vez.
 
-## La misma imagen reduce diferencias; no las elimina todas
+## La misma imagen no borra todas las diferencias
 
 Un contenedor no lleva una computadora completa adentro. En el modelo habitual de contenedores Linux, los procesos comparten el kernel del entorno que los ejecuta. Eso los diferencia de una máquina virtual y explica por qué siguen importando la plataforma y la arquitectura compatibles. Así lo describe Docker al explicar los [contenedores](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/).
 
@@ -54,7 +58,7 @@ También siguen existiendo diferencias de memoria, red, permisos y configuració
 
 La reproducibilidad empieza antes del arranque. Si la construcción descarga dependencias sin versiones controladas o usa una etiqueta de imagen base que cambió, reconstruir mañana puede producir otro resultado. Fijar dependencias y, cuando corresponde, identificar la base por digest ayuda a controlar eso. A cambio, hay que actualizarla de forma deliberada: fijar una versión no la mantiene segura indefinidamente. Estas decisiones forman parte de las [recomendaciones de construcción de Docker](https://docs.docker.com/build/building/best-practices/).
 
-El criterio que me interesa es sencillo: poder identificar qué artefacto se probó y cuál llegó a producción. Promover esa imagen evita introducir una reconstrucción distinta justo en el momento de entregar.
+El criterio que me interesa es sencillo: poder identificar qué artefacto se probó y cuál llegó a producción. Promover esa misma imagen de un entorno al siguiente evita meter una reconstrucción distinta justo en el momento de entregar.
 
 No necesito que todos los entornos sean idénticos. Necesito conocer las diferencias que pueden afectar el resultado.
 
@@ -68,33 +72,29 @@ Hay un detalle que suele pasarse por alto: si durante el build necesitás una cr
 
 Desde el producto, la consecuencia es más importante que la sintaxis: alguien debería poder obtener la imagen para ejecutarla sin recibir por ese solo hecho las llaves de producción.
 
-## El proceso se reemplaza; los datos tienen otra vida
+## El contenedor se reemplaza, los datos no
 
 Pensemos en una aplicación que recibe archivos de usuarios. Si esos archivos quedan exclusivamente en la capa escribible del contenedor, eliminarlo para crear otro puede llevarse también esos datos.
 
 Los volúmenes permiten que los datos sobrevivan al ciclo de vida del contenedor. Sin embargo, un volumen ubicado en el mismo servidor sigue dependiendo de ese servidor. Persistencia y backup resuelven problemas distintos: conservar al reemplazar un proceso no equivale a recuperar después de perder un disco. Docker documenta el ciclo de vida y la administración de los [volúmenes](https://docs.docker.com/engine/storage/volumes/).
 
-Esta separación cambia la manera de pensar una entrega. El contenedor puede ser reemplazable; los pedidos, historias clínicas o documentos subidos necesitan una estrategia propia.
+Esta separación cambia la manera de pensar una entrega. El contenedor puede ser reemplazable. Los pedidos, historias clínicas o documentos subidos necesitan una estrategia propia.
 
-Y tampoco alcanza con volver a una imagen anterior si el esquema de datos dejó de ser compatible. El problema del artículo pasado sigue ahí. Docker conserva una forma de ejecutar código; no decide cómo deshacer una transformación del negocio.
+Y tampoco alcanza con volver a una imagen anterior si el esquema de datos dejó de ser compatible. El problema del artículo pasado sigue ahí. Docker conserva una forma de ejecutar código. No decide cómo deshacer una transformación del negocio.
 
 ## Un ejemplo para ver dónde termina cada responsabilidad
 
-Tomemos un caso didáctico: una aplicación con una API, un proceso de tareas y una base de datos. No es una descripción exacta de uno de mis despliegues; sirve para mostrar la separación.
+Tomemos un caso didáctico: una aplicación con una API, un proceso de tareas y una base de datos. No es una descripción exacta de uno de mis despliegues. Sirve para mostrar dónde termina cada pieza.
 
-| Componente        | Qué ejecuta                         | Qué debe sobrevivir a su reemplazo                    |
-| ----------------- | ----------------------------------- | ----------------------------------------------------- |
-| API               | Atiende solicitudes y aplica reglas | Los datos del negocio, guardados fuera del contenedor |
-| Proceso de tareas | Ejecuta trabajos pendientes         | El registro durable de esos trabajos                  |
-| Base de datos     | Conserva y consulta información     | Sus datos y las copias necesarias para recuperarlos   |
+<DockerBoundariesBlock />
 
 La API y el proceso de tareas podrían partir de la misma imagen de aplicación y usar comandos distintos. Compartir código no obliga a mezclar todos los procesos dentro de un único contenedor.
 
 La base podría ejecutarse en el servidor o ser administrada por un proveedor. Esa decisión cambia quién mantiene el motor y cómo se recupera, aunque la aplicación siga empaquetada igual.
 
-Este es el punto que me importa: poder reemplazar una parte sin confundir su función con la de las demás. Un gráfico con tres cajas solo aporta si esas fronteras existen también en la operación.
+Este es el punto que me importa: poder reemplazar una parte sin confundir su función con la de las demás. Un diagrama prolijo solo aporta si esas fronteras existen también en la operación.
 
-## Compose describe la relación; la disponibilidad hay que comprobarla
+## Compose describe la relación, no la garantiza
 
 Cuando aparecen varios servicios, Compose permite declarar su configuración conjunta. Puede usarse también en producción sobre un solo servidor, con ajustes específicos del entorno. No obliga por sí mismo a incorporar un sistema de orquestación más grande. Docker incluye una [guía para ese uso en producción](https://docs.docker.com/compose/how-tos/production/).
 
@@ -102,7 +102,7 @@ Hay dos detalles pequeños que tienen consecuencias grandes.
 
 Primero, dentro de un contenedor, `localhost` se refiere a ese contenedor. Para conectar servicios en una red de Compose se usan sus nombres de servicio y los puertos correspondientes. Confundir eso puede hacer que la aplicación busque la base de datos dentro de sí misma. La [red de Compose](https://docs.docker.com/compose/how-tos/networking/) ofrece resolución por nombre de servicio.
 
-Segundo, haber arrancado no significa estar listo. Una base puede tener un proceso vivo y todavía no aceptar conexiones. Las dependencias con una condición de salud permiten esperar una comprobación definida; aun así, la aplicación necesita manejar fallos posteriores. Docker distingue el orden de arranque de la disponibilidad del servicio en su guía sobre [el orden de inicio](https://docs.docker.com/compose/how-tos/startup-order/).
+Segundo, haber arrancado no significa estar listo. Una base puede tener un proceso vivo y todavía no aceptar conexiones. Las dependencias con una condición de salud permiten esperar una comprobación definida. Aun así, la aplicación necesita manejar fallos posteriores. Docker distingue el orden de arranque de la disponibilidad del servicio en su guía sobre [el orden de inicio](https://docs.docker.com/compose/how-tos/startup-order/).
 
 La consecuencia práctica es que un archivo prolijo no reemplaza una entrega verificada. El contrato describe cómo debería funcionar el conjunto. Después hay que comprobarlo.
 
@@ -128,4 +128,4 @@ Docker me permite hacer explícito cómo se ejecuta la aplicación. La decisión
 
 ---
 
-El Radar es donde documento las decisiones técnicas que tomo al construir productos, con lo que resuelven y el costo que tienen. Si querés seguir la serie, podés suscribirte acá abajo.
+Qué queda escrito en un archivo y qué sigue dependiendo de tu memoria es una de las decisiones que documento en El Radar, con lo que resuelve cada una y lo que cuesta sostenerla. Si querés seguir la serie, suscribite acá abajo.
