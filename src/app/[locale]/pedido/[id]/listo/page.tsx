@@ -76,6 +76,7 @@ export default async function ListoPage({ params }: { params: Params }) {
       paso="listo"
       titulo={labels.titulo}
     >
+      <a className="button-secondary mb-6" href={`/${currentLocale}/pedido/${id}/cuidado`}>{currentLocale === 'en' ? 'Hosting and care: plan, payments and requests' : 'Hosting y cuidado: plan, pagos y solicitudes'}</a>
       {/* Con el material cargado la compra terminó: gracias y lo que viene,
           con fechas. Antes quedaba un cartel de «Listo» y nada más. */}
       {lead?.kickoff_completado_at ? (

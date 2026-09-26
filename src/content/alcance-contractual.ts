@@ -147,5 +147,5 @@ export const ALCANCE_POR_EXTRA: Record<string, string> = {
   stock: 'Control de stock: descuento automático al vender y aviso cuando un producto está por agotarse.',
   cupones: 'Cupones de descuento configurables por el Cliente.',
   envios: 'Costo de envío por zona y opción de retiro en el local.',
-  'plan-automatizacion': 'Plan mensual de monitoreo de las automatizaciones: seguimiento, aviso ante fallas y consumo de servicios de IA incluido.',
+  'plan-automatizacion': 'Plan mensual de monitoreo de las automatizaciones: seguimiento, aviso ante fallas y consumo de IA/API a cargo del Cliente.',
 };

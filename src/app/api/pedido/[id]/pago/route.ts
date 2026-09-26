@@ -90,6 +90,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ ok: true, estado: venta.pago_estado });
     }
 
+    if (fila.total_usd <= 0) return NextResponse.json({ error: 'Payment activation requires confirmation. Do not submit a zero-value transfer.' }, { status: 409 });
+
     // El archivo va primero, pero su fallo no frena el aviso: el cliente ya
     // transfirió y perder lo que informó por un problema de nuestro storage
     // sería castigarlo por algo que no hizo.

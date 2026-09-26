@@ -39,7 +39,7 @@ beforeEach(() => {
 
 describe('FirmaContrato', () => {
   it('lleva al paso siguiente en vez de recargar en el lugar', async () => {
-    render(<FirmaContrato pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
+    render(<FirmaContrato revision="shown-revision" pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
 
     firmar();
 
@@ -54,7 +54,7 @@ describe('FirmaContrato', () => {
       json: async () => ({ error: 'El nombre tiene que coincidir con el del contrato.' }),
     }));
 
-    render(<FirmaContrato pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
+    render(<FirmaContrato revision="shown-revision" pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
     firmar();
 
     expect(await screen.findByRole('alert')).toHaveTextContent('tiene que coincidir');
@@ -66,7 +66,7 @@ describe('FirmaContrato', () => {
     // recargar a mano, justo cuando el cliente ya decidió comprar.
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('se cortó')));
 
-    render(<FirmaContrato pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
+    render(<FirmaContrato revision="shown-revision" pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
     firmar();
 
     await screen.findByRole('alert');
@@ -74,7 +74,7 @@ describe('FirmaContrato', () => {
   });
 
   it('el botón no se puede apretar sin haber leído ni escrito el nombre', () => {
-    render(<FirmaContrato pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
+    render(<FirmaContrato revision="shown-revision" pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
 
     expect(screen.getByRole('button', { name: /Firmar el contrato/i })).toBeDisabled();
   });
@@ -82,7 +82,7 @@ describe('FirmaContrato', () => {
   it('si le pasan qué hacer al firmar, no navega por su cuenta', async () => {
     const onFirmado = vi.fn();
     render(
-      <FirmaContrato
+      <FirmaContrato revision="shown-revision"
         pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} onFirmado={onFirmado}
       />,
     );
@@ -102,7 +102,7 @@ describe('FirmaContrato', () => {
    */
   it('avisa que el link también le llegó por correo', () => {
     render(
-      <FirmaContrato
+      <FirmaContrato revision="shown-revision"
         pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS}
         email="este@ejemplo.com"
       />,
@@ -113,7 +113,7 @@ describe('FirmaContrato', () => {
   });
 
   it('sin el correo a mano, lo dice igual sin inventarlo', () => {
-    render(<FirmaContrato pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
+    render(<FirmaContrato revision="shown-revision" pedidoId="abc" nombreEsperado="Estefanía Ortigosa" clausulas={CLAUSULAS} />);
 
     expect(screen.getByText(/cerrás esta página/i)).toBeInTheDocument();
   });

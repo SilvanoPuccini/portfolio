@@ -1,15 +1,14 @@
+import { randomUUID } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { contratoDeVenta } from '@/content/contrato';
+import { readRevision } from '@/lib/leads/contract-revision';
 import { paquetePorSlug, servicioPorSlug, totalPedido } from '@/content/servicios';
 import { boton, emailLayout, nota, panelDestacado, parrafo, bloqueDatos } from '@/lib/email-templates/layout';
 import { asuntoDeAviso, avisoAdmin } from '@/lib/email-templates/aviso-admin';
 import { buildContractPdf } from '@/lib/contrato-pdf';
-import { COOKIE_ACCESO, firmarSesion } from '@/lib/leads/acceso-cliente';
-import { esperaDelPedido } from '@/lib/leads/capacidad';
-import { evidenciaDeFirma, nombreCoincide } from '@/lib/leads/firma-propia';
+import { COOKIE_VERIFICADO, tieneVerificacion } from '@/lib/leads/acceso-cliente';
+import { nombreCoincide } from '@/lib/leads/firma-propia';
 import { nombreConExtension, tipoDeDocumento } from '@/lib/leads/tipo-de-archivo';
-import { legalClauseFor } from '@/lib/leads/legal-clause';
 import { paymentInstructionsFor } from '@/lib/leads/payment-instructions';
 import { quoteFor } from '@/lib/leads/exchange-rate';
 import { advanceOn } from '@/lib/leads/pipeline';
@@ -45,6 +44,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Probá de nuevo en un minuto.' }, { status: 429 });
     }
 
+    if (!tieneVerificacion(req.cookies.get(COOKIE_VERIFICADO)?.value, id)) {
+      return NextResponse.json({ error: 'Verify your email before signing.' }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => null);
     const nombre = typeof body?.nombre === 'string' ? body.nombre.trim() : '';
 
@@ -56,13 +59,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: fila } = await db
       .from('pedidos')
-      .select('id, lead_id, paquete, extras, total_usd, mensual_usd, locale')
+      .select('id, lead_id, paquete, extras, total_usd, mensual_usd, locale, contrato_snapshot')
       .eq('id', id)
       .maybeSingle();
 
     const pedido = fila as {
       id: string; lead_id: string | null; paquete: string; extras: string[] | null;
-      total_usd: number; locale: string | null;
+      total_usd: number; locale: string | null; contrato_snapshot: unknown;
     } | null;
 
     if (!pedido?.lead_id) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
@@ -81,10 +84,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     if (!lead) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
 
-    if (lead.contrato_firmado_at) {
-      return NextResponse.json({ error: 'Este contrato ya está firmado.' }, { status: 409 });
-    }
-
     // El nombre escrito tiene que ser el del contrato: es lo único que hace
     // que escribirlo signifique algo.
     if (!nombreCoincide(nombre, lead.nombre)) {
@@ -94,25 +93,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
     }
 
+    const snapshot = pedido.contrato_snapshot ? readRevision(pedido.contrato_snapshot) : null;
+    if (snapshot && (body?.revision !== snapshot.revision || !nombreCoincide(nombre, snapshot.datos.clientName))) {
+      return NextResponse.json({ error: 'The contract revision changed. Reload and review it before signing.' }, { status: 409 });
+    }
+    const persistenceArgs = {
+      p_order_id: pedido.id,
+      p_lead_id: lead.id,
+      p_expected_state: lead.estado,
+      p_next_state: advanceOn('contrato_firmado', lead.estado ?? ''),
+    };
+    // A retry repairs old partial writes using the original evidence and timestamp.
+    const { data: previous, error: recoveryError } = await db.rpc('persist_order_signature', {
+      ...persistenceArgs, p_evidence: null,
+    });
+    if (recoveryError) throw recoveryError;
+    if (previous) return signedResponse(pedido.id, previous.firmadoAt);
+    if (lead.contrato_firmado_at) {
+      return NextResponse.json({ error: 'Este contrato ya está firmado.' }, { status: 409 });
+    }
+
     const paquete = paquetePorSlug(pedido.paquete);
     if (!paquete) return NextResponse.json({ error: 'Unknown package.' }, { status: 404 });
 
     const servicio = servicioPorSlug(paquete.servicio);
     const resumen = totalPedido(paquete, pedido.extras ?? [], servicio?.extras ?? []);
-    const contrato = contratoDeVenta({
-      paquete,
-      extras: resumen.extras,
-      cliente: lead,
-      totalUsd: pedido.total_usd,
-      jurisdiccion: legalClauseFor(lead.pais),
-      // La misma espera que leyó en pantalla: congelada en el pedido.
-      diasDeEspera: await esperaDelPedido(pedido.id),
-    });
-
-    const evidencia = evidenciaDeFirma(contrato, lead.nombre, {
-      ip: getIp(req),
-      navegador: req.headers.get('user-agent') ?? 'desconocido',
-    });
+    if (!snapshot || pedido.total_usd <= 0) {
+      return NextResponse.json({ error: 'Review an available contract and confirmed payment terms before signing.' }, { status: 409 });
+    }
+    const contrato = snapshot.datos;
+    const evidencia = { nombre: snapshot.datos.clientName, firmadoAt: new Date().toISOString(),
+      ip: getIp(req).slice(0, 60), navegador: (req.headers.get('user-agent') ?? 'unknown').slice(0, 300),
+      texto: snapshot.texto, huella: snapshot.revision };
 
     // El documento sale con la evidencia adentro: tiene que sostenerse solo,
     // sin que haya que cruzarlo con la base para saber si vale.
@@ -130,7 +142,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         ip: evidencia.ip,
         huella: evidencia.huella,
       },
-    });
+    }, snapshot.clausulas);
 
     // El tipo se mira, no se declara. Durante un tiempo todo este camino dijo
     // «application/pdf» porque la variable se llamaba `pdf`, y lo que sale de
@@ -138,39 +150,37 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // era un PDF y no lo podía abrir, ni desde la página ni desde el correo.
     const tipo = tipoDeDocumento(documento);
 
-    const pdfPath = `${lead.id}/${pedido.id}${tipo.extension}`;
+    const pdfPath = `${lead.id}/${pedido.id}/${randomUUID()}${tipo.extension}`;
     const { error: errorPdf } = await db.storage.from(BUCKET).upload(
       pdfPath,
       new Uint8Array(documento),
-      { contentType: tipo.mime, upsert: true },
+      { contentType: tipo.mime, upsert: false },
     );
-    if (errorPdf) console.error('[api/pedido/firmar] No se pudo archivar el contrato:', errorPdf);
+    if (errorPdf) throw errorPdf;
 
-    const { error } = await db.from('firmas').insert({
-      lead_id: lead.id,
-      pedido_id: pedido.id,
-      nombre: evidencia.nombre,
-      ip: evidencia.ip,
-      navegador: evidencia.navegador,
-      texto: evidencia.texto,
-      huella: evidencia.huella,
-      pdf_path: errorPdf ? null : pdfPath,
-      firmado_at: evidencia.firmadoAt,
+    const { data: saved, error } = await db.rpc('persist_verified_order_signature', {
+      ...persistenceArgs,
+      p_revision: snapshot.revision,
+      p_evidence: {
+        lead_id: lead.id,
+        pedido_id: pedido.id,
+        nombre: evidencia.nombre,
+        ip: evidencia.ip,
+        navegador: evidencia.navegador,
+        texto: evidencia.texto,
+        huella: evidencia.huella,
+        pdf_path: pdfPath,
+        firmado_at: evidencia.firmadoAt,
+      },
     });
 
-    if (error) {
+    if (error || !saved) {
       console.error('[api/pedido/firmar] No se pudo registrar la firma:', error);
       return NextResponse.json({ error: 'No se pudo registrar la firma.' }, { status: 500 });
     }
 
-    const nextState = advanceOn('contrato_firmado', lead.estado ?? '');
-
-    await db.from('leads').update({
-      contrato_firmado_at: evidencia.firmadoAt,
-      ...(nextState ? { estado: nextState } : {}),
-    }).eq('id', lead.id);
-
-    await db.from('pedidos').update({ firmado_at: evidencia.firmadoAt }).eq('id', pedido.id);
+    // A competing request may already have committed; never email the losing PDF.
+    if (!saved.created) return signedResponse(pedido.id, saved.firmadoAt);
 
     // Su copia y cómo pagar, en un solo correo: el que firmó quiere pagar
     // ahora, no esperar un segundo mensaje.
@@ -249,33 +259,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    // Queda con la sesión abierta. Antes la cookie de acceso se daba solo por
-    // el circuito de verificación por correo, así que el que acababa de
-    // firmar tocaba «descargar el contrato firmado» y recibía «verificá tu
-    // correo»: sobre el documento que él mismo acababa de firmar.
-    //
-    // Firmar es la acción más fuerte del circuito. Si le confiamos el link
-    // para obligarse, le confiamos el link para leer lo que firmó.
-    const res = NextResponse.json({ ok: true, firmadoAt: evidencia.firmadoAt });
-
-    const secreto = process.env.ADMIN_SESSION_SECRET;
-    if (secreto) {
-      res.cookies.set(COOKIE_ACCESO, firmarSesion(pedido.id, secreto), {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 30 * 86_400,
-      });
-    } else {
-      // Una firma vale más que una comodidad: ya quedó registrada, y al
-      // contrato se llega igual por la verificación de siempre.
-      console.error('[api/pedido/firmar] Falta ADMIN_SESSION_SECRET: sin sesión de cliente');
-    }
-
-    return res;
+    return signedResponse(pedido.id, saved.firmadoAt);
   } catch (err) {
     console.error('[api/pedido/firmar] POST error:', err);
     return NextResponse.json({ error: 'No se pudo firmar.' }, { status: 500 });
   }
+}
+
+
+function signedResponse(_pedidoId: string, firmadoAt: string) {
+  const res = NextResponse.json({ ok: true, firmadoAt });
+  return res;
 }

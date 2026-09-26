@@ -3,7 +3,7 @@ import { join } from 'path';
 
 import PDFDocument from 'pdfkit';
 
-import { clausulasDelContrato } from '@/content/contrato';
+import { clausulasDelContrato, type Clausula } from '@/content/contrato';
 import type { ContractData } from '@/lib/contract-template';
 
 /**
@@ -234,7 +234,7 @@ function hueco(largo = 34): string {
   return '_'.repeat(largo);
 }
 
-export function buildContractPdf(data: ContractData): Promise<Buffer> {
+export function buildContractPdf(data: ContractData, frozenClauses?: Clausula[]): Promise<Buffer> {
   const doc = new PDFDocument({
     size: 'A4',
     margins: { top: MARGEN, right: MARGEN, bottom: MARGEN, left: MARGEN },
@@ -262,7 +262,7 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
   titulo(doc, 'CONTRATO DE PRESTACIÓN DE SERVICIOS');
   subtitulo(doc, `Buenos Aires, ${hoy}`);
 
-  const clausulas = clausulasDelContrato({
+  const clausulas = frozenClauses ?? clausulasDelContrato({
     clientName: data.plantilla ? hueco(34) : data.clientName,
     clientLocation: data.plantilla ? hueco(20) : data.clientLocation,
     clientCountry: data.plantilla ? '' : data.clientCountry,
@@ -282,6 +282,7 @@ export function buildContractPdf(data: ContractData): Promise<Buffer> {
     diasDeEspera: data.plantilla ? undefined : data.diasDeEspera,
     detallePrecio: data.plantilla ? undefined : data.detallePrecio,
     cargoMensual: data.plantilla ? undefined : data.cargoMensual,
+    servicePolicy: data.plantilla ? undefined : data.servicePolicy,
     legalClause: data.plantilla
       ? `El presente contrato se regirá e interpretará conforme a ${hueco(52)}, renunciando las partes a cualquier otro fuero o jurisdicción que pudiera corresponderles.`
       : data.legalClause,

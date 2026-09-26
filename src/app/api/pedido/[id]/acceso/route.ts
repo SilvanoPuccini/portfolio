@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { emailLayout, nota, panelDestacado, parrafo } from '@/lib/email-templates/layout';
 import {
+  COOKIE_VERIFICADO,
+  firmarVerificacion,
   MAX_INTENTOS,
   codigoNuevo,
   firmarSesion,
@@ -140,9 +142,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // Se quema apenas se usa: un código que sirve dos veces es medio código.
-    await db.from('accesos_cliente')
+    const { data: consumed, error: consumeError } = await db.from('accesos_cliente')
       .update({ usado_at: new Date().toISOString() })
-      .eq('id', acceso.id);
+      .eq('id', acceso.id).is('usado_at', null).select('id').maybeSingle();
+    if (consumeError) return NextResponse.json({ error: 'Could not verify this code.' }, { status: 500 });
+    if (!consumed) return NextResponse.json({ error: 'This code has already been used.' }, { status: 401 });
 
     const secreto = process.env.ADMIN_SESSION_SECRET;
     if (!secreto) {
@@ -157,6 +161,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       sameSite: 'lax',
       path: `/`,
       maxAge: 30 * 86_400,
+    });
+    res.cookies.set(COOKIE_VERIFICADO, firmarVerificacion(id, secreto), {
+      httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 30 * 86_400,
     });
     return res;
   } catch (err) {

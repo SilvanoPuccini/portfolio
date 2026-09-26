@@ -3,11 +3,16 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 vi.mock('@/lib/rate-limit', () => ({ rateLimit: vi.fn().mockReturnValue(true) }));
+vi.mock('@/lib/leads/exchange-rate', () => ({ quoteFor: vi.fn().mockResolvedValue(null) }));
 vi.mock('@/lib/resend', () => ({ sendCrmEmail: vi.fn() }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
+import { firmarVerificacion } from '@/lib/leads/acceso-cliente';
+import { createRevision } from '@/lib/leads/contract-revision';
+import { contratoDeVenta } from '@/content/contrato';
+import { paquetePorSlug } from '@/content/servicios';
 import { POST } from './route';
 
 // Cada caso arma un .docx de verdad con `docx`, que tarda. Con la suite
@@ -16,7 +21,9 @@ import { POST } from './route';
 // rojos, que es peor que no tenerlo.
 vi.setConfig({ testTimeout: 20_000 });
 
+const REVISION = createRevision(contratoDeVenta({ paquete: paquetePorSlug('landing')!, extras: [], cliente: { nombre: 'Estefanía Ortigosa' }, totalUsd: 450, jurisdiccion: 'Argentina' }));
 const PEDIDO = {
+  contrato_snapshot: REVISION,
   id: 'pedido-1', lead_id: 'lead-1', paquete: 'landing', extras: [],
   total_usd: 450, mensual_usd: 0, locale: 'es', firmado_at: null as string | null,
 };
@@ -27,6 +34,7 @@ const LEAD = {
   contrato_firmado_at: null as string | null,
 };
 
+const rpc = vi.fn();
 const insertFirma = vi.fn();
 const updateLead = vi.fn();
 const updatePedido = vi.fn();
@@ -34,11 +42,18 @@ const upload = vi.fn();
 
 function supabase(pedido: unknown = PEDIDO, lead: unknown = LEAD) {
   insertFirma.mockResolvedValue({ error: null });
+  rpc.mockImplementation(async (_name: string, args: { p_evidence: Record<string, string> | null }) => {
+    if (!args.p_evidence) return { data: null, error: null };
+    const result = await insertFirma(args.p_evidence);
+    if (result.error) return { data: null, error: result.error };
+    return { data: { firmadoAt: args.p_evidence.firmado_at, created: true }, error: null };
+  });
   updateLead.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
   updatePedido.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
   upload.mockResolvedValue({ error: null });
 
   vi.mocked(getSupabaseAdmin).mockReturnValue({
+    rpc,
     from: vi.fn((tabla: string) => {
       if (tabla === 'firmas') return { insert: insertFirma };
       if (tabla === 'pedidos') {
@@ -64,17 +79,18 @@ const post = (body: unknown, id = 'pedido-1') =>
   POST(
     new NextRequest('http://localhost/x', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '190.1.2.3', 'user-agent': 'Chrome' },
+      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '190.1.2.3', 'user-agent': 'Chrome', cookie: `pedido_email_verificado=${firmarVerificacion(id, process.env.ADMIN_SESSION_SECRET ?? 'absent')}` },
       body: JSON.stringify(body),
     }),
     { params: Promise.resolve({ id }) },
   );
 
-const FIRMA = { nombre: 'Estefanía Ortigosa', acepta: true };
+const FIRMA = { revision: REVISION.revision, nombre: 'Estefanía Ortigosa', acepta: true };
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(rateLimit).mockReturnValue(true);
+  process.env.ADMIN_SESSION_SECRET = 'secreto-de-prueba-largo';
   process.env.ADMIN_EMAIL = 'silvano@ejemplo.com';
   supabase();
 });
@@ -96,13 +112,12 @@ describe('POST /api/pedido/[id]/firmar', () => {
   it('mueve la venta y marca el pedido como firmado', async () => {
     await post(FIRMA);
 
-    expect(updateLead).toHaveBeenCalledWith(expect.objectContaining({
-      contrato_firmado_at: expect.any(String),
-      estado: 'contrato_firmado',
+    expect(rpc).toHaveBeenCalledWith('persist_verified_order_signature', expect.objectContaining({
+      p_order_id: 'pedido-1', p_lead_id: 'lead-1', p_expected_state: 'contrato_enviado', p_next_state: 'contrato_firmado',
+      p_evidence: expect.objectContaining({ firmado_at: expect.any(String) }),
     }));
-    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({
-      firmado_at: expect.any(String),
-    }));
+    expect(updateLead).not.toHaveBeenCalled();
+    expect(updatePedido).not.toHaveBeenCalled();
   });
 
   it('archiva el contrato firmado y le manda la copia con los datos de pago', async () => {
@@ -203,14 +218,13 @@ describe('POST /api/pedido/[id]/firmar — la sesión del que firmó', () => {
     const res = await post(FIRMA);
 
     expect(res.status).toBe(200);
-    expect(res.cookies.get('pedido_acceso')?.value).toContain('pedido-1');
+    expect(res.cookies.get('pedido_acceso')).toBeUndefined();
   });
 
   it('la sesión es httpOnly y no viaja en claro', async () => {
     const cookie = (await post(FIRMA)).cookies.get('pedido_acceso');
 
-    expect(cookie?.httpOnly).toBe(true);
-    expect(cookie?.secure).toBe(true);
+    expect(cookie).toBeUndefined();
   });
 
   it('no abre ninguna sesión si la firma no se registró', async () => {
@@ -229,8 +243,8 @@ describe('POST /api/pedido/[id]/firmar — la sesión del que firmó', () => {
 
     const res = await post(FIRMA);
 
-    expect(res.status).toBe(200);
-    expect(insertFirma).toHaveBeenCalled();
+    expect(res.status).toBe(401);
+    expect(insertFirma).not.toHaveBeenCalled();
   });
 });
 
@@ -265,4 +279,77 @@ describe('POST /api/pedido/[id]/firmar — el correo trae el camino de vuelta', 
     const [, , html] = vi.mocked(sendCrmEmail).mock.calls[0] as [string, string, string];
     expect(html).toContain('/en/pedido/pedido-1');
   });
+});
+
+
+describe('atomic signature persistence and retries', () => {
+  it('fails closed if atomic persistence fails and retries safely', async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: 'transaction rolled back' } });
+    const failed = await post(FIRMA);
+    expect(failed.status).toBe(500);
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+    expect(failed.cookies.get('pedido_acceso')).toBeUndefined();
+    expect((await post(FIRMA)).status).toBe(200);
+  });
+
+  it('recovers previously saved evidence even if the lead already says signed', async () => {
+    supabase(PEDIDO, { ...LEAD, contrato_firmado_at: '2026-09-22T10:00:00Z' });
+    rpc.mockResolvedValueOnce({ data: { firmadoAt: '2026-09-22T10:00:00Z', created: false }, error: null });
+    const response = await post(FIRMA);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ firmadoAt: '2026-09-22T10:00:00Z' });
+    expect(upload).not.toHaveBeenCalled();
+    expect(insertFirma).not.toHaveBeenCalled();
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+
+  it('does not register evidence if PDF archival failed', async () => {
+    upload.mockResolvedValueOnce({ error: { message: 'storage unavailable' } });
+    expect((await post(FIRMA)).status).toBe(500);
+    expect(insertFirma).not.toHaveBeenCalled();
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+
+  it('does not overwrite PDFs or mail a losing concurrent signature', async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: { firmadoAt: '2026-09-22T10:00:00Z', created: false }, error: null });
+    const response = await post(FIRMA);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ firmadoAt: '2026-09-22T10:00:00Z' });
+    expect(upload.mock.calls[0][2]).toMatchObject({ upsert: false });
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('signature requires verified email', () => {
+  it('rejects a request without OTP proof before reading or writing data', async () => {
+    const response = await POST(new NextRequest('http://localhost/x', { method: 'POST', body: JSON.stringify(FIRMA) }), { params: Promise.resolve({ id: 'pedido-1' }) });
+    expect(response.status).toBe(401);
+    expect(getSupabaseAdmin).not.toHaveBeenCalled();
+  });
+  it('does not treat the legacy signature-created material cookie as email proof', async () => {
+    const { firmarSesion } = await import('@/lib/leads/acceso-cliente');
+    process.env.ADMIN_SESSION_SECRET = 'test-secret';
+    const response = await POST(new NextRequest('http://localhost/x', { method: 'POST', headers: { cookie: `pedido_acceso=${firmarSesion('pedido-1', 'test-secret')}` }, body: JSON.stringify(FIRMA) }), { params: Promise.resolve({ id: 'pedido-1' }) });
+    expect(response.status).toBe(401);
+  });
+});
+
+
+it('rejects a stale or missing shown revision without persistence', async () => {
+  expect((await post({ ...FIRMA, revision: 'stale' })).status).toBe(409);
+  expect((await post({ nombre: FIRMA.nombre, acepta: true })).status).toBe(409);
+  expect(rpc).not.toHaveBeenCalled();
+});
+it.each(['wrong-order', 'expired'])('rejects %s OTP proof', async (kind) => {
+  const value = firmarVerificacion(kind === 'wrong-order' ? 'other' : 'pedido-1', process.env.ADMIN_SESSION_SECRET!, kind === 'expired' ? new Date(0) : new Date());
+  const res = await POST(new NextRequest('http://localhost/x', { method: 'POST', headers: { cookie: `pedido_email_verificado=${value}` }, body: JSON.stringify(FIRMA) }), { params: Promise.resolve({ id: 'pedido-1' }) });
+  expect(res.status).toBe(401);
+  expect(getSupabaseAdmin).not.toHaveBeenCalled();
+});
+it('signs stored text rather than recalculating catalog terms', async () => {
+  const response = await post(FIRMA);
+  expect(response.status).toBe(200);
+  expect(insertFirma).toHaveBeenCalledWith(expect.objectContaining({ texto: REVISION.texto, huella: REVISION.revision }));
 });

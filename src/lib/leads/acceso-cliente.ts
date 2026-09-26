@@ -102,3 +102,13 @@ export function tieneAcceso(
   if (!secreto) return false;
   return sesionValida(cookie, pedidoId, secreto, ahora);
 }
+
+/** Separate proof: legacy signature-issued access cookies never prove email ownership. */
+export const COOKIE_VERIFICADO = 'pedido_email_verificado';
+export function firmarVerificacion(pedidoId: string, secreto: string, ahora: Date = new Date()): string {
+  return firmarSesion(pedidoId, `${secreto}:email-otp-v1`, ahora);
+}
+export function tieneVerificacion(cookie: string | undefined | null, pedidoId: string): boolean {
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  return Boolean(secret && sesionValida(cookie, pedidoId, `${secret}:email-otp-v1`));
+}

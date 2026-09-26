@@ -63,7 +63,7 @@ export function PedidoCheckout({
 
       // La venta quedó creada, con contrato propio o de Documenso. El paso de
       // la firma decide cuál mostrar: acá solo hay que llevarlo hasta ahí.
-      if (body.modo === 'propia' || (res.ok && body.token)) {
+      if (res.ok && (body.modo === 'propia' || body.modo === 'externa' || body.token)) {
         // `assign` y no `replace`: atrás tiene que devolverlo a esta pantalla
         // si escribió mal su nombre y lo quiere corregir.
         window.location.assign(`${window.location.pathname}/firmar`);

@@ -1,3 +1,4 @@
+import { CARE_PLANS, policyParagraphs } from '@/content/service-policy';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
@@ -8,8 +9,7 @@ import PageHero from '@/components/site/PageHero';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import {
   ALIAS_SERVICIOS,
-  SERVICIOS,
-  servicioPorSlug,
+  PUBLIC_SERVICIOS,
   type Destino,
   type Locale,
 } from '@/content/servicios';
@@ -48,7 +48,7 @@ const copy = {
 } as const;
 
 export function generateStaticParams() {
-  return SERVICIOS.flatMap((servicio) =>
+  return PUBLIC_SERVICIOS.flatMap((servicio) =>
     (['es', 'en'] as Locale[]).map((locale) => ({ locale, slug: servicio.slug })),
   );
 }
@@ -56,7 +56,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale, slug } = await params;
   const currentLocale = resolveLocale(locale) as Locale;
-  const servicio = servicioPorSlug(slug);
+  const servicio = PUBLIC_SERVICIOS.find((item) => item.slug === (ALIAS_SERVICIOS[slug] ?? slug));
 
   if (!servicio) return {};
 
@@ -88,7 +88,7 @@ export default async function ServicioPage({ params }: { params: Params }) {
   const nuevo = ALIAS_SERVICIOS[slug];
   if (nuevo) redirect(`/${currentLocale}/services/${nuevo}`);
 
-  const servicio = servicioPorSlug(slug);
+  const servicio = PUBLIC_SERVICIOS.find((item) => item.slug === (ALIAS_SERVICIOS[slug] ?? slug));
   if (!servicio) notFound();
 
   const labels = copy[currentLocale];
@@ -128,6 +128,9 @@ export default async function ServicioPage({ params }: { params: Params }) {
           </Reveal>
 
           <div>
+            {servicio.slug === 'sistema' && <div className="mb-6 space-y-2 text-sm leading-6 text-text-secondary">
+              {policyParagraphs(CARE_PLANS.custom, currentLocale).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>}
             {servicio.paquetes.length > 0 ? (
               <>
                 <p className="technical-label">{labels.paquetes}</p>

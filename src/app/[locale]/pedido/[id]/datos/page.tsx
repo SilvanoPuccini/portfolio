@@ -62,7 +62,10 @@ async function cargar(id: string) {
     calificacion: Record<string, string> | null; lead_id: string | null;
   } | null;
 
-  if (!pedido?.lead_id) return { pedido, lead: null };
+  const verificado = tieneAcceso((await cookies()).get(COOKIE_ACCESO)?.value, id);
+
+  // Never fetch private materials for an unverified request.
+  if (!verificado || !pedido?.lead_id) return { pedido, lead: null, verificado };
 
   const { data: venta } = await db
     .from('leads')
@@ -72,6 +75,7 @@ async function cargar(id: string) {
 
   return {
     pedido,
+    verificado,
     lead: venta as {
       contrato_firmado_at: string | null;
       kickoff_datos: Record<string, unknown> | null;
@@ -85,7 +89,7 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
   const currentLocale = resolveLocale(locale) as Locale;
   const labels = copy[currentLocale];
 
-  const { pedido, lead } = await cargar(id);
+  const { pedido, lead, verificado } = await cargar(id);
   if (!pedido) notFound();
 
   const paquete = paquetePorSlug(pedido.paquete);
@@ -93,8 +97,6 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
 
   const servicio = servicioPorSlug(paquete.servicio);
   const plan = planKickoff(paquete, pedido.extras ?? [], servicio?.extras ?? [], pedido.calificacion ?? {});
-
-  const verificado = tieneAcceso((await cookies()).get(COOKIE_ACCESO)?.value, pedido.id);
 
   return (
     <main className="site-container py-14 sm:py-20">
@@ -119,14 +121,16 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
       </Reveal>
 
       <div className="mt-10 max-w-3xl">
-        {!lead?.contrato_firmado_at ? (
+        {!verificado ? (
+          <AccesoGate pedidoId={pedido.id} verificado={false} locale={currentLocale} />
+        ) : !lead?.contrato_firmado_at ? (
           <div className="surface-panel border border-outline-ghost/10 px-6 py-8">
             <p className="text-base leading-7 text-text-secondary">{labels.sinFirmar}</p>
           </div>
         ) : (
           <AccesoGate
             pedidoId={pedido.id}
-            verificado={verificado}
+            verificado={true}
             plan={plan}
             iniciales={(lead.kickoff_datos ?? {}) as Record<string, never>}
             yaCompletado={Boolean(lead.kickoff_completado_at)}

@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import PageHero from "@/components/site/PageHero";
 import SectionShell from "@/components/site/SectionShell";
 import ServiceCatalog from "@/components/site/ServiceCatalog";
-import { SERVICIOS } from "@/content/servicios";
+import { PUBLIC_SERVICIOS as SERVICIOS } from "@/content/servicios";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";

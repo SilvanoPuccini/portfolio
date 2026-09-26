@@ -1,3 +1,4 @@
+import { policyForPackage, policyParagraphs } from './service-policy';
 import { ALCANCE_POR_EXTRA, ALCANCE_POR_PAQUETE } from '@/content/alcance-contractual';
 
 /**
@@ -44,6 +45,7 @@ export interface DatosDelContrato {
   /** Lo que se cobra todos los meses, aparte del precio del proyecto. */
   cargoMensual?: string;
   legalClause: string;
+  servicePolicy?: string[];
 }
 
 export interface Clausula {
@@ -147,6 +149,7 @@ export function clausulasDelContrato(data: DatosDelContrato): Clausula[] {
         ...(data.detallePrecio?.length ? [`Detalle: ${data.detallePrecio.join('; ')}.`] : []),
         `Forma de pago: ${data.paymentTerms}`,
         ...(data.cargoMensual ? [data.cargoMensual] : []),
+        ...(data.servicePolicy ?? []),
       'El pago deberá realizarse mediante transferencia bancaria internacional o por los medios digitales acordados entre las partes. El Proveedor no iniciará las tareas de cada etapa hasta recibir el pago correspondiente.',
       ],
     },
@@ -272,12 +275,13 @@ export function contratoDeVenta(entrada: {
 }): DatosDelContrato {
   const { paquete, extras, cliente, totalUsd } = entrada;
   const alcance = ALCANCE_POR_PAQUETE[paquete.slug];
+  const carePlan = policyForPackage(paquete.slug);
 
   const unaVez = extras.filter((extra) => !extra.recurrente);
   const mensuales = extras.filter((extra) => extra.recurrente);
 
   const entregables = [
-    ...(alcance?.entregables ?? paquete.incluye.es),
+    ...(paquete.recurrente && carePlan ? [policyParagraphs(carePlan, 'es')[0]] : (alcance?.entregables ?? paquete.incluye.es)),
     ...unaVez.map((extra) => `Adicional contratado — ${ALCANCE_POR_EXTRA[extra.id] ?? extra.label.es}`),
   ];
 
@@ -292,20 +296,23 @@ export function contratoDeVenta(entrada: {
     ];
 
   const conceptosMensuales = [
-    ...(paquete.recurrente && paquete.precioUsd ? [{ nombre: `Plan ${paquete.nombre.es}`, precio: paquete.precioUsd }] : []),
+    ...(paquete.recurrente && !carePlan && paquete.precioUsd ? [{ nombre: `Plan ${paquete.nombre.es}`, precio: paquete.precioUsd }] : []),
     ...mensuales.map((extra) => ({ nombre: extra.label.es, precio: extra.precioUsd })),
   ];
   const totalMensual = conceptosMensuales.reduce((total, concepto) => total + concepto.precio, 0);
 
   const cargoMensual = conceptosMensuales.length
     ? `Además, el Cliente abonará un cargo mensual de ${usd(totalMensual)} (${conceptosMensuales.map((c) => `${c.nombre}: ${usd(c.precio)}`).join('; ')}), `
-      + 'por mes adelantado, desde la entrega y mientras el servicio esté vigente. Cualquiera de las partes puede darlo de baja con un aviso de treinta (30) días corridos.'
+      + (carePlan
+        ? 'únicamente tras los 30 días iniciales y con aceptación expresa y fecha de activación acordada. El plan de automatización y el cuidado indicado corresponden al mismo cargo, no a dos abonos. No se activa un cobro automático.'
+        : 'por mes adelantado, desde la entrega y mientras el servicio esté vigente. Cualquiera de las partes puede darlo de baja con un aviso de treinta (30) días corridos.')
     : undefined;
 
   const espera = Math.max(0, entrada.diasDeEspera ?? 0);
   const plazo = plazoDiasHabiles(paquete.plazoDias, extras) + (paquete.plazoDias > 0 ? espera : 0);
 
   return {
+    servicePolicy: carePlan ? policyParagraphs(carePlan, 'es') : undefined,
     clientName: cliente.nombre,
     clientLocation: cliente.localidad ?? '',
     clientCountry: cliente.pais ?? '',
@@ -317,7 +324,9 @@ export function contratoDeVenta(entrada: {
     totalHours: paquete.horas,
     totalPrice: totalUsd,
     hourlyRate: entrada.tarifaHora ?? 30,
-    paymentTerms: paquete.pagoUnico
+    paymentTerms: paquete.recurrente && carePlan
+      ? 'El plan requiere aceptación expresa y una fecha de activación acordada por separado; este documento no activa cobros automáticos.'
+      : paquete.pagoUnico
       ? `Pago único de USD ${totalUsd.toLocaleString('es-AR')} por adelantado.`
       : 'Seña del 50% para comenzar y el saldo contra entrega.',
     estimatedWeeks: Math.max(1, Math.ceil(plazo / 5)),

@@ -1,5 +1,6 @@
 'use client';
 
+import { carePrice, policyForPackage, policyParagraphs } from '@/content/service-policy';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Check, Minus } from 'lucide-react';
@@ -7,6 +8,7 @@ import { ArrowUpRight, Check, Minus } from 'lucide-react';
 import {
   calificaParaComprar,
   destinoDe,
+  extrasParaNuevoPedido,
   paquetePorSlug,
   rangoComoTexto,
   rangoDelPedido,
@@ -32,6 +34,8 @@ const copy = {
     destacado: 'El que más se elige',
     dias: (rango: string) => `Entrega en ${rango} días hábiles`,
     porMes: 'por mes',
+    pagoInicial: 'Pago inicial',
+    confirmarMensual: 'La activación y el primer cobro deben confirmarse antes de contratar.',
     aCotizar: 'Se cotiza en la llamada',
     desde: (n: number) => `Desde USD ${n.toLocaleString('es-AR')}`,
     incluye: 'Incluye',
@@ -50,6 +54,8 @@ const copy = {
     destacado: 'Most chosen',
     dias: (rango: string) => `Delivered in ${rango} business days`,
     porMes: 'per month',
+    pagoInicial: 'Initial payment',
+    confirmarMensual: 'Activation and the first payment must be confirmed before purchase.',
     aCotizar: 'Quoted on the call',
     desde: (n: number) => `From USD ${n.toLocaleString('en-US')}`,
     incluye: 'Includes',
@@ -83,8 +89,10 @@ export default function PackageCard({
   extras: Extra[];
 }) {
   const labels = copy[locale];
+  const carePlan = policyForPackage(paquete.slug);
   const [respuestas, setRespuestas] = useState<Record<string, string>>({});
   const [elegidos, setElegidos] = useState<string[]>([]);
+  const seleccionados = useMemo(() => extrasParaNuevoPedido(elegidos, extras), [elegidos, extras]);
   const [pidiendo, setPidiendo] = useState(false);
   const [falloPedido, setFalloPedido] = useState(false);
 
@@ -103,7 +111,7 @@ export default function PackageCard({
         headers: { 'Content-Type': 'application/json' },
         // Las respuestas viajan con el pedido: son lo que el cliente ya
         // contestó y lo que después evita volver a preguntárselo.
-        body: JSON.stringify({ paquete: paquete.slug, extras: elegidos, locale, calificacion: respuestas }),
+        body: JSON.stringify({ paquete: paquete.slug, extras: seleccionados, locale, calificacion: respuestas }),
       });
       const body = (await res.json()) as { url?: string };
 
@@ -119,22 +127,22 @@ export default function PackageCard({
     }
   }
 
-  const pedido = useMemo(() => totalPedido(paquete, elegidos, extras), [paquete, elegidos, extras]);
+  const pedido = useMemo(() => totalPedido(paquete, seleccionados, extras), [paquete, seleccionados, extras]);
 
   const aCotizar = paquete.precioUsd === null;
   const califica = !aCotizar && calificaParaComprar(paquete, respuestas);
   const destino = destinoDe(paquete, respuestas);
   const contestoTodo = paquete.calificacion.every((q) => respuestas[q.id]);
   // Con una respuesta fuera de alcance no se vende: se deriva.
-  const vende = !aCotizar && !destino;
+  const vende = !aCotizar && !destino && !paquete.recurrente;
 
   const agendarHref = `/${locale}/services/agendar?paquete=${paquete.slug}`;
 
-  const precio = aCotizar
+  const precio = paquete.recurrente && carePlan ? carePrice(carePlan, locale) : aCotizar
     ? paquete.desdeUsd
       ? labels.desde(paquete.desdeUsd)
       : labels.aCotizar
-    : `USD ${(pedido.totalUsd ?? pedido.recurrenteUsd).toLocaleString(locale === 'es' ? 'es-AR' : 'en-US')}`;
+    : `USD ${(paquete.recurrente ? pedido.recurrenteUsd : pedido.totalUsd ?? 0).toLocaleString(locale === 'es' ? 'es-AR' : 'en-US')}`;
 
   return (
     <article
@@ -158,24 +166,37 @@ export default function PackageCard({
       <div className="mt-5 border-y border-outline-ghost/10 py-4">
         <p className="font-mono text-2xl font-semibold text-text-primary sm:text-3xl">
           {precio}
-          {paquete.recurrente && (
+          {paquete.recurrente && !carePlan && (
             <span className="ml-2 font-sans text-sm font-normal text-text-tertiary">
               {labels.porMes}
             </span>
           )}
         </p>
+        {!paquete.recurrente && pedido.recurrenteUsd > 0 && (
+          <p className="mt-1 text-sm text-text-secondary">
+            USD {pedido.recurrenteUsd.toLocaleString(locale === 'es' ? 'es-AR' : 'en-US')} {labels.porMes}
+          </p>
+        )}
+        {paquete.recurrente && (pedido.totalUsd ?? 0) > 0 && (
+          <p className="mt-1 text-sm text-text-secondary">
+            {labels.pagoInicial}: USD {pedido.totalUsd!.toLocaleString(locale === 'es' ? 'es-AR' : 'en-US')}
+          </p>
+        )}
         {paquete.plazoDias > 0 && (
           <p className="mt-1 text-sm text-text-tertiary">{labels.dias(rangoComoTexto(rangoDelPedido(paquete, []), locale))}</p>
         )}
       </div>
 
+      {carePlan && <div className="mt-4 space-y-2 text-sm leading-6 text-text-secondary">
+        {policyParagraphs(carePlan, locale).slice(paquete.recurrente ? 1 : 0).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>}
       <div className="mt-5 space-y-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
             {labels.incluye}
           </p>
           <ul className="mt-2 space-y-1.5">
-            {paquete.incluye[locale].map((item) => (
+            {(paquete.recurrente && carePlan ? [policyParagraphs(carePlan, locale)[0]] : paquete.incluye[locale]).map((item) => (
               <li key={item} className="flex items-start gap-2 text-sm leading-6 text-text-secondary">
                 <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
                 <span>{item}</span>
@@ -215,7 +236,8 @@ export default function PackageCard({
                 <input
                   type="checkbox"
                   className="mt-1 h-4 w-4 shrink-0"
-                  checked={elegidos.includes(extra.id)}
+                  checked={seleccionados.includes(extra.id)}
+                  disabled={extra.obligatorio === true}
                   onChange={(event) =>
                     setElegidos((actuales) =>
                       event.target.checked
@@ -302,6 +324,7 @@ export default function PackageCard({
           </>
         ) : (
           <>
+            {paquete.recurrente && <p className="mb-3 text-sm text-text-secondary">{labels.confirmarMensual}</p>}
             <Link href={agendarHref} className="button-secondary w-full">
               {labels.agendar}
             </Link>

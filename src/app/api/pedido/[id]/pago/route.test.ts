@@ -231,3 +231,11 @@ describe('POST /api/pedido/[id]/pago — con el comprobante adjunto', () => {
     expect(updateLead).toHaveBeenCalledWith(expect.objectContaining({ pago_estado: 'informado' }));
   });
 });
+
+
+it('does not accept a zero-value payment notice', async () => {
+  supabase({ ...PEDIDO, total_usd: 0 });
+  expect((await post()).status).toBe(409);
+  expect(updateLead).not.toHaveBeenCalled();
+  expect(sendCrmEmail).not.toHaveBeenCalled();
+});

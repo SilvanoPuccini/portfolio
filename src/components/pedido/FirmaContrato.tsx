@@ -18,12 +18,14 @@ import type { Clausula } from '@/content/contrato';
 
 export function FirmaContrato({
   pedidoId,
+  revision,
   clausulas,
   nombreEsperado,
   email,
   onFirmado,
 }: {
   pedidoId: string;
+  revision: string;
   clausulas: Clausula[];
   nombreEsperado: string;
   /** A dónde le llegó el link, para que sepa que no depende de esta pestaña. */
@@ -45,7 +47,7 @@ export function FirmaContrato({
       const res = await fetch(`/api/pedido/${pedidoId}/firmar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, acepta }),
+        body: JSON.stringify({ nombre, acepta, revision }),
       });
       const body = await res.json() as { error?: string };
 
@@ -64,7 +66,7 @@ export function FirmaContrato({
       // parado donde estaba leyendo el contrato.
       window.location.replace(window.location.pathname);
     } catch {
-      setError('Se cortó la conexión. Probá de nuevo: no se firmó nada.');
+      setError('No pudimos confirmar el resultado. Volvé a intentar para recuperar el estado de la firma.');
     } finally {
       setFirmando(false);
     }

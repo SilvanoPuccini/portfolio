@@ -27,20 +27,23 @@ const PEDIDO = {
   locale: 'es',
 };
 
+const prepare = vi.fn();
 const insertLead = vi.fn();
 const updatePedido = vi.fn();
 const updateLead = vi.fn();
 
 function supabase(pedido: unknown = PEDIDO) {
+  prepare.mockResolvedValue({ data: { id: 'lead-1', created: true, provision: true }, error: null });
   insertLead.mockReturnValue({
     select: vi.fn().mockReturnValue({
       single: vi.fn().mockResolvedValue({ data: { id: 'lead-1' }, error: null }),
     }),
   });
   updatePedido.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
-  updateLead.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+  updateLead.mockReturnValue({ eq: () => ({ select: () => ({ single: async () => ({ data: { id: 'lead-1' }, error: null }) }) }) });
 
   vi.mocked(getSupabaseAdmin).mockReturnValue({
+    rpc: prepare,
     from: vi.fn((tabla: string) => (tabla === 'pedidos'
       ? {
         select: vi.fn().mockReturnValue({
@@ -76,7 +79,7 @@ describe('POST /api/pedido/[id]/contrato', () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body).toMatchObject({ token: 'abc', signingUrl: 'https://app.documenso.com/sign/abc' });
+    expect(body).toMatchObject({ modo: 'externa' });
 
     const [data, , externalId] = vi.mocked(createContract).mock.calls[0];
     expect(data).toMatchObject({
@@ -103,12 +106,10 @@ describe('POST /api/pedido/[id]/contrato', () => {
   it('deja la venta creada y enganchada al pedido', async () => {
     await post(DATOS);
 
-    expect(insertLead).toHaveBeenCalledWith(expect.objectContaining({
+    expect(prepare).toHaveBeenCalledWith('prepare_order_contract', expect.objectContaining({ p_details: expect.objectContaining({
       email: 'este@ejemplo.com',
-      monto_presupuestado: 940,
-      estado: 'contrato_enviado',
-    }));
-    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
+    }) }));
+    expect(prepare).toHaveBeenCalledWith('prepare_order_contract', expect.objectContaining({ p_order_id: 'pedido-1' }));
   });
 
   it('manda el respaldo desde nuestro dominio, con el link a la página', async () => {
@@ -127,7 +128,7 @@ describe('POST /api/pedido/[id]/contrato', () => {
     const res = await post(DATOS);
 
     expect(res.status).toBe(200);
-    expect((await res.json()).token).toBe('abc');
+    expect((await res.json()).modo).toBe('externa');
   });
 
   it('sin nombre o sin mail no crea nada', async () => {
@@ -159,7 +160,7 @@ describe('POST /api/pedido/[id]/contrato', () => {
 
     expect(res.status).toBe(202);
     expect(body.demorado).toBe(true);
-    expect(insertLead).toHaveBeenCalled();
+    expect(prepare).toHaveBeenCalled();
 
     // Al cliente le llega un aviso, y a Silvano el pedido de mandarlo a mano.
     const destinatarios = vi.mocked(sendCrmEmail).mock.calls.map((c) => c[0]);
@@ -186,17 +187,16 @@ describe('con la firma propia, Documenso no se usa', () => {
     expect(res.status).toBe(200);
     expect(body.modo).toBe('propia');
     expect(createContract).not.toHaveBeenCalled();
-    expect(insertLead).toHaveBeenCalledWith(expect.objectContaining({
+    expect(prepare).toHaveBeenCalledWith('prepare_order_contract', expect.objectContaining({ p_details: expect.objectContaining({
       email: 'este@ejemplo.com',
-      monto_presupuestado: 940,
-    }));
+    }) }));
   });
 
   it('engancha el pedido con la venta antes de devolver', async () => {
     // Sin esto el pedido queda sin dueño y al firmar no encuentra nada: el
     // cliente llega a la pantalla de firma y recibe un 404.
     await post(DATOS);
-    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
+    expect(prepare).toHaveBeenCalledWith('prepare_order_contract', expect.objectContaining({ p_order_id: 'pedido-1' }));
   });
 
   /**
@@ -235,6 +235,54 @@ describe('con la firma propia, Documenso no se usa', () => {
     await post(DATOS);
 
     expect(sendCrmEmail).toHaveBeenCalled();
-    expect(updatePedido).toHaveBeenCalledWith(expect.objectContaining({ lead_id: 'lead-1' }));
+    expect(prepare).toHaveBeenCalledWith('prepare_order_contract', expect.objectContaining({ p_order_id: 'pedido-1' }));
   });
+});
+
+
+describe('atomic preparation and safe retries', () => {
+  it('reuses a prepared buyer without creating another lead or sending another email', async () => {
+    delete process.env.FIRMA_CON_DOCUMENSO;
+    prepare.mockResolvedValueOnce({ data: { id: 'existing', created: false, provision: false }, error: null });
+    const response = await post(DATOS);
+    expect(await response.json()).toMatchObject({ modo: 'propia', leadId: 'existing' });
+    expect(insertLead).not.toHaveBeenCalled();
+    expect(updatePedido).not.toHaveBeenCalled();
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+  it('rejects a different buyer without replacing the existing association', async () => {
+    prepare.mockResolvedValueOnce({ data: null, error: { message: 'buyer_conflict' } });
+    expect((await post(DATOS)).status).toBe(409);
+    expect(createContract).not.toHaveBeenCalled();
+    expect(updatePedido).not.toHaveBeenCalled();
+  });
+  it('fails closed on a rolled-back preparation', async () => {
+    prepare.mockResolvedValueOnce({ data: null, error: { message: 'write failure' } });
+    expect((await post(DATOS)).status).toBe(500);
+    expect(createContract).not.toHaveBeenCalled();
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+  it('returns a saved provider link without creating another envelope', async () => {
+    prepare.mockResolvedValueOnce({ data: { id: 'existing', created: false, provision: false,
+      token: 'saved', signingUrl: 'https://example.test/sign/saved' }, error: null });
+    expect(await (await post(DATOS)).json()).toMatchObject({ modo: 'externa' });
+    expect(createContract).not.toHaveBeenCalled();
+  });
+  it('does not repeat an external request whose result is unknown', async () => {
+    prepare.mockResolvedValueOnce({ data: { id: 'existing', created: false, provision: false }, error: null });
+    expect((await post(DATOS)).status).toBe(202);
+    expect(createContract).not.toHaveBeenCalled();
+  });
+  it('does not report success if provider metadata cannot be saved', async () => {
+    updateLead.mockReturnValue({ eq: () => ({ select: () => ({ single: async () => ({ data: null, error: { message: 'write failure' } }) }) }) });
+    expect((await post(DATOS)).status).toBe(500);
+    expect(sendCrmEmail).not.toHaveBeenCalled();
+  });
+});
+
+
+it('blocks an existing zero-upfront order before preparing a contract', async () => {
+  supabase({ ...PEDIDO, total_usd: 0, mensual_usd: 40 });
+  expect((await post(DATOS)).status).toBe(409);
+  expect(prepare).not.toHaveBeenCalled();
 });

@@ -178,3 +178,11 @@ describe('modulosSugeridos', () => {
     expect(modulosSugeridos('cualquiera')).toEqual([]);
   });
 });
+
+
+it('does not add new mandatory extras while reconstructing a historical order', () => {
+  const pkg = paquetePorSlug('una-automatizacion')!;
+  const historical = totalPedido(pkg, [], servicioPorSlug(pkg.servicio)!.extras);
+  expect(historical.extras).toEqual([]);
+  expect(historical.recurrenteUsd).toBe(0);
+});

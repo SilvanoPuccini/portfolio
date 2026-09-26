@@ -1,5 +1,6 @@
 'use client';
 
+import { LeadCare } from '@/components/care/LeadCare';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { s } from '@/components/admin/AdminShell';
@@ -712,6 +713,7 @@ export default function LeadDetailPage() {
           <LeadSaleHistory lead={lead} fmt={fmt} />
         </div>
       </LeadSection>
+      <LeadCare leadId={id} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { RETIRED_EXTRAS, RETIRED_PACKAGES } from './service-policy';
 /**
  * El catálogo comercial, en un solo lugar.
  *
@@ -49,6 +50,8 @@ export interface Extra {
   precioUsd: number;
   /** 'mes' para los que se cobran todos los meses y no entran en el total del proyecto. */
   recurrente?: 'mes';
+  /** Required when configuring a new purchase; never inferred for historical orders. */
+  obligatorio?: boolean;
   /**
    * Días hábiles que suma al plazo de entrega. Un logo con dos propuestas y
    * una ronda de ajustes espera respuesta del cliente: no entra gratis en el
@@ -572,7 +575,7 @@ const PRODUCTOS: PreguntaCalificacion = {
       valor: 'mas',
       label: { es: 'Más de 300, o con variantes y talles', en: 'More than 300, or with variants and sizes' },
       califica: false,
-      hacia: { tipo: 'paquete', slug: 'tienda-a-medida' },
+      hacia: { tipo: 'llamada' },
     },
   ],
 };
@@ -592,12 +595,12 @@ const tienda: Servicio = {
   paraQuien: {
     es: [
       'Hoy vendés por WhatsApp y se te pierden pedidos entre las conversaciones',
-      'Tu operación no entra en una plantilla: vendés por encargo, por medida o con stock que cambia',
+      'Necesitás un catálogo simple con pedidos por WhatsApp o cobro por enlace, sin gestión de stock',
       'Querés el control del cliente y de los datos',
     ],
     en: [
       'You sell over WhatsApp today and orders get lost between chats',
-      'Your operation does not fit a template: you sell made to order, made to measure or with moving stock',
+      'You need a simple catalog with WhatsApp orders or payment links, without inventory management',
       'You want to own the customer and the data',
     ],
   },
@@ -952,10 +955,11 @@ const automatizacion: Servicio = {
   extras: [
     {
       id: 'plan-automatizacion',
+      obligatorio: true,
       label: { es: 'Plan de automatización (obligatorio)', en: 'Automation plan (mandatory)' },
       detalle: {
-        es: 'USD 60 por mes: monitoreo, aviso cuando algo falla y el consumo de IA incluido. Una automatización que se rompe en silencio es peor que no tener ninguna.',
-        en: 'USD 60 per month: monitoring, alerts when something breaks and AI usage included. An automation that fails silently is worse than no automation.',
+        es: 'USD 60 por mes: monitoreo, aviso cuando algo falla y el consumo de IA/API a cargo del cliente. Una automatización que se rompe en silencio es peor que no tener ninguna.',
+        en: 'USD 60 per month: monitoring, alerts when something breaks and AI/API usage paid separately by the customer. An automation that fails silently is worse than no automation.',
       },
       precioUsd: 60,
       recurrente: 'mes',
@@ -1129,12 +1133,12 @@ const cuidado: Servicio = {
     es: [
       'Tu sitio ya está publicado y cambia cada tanto',
       'No querés escribirle a alguien distinto cada vez que se rompe algo',
-      'Preferís un costo fijo por mes antes que una factura sorpresa',
+      'Preferís un costo por período acordado antes que una factura sorpresa',
     ],
     en: [
       'Your site is live and changes every so often',
       'You do not want to message a different person every time something breaks',
-      'You prefer a fixed monthly cost over a surprise invoice',
+      'You prefer an agreed price per period over a surprise invoice',
     ],
   },
   derivaciones: [
@@ -1240,6 +1244,14 @@ const cuidado: Servicio = {
 };
 
 export const SERVICIOS: Servicio[] = [web, tienda, sistema, automatizacion, auditoria, cuidado];
+
+/** Public offers are separate from historical order reconstruction. */
+export const PUBLIC_SERVICIOS: Servicio[] = SERVICIOS.map((service) => ({
+  ...service,
+  paquetes: service.paquetes.filter((item) => !RETIRED_PACKAGES.has(item.slug)),
+  extras: service.extras.filter((item) => !RETIRED_EXTRAS.has(item.id)),
+}));
+
 
 /** Los slugs viejos siguen funcionando: hay leads y links publicados con ellos. */
 export const ALIAS_SERVICIOS: Record<string, string> = {
@@ -1368,6 +1380,14 @@ function diasDeExtras(extras: Extra[]): number {
 export function rangoComoTexto({ desde, hasta }: { desde: number; hasta: number }, locale: Locale): string {
   if (desde >= hasta) return String(hasta);
   return locale === 'es' ? `${desde} a ${hasta}` : `${desde} to ${hasta}`;
+}
+
+/** Normalize new purchases only; stored orders keep their original selection. */
+export function extrasParaNuevoPedido(extrasIds: string[], disponibles: Extra[]): string[] {
+  return [...new Set([
+    ...extrasIds.filter((id) => disponibles.some((extra) => extra.id === id)),
+    ...disponibles.filter((extra) => extra.obligatorio).map((extra) => extra.id),
+  ])];
 }
 
 /** Lo que el cliente eligió, con su total. Es la base del presupuesto y del contrato. */

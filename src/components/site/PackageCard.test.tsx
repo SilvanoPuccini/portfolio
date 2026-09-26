@@ -106,3 +106,27 @@ describe('PackageCard', () => {
     expect(screen.getByText(/business days/i)).toBeInTheDocument();
   });
 });
+
+
+describe('catalog charge transparency', () => {
+  it.each(['cuidado-basico', 'cuidado-completo', 'cuidado-comercio'])('shows the actual recurring price for %s', (slug) => {
+    const pkg = paquetePorSlug(slug)!;
+    render(<PackageCard locale="en" paquete={pkg} extras={[]} />);
+    expect(screen.getByText(`USD ${pkg.precioUsd} ${slug === 'cuidado-basico' ? 'every 3 months' : 'per month'}`, { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText('USD 0', { exact: false })).not.toBeInTheDocument();
+  });
+
+  it('keeps mandatory monitoring selected and includes it in the new order', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, json: async () => ({}) } as Response);
+    const pkg = paquetePorSlug('una-automatizacion')!;
+    render(<PackageCard locale="es" paquete={pkg} extras={servicioPorSlug(pkg.servicio)!.extras} />);
+    const monitoring = screen.getByRole('checkbox', { name: /Plan de automatización/ });
+    expect(monitoring).toBeChecked();
+    expect(monitoring).toBeDisabled();
+    expect(screen.getByText('USD 60 por mes')).toBeInTheDocument();
+    calificar(pkg);
+    fireEvent.click(screen.getByRole('button', { name: /contratar/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string).extras).toEqual(['plan-automatizacion']);
+  });
+});

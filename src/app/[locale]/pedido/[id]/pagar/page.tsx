@@ -56,7 +56,7 @@ export default async function PagarPage({ params }: { params: Params }) {
 
   // Solo cuando de verdad toca pagar: es una llamada a una API externa y al
   // que ya avisó que transfirió no le cambia nada.
-  const cotizacion = etapa === 'pago' ? await quoteFor(lead?.pais ?? null, pedido.total_usd) : null;
+  const cotizacion = etapa === 'pago' && pedido.total_usd > 0 ? await quoteFor(lead?.pais ?? null, pedido.total_usd) : null;
 
   return (
     <PedidoLayout
@@ -69,7 +69,16 @@ export default async function PagarPage({ params }: { params: Params }) {
       paso="pagar"
       titulo={labels.titulo}
     >
-      <PagoPedido
+      {pedido.total_usd <= 0 ? (
+        <div className="surface-panel border border-outline-ghost/10 px-6 py-8">
+          <p>{currentLocale === 'es'
+            ? 'Este pedido no tiene un pago inicial confirmado. La activación y el primer cobro requieren revisión; no realices una transferencia de importe cero.'
+            : 'This order has no confirmed initial payment. Activation and the first charge require review; do not make a zero-value transfer.'}</p>
+          <a className="button-secondary mt-4" href={`/${currentLocale}/services/agendar?paquete=${encodeURIComponent(paquete.slug)}`}>
+            {currentLocale === 'es' ? 'Revisar la activación' : 'Review activation'}
+          </a>
+        </div>
+      ) : <PagoPedido
         pedidoId={pedido.id}
         montoUsd={money(pedido.total_usd, currentLocale)}
         montoLocal={cotizacion
@@ -78,7 +87,7 @@ export default async function PagarPage({ params }: { params: Params }) {
         notaCotizacion={cotizacion ? labels.nota.replace('{fuente}', cotizacion.source) : null}
         instrucciones={paymentInstructionsFor(lead?.pais ?? null)}
         yaInformado={etapa === 'esperando'}
-      />
+      />}
 
       <p className="mt-5 text-sm leading-6 text-text-tertiary">
         <a

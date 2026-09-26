@@ -16,11 +16,13 @@ const LEAD = { id: 'lead-1', nombre: 'Estefanía', email: 'este@ejemplo.com' };
 
 const insert = vi.fn();
 const update = vi.fn();
+const consume = vi.fn();
 let accesoVigente: Record<string, unknown> | null = null;
 
 function supabase(pedido: unknown = PEDIDO, lead: unknown = LEAD) {
   insert.mockResolvedValue({ error: null });
-  update.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+  consume.mockResolvedValue({ data: { id: 'acceso-1' }, error: null });
+  update.mockReturnValue({ eq: () => ({ error: null, is: () => ({ select: () => ({ maybeSingle: consume }) }) }) });
 
   vi.mocked(getSupabaseAdmin).mockReturnValue({
     from: vi.fn((tabla: string) => {
@@ -122,6 +124,16 @@ describe('verificar el código', () => {
     usado_at: null,
   });
 
+  it('does not issue proof if OTP consumption fails or loses a race', async () => {
+    accesoVigente = vigente('123456');
+    consume.mockResolvedValueOnce({ data: null, error: { message: 'write failed' } });
+    const failed = await post({ codigo: '123456' });
+    expect(failed.status).toBe(500);
+    expect(failed.headers.get('set-cookie')).toBeNull();
+    consume.mockResolvedValueOnce({ data: null, error: null });
+    expect((await post({ codigo: '123456' })).status).toBe(401);
+  });
+
   it('con el código correcto entrega la sesión de ese pedido', async () => {
     accesoVigente = vigente('123456');
 
@@ -129,6 +141,7 @@ describe('verificar el código', () => {
     const cookie = res.headers.get('set-cookie') ?? '';
 
     expect(res.status).toBe(200);
+    expect(cookie).toContain('pedido_email_verificado=');
     expect(cookie).toContain('HttpOnly');
     expect(cookie).toContain('Secure');
     expect(cookie).toMatch(/SameSite=Lax/i);

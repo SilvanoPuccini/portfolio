@@ -88,6 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!pedido) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
 
     const fila = pedido as PedidoRow;
+    if (fila.total_usd <= 0) return NextResponse.json({ error: 'Activation and initial payment terms require confirmation.' }, { status: 409 });
     if (fila.firmado_at) {
       return NextResponse.json({ error: 'Este pedido ya está firmado.' }, { status: 409 });
     }
@@ -111,34 +112,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       })),
     ];
 
-    const { data: lead, error: leadError } = await db
-      .from('leads')
-      .insert({
-        nombre,
-        email,
-        pais: pais || null,
+    // Creation and association commit together, serialized by the order row lock.
+    const { data: lead, error: leadError } = await db.rpc('prepare_order_contract', {
+      p_order_id: fila.id,
+      p_external: process.env.FIRMA_CON_DOCUMENSO === '1',
+      p_details: {
+        nombre, email, pais: pais || null,
         tipo_proyecto: paquete.nombre.es,
         que_construir: paquete.resumen.es,
-        estado: 'contrato_enviado',
-        monto_presupuestado: fila.total_usd,
-        mantenimiento_mensual: fila.mensual_usd || null,
         pago_unico: paquete.pagoUnico,
         service: paquete.servicio,
         modulos_seleccionados: modulos,
-        pedido_snapshot: {
-          paquete: fila.paquete,
-          extras: fila.extras ?? [],
-          totalUsd: fila.total_usd,
-          mensualUsd: fila.mensual_usd,
-          congeladoAt: new Date().toISOString(),
-        },
-        contract_sent_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
-
+      },
+    });
     if (leadError || !lead) {
-      console.error('[api/pedido/contrato] No se pudo crear la venta:', leadError);
+      const conflict = ['buyer_conflict', 'order_signed'].includes(leadError?.message ?? '');
+      if (conflict) return NextResponse.json({ error: 'This order is already associated with a buyer or signed.' }, { status: 409 });
+      console.error('[api/pedido/contrato] Could not prepare the sale:', leadError);
       return NextResponse.json({ error: 'Could not create the sale.' }, { status: 500 });
     }
 
@@ -149,15 +139,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // documentos, sin correos de terceros y con el diseño nuestro. Documenso
     // queda detrás de esta variable para cuando un contrato lo justifique.
     if (process.env.FIRMA_CON_DOCUMENSO !== '1') {
-      // El enganche va SIEMPRE antes de devolver: un pedido sin dueño hace
-      // que la firma no encuentre la venta y el cliente reciba un 404 justo
-      // cuando iba a firmar.
-      await db.from('pedidos').update({ lead_id: lead.id }).eq('id', fila.id);
-
-      await mandarElLink({ email, nombre, paquete: paquete.nombre.es, totalUsd: fila.total_usd, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
+      if (lead.created) {
+        await mandarElLink({ email, nombre, paquete: paquete.nombre.es, totalUsd: fila.total_usd, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
+      }
 
       return NextResponse.json({ modo: 'propia', leadId: lead.id });
     }
+
+    if (lead.signingUrl && lead.token) {
+      return NextResponse.json({ modo: 'externa' });
+    }
+    // Another request claimed provisioning, or its external result is uncertain.
+    // Keep the buyer association and require reconciliation instead of duplicating envelopes.
+    if (!lead.provision) return NextResponse.json({ demorado: true }, { status: 202 });
 
     let contrato;
     try {
@@ -210,17 +204,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ demorado: true }, { status: 202 });
     }
 
-    await db.from('leads').update({
+    const { data: persisted, error: persistError } = await db.from('leads').update({
       contrato_signing_url: contrato.signingUrl,
       contrato_firma_token: contrato.token,
       contrato_envelope_id: contrato.envelopeId,
-    }).eq('id', lead.id);
-
-    await db.from('pedidos').update({ lead_id: lead.id }).eq('id', fila.id);
+    }).eq('id', lead.id).select('id').single();
+    if (persistError || !persisted) {
+      console.error('[api/pedido/contrato] Provider result requires reconciliation:', persistError);
+      return NextResponse.json({ error: 'Could not save the signing link.' }, { status: 500 });
+    }
 
     await mandarElLink({ email, nombre, paquete: paquete.nombre.es, totalUsd: fila.total_usd, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
 
-    return NextResponse.json({ token: contrato.token, signingUrl: contrato.signingUrl });
+    return NextResponse.json({ modo: 'externa' });
   } catch (err) {
     console.error('[api/pedido/contrato] POST error:', err);
     return NextResponse.json({ error: 'Could not prepare the contract.' }, { status: 500 });

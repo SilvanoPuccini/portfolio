@@ -31,6 +31,7 @@ export type ContractData = {
   diasDeEspera?: number;
   detallePrecio?: string[];
   cargoMensual?: string;
+  servicePolicy?: string[];
   legalClause: string;
   /**
    * La firma del cliente, cuando ya firmó en nuestro sitio.
@@ -146,6 +147,7 @@ export function buildContract(data: ContractData): Document {
     // las lee y que el texto sobre el que se calcula la huella de la firma.
     // Si divergieran, la firma dejaría de probar nada.
     ...clausulasDelContrato({
+      servicePolicy: data.plantilla ? undefined : data.servicePolicy,
       clientName: data.plantilla ? hueco(34) : data.clientName,
       clientLocation: data.plantilla ? hueco(20) : data.clientLocation,
       clientCountry: data.plantilla ? '' : data.clientCountry,

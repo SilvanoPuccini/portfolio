@@ -1,10 +1,15 @@
+import { cookies } from 'next/headers';
+import { COOKIE_VERIFICADO, tieneVerificacion } from '@/lib/leads/acceso-cliente';
+import { VerifyOrderAccess } from '@/components/pedido/VerifyOrderAccess';
+import { createRevision, readRevision } from '@/lib/leads/contract-revision';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
 import { FirmaContrato } from '@/components/pedido/FirmaContrato';
 import { PedidoLayout } from '@/components/pedido/PedidoLayout';
 import { ContractStep } from '@/components/propuesta/ContractStep';
-import { clausulasDelContrato, contratoDeVenta } from '@/content/contrato';
+import { contratoDeVenta } from '@/content/contrato';
 import { cargarPedidoCompleto } from '@/lib/leads/cargar-pedido';
 import { legalClauseFor } from '@/lib/leads/legal-clause';
 import { redirigirA } from '@/lib/leads/pedido-pasos';
@@ -37,6 +42,9 @@ export default async function FirmarPage({ params }: { params: Params }) {
   const { locale, id } = await params;
   const currentLocale = resolveLocale(locale) as Locale;
 
+  if (!tieneVerificacion((await cookies()).get(COOKIE_VERIFICADO)?.value, id)) {
+    return <main className="site-container py-14"><VerifyOrderAccess pedidoId={id} /></main>;
+  }
   const datos = await cargarPedidoCompleto(id);
   if (!datos) notFound();
 
@@ -44,6 +52,20 @@ export default async function FirmarPage({ params }: { params: Params }) {
   if (destino) redirect(destino);
 
   const { lead, paquete, pedido, resumen, espera } = datos;
+
+  if (pedido.total_usd <= 0) {
+    return <main className="site-container py-14"><p>{currentLocale === 'es'
+      ? 'La activación y el primer cobro de este plan deben confirmarse antes de firmar. No realices una transferencia de importe cero.'
+      : 'Activation and the first payment must be confirmed before signing. Do not make a zero-value transfer.'}</p></main>;
+  }
+  if (!lead || !pedido.lead_id) notFound();
+  const candidate = createRevision(contratoDeVenta({ paquete, extras: resumen.extras,
+    cliente: lead, totalUsd: pedido.total_usd, jurisdiccion: legalClauseFor(lead.pais), diasDeEspera: espera }));
+  const { data: stored, error } = lead.contrato_firma_token
+    ? { data: null, error: null }
+    : await getSupabaseAdmin().rpc('freeze_order_contract', { p_order_id: id, p_lead_id: pedido.lead_id, p_snapshot: candidate });
+  if (error) throw new Error('Could not load the contract revision');
+  const snapshot = stored ? readRevision(stored) : null;
 
   return (
     <PedidoLayout
@@ -63,20 +85,10 @@ export default async function FirmarPage({ params }: { params: Params }) {
         : (
           <FirmaContrato
             pedidoId={pedido.id}
-            nombreEsperado={lead?.nombre ?? ''}
+            nombreEsperado={snapshot!.datos.clientName}
             email={lead?.email}
-            clausulas={clausulasDelContrato(contratoDeVenta({
-              paquete,
-              extras: resumen.extras,
-              cliente: {
-                nombre: lead?.nombre ?? '',
-                localidad: lead?.localidad,
-                pais: lead?.pais,
-              },
-              totalUsd: pedido.total_usd,
-              jurisdiccion: legalClauseFor(lead?.pais ?? null),
-              diasDeEspera: espera,
-            }))}
+            revision={snapshot!.revision}
+            clausulas={snapshot!.clausulas}
           />
         )}
     </PedidoLayout>

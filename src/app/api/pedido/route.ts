@@ -1,6 +1,10 @@
+import { RETIRED_EXTRAS, RETIRED_PACKAGES } from '@/content/service-policy';
+import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
 import {
+  calificaParaComprar,
+  extrasParaNuevoPedido,
   paquetePorSlug,
   servicioPorSlug,
   totalPedido,
@@ -35,11 +39,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => null);
-    const slug = typeof body?.paquete === 'string' ? body.paquete : '';
+    const parsed = z.object({ paquete: z.string(), extras: z.array(z.string()).max(100).default([]),
+      calificacion: z.record(z.string(), z.string()).default({}), locale: z.enum(['es', 'en']).optional() }).safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid order configuration.' }, { status: 400 });
+    const slug = parsed.data.paquete;
     const locale: Locale = body?.locale === 'en' ? 'en' : 'es';
 
     const paquete = paquetePorSlug(slug);
-    if (!paquete) {
+    if (!paquete || RETIRED_PACKAGES.has(paquete.slug)) {
       return NextResponse.json({ error: 'Unknown package.' }, { status: 400 });
     }
 
@@ -51,21 +58,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Solo las respuestas que el paquete de verdad pregunta, y solo valores
-    // que existen: lo que viene del navegador lo escribe el cliente.
-    const enviadas = (body?.calificacion ?? {}) as Record<string, unknown>;
-    const calificacion = Object.fromEntries(
-      paquete.calificacion.flatMap((pregunta) => {
-        const valor = enviadas[pregunta.id];
-        return typeof valor === 'string' && pregunta.opciones.some((o) => o.valor === valor)
-          ? [[pregunta.id, valor]]
-          : [];
-      }),
-    );
-
+    const calificacion = parsed.data.calificacion;
+    if (Object.keys(calificacion).some((key) => !paquete.calificacion.some((q) => q.id === key))
+      || !calificaParaComprar(paquete, calificacion)) {
+      return NextResponse.json({ error: 'The selected configuration is outside this package. Review your answers.' }, { status: 400 });
+    }
+    // Monthly activation terms are not yet defined; never create a zero-payment purchase.
+    if (paquete.recurrente) return NextResponse.json({ error: 'Monthly activation and billing require confirmation before purchase.' }, { status: 409 });
     const servicio = servicioPorSlug(paquete.servicio);
-    const pedidos = Array.isArray(body?.extras) ? body.extras.filter((id: unknown) => typeof id === 'string') : [];
-    const resumen = totalPedido(paquete, pedidos, servicio?.extras ?? []);
+    const pedidos = parsed.data.extras;
+    if (pedidos.some((id) => RETIRED_EXTRAS.has(id) || !servicio?.extras.some((extra) => extra.id === id))) {
+      return NextResponse.json({ error: 'Unknown or incompatible extra.' }, { status: 400 });
+    }
+    const resumen = totalPedido(paquete, extrasParaNuevoPedido(pedidos, servicio?.extras ?? []), servicio?.extras ?? []);
     const extras = resumen.extras.map((extra) => extra.id);
 
     const fila = {
