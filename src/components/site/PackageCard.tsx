@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { ArrowUpRight, Check, Minus } from 'lucide-react';
 
 import {
-  calificaParaComprar,
   destinoDe,
   extrasParaNuevoPedido,
   paquetePorSlug,
@@ -19,6 +18,9 @@ import {
   type Locale,
   type Paquete,
 } from '@/content/servicios';
+import { resolveCurrentOrder } from '@/lib/order-config';
+
+export type PackageConfiguration = { calificacion: Record<string, string>; extras: string[] };
 
 /**
  * Un paquete, con lo que hace falta para decidirlo.
@@ -83,15 +85,25 @@ export default function PackageCard({
   locale,
   paquete,
   extras,
+  configuration,
+  onConfigurationChange,
 }: {
   locale: Locale;
   paquete: Paquete;
   extras: Extra[];
+  configuration?: PackageConfiguration;
+  onConfigurationChange?: (next: PackageConfiguration) => void;
 }) {
   const labels = copy[locale];
   const carePlan = policyForPackage(paquete.slug);
-  const [respuestas, setRespuestas] = useState<Record<string, string>>({});
-  const [elegidos, setElegidos] = useState<string[]>([]);
+  const [localAnswers, setLocalAnswers] = useState<Record<string, string>>({});
+  const [localExtras, setLocalExtras] = useState<string[]>([]);
+  const respuestas = configuration?.calificacion ?? localAnswers;
+  const elegidos = configuration?.extras ?? localExtras;
+  const changeConfiguration = (next: PackageConfiguration) => {
+    if (onConfigurationChange) onConfigurationChange(next);
+    else { setLocalAnswers(next.calificacion); setLocalExtras(next.extras); }
+  };
   const seleccionados = useMemo(() => extrasParaNuevoPedido(elegidos, extras), [elegidos, extras]);
   const [pidiendo, setPidiendo] = useState(false);
   const [falloPedido, setFalloPedido] = useState(false);
@@ -130,7 +142,7 @@ export default function PackageCard({
   const pedido = useMemo(() => totalPedido(paquete, seleccionados, extras), [paquete, seleccionados, extras]);
 
   const aCotizar = paquete.precioUsd === null;
-  const califica = !aCotizar && calificaParaComprar(paquete, respuestas);
+  const califica = !aCotizar && resolveCurrentOrder({ paquete: paquete.slug, extras: seleccionados, calificacion: respuestas }).ok;
   const destino = destinoDe(paquete, respuestas);
   const contestoTodo = paquete.calificacion.every((q) => respuestas[q.id]);
   // Con una respuesta fuera de alcance no se vende: se deriva.
@@ -238,13 +250,7 @@ export default function PackageCard({
                   className="mt-1 h-4 w-4 shrink-0"
                   checked={seleccionados.includes(extra.id)}
                   disabled={extra.obligatorio === true}
-                  onChange={(event) =>
-                    setElegidos((actuales) =>
-                      event.target.checked
-                        ? [...actuales, extra.id]
-                        : actuales.filter((id) => id !== extra.id),
-                    )
-                  }
+                  onChange={(event) => changeConfiguration({ calificacion: respuestas, extras: event.target.checked ? [...elegidos, extra.id] : elegidos.filter((id) => id !== extra.id) })}
                 />
                 <span>
                   {extra.label[locale]}
@@ -284,9 +290,7 @@ export default function PackageCard({
                         name={`${paquete.slug}-${pregunta.id}`}
                         value={opcion.valor}
                         checked={marcada}
-                        onChange={() =>
-                          setRespuestas((actuales) => ({ ...actuales, [pregunta.id]: opcion.valor }))
-                        }
+                        onChange={() => changeConfiguration({ calificacion: { ...respuestas, [pregunta.id]: opcion.valor }, extras: elegidos })}
                       />
                       {opcion.label[locale]}
                     </label>

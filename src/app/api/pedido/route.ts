@@ -1,15 +1,8 @@
-import { RETIRED_EXTRAS, RETIRED_PACKAGES } from '@/content/service-policy';
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
-import {
-  calificaParaComprar,
-  extrasParaNuevoPedido,
-  paquetePorSlug,
-  servicioPorSlug,
-  totalPedido,
-  type Locale,
-} from '@/content/servicios';
+import type { Locale } from '@/content/servicios';
+import { resolveCurrentOrder } from '@/lib/order-config';
 import { rateLimit } from '@/lib/rate-limit';
 import { diasDeEspera, horasEnCurso } from '@/lib/leads/capacidad';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -42,36 +35,22 @@ export async function POST(req: NextRequest) {
     const parsed = z.object({ paquete: z.string(), extras: z.array(z.string()).max(100).default([]),
       calificacion: z.record(z.string(), z.string()).default({}), locale: z.enum(['es', 'en']).optional() }).safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid order configuration.' }, { status: 400 });
-    const slug = parsed.data.paquete;
     const locale: Locale = body?.locale === 'en' ? 'en' : 'es';
-
-    const paquete = paquetePorSlug(slug);
-    if (!paquete || RETIRED_PACKAGES.has(paquete.slug)) {
-      return NextResponse.json({ error: 'Unknown package.' }, { status: 400 });
-    }
-
-    // Un paquete sin precio cerrado no se pide: se habla primero.
-    if (paquete.precioUsd === null) {
+    const resolved = resolveCurrentOrder(parsed.data);
+    if (!resolved.ok && resolved.error === 'quoted') {
       return NextResponse.json(
-        { error: 'This package is quoted on a call.', url: `/${locale}/services/agendar?paquete=${paquete.slug}` },
+        { error: 'This package is quoted on a call.', url: `/${locale}/services/agendar?paquete=${parsed.data.paquete}` },
         { status: 400 },
       );
     }
-
-    const calificacion = parsed.data.calificacion;
-    if (Object.keys(calificacion).some((key) => !paquete.calificacion.some((q) => q.id === key))
-      || !calificaParaComprar(paquete, calificacion)) {
+    if (!resolved.ok && resolved.error === 'monthly') return NextResponse.json({ error: 'Monthly activation and billing require confirmation before purchase.' }, { status: 409 });
+    if (!resolved.ok && resolved.error === 'unknown_package') return NextResponse.json({ error: 'Unknown package.' }, { status: 400 });
+    if (!resolved.ok && resolved.error === 'invalid_extras') return NextResponse.json({ error: 'Unknown or incompatible extra.' }, { status: 400 });
+    if (!resolved.ok) {
       return NextResponse.json({ error: 'The selected configuration is outside this package. Review your answers.' }, { status: 400 });
     }
-    // Monthly activation terms are not yet defined; never create a zero-payment purchase.
-    if (paquete.recurrente) return NextResponse.json({ error: 'Monthly activation and billing require confirmation before purchase.' }, { status: 409 });
-    const servicio = servicioPorSlug(paquete.servicio);
-    const pedidos = parsed.data.extras;
-    if (pedidos.some((id) => RETIRED_EXTRAS.has(id) || !servicio?.extras.some((extra) => extra.id === id))) {
-      return NextResponse.json({ error: 'Unknown or incompatible extra.' }, { status: 400 });
-    }
-    const resumen = totalPedido(paquete, extrasParaNuevoPedido(pedidos, servicio?.extras ?? []), servicio?.extras ?? []);
-    const extras = resumen.extras.map((extra) => extra.id);
+    const { paquete, resumen, extras } = resolved;
+    const calificacion = parsed.data.calificacion;
 
     const fila = {
       paquete: paquete.slug,

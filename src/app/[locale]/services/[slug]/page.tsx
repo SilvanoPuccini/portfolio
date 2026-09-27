@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowRight, Check } from 'lucide-react';
 
-import PackageCard from '@/components/site/PackageCard';
+import ServicePackageConfigurator from '@/components/site/ServicePackageConfigurator';
 import PageHero from '@/components/site/PageHero';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import {
@@ -114,10 +114,10 @@ export default async function ServicioPage({ params }: { params: Params }) {
       />
 
       <section className="site-container py-12 sm:py-16">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <Reveal as="div" className="no-line-stack">
+        <div className="space-y-12">
+          <Reveal as="div" className="grid gap-5 border-y border-outline-ghost/15 py-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
             <p className="technical-label">{labels.paraQuien}</p>
-            <ul className="mt-5 space-y-3">
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {servicio.paraQuien[currentLocale].map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm leading-6 text-text-secondary">
                   <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
@@ -127,29 +127,14 @@ export default async function ServicioPage({ params }: { params: Params }) {
             </ul>
           </Reveal>
 
-          <div>
+          <div className="min-w-0">
             {servicio.slug === 'sistema' && <div className="mb-6 space-y-2 text-sm leading-6 text-text-secondary">
               {policyParagraphs(CARE_PLANS.custom, currentLocale).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>}
             {servicio.paquetes.length > 0 ? (
               <>
                 <p className="technical-label">{labels.paquetes}</p>
-                {/* En celular se descubren deslizando; desde tablet, lado a lado. */}
-                <RevealGroup className="mt-5 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-3">
-                  {servicio.paquetes.map((paquete) => (
-                    <Reveal
-                      key={paquete.slug}
-                      as="div"
-                      className="w-[85vw] shrink-0 snap-center sm:w-auto sm:shrink"
-                    >
-                      <PackageCard
-                        locale={currentLocale}
-                        paquete={paquete}
-                        extras={servicio.extras}
-                      />
-                    </Reveal>
-                  ))}
-                </RevealGroup>
+                <div className="mt-5"><ServicePackageConfigurator locale={currentLocale} servicio={servicio} /></div>
               </>
             ) : (
               <Reveal as="div" className="surface-panel border border-outline-ghost/10 px-6 py-8">
