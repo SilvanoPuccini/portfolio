@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import type { Locale } from '@/content/servicios';
 import { resolveCurrentOrder } from '@/lib/order-config';
+import { buildConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 import { rateLimit } from '@/lib/rate-limit';
 import { diasDeEspera, horasEnCurso } from '@/lib/leads/capacidad';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     const parsed = z.object({ paquete: z.string(), extras: z.array(z.string()).max(100).default([]),
       calificacion: z.record(z.string(), z.string()).default({}), locale: z.enum(['es', 'en']).optional() }).safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid order configuration.' }, { status: 400 });
-    const locale: Locale = body?.locale === 'en' ? 'en' : 'es';
+    const locale: Locale = parsed.data.locale === 'en' ? 'en' : 'es';
     const resolved = resolveCurrentOrder(parsed.data);
     if (!resolved.ok && resolved.error === 'quoted') {
       return NextResponse.json(
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
     }
     const { paquete, resumen, extras } = resolved;
     const calificacion = parsed.data.calificacion;
+    const configuracion_snapshot = buildConfigurationSnapshot(resolved, locale);
 
     const fila = {
       paquete: paquete.slug,
@@ -59,6 +61,7 @@ export async function POST(req: NextRequest) {
       mensual_usd: resumen.recurrenteUsd,
       locale,
       calificacion,
+      configuracion_snapshot,
     };
 
     // La espera por la agenda se congela acá: es la que va a leer en el

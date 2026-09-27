@@ -7,7 +7,7 @@ import {
 export type CurrentOrderInput = { paquete: string; extras: string[]; calificacion: Record<string, string> };
 export type CurrentOrderError = 'unknown_package' | 'quoted' | 'monthly' | 'invalid_answers' | 'outside_scope' | 'invalid_extras';
 export type CurrentOrderResult =
-  | { ok: true; paquete: Paquete; extras: string[]; resumen: ReturnType<typeof totalPedido> }
+  | { ok: true; paquete: Paquete; extras: string[]; calificacion: Record<string, string>; resumen: ReturnType<typeof totalPedido> }
   | { ok: false; error: CurrentOrderError };
 
 /** Validate only a new order. Stored snapshots are never passed through this resolver. */
@@ -28,7 +28,7 @@ export function resolveCurrentOrder(input: CurrentOrderInput): CurrentOrderResul
     return { ok: false, error: 'invalid_extras' };
   }
   const extras = extrasParaNuevoPedido(input.extras, disponibles);
-  return { ok: true, paquete, extras, resumen: totalPedido(paquete, extras, disponibles) };
+  return { ok: true, paquete, extras, calificacion: { ...input.calificacion }, resumen: totalPedido(paquete, extras, disponibles) };
 }
 
 /** Keep compatible choices when selecting another current package in the same service. */

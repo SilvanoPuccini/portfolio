@@ -1,3 +1,5 @@
+import type { ConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
+
 /**
  * La forma de un lead y de lo que la calculadora necesita para estimar.
  *
@@ -51,6 +53,9 @@ export interface Lead {
   modulos_seleccionados: unknown;
   /** El paquete y los extras que eligió el cliente, con su precio congelado. */
   pedido_snapshot: unknown;
+  /** Read-only snapshot from the latest order linked to this lead. */
+  pedido_configuracion_snapshot?: ConfigurationSnapshot | null;
+  pedido_configuracion_order_id?: string | null;
   guia_respuestas: unknown;
   mantenimiento_mensual: number | null;
   propuesta_snapshot: unknown;

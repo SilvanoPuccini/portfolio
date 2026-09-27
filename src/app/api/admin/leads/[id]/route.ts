@@ -5,6 +5,7 @@ import { isKnownState } from '@/lib/leads/pipeline';
 import { parsePedidoSnapshot } from '@/lib/leads/presupuesto';
 import { parseSelectedModules } from '@/lib/leads/selected-modules';
 import { parseAnswers } from '@/lib/leads/call-guide';
+import { parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,14 +20,30 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const { data, error } = await getSupabaseAdmin()
+    const db = getSupabaseAdmin();
+    const { data, error } = await db
       .from('leads')
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    return NextResponse.json({ lead: data });
+
+    const { data: order, error: orderError } = await db
+      .from('pedidos')
+      .select('id, configuracion_snapshot')
+      .eq('lead_id', id)
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (orderError) throw orderError;
+
+    return NextResponse.json({ lead: {
+      ...data,
+      pedido_configuracion_order_id: order?.id ?? null,
+      pedido_configuracion_snapshot: parseConfigurationSnapshot(order?.configuracion_snapshot),
+    } });
   } catch (err) {
     console.error('[admin/leads/[id]] GET error:', err);
     return NextResponse.json({ error: 'Error al obtener lead.' }, { status: 500 });

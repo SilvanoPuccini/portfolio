@@ -11,6 +11,7 @@ import { paquetePorSlug, servicioPorSlug, type Locale } from '@/content/servicio
 import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { resolveLocale } from '@/lib/i18n';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 
 /**
  * El material del proyecto: el último paso de la compra.
@@ -37,6 +38,15 @@ const copy = {
       + 'volver a este mismo link cuando quieras.',
     volver: 'Volver a tu pedido',
     sinFirmar: 'Este paso se abre cuando el contrato está firmado.',
+    alcance: 'Alcance acordado en tu pedido',
+    pagoUnico: 'Pago único',
+    recurrente: 'Recurrente',
+    incluye: 'Incluye',
+    noIncluye: 'No incluye',
+    elegido: 'Tu configuración',
+    responsabilidades: 'Responsabilidades y condiciones',
+    entrega: 'Plazo máximo de entrega',
+    legacy: 'No hay una captura detallada del alcance para este pedido. El contrato firmado es el registro válido; no reconstruimos el alcance desde el catálogo actual.',
   },
   en: {
     eyebrow: 'Last step',
@@ -45,6 +55,15 @@ const copy = {
       + 'itself and you can come back to this same link.',
     volver: 'Back to your order',
     sinFirmar: 'This step opens once the contract is signed.',
+    alcance: 'Scope agreed in your order',
+    pagoUnico: 'One-time',
+    recurrente: 'Recurring',
+    incluye: 'Included',
+    noIncluye: 'Excluded',
+    elegido: 'Your configuration',
+    responsabilidades: 'Responsibilities and terms',
+    entrega: 'Maximum delivery window',
+    legacy: 'This order has no archived scope snapshot. The signed contract remains the source of truth; we do not rebuild its scope from the current catalog.',
   },
 } as const;
 
@@ -64,14 +83,19 @@ async function cargar(id: string) {
 
   const verificado = tieneAcceso((await cookies()).get(COOKIE_ACCESO)?.value, id);
 
-  // Never fetch private materials for an unverified request.
-  if (!verificado || !pedido?.lead_id) return { pedido, lead: null, verificado };
+  // Never fetch private materials or the buyer's answers for an unverified request.
+  if (!verificado || !pedido?.lead_id) return { pedido, lead: null, verificado, snapshot: null };
 
-  const { data: venta } = await db
-    .from('leads')
-    .select('contrato_firmado_at, kickoff_datos, kickoff_completado_at')
-    .eq('id', pedido.lead_id)
-    .maybeSingle();
+  const [{ data: venta }, { data: order }] = await Promise.all([
+    db.from('leads')
+      .select('contrato_firmado_at, kickoff_datos, kickoff_completado_at')
+      .eq('id', pedido.lead_id)
+      .maybeSingle(),
+    db.from('pedidos')
+      .select('configuracion_snapshot')
+      .eq('id', pedido.id)
+      .maybeSingle(),
+  ]);
 
   return {
     pedido,
@@ -81,6 +105,7 @@ async function cargar(id: string) {
       kickoff_datos: Record<string, unknown> | null;
       kickoff_completado_at: string | null;
     } | null,
+    snapshot: parseConfigurationSnapshot(order?.configuracion_snapshot),
   };
 }
 
@@ -89,7 +114,7 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
   const currentLocale = resolveLocale(locale) as Locale;
   const labels = copy[currentLocale];
 
-  const { pedido, lead, verificado } = await cargar(id);
+  const { pedido, lead, verificado, snapshot } = await cargar(id);
   if (!pedido) notFound();
 
   const paquete = paquetePorSlug(pedido.paquete);
@@ -119,6 +144,44 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
       <Reveal>
         <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">{labels.bajada}</p>
       </Reveal>
+
+      {verificado && lead?.contrato_firmado_at && (
+        <section className="mt-8 max-w-3xl rounded-xl border border-outline-ghost/20 bg-surface-panel p-6" aria-labelledby="frozen-scope-title">
+          <h2 id="frozen-scope-title" className="text-lg font-medium text-text-primary">
+            {snapshot ? labels.alcance : labels.legacy}
+          </h2>
+          {snapshot && <>
+            <p className="mt-2 text-sm text-text-secondary">{snapshot.package.label} · {snapshot.package.description} · {labels.entrega}: {snapshot.package.deliveryDays} {currentLocale === 'es' ? 'días hábiles' : 'business days'}</p>
+            <p className="mt-2 text-sm text-text-secondary">
+              {labels.pagoUnico}: USD {snapshot.charges.oneTimeUsd.toLocaleString(currentLocale === 'es' ? 'es-AR' : 'en-US')} ·
+              {' '}{labels.recurrente}: USD {snapshot.charges.recurringUsd.toLocaleString(currentLocale === 'es' ? 'es-AR' : 'en-US')}
+            </p>
+            <h3 className="mt-5 text-sm font-medium text-text-primary">{labels.incluye}</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-text-secondary">
+              {snapshot.package.included.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            <h3 className="mt-5 text-sm font-medium text-text-primary">{labels.noIncluye}</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-text-secondary">
+              {snapshot.package.excluded.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            {(snapshot.extras.length > 0 || snapshot.answers.length > 0) && (
+              <>
+                <h3 className="mt-5 text-sm font-medium text-text-primary">{labels.elegido}</h3>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-text-secondary">
+                  {snapshot.extras.map((extra) => <li key={extra.id}>{extra.label}</li>)}
+                  {snapshot.answers.map((answer) => <li key={answer.id}>{answer.question}: {answer.selectedOption}</li>)}
+                </ul>
+              </>
+            )}
+            {snapshot.responsibilities.length > 0 && <>
+              <h3 className="mt-5 text-sm font-medium text-text-primary">{labels.responsabilidades}</h3>
+              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-text-secondary">
+                {snapshot.responsibilities.map((item, index) => <li key={index}>{item}</li>)}
+              </ul>
+            </>}
+          </>}
+        </section>
+      )}
 
       <div className="mt-10 max-w-3xl">
         {!verificado ? (

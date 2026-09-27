@@ -1,4 +1,6 @@
 /** Commercial defaults, not subscription billing or a legal approval. */
+export const SERVICE_POLICY_VERSION = '2026-09-26';
+
 export interface CarePlan {
   readonly amountUsd: number;
   readonly intervalMonths: 1 | 3;

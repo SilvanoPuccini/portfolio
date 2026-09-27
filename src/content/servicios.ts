@@ -16,6 +16,8 @@ import { RETIRED_EXTRAS, RETIRED_PACKAGES } from './service-policy';
 export type Locale = 'es' | 'en';
 export type Localized<T> = { es: T; en: T };
 
+export const SERVICE_CATALOG_VERSION = '2026-09-27';
+
 /** La tarifa con la que se verifican los precios cerrados. */
 export const TARIFA_HORA_USD = 30;
 

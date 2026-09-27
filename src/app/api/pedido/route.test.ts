@@ -69,7 +69,19 @@ describe('POST /api/pedido', () => {
     await post({ paquete: 'auditoria-web', extras: [], calificacion: { paginas: 'hasta-quince', login: 'no' } });
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
       calificacion: { paginas: 'hasta-quince', login: 'no' },
+      configuracion_snapshot: expect.objectContaining({
+        schemaVersion: 1,
+        package: expect.objectContaining({ id: 'auditoria-web', oneTimeUsd: 250 }),
+        answers: expect.arrayContaining([expect.objectContaining({ id: 'paginas', value: 'hasta-quince' })]),
+      }),
     }));
+  });
+
+  it('does not persist browser-supplied scope or price fields', async () => {
+    await post({ paquete: 'web-cinco-secciones', extras: [], scope: 'forged', configuracion_snapshot: { charges: { oneTimeUsd: 1 } } });
+    const row = insert.mock.calls[0][0] as Record<string, unknown>;
+    expect((row.configuracion_snapshot as { charges: { oneTimeUsd: number } }).charges.oneTimeUsd).toBe(790);
+    expect(row).not.toHaveProperty('scope');
   });
 
   it('descarta una respuesta inventada: viene del navegador del cliente', async () => {

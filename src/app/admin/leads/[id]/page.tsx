@@ -431,6 +431,8 @@ export default function LeadDetailPage() {
   if (loading) return <p style={{ color: c.textDim, fontSize: 13 }}>Cargando...</p>;
   if (!lead) return <p style={s.errorText}>Lead no encontrado.</p>;
 
+  const frozenConfiguration = lead.pedido_configuracion_snapshot ?? null;
+
   const baseModules = pertRows.filter((r) => allModules.find((m) => m.slug === r.slug)?.categoria === 'base');
   const featureModules = pertRows.filter((r) => allModules.find((m) => m.slug === r.slug)?.categoria === 'modulo');
 
@@ -533,6 +535,40 @@ export default function LeadDetailPage() {
         rechazoMotivo={lead.contrato_rechazado_at ? (lead.contrato_rechazo_motivo ?? null) : undefined}
         onAdvanced={() => void load()}
       />
+
+      {frozenConfiguration && (
+        <section style={{ marginTop: 18, padding: 18, border: `1px solid ${c.border}`, borderRadius: 12 }}>
+          <p style={s.sectionTitle}>Configuración congelada del pedido</p>
+          <p style={s.hint}>
+            Pedido {lead.pedido_configuracion_order_id ?? '—'} · {fmt(frozenConfiguration.createdAt)} ·
+            {' '}catálogo {frozenConfiguration.catalogVersion} / política {frozenConfiguration.policyVersion}
+          </p>
+          <h3 style={{ color: c.text, margin: '12px 0 4px', fontSize: 15 }}>{frozenConfiguration.package.label}</h3>
+          <p style={s.hint}>{frozenConfiguration.package.description}</p>
+          <p style={s.hint}>
+            Pago único: USD {frozenConfiguration.charges.oneTimeUsd.toLocaleString('es-AR')} ·
+            {' '}recurrente: USD {frozenConfiguration.charges.recurringUsd.toLocaleString('es-AR')}
+          </p>
+          <p style={s.hint}>Plazo máximo de entrega: {frozenConfiguration.package.deliveryDays} días hábiles.</p>
+          <p style={s.label}>Incluye</p>
+          <ul style={{ ...s.hint, paddingLeft: 18 }}>
+            {frozenConfiguration.package.included.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          <p style={s.label}>No incluye</p>
+          <ul style={{ ...s.hint, paddingLeft: 18 }}>
+            {frozenConfiguration.package.excluded.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          {frozenConfiguration.extras.length > 0 && <p style={s.hint}>
+            Extras: {frozenConfiguration.extras.map((item) => `${item.label} (USD ${item.amountUsd.toLocaleString('es-AR')}${item.cadence === 'month' ? '/mes' : ''})`).join(' · ')}
+          </p>}
+          {frozenConfiguration.answers.map((answer) => (
+            <p key={answer.id} style={s.hint}>{answer.question}: {answer.selectedOption}</p>
+          ))}
+          {frozenConfiguration.responsibilities.map((item, index) => (
+            <p key={index} style={s.hint}>{item}</p>
+          ))}
+        </section>
+      )}
 
       {/* ── 1 · EL CLIENTE ─────────────────────────────────────────────
           «Formulario», «Detalles del servicio», «Cuestionario» y «Datos del
@@ -717,4 +753,3 @@ export default function LeadDetailPage() {
     </div>
   );
 }
-

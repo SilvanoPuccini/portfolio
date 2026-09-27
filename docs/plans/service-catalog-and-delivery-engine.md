@@ -112,7 +112,9 @@ Do not assume that a fixed development payment includes hosting forever. Do not 
 - [ ] Model requirements, exclusions, compatibility, answer-dependent branches, delivery effects and required material as data rather than scattered UI conditions.
 - [ ] Model each charge with concept, amount/quotation status, currency, cadence, payer, payee, inclusion, start event and renewal terms. Distinguish first payment from project total and later recurring charges.
 - [ ] Model resource responsibilities separately: domain, hosting, database, storage, merchant account, calendar and email.
-- [ ] Store a versioned immutable purchase snapshot on the order: labels and IDs, selected answers/extras/demo, scope, exclusions, charge schedule, ownership/responsibilities, delivery prerequisites, catalog version and contract revision.
+- [ ] Store a complete versioned immutable purchase snapshot on the order: labels and IDs, selected answers/extras/demo, scope, exclusions, charge schedule, ownership/responsibilities, delivery prerequisites, catalog version and contract revision.
+  - Partial 2026-09-27: new orders build a v1 server-validated configuration snapshot with frozen package/selected-extra labels, qualified answers, one-time/recurring totals, policy text/version and catalog version. Migration 052 adds an immutable column; existing rows stay NULL. Admin shows the latest linked order snapshot; the signed, email-verified customer materials page shows its scope. No existing total or contract is rewritten. Conditional kickoff tasks, contract/PDF/email consumers and full branch/admin continuity remain pending; NULL legacy snapshots are shown as unknown rather than rebuilt from today's catalog.
+  - Migration 052 plus its focused trigger fixture passed on isolated disposable PostgreSQL `care_052_verify_20260927` using a minimal schema-compatible subset of 038 (exit 0; no application/production database or full migration chain). Snapshot replacement and NULL backfill were blocked; same-value and unrelated total updates were allowed. Applying 052 to any application database remains pending.
 - [ ] Keep operational status and actual payments separate from contractual commitments. A paid invoice, a provisioned domain and an agreed hosting fee are different facts.
 - [ ] Treat a post-signature change as a new revision/change agreement, not an overwrite.
 
@@ -144,6 +146,7 @@ Do not assume that a fixed development payment includes hosting forever. Do not 
 ## Phase 4 — Contract, payment, materials and admin continuity
 
 - [ ] Make `PedidoLayout`, checkout, contract rendering/PDF, email and admin display consume the frozen purchase projection.
+  - Partial 2026-09-27: the admin lead detail and authorized customer materials view read the archived configuration projection. Checkout, contract, PDF, email and operational kickoff generation still use their existing paths pending a separate compatibility slice.
 - [ ] Show upfront, monthly, annual and third-party costs separately through every step.
 - [ ] Derive kickoff questions and operational tasks from the selected branches; do not ask customers to repeat known answers.
 - [ ] Add admin views for contracted scope, resource ownership, responsible payer, provider, renewal dates, provisioning status and delivery evidence.
