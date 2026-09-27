@@ -9,6 +9,8 @@ import { cargarPedidoCompleto } from '@/lib/leads/cargar-pedido';
 import { lineaDeTiempo } from '@/lib/leads/linea-de-tiempo';
 import { sendCrmEmail } from '@/lib/resend';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { frozenKickoffPlan, parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
+import type { PlanKickoff, DatoKickoff } from '@/content/kickoff';
 
 /**
  * El material del proyecto, guardado a medida que el cliente lo carga.
@@ -84,6 +86,45 @@ function limpiar(entrada: unknown): Record<string, unknown> {
   return limpio;
 }
 
+/** V2 accepts writes only for fields in the order's archived, visible plan. */
+function validForFrozenPlan(input: Record<string, unknown>, saved: Record<string, unknown>, plan: PlanKickoff): boolean {
+  const values = { ...saved, ...input };
+  const visible = (condition?: { id: string; valor: string }) => {
+    if (!condition) return true;
+    const options = plan.datos.find((field) => field.id === condition.id)?.opciones?.es;
+    return values[condition.id] === (options ? options[condition.valor === 'archivo' ? 0 : 1] : condition.valor);
+  };
+  const fields = new Map(plan.datos.filter((field) => visible(field.visibleSi)).map((field) => [field.id, field]));
+  const groups = new Map(plan.grupos.filter((group) => visible(group.visibleSi)).map((group) => [group.id, group]));
+  const validField = (field: DatoKickoff, value: unknown) => {
+    if (field.tipo === 'archivo') return typeof value === 'string' || (Array.isArray(value)
+      && value.every((item) => typeof item === 'string') && (field.multiple || value.length <= 1));
+    if (field.tipo === 'opcion') return typeof value === 'string' && (field.opciones?.es.includes(value) ?? false);
+    return typeof value === 'string';
+  };
+  return Object.entries(input).every(([key, value]) => {
+    // Existing legacy material is kept verbatim, but cannot be changed through a V2 order.
+    if (key in saved && JSON.stringify(saved[key]) === JSON.stringify(value)) return true;
+    const field = fields.get(key);
+    if (field) return validField(field, value);
+    for (const group of groups.values()) {
+      const prefix = `${group.id}_`;
+      if (!key.startsWith(prefix)) continue;
+      const match = /^(\d+)_(.+)$/.exec(key.slice(prefix.length));
+      if (!match || (group.veces !== undefined && Number(match[1]) >= group.veces)) return false;
+      const upload = group.campos.find((candidate) => candidate.id === match[2] && candidate.tipo === 'archivo');
+      return Boolean(upload && validField(upload, value));
+    }
+    const group = groups.get(key);
+    if (!group || !Array.isArray(value) || (group.veces !== undefined && value.length > group.veces)) return false;
+    return value.every((row) => row && typeof row === 'object' && !Array.isArray(row)
+      && Object.entries(row).every(([fieldId, fieldValue]) => {
+        const groupField = group.campos.find((candidate) => candidate.id === fieldId && visible(candidate.visibleSi));
+        return groupField && validField(groupField, fieldValue);
+      }));
+  });
+}
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     if (!rateLimit(`kickoff:${getIp(req)}`, 60, 60_000)) {
@@ -103,11 +144,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: pedido } = await db
       .from('pedidos')
-      .select('id, lead_id, paquete, extras')
+      .select('id, lead_id, paquete, extras, configuracion_snapshot')
       .eq('id', id)
       .maybeSingle();
 
-    const leadId = (pedido as { lead_id: string | null } | null)?.lead_id;
+    const order = pedido as { lead_id: string | null; configuracion_snapshot?: unknown } | null;
+    const leadId = order?.lead_id;
     if (!leadId) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
 
     const { data } = await db
@@ -134,7 +176,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // Lo nuevo se suma a lo que ya había: el cliente puede estar completando
     // una sola pantalla y no por eso borra lo anterior.
-    const kickoff_datos = { ...(lead.kickoff_datos ?? {}), ...limpiar(body?.datos) };
+    const archived = order?.configuracion_snapshot == null ? null : parseConfigurationSnapshot(order.configuracion_snapshot);
+    if (order?.configuracion_snapshot != null && !archived) {
+      return NextResponse.json({ error: 'Invalid archived order configuration.' }, { status: 409 });
+    }
+    const incoming = limpiar(body?.datos);
+    const plan = frozenKickoffPlan(archived);
+    if (plan && (!body?.datos || !validForFrozenPlan(incoming, lead.kickoff_datos ?? {}, plan)
+      || Object.keys(incoming).length !== Object.keys(body.datos).length)) {
+      return NextResponse.json({ error: 'Material is outside the archived order requirements.' }, { status: 400 });
+    }
+    const kickoff_datos = { ...(lead.kickoff_datos ?? {}), ...incoming };
     const yaEstaba = Boolean(lead.kickoff_completado_at);
     const termina = body?.listo === true && !yaEstaba;
 

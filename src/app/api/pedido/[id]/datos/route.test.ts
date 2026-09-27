@@ -10,6 +10,15 @@ import { rateLimit } from '@/lib/rate-limit';
 import { sendCrmEmail } from '@/lib/resend';
 import { firmarSesion } from '@/lib/leads/acceso-cliente';
 import { POST } from './route';
+import { paquetePorSlug } from '@/content/servicios';
+import { resolveCurrentOrder } from '@/lib/order-config';
+import { buildConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
+
+const web = paquetePorSlug('web-cinco-secciones')!;
+const answers = Object.fromEntries(web.calificacion.map((question) => [question.id, question.opciones.find((option) => option.califica)!.valor]));
+const resolved = resolveCurrentOrder({ paquete: web.slug, extras: [], calificacion: answers });
+if (!resolved.ok) throw new Error('expected valid order');
+const archived = buildConfigurationSnapshot(resolved, 'es');
 
 const PEDIDO = { id: 'pedido-1', lead_id: 'lead-1', paquete: 'landing', extras: [] };
 const LEAD = {
@@ -107,6 +116,23 @@ describe('POST /api/pedido/[id]/datos', () => {
     await post({ datos: { secciones: [{ titulo: 'Inicio', texto: 'Hola' }] } });
     const guardado = update.mock.calls[0][0] as { kickoff_datos: Record<string, unknown> };
     expect(guardado.kickoff_datos.secciones).toEqual([{ titulo: 'Inicio', texto: 'Hola' }]);
+  });
+
+  it('V2 accepts only archived material fields while preserving historical saved values', async () => {
+    supabase({ ...PEDIDO, configuracion_snapshot: archived }, { ...LEAD, kickoff_datos: { legacy_file: 'lead-1/file.png' } });
+    expect((await post({ datos: { negocio: 'New name', secciones: [{ titulo: 'Start' }] } })).status).toBe(200);
+    expect(update.mock.calls[0][0].kickoff_datos).toMatchObject({ legacy_file: 'lead-1/file.png', negocio: 'New name' });
+    update.mockClear();
+    expect((await post({ datos: { horarios: 'Unselected extra' } })).status).toBe(400);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('V2 rejects malformed, hidden, and over-count repeated material', async () => {
+    supabase({ ...PEDIDO, configuracion_snapshot: archived });
+    expect((await post({ datos: { forged: 'x' } })).status).toBe(400);
+    expect((await post({ datos: { secciones: Array.from({ length: 6 }, () => ({ titulo: 'x' })) } })).status).toBe(400);
+    expect((await post({ datos: { secciones: [{ forged: 'x' }] } })).status).toBe(400);
+    expect(update).not.toHaveBeenCalled();
   });
 
   it('no se puede cargar material de algo que todavía no se firmó', async () => {

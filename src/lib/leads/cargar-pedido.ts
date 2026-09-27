@@ -2,6 +2,8 @@ import { paquetePorSlug, servicioPorSlug, totalPedido, type Locale, type Paquete
 import { esperaDelPedido } from './capacidad';
 import { etapaDelPedido, type EtapaPedido } from './etapa-pedido';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
+import { readRevision } from './contract-revision';
 
 /**
  * Todo lo que un paso de la compra necesita saber, en una sola consulta.
@@ -20,6 +22,8 @@ export interface PedidoRow {
   mensual_usd: number;
   firmado_at: string | null;
   lead_id: string | null;
+  configuracion_snapshot?: unknown;
+  contrato_snapshot?: unknown;
 }
 
 export interface LeadRow {
@@ -59,15 +63,39 @@ export async function cargarPedidoCompleto(id: string): Promise<PedidoCompleto |
 
   const { data } = await db
     .from('pedidos')
-    .select('id, paquete, extras, total_usd, mensual_usd, firmado_at, lead_id')
+    .select('id, paquete, extras, total_usd, mensual_usd, firmado_at, lead_id, configuracion_snapshot, contrato_snapshot')
     .eq('id', id)
     .maybeSingle();
 
   const pedido = data as PedidoRow | null;
   if (!pedido) return null;
 
-  const paquete = paquetePorSlug(pedido.paquete);
-  if (!paquete) return null;
+  const catalogPackage = paquetePorSlug(pedido.paquete);
+  const archived = pedido.configuracion_snapshot == null
+    ? null
+    : parseConfigurationSnapshot(pedido.configuracion_snapshot);
+  let frozenContract: ReturnType<typeof readRevision> | null = null;
+  if (pedido.contrato_snapshot != null) {
+    try { frozenContract = readRevision(pedido.contrato_snapshot); } catch { frozenContract = null; }
+  }
+  if (pedido.configuracion_snapshot != null && !archived && !frozenContract) return null;
+  // A valid archive is sufficient to render the order shell and contract even
+  // if the package has since been removed from the live catalog.
+  if (!catalogPackage && !archived && !frozenContract) return null;
+  const paquete: Paquete = !archived && catalogPackage ? catalogPackage : {
+    slug: archived?.package.id ?? pedido.paquete,
+    servicio: 'archived',
+    nombre: { es: archived?.package.label ?? frozenContract!.datos.projectDescription, en: archived?.package.label ?? frozenContract!.datos.projectDescription },
+    resumen: { es: archived?.package.description ?? frozenContract!.datos.projectDescription, en: archived?.package.description ?? frozenContract!.datos.projectDescription },
+    precioUsd: archived ? archived.package.oneTimeUsd + archived.package.recurringUsd : frozenContract!.datos.totalPrice,
+    recurrente: archived?.package.recurringUsd ? 'mes' : undefined,
+    horas: 0,
+    plazoDias: archived?.package.deliveryDays ?? frozenContract!.datos.plazoDiasHabiles ?? 0,
+    incluye: { es: archived ? [...archived.package.included] : frozenContract!.datos.deliverables.split('\n'), en: archived ? [...archived.package.included] : frozenContract!.datos.deliverables.split('\n') },
+    noIncluye: { es: archived ? [...archived.package.excluded] : (frozenContract!.datos.excluded ?? '').split('\n').filter(Boolean), en: archived ? [...archived.package.excluded] : (frozenContract!.datos.excluded ?? '').split('\n').filter(Boolean) },
+    calificacion: [], modulos: [], pagoUnico: (archived?.package.recurringUsd ?? 0) === 0,
+    documensoTemplateId: null, directLink: null, activo: false,
+  };
 
   let lead: LeadRow | null = null;
   if (pedido.lead_id) {
@@ -81,7 +109,25 @@ export async function cargarPedidoCompleto(id: string): Promise<PedidoCompleto |
   }
 
   const servicio = servicioPorSlug(paquete.servicio);
-  const resumen = totalPedido(paquete, pedido.extras ?? [], servicio?.extras ?? []);
+  const resumen = archived
+    ? {
+      paquete,
+      extras: archived.extras.map((extra) => ({
+        id: extra.id,
+        label: { es: extra.label, en: extra.label },
+        detalle: { es: extra.description, en: extra.description },
+        precioUsd: extra.amountUsd,
+        recurrente: extra.cadence === 'month' ? 'mes' as const : undefined,
+      })),
+      totalUsd: archived.charges.oneTimeUsd,
+      recurrenteUsd: archived.charges.recurringUsd,
+    }
+    : !catalogPackage && frozenContract
+      ? { paquete, extras: [], totalUsd: frozenContract.datos.totalPrice, recurrenteUsd: 0 }
+      : pedido.configuracion_snapshot != null && !archived && !frozenContract
+        ? null
+        : totalPedido(paquete, pedido.extras ?? [], servicio?.extras ?? []);
+  if (!resumen) return null;
 
   const etapa = etapaDelPedido(pedido, lead
     ? {

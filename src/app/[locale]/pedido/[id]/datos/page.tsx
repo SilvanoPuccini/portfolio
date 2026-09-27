@@ -11,7 +11,7 @@ import { paquetePorSlug, servicioPorSlug, type Locale } from '@/content/servicio
 import { COOKIE_ACCESO, tieneAcceso } from '@/lib/leads/acceso-cliente';
 import { resolveLocale } from '@/lib/i18n';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
+import { frozenKickoffPlan, parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 
 /**
  * El material del proyecto: el último paso de la compra.
@@ -118,10 +118,9 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
   if (!pedido) notFound();
 
   const paquete = paquetePorSlug(pedido.paquete);
-  if (!paquete) notFound();
-
-  const servicio = servicioPorSlug(paquete.servicio);
-  const plan = planKickoff(paquete, pedido.extras ?? [], servicio?.extras ?? [], pedido.calificacion ?? {});
+  const plan = frozenKickoffPlan(snapshot) ?? (paquete
+    ? planKickoff(paquete, pedido.extras ?? [], servicioPorSlug(paquete.servicio)?.extras ?? [], pedido.calificacion ?? {})
+    : null);
 
   return (
     <main className="site-container py-14 sm:py-20">
@@ -190,7 +189,7 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
           <div className="surface-panel border border-outline-ghost/10 px-6 py-8">
             <p className="text-base leading-7 text-text-secondary">{labels.sinFirmar}</p>
           </div>
-        ) : (
+        ) : plan ? (
           <AccesoGate
             pedidoId={pedido.id}
             verificado={true}
@@ -199,6 +198,8 @@ export default async function DatosDelProyecto({ params }: { params: Params }) {
             yaCompletado={Boolean(lead.kickoff_completado_at)}
             locale={currentLocale}
           />
+        ) : (
+          <p className="text-sm text-text-secondary">{labels.legacy}</p>
         )}
       </div>
     </main>

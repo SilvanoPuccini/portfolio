@@ -567,6 +567,19 @@ export default function LeadDetailPage() {
           {frozenConfiguration.responsibilities.map((item, index) => (
             <p key={index} style={s.hint}>{item}</p>
           ))}
+          {frozenConfiguration.schemaVersion === 2 ? (
+            <div aria-label="Material requerido al comprar">
+              <p style={s.label}>Material requerido al comprar</p>
+              <ul style={{ ...s.hint, paddingLeft: 18 }}>
+                {frozenConfiguration.kickoffPlan.datos.map((field) => (
+                  <li key={field.id}>{field.label.es}{field.obligatorio ? ' · obligatorio' : ''}</li>
+                ))}
+                {frozenConfiguration.kickoffPlan.grupos.map((group) => (
+                  <li key={group.id}>{group.label.es}{group.veces ? ` · ${group.veces}` : ''}</li>
+                ))}
+              </ul>
+            </div>
+          ) : <p style={s.hint}>Pedido anterior: no hay requisitos de material archivados; no se reconstruyen desde el catálogo actual.</p>}
         </section>
       )}
 

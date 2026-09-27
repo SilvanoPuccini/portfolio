@@ -11,6 +11,8 @@ import { PedidoLayout } from '@/components/pedido/PedidoLayout';
 import { ContractStep } from '@/components/propuesta/ContractStep';
 import { contratoDeVenta } from '@/content/contrato';
 import { cargarPedidoCompleto } from '@/lib/leads/cargar-pedido';
+import { parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
+import { revisionFromConfiguration } from '@/lib/leads/contract-from-configuration';
 import { legalClauseFor } from '@/lib/leads/legal-clause';
 import { redirigirA } from '@/lib/leads/pedido-pasos';
 import { resolveLocale } from '@/lib/i18n';
@@ -59,13 +61,25 @@ export default async function FirmarPage({ params }: { params: Params }) {
       : 'Activation and the first payment must be confirmed before signing. Do not make a zero-value transfer.'}</p></main>;
   }
   if (!lead || !pedido.lead_id) notFound();
-  const candidate = createRevision(contratoDeVenta({ paquete, extras: resumen.extras,
-    cliente: lead, totalUsd: pedido.total_usd, jurisdiccion: legalClauseFor(lead.pais), diasDeEspera: espera }));
-  const { data: stored, error } = lead.contrato_firma_token
-    ? { data: null, error: null }
-    : await getSupabaseAdmin().rpc('freeze_order_contract', { p_order_id: id, p_lead_id: pedido.lead_id, p_snapshot: candidate });
-  if (error) throw new Error('Could not load the contract revision');
-  const snapshot = stored ? readRevision(stored) : null;
+  // Previously frozen contract terms remain authoritative over catalog data.
+  let snapshot = pedido.contrato_snapshot == null ? null : readRevision(pedido.contrato_snapshot);
+  if (!lead.contrato_firma_token && !snapshot) {
+    const archived = pedido.configuracion_snapshot == null
+      ? null
+      : parseConfigurationSnapshot(pedido.configuracion_snapshot);
+    if (pedido.configuracion_snapshot != null && !archived) {
+      throw new Error('The frozen order configuration is unavailable.');
+    }
+    const candidate = archived
+      ? revisionFromConfiguration(archived, lead, legalClauseFor(lead.pais), espera)
+      : createRevision(contratoDeVenta({ paquete, extras: resumen.extras,
+        cliente: lead, totalUsd: pedido.total_usd, jurisdiccion: legalClauseFor(lead.pais), diasDeEspera: espera }));
+    const { data: stored, error } = await getSupabaseAdmin().rpc('freeze_order_contract', {
+      p_order_id: id, p_lead_id: pedido.lead_id, p_snapshot: candidate,
+    });
+    if (error) throw new Error('Could not load the contract revision');
+    snapshot = stored ? readRevision(stored) : null;
+  }
 
   return (
     <PedidoLayout

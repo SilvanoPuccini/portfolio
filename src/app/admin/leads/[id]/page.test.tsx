@@ -19,6 +19,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 import LeadDetailPage from './page';
+import { paquetePorSlug } from '@/content/servicios';
+import { resolveCurrentOrder } from '@/lib/order-config';
+import { buildConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 
 const LEAD = {
   id: 'lead-1',
@@ -81,6 +84,7 @@ function mockFetch(overrides: Record<string, unknown> = {}) {
       if (href in overrides) return overrides[href];
       if (href === '/api/admin/modulos') return { modulos: MODULOS };
       if (href === '/api/admin/config') return { config: { tarifa_hora: 40, buffer_pct: 20 } };
+      if (href === '/api/admin/leads/lead-1/cuidado') return { orders: [] };
       if (href === '/api/admin/leads/lead-1') return { lead: LEAD };
       return { ok: true };
     })();
@@ -99,6 +103,19 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch();
+  });
+
+  it('shows archived material requirements read-only without adding an unselected extra', async () => {
+    const pkg = paquetePorSlug('web-cinco-secciones')!;
+    const answers = Object.fromEntries(pkg.calificacion.map((question) => [question.id, question.opciones.find((option) => option.califica)!.valor]));
+    const resolved = resolveCurrentOrder({ paquete: pkg.slug, extras: [], calificacion: answers });
+    if (!resolved.ok) throw new Error('expected valid order');
+    mockFetch({ '/api/admin/leads/lead-1': { lead: { ...LEAD,
+      pedido_configuracion_snapshot: buildConfigurationSnapshot(resolved, 'es') } } });
+    render(<LeadDetailPage />);
+    expect(await screen.findByText('Material requerido al comprar')).toBeInTheDocument();
+    expect(screen.getByText(/¿Cómo se llama tu negocio\?/)).toBeInTheDocument();
+    expect(screen.queryByText('Tus horarios de atención')).not.toBeInTheDocument();
   });
 
   it('muestra el nombre y el contacto del lead', async () => {
@@ -209,8 +226,8 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
 
     const select = screen.getByDisplayValue('En conversación');
     expect(select).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Ganado' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Propuesta enviada' })).toBeInTheDocument();
+    expect(select.querySelector('option[value="cerrado"]')).toHaveTextContent('Ganado');
+    expect(select.querySelector('option[value="presupuestado"]')).toHaveTextContent('Propuesta enviada');
   });
 });
 

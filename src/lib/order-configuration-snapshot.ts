@@ -1,10 +1,28 @@
 import { z } from 'zod';
 import { policyForPackage, policyParagraphs, SERVICE_POLICY_VERSION } from '@/content/service-policy';
 import { SERVICE_CATALOG_VERSION, servicioPorSlug } from '@/content/servicios';
+import { planKickoff, type PlanKickoff } from '@/content/kickoff';
 import type { CurrentOrderResult } from './order-config';
 
-const configurationSnapshotSchema = z.object({
-  schemaVersion: z.literal(1),
+const localized = z.object({ es: z.string(), en: z.string() }).strict();
+const condition = z.object({ id: z.string().min(1), valor: z.string() }).strict();
+const field = z.object({
+  id: z.string().min(1), label: localized, ayuda: localized,
+  tipo: z.enum(['texto', 'parrafo', 'archivo', 'enlace', 'opcion']),
+  obligatorio: z.boolean(), multiple: z.boolean().optional(),
+  opciones: z.object({ es: z.array(z.string()), en: z.array(z.string()) }).strict().optional(),
+  visibleSi: condition.optional(), sugerido: z.string().optional(),
+}).strict();
+const kickoffPlanSchema = z.object({
+  datos: z.array(field),
+  grupos: z.array(z.object({
+    id: z.string().min(1), label: localized, ayuda: localized,
+    veces: z.number().int().positive().optional(), campos: z.array(field), visibleSi: condition.optional(),
+  }).strict()),
+  yaSabemos: z.record(z.string(), z.string()),
+}).strict();
+
+const baseSnapshotSchema = z.object({
   catalogVersion: z.string().min(1),
   policyVersion: z.string().min(1),
   createdAt: z.string().datetime(),
@@ -27,7 +45,16 @@ const configurationSnapshotSchema = z.object({
   responsibilities: z.array(z.string()),
 }).strict();
 
+const configurationSnapshotSchema = z.discriminatedUnion('schemaVersion', [
+  baseSnapshotSchema.extend({ schemaVersion: z.literal(1) }),
+  baseSnapshotSchema.extend({ schemaVersion: z.literal(2), kickoffPlan: kickoffPlanSchema }),
+]);
+
 export type ConfigurationSnapshot = z.infer<typeof configurationSnapshotSchema>;
+export type ConfigurationSnapshotV2 = Extract<ConfigurationSnapshot, { schemaVersion: 2 }>;
+export function frozenKickoffPlan(snapshot: ConfigurationSnapshot | null): PlanKickoff | null {
+  return snapshot?.schemaVersion === 2 ? snapshot.kickoffPlan : null;
+}
 
 /** Parse a stored point-in-time projection without resolving against the live catalog. */
 export function parseConfigurationSnapshot(value: unknown): ConfigurationSnapshot | null {
@@ -40,7 +67,7 @@ export function buildConfigurationSnapshot(
   resolved: Extract<CurrentOrderResult, { ok: true }>,
   locale: 'es' | 'en',
   now: Date = new Date(),
-): ConfigurationSnapshot {
+): ConfigurationSnapshotV2 {
   const { paquete, extras } = resolved;
   const packageAmountUsd = paquete.precioUsd;
   const oneTimeUsd = resolved.resumen.totalUsd;
@@ -54,7 +81,7 @@ export function buildConfigurationSnapshot(
   const care = policyForPackage(paquete.slug);
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     catalogVersion: SERVICE_CATALOG_VERSION,
     policyVersion: SERVICE_POLICY_VERSION,
     createdAt: now.toISOString(),
@@ -96,5 +123,6 @@ export function buildConfigurationSnapshot(
       recurringUsd,
     },
     responsibilities: care ? policyParagraphs(care, locale) : [],
+    kickoffPlan: planKickoff(paquete, extras, serviceExtras, resolved.calificacion),
   };
 }

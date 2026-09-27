@@ -70,9 +70,10 @@ describe('POST /api/pedido', () => {
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
       calificacion: { paginas: 'hasta-quince', login: 'no' },
       configuracion_snapshot: expect.objectContaining({
-        schemaVersion: 1,
+        schemaVersion: 2,
         package: expect.objectContaining({ id: 'auditoria-web', oneTimeUsd: 250 }),
         answers: expect.arrayContaining([expect.objectContaining({ id: 'paginas', value: 'hasta-quince' })]),
+        kickoffPlan: expect.objectContaining({ yaSabemos: { paginas: 'hasta-quince', login: 'no' } }),
       }),
     }));
   });

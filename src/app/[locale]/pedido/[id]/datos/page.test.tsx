@@ -3,6 +3,9 @@ import { isValidElement, type ReactNode } from 'react';
 import { firmarSesion } from '@/lib/leads/acceso-cliente';
 import { AccesoGate } from '@/components/pedido/AccesoGate';
 import Page from './page';
+import { paquetePorSlug } from '@/content/servicios';
+import { resolveCurrentOrder } from '@/lib/order-config';
+import { buildConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 
 const state = vi.hoisted(() => ({
   cookie: undefined as string | undefined,
@@ -81,5 +84,22 @@ describe('project materials server authorization', () => {
     const page = await Page({ params: Promise.resolve({ locale: 'es', id: 'order-a' }) });
     expect(findGate(page)).toBeUndefined();
     expect(JSON.stringify(payload(page))).not.toContain('PRIVATE_MATERIAL');
+  });
+
+  it('uses archived V2 requirements instead of the live kickoff catalog', async () => {
+    const packageRecord = paquetePorSlug('web-cinco-secciones')!;
+    const answers = Object.fromEntries(packageRecord.calificacion.map((question) => [question.id, question.opciones.find((option) => option.califica)!.valor]));
+    const resolved = resolveCurrentOrder({ paquete: packageRecord.slug, extras: [], calificacion: answers });
+    if (!resolved.ok) throw new Error('expected valid package');
+    const snapshot = buildConfigurationSnapshot(resolved, 'es');
+    state.snapshot = { ...snapshot, kickoffPlan: { ...snapshot.kickoffPlan,
+      datos: [{ ...snapshot.kickoffPlan.datos[0], label: { es: 'Archived requirement', en: 'Archived requirement' } }],
+      grupos: [] } };
+    state.cookie = firmarSesion('order-a', 'test-only-secret');
+    const page = await Page({ params: Promise.resolve({ locale: 'es', id: 'order-a' }) });
+    const plan = findGate(page)?.plan as { datos: { label: { es: string } }[]; grupos: unknown[] };
+    expect(plan.datos).toHaveLength(1);
+    expect(plan.datos[0].label.es).toBe('Archived requirement');
+    expect(plan.grupos).toEqual([]);
   });
 });

@@ -38,7 +38,7 @@ it('freezes only the server-resolved package, selected answers, and selected ext
   const snapshot = buildConfigurationSnapshot(resolved, 'es', new Date('2026-09-27T12:00:00.000Z'));
 
   expect(snapshot).toMatchObject({
-    schemaVersion: 1,
+    schemaVersion: 2,
     policyVersion: '2026-09-26',
     package: { id: web.slug, label: web.nombre.es, oneTimeUsd: web.precioUsd },
     extras: [{ id: extra.id, label: extra.label.es }],
@@ -47,7 +47,8 @@ it('freezes only the server-resolved package, selected answers, and selected ext
   });
   expect(snapshot.answers.map((answer) => answer.id)).toEqual(Object.keys(answers));
   expect(snapshot.answers.every((answer) => answer.selectedOption !== null)).toBe(true);
-  expect(snapshot).not.toHaveProperty('kickoffTasks');
+  expect(snapshot.kickoffPlan.grupos.map((group) => group.id)).toContain('secciones');
+  expect(snapshot.kickoffPlan.yaSabemos).toEqual(answers);
 });
 
 it('parses frozen labels and totals without consulting the current catalog', () => {
@@ -56,8 +57,19 @@ it('parses frozen labels and totals without consulting the current catalog', () 
   const snapshot = buildConfigurationSnapshot(resolved, 'en', new Date('2026-09-27T12:00:00.000Z'));
   const archived = { ...snapshot, package: { ...snapshot.package, id: 'retired-package', label: 'Original archived label', oneTimeUsd: 1234 } };
   expect(parseConfigurationSnapshot(archived)).toEqual(archived);
+  const previous = Object.fromEntries(Object.entries(snapshot).filter(([key]) => key !== 'kickoffPlan'));
+  expect(parseConfigurationSnapshot({ ...previous, schemaVersion: 1 })).toEqual({ ...previous, schemaVersion: 1 });
+  expect(parseConfigurationSnapshot({ ...snapshot, kickoffPlan: { forged: true } })).toBeNull();
   expect(parseConfigurationSnapshot({ ...archived, charges: { ...archived.charges, oneTimeUsd: 'tampered' } })).toBeNull();
   expect(parseConfigurationSnapshot(null)).toBeNull();
+});
+
+it('does not freeze material fields for unselected extras', () => {
+  const resolved = resolveCurrentOrder({ paquete: web.slug, extras: [], calificacion: answers });
+  if (!resolved.ok) throw new Error('expected a valid current configuration');
+  const snapshot = buildConfigurationSnapshot(resolved, 'es');
+  expect(snapshot.kickoffPlan.datos.map((field) => field.id)).not.toContain('horarios');
+  expect(snapshot.kickoffPlan.datos.map((field) => field.id)).not.toContain('segundo_idioma');
 });
 
 it('refuses disabled or unknown answer branches before a snapshot can be built', () => {

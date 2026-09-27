@@ -9,6 +9,7 @@ import { sendCrmEmail } from '@/lib/resend';
 import { jurisdiccionCorta } from '@/lib/leads/legal-clause';
 import { rateLimit } from '@/lib/rate-limit';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { parseConfigurationSnapshot } from '@/lib/order-configuration-snapshot';
 
 /**
  * El contrato de un pedido, listo para firmar en la misma página.
@@ -40,6 +41,7 @@ interface PedidoRow {
   mensual_usd: number;
   firmado_at: string | null;
   locale: string | null;
+  configuracion_snapshot?: unknown;
 }
 
 /** Cuando el contrato no se pudo crear: el cliente no tiene la culpa. */
@@ -81,7 +83,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: pedido } = await db
       .from('pedidos')
-      .select('id, paquete, extras, total_usd, mensual_usd, firmado_at, locale')
+      .select('id, paquete, extras, total_usd, mensual_usd, firmado_at, locale, configuracion_snapshot')
       .eq('id', id)
       .maybeSingle();
 
@@ -93,6 +95,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Este pedido ya está firmado.' }, { status: 409 });
     }
 
+    // A non-null archive is authoritative. Never turn malformed historical
+    // data into a promise based on today's catalog.
+    const archived = fila.configuracion_snapshot == null
+      ? null
+      : parseConfigurationSnapshot(fila.configuracion_snapshot);
+    if (fila.configuracion_snapshot != null && !archived) {
+      return NextResponse.json({ error: 'The frozen order configuration is unavailable.' }, { status: 409 });
+    }
+
     const paquete = paquetePorSlug(fila.paquete);
     if (!paquete) return NextResponse.json({ error: 'Unknown package.' }, { status: 404 });
 
@@ -100,17 +111,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const resumen = totalPedido(paquete, fila.extras ?? [], servicio?.extras ?? []);
 
     // Lo que dice el contrato: el paquete con sus extras, tal como lo eligió.
-    const alcance = [
-      ...paquete.incluye.es,
-      ...resumen.extras.map((extra) => extra.label.es),
-    ].join(', ');
+    const alcance = archived
+      ? [...archived.package.included, ...archived.extras.map((extra) => extra.label)].join(', ')
+      : [...paquete.incluye.es, ...resumen.extras.map((extra) => extra.label.es)].join(', ');
 
-    const modulos = [
+    const modulos = archived ? [
+      { slug: archived.package.id, label: archived.package.label, precioUsd: archived.package.oneTimeUsd || archived.package.recurringUsd },
+      ...archived.extras.map((extra) => ({ slug: extra.id, label: extra.label, precioUsd: extra.amountUsd })),
+    ] : [
       { slug: paquete.slug, label: paquete.nombre.es, precioUsd: paquete.precioUsd ?? undefined },
       ...resumen.extras.map((extra) => ({
         slug: extra.id, label: extra.label.es, precioUsd: extra.precioUsd,
       })),
     ];
+    const totalCongelado = archived?.charges.oneTimeUsd ?? fila.total_usd;
 
     // Creation and association commit together, serialized by the order row lock.
     const { data: lead, error: leadError } = await db.rpc('prepare_order_contract', {
@@ -118,9 +132,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       p_external: process.env.FIRMA_CON_DOCUMENSO === '1',
       p_details: {
         nombre, email, pais: pais || null,
-        tipo_proyecto: paquete.nombre.es,
-        que_construir: paquete.resumen.es,
-        pago_unico: paquete.pagoUnico,
+      tipo_proyecto: archived?.package.label ?? paquete.nombre.es,
+      que_construir: archived?.package.description ?? paquete.resumen.es,
+      pago_unico: archived ? archived.package.recurringUsd === 0 : paquete.pagoUnico,
         service: paquete.servicio,
         modulos_seleccionados: modulos,
       },
@@ -159,12 +173,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         {
           nombre,
           email,
-          total: fila.total_usd,
+          total: totalCongelado,
           alcance,
-          objeto: paquete.resumen.es,
-          plazo: `${paquete.plazoDias} días hábiles`,
-          pago: paquete.pagoUnico
-            ? `Pago único de USD ${fila.total_usd.toLocaleString('es-AR')} por adelantado.`
+          objeto: archived?.package.description ?? paquete.resumen.es,
+          plazo: `${archived?.package.deliveryDays ?? paquete.plazoDias} días hábiles`,
+          pago: (archived ? archived.package.recurringUsd === 0 : paquete.pagoUnico)
+          ? `Pago único de USD ${totalCongelado.toLocaleString('es-AR')} por adelantado.`
             : 'Seña del 50% para comenzar y el saldo contra entrega.',
           domicilio: pais,
           jurisdiccion: jurisdiccionCorta(pais || null),
@@ -214,7 +228,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Could not save the signing link.' }, { status: 500 });
     }
 
-    await mandarElLink({ email, nombre, paquete: paquete.nombre.es, totalUsd: fila.total_usd, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
+    await mandarElLink({ email, nombre, paquete: archived?.package.label ?? paquete.nombre.es, totalUsd: totalCongelado, url: `${siteUrl}/${locale}/pedido/${fila.id}` });
 
     return NextResponse.json({ modo: 'externa' });
   } catch (err) {

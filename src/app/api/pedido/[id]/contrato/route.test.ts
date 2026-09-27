@@ -27,6 +27,16 @@ const PEDIDO = {
   locale: 'es',
 };
 
+const ARCHIVED_CONFIGURATION = {
+  schemaVersion: 1,
+  catalogVersion: 'catalog-old', policyVersion: 'policy-old',
+  createdAt: '2026-01-01T00:00:00.000Z', locale: 'es',
+  package: { id: 'web-cinco-secciones', label: 'Frozen web offer', description: 'Frozen project description',
+    oneTimeUsd: 700, recurringUsd: 0, included: ['Frozen deliverable'], excluded: ['Frozen exclusion'], deliveryDays: 31 },
+  extras: [{ id: 'agenda', label: 'Frozen extra', description: 'Frozen extra description', amountUsd: 240, cadence: 'once' }],
+  answers: [], charges: { oneTimeUsd: 940, recurringUsd: 0 }, responsibilities: ['Frozen responsibility'],
+};
+
 const prepare = vi.fn();
 const insertLead = vi.fn();
 const updatePedido = vi.fn();
@@ -94,6 +104,24 @@ describe('POST /api/pedido/[id]/contrato', () => {
     expect(data.jurisdiccion).toMatch(/Argentina/);
     // El pedido viaja con el sobre: así la firma se reconoce sin adivinar.
     expect(externalId).toBe('pedido-1');
+  });
+
+  it('uses the frozen order projection instead of current catalog wording', async () => {
+    supabase({ ...PEDIDO, configuracion_snapshot: ARCHIVED_CONFIGURATION });
+    await post(DATOS);
+    const [data] = vi.mocked(createContract).mock.calls[0];
+    expect(data.alcance).toContain('Frozen deliverable');
+    expect(data.alcance).toContain('Frozen extra');
+    expect(data.alcance).not.toContain('Agenda de turnos');
+    expect(data.objeto).toBe('Frozen project description');
+    expect(data.plazo).toBe('31 días hábiles');
+  });
+
+  it('does not fall back to the live catalog for a malformed non-null snapshot', async () => {
+    supabase({ ...PEDIDO, configuracion_snapshot: { schemaVersion: 1 } });
+    expect((await post(DATOS)).status).toBe(409);
+    expect(prepare).not.toHaveBeenCalled();
+    expect(createContract).not.toHaveBeenCalled();
   });
 
   it('después de firmar lo manda a una página que existe', async () => {
