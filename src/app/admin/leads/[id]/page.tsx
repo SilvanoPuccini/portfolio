@@ -536,6 +536,17 @@ export default function LeadDetailPage() {
         onAdvanced={() => void load()}
       />
 
+      <section aria-label="Resumen comercial" style={{ marginTop: 18, marginBottom: 18, padding: 18, border: `1px solid ${c.border}`, borderRadius: 12 }}>
+        <h2 style={s.sectionTitle}>Resumen comercial</h2>
+        <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginTop: 12 }}>
+          <div><dt style={s.label}>Pedido seleccionado</dt><dd style={{ ...s.hint, margin: 0 }}>{frozenConfiguration ? `${frozenConfiguration.package.label} · ${lead.pedido_configuracion_order_id ?? 'identificador no disponible'}` : 'Sin pedido congelado vinculado; la propuesta no es una compra confirmada.'}</dd></div>
+          <div><dt style={s.label}>Importe acordado</dt><dd style={{ ...s.hint, margin: 0 }}>{frozenConfiguration ? `USD ${frozenConfiguration.charges.oneTimeUsd.toLocaleString('es-AR')} de pago único · USD ${frozenConfiguration.charges.recurringUsd.toLocaleString('es-AR')}/mes en cargos recurrentes del pedido` : lead.monto_presupuestado != null ? `Presupuesto: USD ${lead.monto_presupuestado.toLocaleString('es-AR')}` : 'Sin presupuesto confirmado'}</dd></div>
+          <div><dt style={s.label}>Estado comercial</dt><dd style={{ ...s.hint, margin: 0 }}>{labelForState(lead.estado)} · {lead.pago_estado ? ESTADO_DEL_PAGO[lead.pago_estado] ?? lead.pago_estado : 'Pago no confirmado'}</dd></div>
+          <div><dt style={s.label}>Materiales y continuidad</dt><dd style={{ ...s.hint, margin: 0 }}>{lead.kickoff_completado_at ? 'Materiales marcados como completos.' : 'Materiales pendientes de completar o revisar.'} El cuidado se consulta en su acuerdo separado; no se activa por ver una demo.</dd></div>
+        </dl>
+        {frozenConfiguration && <p style={{ ...s.hint, marginTop: 12 }}>El precio, alcance y requisitos archivados prevalecen sobre el catálogo actual. El ejemplo visual no forma parte de la selección ni agrega prestaciones.</p>}
+      </section>
+
       {frozenConfiguration && (
         <section style={{ marginTop: 18, padding: 18, border: `1px solid ${c.border}`, borderRadius: 12 }}>
           <p style={s.sectionTitle}>Configuración congelada del pedido</p>

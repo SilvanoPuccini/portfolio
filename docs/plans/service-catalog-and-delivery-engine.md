@@ -1,18 +1,40 @@
 # Service catalog first, isolated client delivery next
 
-**Status:** Phase 1 partially implemented after explicit user authorization; later phases remain planned.
+**Status:** Phase 4 in progress. Phase 3 has a verified catalog UI slice, but demo-manifest and accessibility work remain; Phase 5 pilot validation is pending.
 **Recorded:** 2026-09-24.
 **Sequence:** Stabilize the portfolio purchase flow, clarify the offer, implement one complete service pilot, then build the separate delivery engine.
 
 The goal is a self-service purchase that explains what the customer receives, owns, and pays before signing, followed by repeatable delivery of independently operated client projects. The portfolio remains the sales and operations control plane; it must not become a shared production application containing every customer's website and data.
 
+**Marketing/showcase companion:** [Benefits-led service pages and safe LANIN examples](service-marketing-and-showcase.md) proposes a separate presentation slice: visual proof, benefits and price first, readable detailed terms second, with material ongoing costs still visible before checkout. It does not replace this roadmap's purchase-safety or independent-delivery gates.
+
+## Consolidated seven-point acceptance — implementation checkpoint 2026-09-27
+
+The user authorizes implementation of the full sequence, not merely this document. Work remains dependency-ordered; this checkpoint does **not** establish production readiness or approve paid resources/production side effects.
+
+| # | Requested outcome | Current verified state | Remaining acceptance boundary |
+| --- | --- | --- | --- |
+| 1 | Verify deployed revision and migrations | Operator-reported deployment/migrations only; no independent production inspection | Inspect target revision/schema and run controlled real-provider smoke checks with authorized access |
+| 2 | Reconcile this plan with the code | Current implementation, frozen-order work, LANIN evidence and this seven-point checklist recorded | Keep evidence/date/status current; do not equate local tests with deployed proof |
+| 3 | One shared package configuration | Existing configurator, order validation and V2 frozen snapshots remain authoritative; marketing adds no alternate pricing model | Trace remaining outbound email/order-summary consumers identified below |
+| 4 | Visual catalog and navigable demos | Catalog consumes public offers; Web has an isolated fictional Bruma preview/demo and display-only provenance manifest | Service-specific demos and benefits-led composition for catalog, automation, systems, audit and care remain unimplemented; never relabel the landing as proof of these services |
+| 5 | Full downstream continuity | Local regression: 28 files / 303 tests passed across order, OTP/access, contract/signing, payment notice, materials, admin and configuration | No one connected deployed E2E journey or real SMTP/payment settlement has been verified; finish remaining snapshot consumers then exercise a controlled connected fixture |
+| 6 | Complete Web/Landing pilot | Bilingual outcome/example/benefits/steps/packages/FAQ composition and material-cost disclosure implemented; Web/UI/page 21 tests, call/admin suite 93 tests, final typecheck and scoped lint pass | Desktop/mobile browser gate is still pending final evidence; production delivery and pilot customer handover remain pending |
+| 7 | Separate reusable delivery engine | **Deferred by user**; do not implement in this work unit | Revisit later under separate scope. Current priority is Web marketing/browser acceptance and useful lead/admin linkage, not engine work |
+
+**Call and admin continuity checkpoint:** Both commercial paths are mapped. Purchase uses `PackageCard` → `/api/pedido` → customer/contract flow → linked order snapshot loaded by the admin API. Consultation uses `/[locale]/services/agendar` → `QuickIntake` → `/api/leads` → Cal.com embed if configured → signed `/api/webhooks/calcom` booking event → lead date/stage and `LeadAdvanceBar`. The new demo is display-only and never enters either payload.
+
+Fixed local gaps: package-only consultations now retain the matching public service; incompatible package context is not attached. Without a calendar, intake now persists an email-coordination request instead of losing it behind a mailto-only fallback; UI explicitly says no time is booked. Admin now shows linked frozen package/order ID, archived price, commercial/payment state and material/care boundary in a compact read-only summary before the detailed evidence. Existing frozen scope/materials and next-action bar remain unchanged.
+
+Verification: initial broad downstream **28 files / 303 tests passed**; Web/UI/page **4 files / 21 tests passed**; call/admin/showcase **10 files / 93 tests passed**, including Cal.com signed webhook fixtures and lead API persistence. Counts overlap and must not be summed as unique tests. No application database, real calendar booking, real SMTP or settlement was exercised. Final browser proof remains separately pending; two dev-server attempts exhausted bounded time and a final isolated diagnostic is being handled before declaring the pilot accepted. Production requires deployed `NEXT_PUBLIC_CALCOM_LINK`, an authenticated Cal.com webhook secret/configuration, mail configuration and matching schema; do not print secret values. Existing webhook selects by attendee email, so duplicate-email lead ambiguity is a follow-up risk rather than proven idempotent booking linkage.
+
+**Current work unit and rollback:** Remove `src/components/showcase/`, the localized Bruma demo route, `public/showcase/bruma/`, `src/content/service-showcase.ts`, `WebMarketing.tsx` and its page imports, and revert only this work unit's catalog/package presentation changes. Existing order/contract/material/admin implementation and pre-existing documentation edits must remain intact. No commit, deployment, production database change, engine extraction or paid resource was performed.
+
 ## Quick path
 
-1. Resolve commercial responsibilities and repair the existing purchase-flow defects.
-2. Introduce one validated configuration model and immutable purchase snapshot.
-3. Redesign the catalog and connect configuration through contracts, payment, materials, and administration.
-4. Validate the Web/Landing pilot before extending other services.
-5. Separately approve and build the reusable template/delivery engine; generate isolated customer repositories and deployments.
+1. Close the remaining Phase 4 continuity gaps using the frozen order snapshot.
+2. Validate one Web/Landing pilot, including responsive/accessibility and isolated end-to-end checks.
+3. Separately approve and build the reusable template/delivery engine; generate isolated customer repositories and deployments.
 
 Unchecked items below describe future work; checked items record verified implementation. Current prices are evidence of the existing catalog, not newly approved pricing or infrastructure budgets. Provider plans, eligibility, costs, and legal requirements must be checked when implementation is approved.
 
@@ -86,7 +108,7 @@ There are 13 packages across six services. Audit and care packages need complete
 
 **2026-09-26 policy update:** The user selected provider-managed Vercel/Supabase hosting, customer-owned/paid domain renewals and customer-paid AI/API usage. New-offer disclosures and newly frozen contracts now consume `src/content/service-policy.ts`. Landing care is USD 40 per quarter with one small request capped at 30 minutes; higher care tiers have explicit total-time/request caps. Initial hosting and defect warranty cover 30 days from delivery; paid continuation requires express opt-in or planned transfer. Source-copy requests do not cancel hosting or remove customer ownership. See `docs/plans/managed-care-policy.md` for defaults, assumptions and exclusions.
 
-**Managed-care implementation checkpoint:** A manual care offer/acceptance/payment/request UI and API exist, backed by 049–051. The operator reports 046–051 applied and pushed, but the application database and deployed revision were not independently inspected in this work unit. The full 049–051 fixture passed in disposable PostgreSQL (`care_051_verify_20260926_3`, exit 0, `Managed care assertions passed`). Renewal requires an exactly due, paid prior period. A missed day or return after closure requires an inspected new offer and fresh acceptance, while old agreement generations remain auditable and cannot grant new allowance. There is no automatic charging, retroactive debt creation, or automatic hosting shutdown. See the managed-care runbook for rollout and operational limits.
+**Managed-care implementation checkpoint:** Manual care offer/acceptance/payment/request workflows exist, backed by 049–051. This is operator-managed activation, not automatic recurring billing or subscription collection. The operator reports migrations 046–051 applied and pushed; the application database and deployed revision were not independently inspected. The 049–051 fixture passed in disposable PostgreSQL (`care_051_verify_20260926_3`, exit 0, `Managed care assertions passed`). Renewal requires an exactly due, paid prior period. A missed day or return after closure requires an inspected new offer and fresh acceptance; old agreement generations remain auditable and cannot grant new allowance. There is no automatic charging, retroactive debt creation, or automatic hosting shutdown. See the managed-care runbook for rollout and operational limits.
 
 **Implementation boundary:** Catalog, contract/PDF/DOCX policy transport, retired-offer guards, and manual managed-care agreement/period/request workflows are implemented. Recurring checkout and automatic billing remain held; this is not an automatic subscription service or legal approval. Preserve historical frozen contracts. This service-catalog slice adds no migration and performs no production operation.
 
@@ -145,11 +167,13 @@ Do not assume that a fixed development payment includes hosting forever. Do not 
 
 ## Phase 4 — Contract, payment, materials and admin continuity
 
-- [ ] Make `PedidoLayout`, checkout, contract rendering/PDF, email and admin display consume the frozen purchase projection.
+- [ ] Complete frozen-projection continuity across `PedidoLayout`, checkout, remaining email paths and admin operations. Contract/signature/PDF, linked-order admin/customer materials views, shared order-loader views/material-completion email, and the existing payment notice's stored total have partial coverage; see the evidence below.
   - Partial 2026-09-27: the admin lead detail and authorized customer materials view read the archived configuration projection. New contract preparation and first-party signature revision generation use archived included/excluded scope, selected-extra labels, frozen charges, responsibilities and delivery days; the PDF/signature evidence still renders from the immutable contract revision. The shared order loader now uses archived labels/extras/charges even when the package remains in today's catalog; this covers views and the existing material-completion email that use that loader, not every outbound email. The existing payment-notice route reads the stored order total; no new billing or payment activation was implemented. Malformed non-null snapshots fail closed, existing frozen contract revisions take precedence, and legacy NULL/v1 records retain explicit compatibility without retrospective requirement claims. Broader operational continuity and production smoke remain pending. No historical totals or signed revisions were recalculated.
   - Verification for this bounded slice: 9 scoped Vitest files / 114 tests passed, TypeScript and scoped ESLint passed, and `git diff --check` passed. No production database, real email/payment flow, or browser E2E was exercised.
+- [ ] Close only the remaining work: verify which other outbound emails and checkout/order views still read live catalog data; add any missing operational ownership/provisioning tasks; then test a full pilot from purchase through delivery. Frozen v2 client-material questions, write validation, and read-only admin requirements are implemented; branch-derived operational tasks and deduplication of already-known answers are not verified. This slice did not add billing or payment activation.
 - [ ] Show upfront, monthly, annual and third-party costs separately through every step.
-- [ ] Derive kickoff questions and operational tasks from the selected branches; do not ask customers to repeat known answers.
+- [x] Derive the frozen v2 client-material question plan from selected branches; authorized customer writes validate against it and admin requirements are read-only.
+- [ ] Verify branch-derived operational provisioning tasks and that known answers are not redundantly requested.
 - [ ] Add admin views for contracted scope, resource ownership, responsible payer, provider, renewal dates, provisioning status and delivery evidence.
 - [ ] Keep quoted configuration distinct from the immutable signed purchase.
 - [ ] Define a client-safe projection for a future portal, with authorization on every sensitive server read/write; do not build the entire portal prematurely.
@@ -234,6 +258,8 @@ For managed accounts, define charges, included capacity, overages, access, renew
 
 The user confirmed that the referenced project is the sibling directory `../lanin` (not a project named `landing`). Its `AGENTS.md`, `README.md`, `package.json` and the opening sections of `referencia/PLAN-DEFINITIVO.md` were inspected read-only; no secrets were inspected.
 
+**2026-09-27 update:** The frontend-only inventory below is historical, not current: a fresh read-only inspection found three demos, content/template engine and payment/publication code. See the [current evidence and bounded showcase plan](service-marketing-and-showcase.md#lanin-current-source-is-more-than-a-frontend); complete template coverage, payment closure and independent client generation remain unverified.
+
 The current implementation is a Next.js/React/TypeScript/Tailwind frontend replica with `/`, `/crear`, `/muestra` and `/paletas`. Its documentation explicitly excludes implemented generation, database, payments and real publication. Do not present the generator as already built.
 
 The reference plan describes a future landing-only HTML generator, payment-webhook publication, email/ZIP delivery and customer-purchased domains. It explicitly excludes full applications and real appointment management. That scope is narrower than this portfolio's commerce, business systems and automation services. Its current seven-question frontend and the reference plan's eight-step flow also need reconciliation before reuse.
@@ -242,4 +268,4 @@ Treat LANIN as a candidate reference and potentially a landing-specific delivery
 
 ## Next implementation boundary
 
-Approve the commercial matrix and a bounded Phase 1/2 work unit first. Keep future engine provisioning, client repository creation, paid subscriptions and production deployment out of that first implementation scope. This document is a passive plan, not an execution script, SDD artifact or authorization to create external resources.
+Next work unit: trace the remaining outbound email and checkout/order-summary consumers, then update only those still rendering mutable catalog data to use the frozen order projection. Verify with focused regression tests and retain explicit legacy-snapshot behavior. After that, run the Web/Landing pilot checks for responsive/accessibility and isolated end-to-end continuity. Production deployment and database state remain unverified. Keep future engine provisioning, client repository creation, automatic subscriptions and production operations out of scope absent approval. This document is a passive plan, not an execution script, SDD artifact or authorization to create external resources.

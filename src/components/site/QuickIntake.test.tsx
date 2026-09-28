@@ -72,3 +72,16 @@ describe('QuickIntake', () => {
     expect(screen.getByRole('button', { name: /see available times/i })).toBeInTheDocument();
   });
 });
+
+
+it('saves a manual call request even when the calendar is unavailable, without claiming a booking', async () => {
+  render(<QuickIntake locale="es" calcomLink={null} service="web" paquete="landing" email="hello@example.com" />);
+  completar();
+  fireEvent.click(screen.getByRole('button', { name: /solicitar coordinación/i }));
+  expect(await screen.findByRole('status')).toHaveTextContent('Solicitud guardada');
+  const [url, init] = vi.mocked(fetch).mock.calls[0];
+  expect(url).toBe('/api/leads');
+  expect(JSON.parse(String(init?.body))).toMatchObject({ canal_llamada: 'email', service: 'web', service_data: { paquete: 'landing' } });
+  expect(screen.queryByTitle(/agendar/i)).toBeNull();
+  expect(screen.getByRole('status')).toHaveTextContent('no hay un horario reservado');
+});

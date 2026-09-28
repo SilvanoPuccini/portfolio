@@ -1,0 +1,29 @@
+.demo { background:#f5efdf; color:#29251f; overflow:hidden; border-radius:12px; font-family:var(--font-inter),sans-serif; }
+.demo a:focus-visible,.demo summary:focus-visible { outline:3px solid #8b482b; outline-offset:5px; }
+.demo a { text-decoration:none; }
+.notice { padding:14px 24px; background:#29251f; color:#f5efdf; font-size:14px; line-height:1.6; display:flex; gap:18px; flex-wrap:wrap; justify-content:space-between; }
+.notice a { color:#f5efdf; text-decoration:underline; }
+.nav { display:flex; justify-content:space-between; gap:20px; align-items:center; padding:24px clamp(24px,5vw,64px); border-bottom:1px solid #29251f33; flex-wrap:wrap; }
+.brand { font-family:Georgia,serif; font-size:30px; letter-spacing:.13em; }
+.nav nav { display:flex; gap:24px; flex-wrap:wrap; font-size:14px; }
+.nav nav a { color:inherit; padding:10px 0; }
+.hero { display:grid; grid-template-columns:1fr 1.2fr; gap:clamp(24px,5vw,64px); padding:clamp(32px,5vw,72px); align-items:center; }
+.eyebrow { color:#824c32; font-size:12px; text-transform:uppercase; letter-spacing:.18em; margin-bottom:20px; }
+.hero h1,.hero h3 { font-family:Georgia,serif; font-weight:normal; font-size:clamp(42px,5vw,78px); line-height:1.02; letter-spacing:-.035em; margin:0 0 24px; }
+.hero p { line-height:1.7; max-width:34rem; }
+.hero img { display:block; width:100%; height:auto; border:5px solid #b47745; border-radius:10px; }
+.action { display:inline-flex; min-height:44px; align-items:center; padding:12px 24px; background:#824c32; color:#fff; margin-top:24px; border-radius:4px; }
+.menu { background:#29251f; color:#f5efdf; display:grid; grid-template-columns:1fr 1fr; gap:48px; padding:clamp(32px,5vw,72px); }
+.menu h2,.contact h2 { font:normal clamp(30px,4vw,48px)/1.1 Georgia,serif; margin-bottom:20px; }
+.menu p { line-height:1.7; }
+.menu li { padding:22px 0; border-bottom:1px solid #f5efdf44; }
+.menu strong { display:block; font:normal 24px Georgia,serif; margin-bottom:8px; }
+.menu span { color:#e1d2bc; font-size:15px; }
+.contact { padding:clamp(32px,5vw,72px); display:grid; grid-template-columns:1fr 1fr; gap:40px; line-height:1.7; }
+.contact details { border-top:1px solid #29251f55; padding:16px 0; }
+.contact summary { cursor:pointer; font-weight:600; min-height:32px; }
+.preview .hero { padding:32px; gap:24px; }
+.preview .hero h3 { font-size:clamp(32px,4vw,58px); }
+.preview .nav { padding:18px 32px; }
+.preview .brand { font-size:24px; }
+@media(max-width:680px) { .hero,.menu,.contact { grid-template-columns:1fr; } .hero { padding:28px 24px; } .nav nav { gap:16px; } .preview .hero { padding:24px; } }

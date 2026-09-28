@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import PageHero from "@/components/site/PageHero";
 import QuickIntake from "@/components/site/QuickIntake";
-import { paquetePorSlug, servicioPorSlug } from "@/content/servicios";
+import { PUBLIC_SERVICIOS, servicioPorSlug } from "@/content/servicios";
 import { getSiteContent } from "@/content/site";
 import { resolveLocale, type Locale } from "@/lib/i18n";
 import { generatePageMetadata } from "@/lib/metadata";
@@ -89,15 +89,16 @@ export default async function AgendarPage({
   const calcomLink = process.env.NEXT_PUBLIC_CALCOM_LINK;
 
   // El servicio sale del catálogo: si no existe, no se muestra nada inventado.
-  const servicio = servicioPorSlug(service);
-  const paqueteElegido = paquetePorSlug(paquete);
+  const paqueteElegido = PUBLIC_SERVICIOS.flatMap((item) => item.paquetes).find((item) => item.slug === paquete);
+  const servicio = servicioPorSlug(service ?? paqueteElegido?.servicio);
+  const paqueteContexto = paqueteElegido?.servicio === servicio?.slug ? paqueteElegido : undefined;
 
   return (
     <>
       <PageHero
         eyebrow={labels.heroEyebrow}
-        title={labels.heroTitle}
-        subtitle={<p>{labels.heroSubtitle}</p>}
+        title={calcomLink ? labels.heroTitle : currentLocale === 'es' ? 'Coordinemos una llamada sobre tu proyecto' : 'Let’s coordinate a call about your project'}
+        subtitle={<p>{calcomLink ? labels.heroSubtitle : currentLocale === 'es' ? 'Dejá tu consulta. Se guarda para seguimiento y coordinamos el horario por correo; no es una reserva automática.' : 'Leave your inquiry. It is saved for follow-up and we arrange a time by email; this is not an automatic booking.'}</p>}
       />
 
       <section className="site-container pb-16 sm:pb-20">
@@ -109,8 +110,8 @@ export default async function AgendarPage({
                 {labels.serviceConfirmation.prefix}
               </span>{" "}
               <span className="font-medium text-text-primary">
-                {paqueteElegido
-                  ? `${servicio.nombre[currentLocale]} · ${paqueteElegido.nombre[currentLocale]}`
+                {paqueteContexto
+                  ? `${servicio.nombre[currentLocale]} · ${paqueteContexto.nombre[currentLocale]}`
                   : servicio.nombre[currentLocale]}
               </span>
             </p>
@@ -128,7 +129,7 @@ export default async function AgendarPage({
           locale={currentLocale}
           calcomLink={calcomLink ?? null}
           service={servicio?.slug}
-          paquete={paqueteElegido?.slug}
+          paquete={paqueteContexto?.slug}
           email={content.metadata.email}
         />
 

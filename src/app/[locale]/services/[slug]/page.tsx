@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowRight, Check } from 'lucide-react';
 
+import { WebMarketingIntro, WebMarketingClose } from '@/components/site/WebMarketing';
 import ServicePackageConfigurator from '@/components/site/ServicePackageConfigurator';
 import PageHero from '@/components/site/PageHero';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
@@ -102,16 +103,18 @@ export default async function ServicioPage({ params }: { params: Params }) {
         subtitle={<p>{servicio.promesa[currentLocale]}</p>}
         actions={
           <>
-            <Link href={agendarHref} className="button-primary w-full gap-2 sm:w-auto">
-              <span>{labels.agendar}</span>
+            <Link href={servicio.paquetes.length ? "#packages" : agendarHref} className="button-primary w-full gap-2 sm:w-auto">
+              <span>{servicio.paquetes.length ? (currentLocale === 'es' ? 'Ver paquetes y precios' : 'See packages and prices') : labels.agendar}</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </Link>
-            <Link href={`/${currentLocale}/services`} className="button-secondary w-full sm:w-auto">
-              {labels.volver}
+            <Link href={servicio.slug === 'web' ? "#example" : `/${currentLocale}/services`} className="button-secondary w-full sm:w-auto">
+              {servicio.slug === 'web' ? (currentLocale === 'es' ? 'Ver ejemplo' : 'View example') : labels.volver}
             </Link>
           </>
         }
       />
+
+      {servicio.slug === 'web' && <WebMarketingIntro locale={currentLocale} />}
 
       <section className="site-container py-12 sm:py-16">
         <div className="space-y-12">
@@ -127,7 +130,7 @@ export default async function ServicioPage({ params }: { params: Params }) {
             </ul>
           </Reveal>
 
-          <div className="min-w-0">
+          <div id="packages" className="min-w-0 scroll-mt-40">
             {servicio.slug === 'sistema' && <div className="mb-6 space-y-2 text-sm leading-6 text-text-secondary">
               {policyParagraphs(CARE_PLANS.custom, currentLocale).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>}
@@ -151,6 +154,8 @@ export default async function ServicioPage({ params }: { params: Params }) {
           </div>
         </div>
       </section>
+
+      {servicio.slug === 'web' && <WebMarketingClose locale={currentLocale} />}
 
       {servicio.derivaciones.length > 0 && (
         <section className="site-container pb-16 sm:pb-20">

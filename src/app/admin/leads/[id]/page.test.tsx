@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 
 /**
  * La red de seguridad de la ficha del lead.
@@ -116,6 +116,29 @@ describe('Ficha del lead — comportamiento antes del refactor', () => {
     expect(await screen.findByText('Material requerido al comprar')).toBeInTheDocument();
     expect(screen.getByText(/¿Cómo se llama tu negocio\?/)).toBeInTheDocument();
     expect(screen.queryByText('Tus horarios de atención')).not.toBeInTheDocument();
+  });
+
+  it('summarizes the linked frozen purchase without selling the visual demo or repricing it', async () => {
+    const pkg = paquetePorSlug('landing')!;
+    const calificacion = Object.fromEntries(pkg.calificacion.map((q) => [q.id, q.opciones.find((o) => o.califica)!.valor]));
+    const resolved = resolveCurrentOrder({ paquete: 'landing', extras: [], calificacion });
+    if (!resolved.ok) throw new Error('expected valid order');
+    const snapshot = buildConfigurationSnapshot(resolved, 'es');
+    snapshot.package.label = 'Landing archivada';
+    snapshot.charges.oneTimeUsd = 777;
+    mockFetch({ '/api/admin/leads/lead-1': { lead: { ...LEAD,
+      pedido_configuracion_order_id: 'order-frozen', pedido_configuracion_snapshot: snapshot,
+      pago_estado: 'informado', kickoff_completado_at: null } } });
+    render(<LeadDetailPage />);
+    const summary = await screen.findByRole('region', { name: 'Resumen comercial' });
+    expect(within(summary).getByText(/Landing archivada · order-frozen/)).toBeInTheDocument();
+    expect(within(summary).getByText(/USD 777 de pago único/)).toBeInTheDocument();
+    expect(summary).toHaveTextContent('falta que lo confirmes');
+    expect(summary).toHaveTextContent('Materiales pendientes');
+    expect(summary).toHaveTextContent('acuerdo separado');
+    expect(summary).not.toHaveTextContent('Bruma');
+    expect(summary).not.toHaveTextContent('Web de cinco secciones');
+    expect(calls.filter((call) => call.init?.method === 'POST')).toHaveLength(0);
   });
 
   it('muestra el nombre y el contacto del lead', async () => {

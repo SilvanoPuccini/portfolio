@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
-import { SERVICIOS, type Locale } from '@/content/servicios';
+import { PUBLIC_SERVICIOS, type Locale } from '@/content/servicios';
 
 /**
  * El catálogo, ordenado por el problema del cliente.
@@ -50,7 +50,7 @@ export default function ServiceCatalog({ locale }: { locale: Locale }) {
 
   return (
     <RevealGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {SERVICIOS.map((servicio) => {
+      {PUBLIC_SERVICIOS.map((servicio) => {
         const Icono = ICONOS[servicio.icono] ?? Globe;
         const mensual = servicio.paquetes.some((p) => p.recurrente);
         const precio = servicio.desdeUsd === null
@@ -65,7 +65,7 @@ export default function ServiceCatalog({ locale }: { locale: Locale }) {
               href={`/${locale}/services/${servicio.slug}`}
               className="card-interactive surface-panel flex h-full flex-col border border-outline-ghost/10 px-5 py-6 sm:px-6"
             >
-              <Icono className="h-5 w-5 shrink-0 text-brand-primary" aria-hidden="true" />
+              <div className="mb-1 flex h-20 items-center justify-between border-b border-outline-ghost/10 bg-brand-primary/[0.04] px-4" aria-hidden="true"><span className="font-mono text-3xl text-brand-primary/70">{String(PUBLIC_SERVICIOS.indexOf(servicio) + 1).padStart(2, '0')}</span><Icono className="h-5 w-5 shrink-0 text-brand-primary" aria-hidden="true" /></div>
 
               <h3 className="mt-5 text-lg font-medium leading-snug text-text-primary sm:text-xl">
                 {servicio.problema[locale]}

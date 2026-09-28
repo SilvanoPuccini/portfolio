@@ -42,3 +42,18 @@ it('preserves compatible extras when the selected package changes', () => {
   fireEvent.click(within(group).getByRole('button', { name: /Web de cinco secciones/ }));
   expect(screen.getByRole('checkbox', { name: /Agenda/ })).toBeChecked();
 });
+
+it('keeps material ongoing costs outside disclosure and detailed terms readable', () => {
+  render(<ServicePackageConfigurator locale="en" servicio={web} />);
+  fireEvent.click(screen.getByRole('button', { name: /Landing/ }));
+  const costs = screen.getByLabelText('Price and ongoing costs');
+  expect(costs).toHaveTextContent('USD 40 every 3 months');
+  expect(costs).toHaveTextContent('30 days from delivery');
+  expect(costs).toHaveTextContent('explicit acceptance');
+  expect(costs).toHaveTextContent('annual domain');
+  expect(costs).toHaveTextContent('AI/API');
+  const details = costs.querySelector('details')!;
+  expect(details).toHaveTextContent('source copy');
+  expect(details).not.toHaveTextContent('USD 40 every 3 months');
+  expect(details).not.toHaveTextContent('annual domain');
+});

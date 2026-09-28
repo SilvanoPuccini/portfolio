@@ -33,7 +33,7 @@ export type PackageConfiguration = { calificacion: Record<string, string>; extra
 
 const copy = {
   es: {
-    destacado: 'El que más se elige',
+    destacado: 'Recomendado',
     dias: (rango: string) => `Entrega en ${rango} días hábiles`,
     porMes: 'por mes',
     pagoInicial: 'Pago inicial',
@@ -53,7 +53,7 @@ const copy = {
     total: 'Total',
   },
   en: {
-    destacado: 'Most chosen',
+    destacado: 'Recommended',
     dias: (rango: string) => `Delivered in ${rango} business days`,
     porMes: 'per month',
     pagoInicial: 'Initial payment',
@@ -199,8 +199,14 @@ export default function PackageCard({
         )}
       </div>
 
-      {carePlan && <div className="mt-4 space-y-2 text-sm leading-6 text-text-secondary">
-        {policyParagraphs(carePlan, locale).slice(paquete.recurrente ? 1 : 0).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      {carePlan && <div className="mt-4 space-y-3 text-base leading-7 text-text-secondary" aria-label={locale === 'es' ? 'Precio y costos de continuidad' : 'Price and ongoing costs'}>
+        <p>{policyParagraphs(carePlan, locale)[0]}</p>
+        <p>{locale === 'es' ? 'Hosting inicial y garantía por defectos: 30 días desde la entrega. Después: plan pago con aceptación expresa y fecha acordada, o transferencia planificada. Sin cobros automáticos.' : 'Initial hosting and defect warranty: 30 days from delivery. Afterward: a paid plan with explicit acceptance and an agreed start date, or a planned transfer. No automatic billing.'}</p>
+        <p>{policyParagraphs(carePlan, locale)[2]} {locale === 'es' ? 'Los importes de terceros varían según el proveedor y el consumo; no están incluidos en el desarrollo.' : 'Third-party amounts vary by provider and usage; they are not included in development.'}</p>
+        <details className="border-t border-outline-ghost/20 pt-3">
+          <summary className="cursor-pointer font-medium text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary">{locale === 'es' ? 'Condiciones de hosting, cuidado y propiedad' : 'Hosting, care and ownership terms'}</summary>
+          <div className="mt-3 space-y-3">{policyParagraphs(carePlan, locale).filter((_, i) => i !== 0 && i !== 2).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
+        </details>
       </div>}
       <div className="mt-5 space-y-4">
         <div>
@@ -278,7 +284,7 @@ export default function PackageCard({
                   return (
                     <label
                       key={opcion.valor}
-                      className={`cursor-pointer rounded-pill border px-3 py-1.5 text-sm transition-colors ${
+                      className={`cursor-pointer rounded-pill border px-3 py-1.5 text-sm transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand-primary ${
                         marcada
                           ? 'border-brand-primary/50 bg-brand-primary/10 text-text-primary'
                           : 'border-outline-ghost/15 text-text-secondary hover:border-outline-ghost/30'

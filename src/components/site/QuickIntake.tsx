@@ -28,6 +28,8 @@ const copy = {
     pais: 'Desde dónde escribís',
     problema: '¿Qué necesitás? Contámelo en dos líneas',
     enviar: 'Ver horarios',
+    solicitar: 'Solicitar coordinación',
+    guardado: 'Solicitud guardada. Coordinaremos la llamada por correo; todavía no hay un horario reservado.',
     enviando: 'Un segundo…',
     error: 'No se pudo guardar. Revisá el mail y probá de nuevo: no se perdió lo que escribiste.',
     calendario: 'Agendar la llamada',
@@ -49,6 +51,8 @@ const copy = {
     pais: 'Where you are writing from',
     problema: 'What do you need? Two lines is enough',
     enviar: 'See available times',
+    solicitar: 'Request a call',
+    guardado: 'Request saved. We will coordinate the call by email; no time has been booked yet.',
     enviando: 'One moment…',
     error: 'Could not save it. Check the email and try again: nothing you wrote was lost.',
     calendario: 'Schedule the call',
@@ -105,7 +109,7 @@ export default function QuickIntake({
           email: datos.email,
           telefono: datos.telefono,
           problema: datos.problema,
-          canal_llamada: 'cal.com',
+          canal_llamada: calcomLink ? 'cal.com' : 'email',
           service: service ?? null,
           // El paquete y el país viajan acá: el panel los usa para pretildar el
           // presupuesto y para saber en qué moneda se cotiza.
@@ -123,22 +127,14 @@ export default function QuickIntake({
     }
   }
 
-  if (!calcomLink) {
-    return (
-      <div className="surface-panel border border-outline-ghost/10 px-6 py-10 text-center sm:px-12">
-        <p className="mx-auto max-w-lg text-base leading-7 text-text-secondary">
-          {labels.sinCalendario}
-        </p>
-        {contactEmail && (
-          <a href={`mailto:${contactEmail}`} className="button-primary mt-6 inline-flex">
-            {labels.escribir}
-          </a>
-        )}
-      </div>
-    );
+  if (estado === 'listo' && !calcomLink) {
+    return <div className="surface-panel border border-outline-ghost/10 p-6">
+      <p role="status" className="text-base leading-7 text-text-secondary">{labels.guardado}</p>
+      {contactEmail && <a href={`mailto:${contactEmail}`} className="button-secondary mt-5 inline-flex">{labels.escribir}</a>}
+    </div>;
   }
 
-  if (estado === 'listo') {
+  if (estado === 'listo' && calcomLink) {
     const url = `${calcomLink}?${new URLSearchParams({
       name: datos.nombre,
       email: datos.email,
@@ -176,6 +172,7 @@ export default function QuickIntake({
     >
       <h2 className="section-title-sm">{labels.titulo}</h2>
       <p className="mt-2 text-sm leading-6 text-text-secondary">{labels.bajada}</p>
+      {!calcomLink && <div className="mt-4 text-base leading-7 text-text-secondary"><p>{labels.sinCalendario}</p>{contactEmail && <a href={`mailto:${contactEmail}`} className="underline">{labels.escribir}</a>}</div>}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <label className="block">
@@ -237,7 +234,7 @@ export default function QuickIntake({
       )}
 
       <button type="submit" className="button-primary mt-6 gap-2" disabled={estado === 'enviando'}>
-        <span>{estado === 'enviando' ? labels.enviando : labels.enviar}</span>
+        <span>{estado === 'enviando' ? labels.enviando : calcomLink ? labels.enviar : labels.solicitar}</span>
         <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
       </button>
     </form>
