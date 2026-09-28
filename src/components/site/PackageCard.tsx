@@ -87,12 +87,14 @@ export default function PackageCard({
   extras,
   configuration,
   onConfigurationChange,
+  compact = false,
 }: {
   locale: Locale;
   paquete: Paquete;
   extras: Extra[];
   configuration?: PackageConfiguration;
   onConfigurationChange?: (next: PackageConfiguration) => void;
+  compact?: boolean;
 }) {
   const labels = copy[locale];
   const carePlan = policyForPackage(paquete.slug);
@@ -199,7 +201,7 @@ export default function PackageCard({
         )}
       </div>
 
-      {carePlan && <div className="mt-4 space-y-3 text-base leading-7 text-text-secondary" aria-label={locale === 'es' ? 'Precio y costos de continuidad' : 'Price and ongoing costs'}>
+      {!compact && carePlan && <div className="mt-4 space-y-3 text-base leading-7 text-text-secondary" aria-label={locale === 'es' ? 'Precio y costos de continuidad' : 'Price and ongoing costs'}>
         <p>{policyParagraphs(carePlan, locale)[0]}</p>
         <p>{locale === 'es' ? 'Hosting inicial y garantía por defectos: 30 días desde la entrega. Después: plan pago con aceptación expresa y fecha acordada, o transferencia planificada. Sin cobros automáticos.' : 'Initial hosting and defect warranty: 30 days from delivery. Afterward: a paid plan with explicit acceptance and an agreed start date, or a planned transfer. No automatic billing.'}</p>
         <p>{policyParagraphs(carePlan, locale)[2]} {locale === 'es' ? 'Los importes de terceros varían según el proveedor y el consumo; no están incluidos en el desarrollo.' : 'Third-party amounts vary by provider and usage; they are not included in development.'}</p>
@@ -208,7 +210,7 @@ export default function PackageCard({
           <div className="mt-3 space-y-3">{policyParagraphs(carePlan, locale).filter((_, i) => i !== 0 && i !== 2).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
         </details>
       </div>}
-      <div className="mt-5 space-y-4">
+      {!compact && <div className="mt-5 space-y-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
             {labels.incluye}
@@ -238,9 +240,9 @@ export default function PackageCard({
             </ul>
           </div>
         )}
-      </div>
+      </div>}
 
-      {extras.length > 0 && (
+      {!compact && extras.length > 0 && (
         <fieldset className="mt-6 border-t border-outline-ghost/10 pt-4">
           <legend className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
             {labels.extras}
@@ -317,7 +319,7 @@ export default function PackageCard({
               disabled={!califica || pidiendo}
               onClick={contratar}
             >
-              {pidiendo ? labels.pidiendo : labels.contratar}
+              {pidiendo ? labels.pidiendo : compact ? (locale === 'es' ? 'Continuar' : 'Continue') : labels.contratar}
               {!pidiendo && <ArrowUpRight className="h-4 w-4" aria-hidden="true" />}
             </button>
             {falloPedido && (
@@ -329,7 +331,7 @@ export default function PackageCard({
               <p className="mt-2 text-xs leading-5 text-text-tertiary">{labels.faltaResponder}</p>
             )}
             {califica && (
-              <p className="mt-2 text-xs leading-5 text-text-tertiary">{labels.nota}</p>
+              <p className="mt-2 text-xs leading-5 text-text-tertiary">{compact ? (locale === 'es' ? 'Revisá y firmá el contrato antes del pago.' : 'Review and sign the contract before payment.') : labels.nota}</p>
             )}
           </>
         ) : (

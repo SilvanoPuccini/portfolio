@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowRight, Check } from 'lucide-react';
 
-import { WebMarketingIntro, WebMarketingClose } from '@/components/site/WebMarketing';
 import ServicePackageConfigurator from '@/components/site/ServicePackageConfigurator';
 import PageHero from '@/components/site/PageHero';
 import Reveal, { RevealGroup } from '@/components/site/Reveal';
@@ -95,6 +94,22 @@ export default async function ServicioPage({ params }: { params: Params }) {
   const labels = copy[currentLocale];
   const agendarHref = `/${currentLocale}/services/agendar?service=${servicio.slug}`;
 
+  if (servicio.slug === 'web') return (
+    <section className="site-container py-10 sm:py-14" aria-labelledby="web-title">
+      <Link href={`/${currentLocale}/services`} className="text-sm text-text-secondary hover:text-text-primary">← {labels.volver}</Link>
+      <header className="mb-7 mt-6 max-w-2xl">
+        <p className="technical-label">{servicio.nombre[currentLocale]}</p>
+        <h1 id="web-title" className="mt-3 text-3xl font-medium tracking-tight sm:text-4xl">{currentLocale === 'es' ? 'Una web para tu negocio' : 'A website for your business'}</h1>
+        <p className="mt-3 text-sm leading-6 text-text-secondary">{currentLocale === 'es' ? 'Elegí tu paquete. Confirmá el alcance, revisá el contrato y pagá.' : 'Choose your package. Confirm the scope, review the contract and pay.'}</p>
+      </header>
+      <div id="packages"><ServicePackageConfigurator locale={currentLocale} servicio={servicio} /></div>
+      <details className="mt-8 border-t border-outline-ghost/15 pt-4 text-sm text-text-secondary">
+        <summary className="cursor-pointer">{labels.derivaciones}</summary>
+        <ul className="mt-3 space-y-2">{servicio.derivaciones.map((item) => <li key={item.label[currentLocale]}><Link href={hrefDelDestino(item.hacia, currentLocale)} className="underline">{item.caso[currentLocale]} — {item.label[currentLocale]}</Link></li>)}</ul>
+      </details>
+    </section>
+  );
+
   return (
     <>
       <PageHero
@@ -107,14 +122,13 @@ export default async function ServicioPage({ params }: { params: Params }) {
               <span>{servicio.paquetes.length ? (currentLocale === 'es' ? 'Ver paquetes y precios' : 'See packages and prices') : labels.agendar}</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </Link>
-            <Link href={servicio.slug === 'web' ? "#example" : `/${currentLocale}/services`} className="button-secondary w-full sm:w-auto">
-              {servicio.slug === 'web' ? (currentLocale === 'es' ? 'Ver ejemplo' : 'View example') : labels.volver}
+            <Link href={`/${currentLocale}/services`} className="button-secondary w-full sm:w-auto">
+              {labels.volver}
             </Link>
           </>
         }
       />
 
-      {servicio.slug === 'web' && <WebMarketingIntro locale={currentLocale} />}
 
       <section className="site-container py-12 sm:py-16">
         <div className="space-y-12">
@@ -155,7 +169,6 @@ export default async function ServicioPage({ params }: { params: Params }) {
         </div>
       </section>
 
-      {servicio.slug === 'web' && <WebMarketingClose locale={currentLocale} />}
 
       {servicio.derivaciones.length > 0 && (
         <section className="site-container pb-16 sm:pb-20">

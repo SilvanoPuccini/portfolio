@@ -90,7 +90,7 @@ describe('PackageCard', () => {
 
   it('marca el paquete destacado', () => {
     render(<PackageCard locale="es" paquete={web} extras={[]} />);
-    expect(screen.getByText(/el que más se elige/i)).toBeInTheDocument();
+    expect(screen.getByText(/Recomendado/i)).toBeInTheDocument();
   });
 
   it('un paquete a cotizar no muestra precio ni botón de contratar', () => {

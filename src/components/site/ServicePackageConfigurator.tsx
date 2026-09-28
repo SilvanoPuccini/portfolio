@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Check } from 'lucide-react';
-import { carePrice, policyForPackage } from '@/content/service-policy';
+import { carePrice, policyForPackage, policyParagraphs } from '@/content/service-policy';
 import type { Locale, Paquete, Servicio } from '@/content/servicios';
 import { compatibleConfiguration } from '@/lib/order-config';
 import PackageCard, { type PackageConfiguration } from './PackageCard';
@@ -21,12 +21,14 @@ function price(paquete: Paquete, locale: Locale): string {
 
 export default function ServicePackageConfigurator({ locale, servicio }: { locale: Locale; servicio: Servicio }) {
   const labels = copy[locale];
+  const checkoutRef = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [configuration, setConfiguration] = useState<PackageConfiguration>({ calificacion: {}, extras: [] });
   const [changeNotice, setChangeNotice] = useState('');
   const selected = servicio.paquetes.find((paquete) => paquete.slug === selectedSlug) ?? null;
   useEffect(() => setReady(true), []);
+  useEffect(() => { if (selectedSlug && servicio.slug === 'web') checkoutRef.current?.focus(); }, [selectedSlug, servicio.slug]);
 
   function select(paquete: Paquete) {
     const next = compatibleConfiguration(paquete, servicio.extras, configuration.calificacion, configuration.extras);
@@ -36,6 +38,31 @@ export default function ServicePackageConfigurator({ locale, servicio }: { local
     setConfiguration(next);
     setSelectedSlug(paquete.slug);
   }
+
+  if (servicio.slug === 'web') return <div className="space-y-6">
+    <div className="grid gap-4 md:grid-cols-3" role="group" aria-label={locale === 'es' ? 'Paquetes web' : 'Website packages'}>
+      {servicio.paquetes.map((paquete) => {
+        const active = selectedSlug === paquete.slug;
+        const care = policyForPackage(paquete.slug);
+        return <article key={paquete.slug} className={`flex flex-col border p-5 ${active ? 'border-brand-primary' : 'border-outline-ghost/20'}`}>
+          <p className="technical-label min-h-4">{paquete.destacado ? labels.recommended : ''}</p>
+          <h2 className="mt-2 text-xl font-medium">{paquete.nombre[locale]}</h2>
+          <p className="mt-3 font-mono text-2xl font-semibold">{price(paquete, locale)}</p>
+          <ul className="my-4 space-y-2 text-sm leading-5 text-text-secondary">{paquete.incluye[locale].slice(0, 3).map((item) => <li key={item} className="flex gap-2"><Check className="mt-1 h-3 w-3 shrink-0 text-brand-primary" aria-hidden="true" />{item}</li>)}</ul>
+          <details className="mb-4 text-sm text-text-secondary"><summary className="cursor-pointer">{locale === 'es' ? 'Alcance completo' : 'Full scope'}</summary><ul className="mt-2 space-y-2">{paquete.incluye[locale].slice(3).map((item) => <li key={item}>{item}</li>)}{paquete.noIncluye[locale].map((item) => <li key={item}>{locale === 'es' ? 'No incluye: ' : 'Not included: '}{item}</li>)}</ul>{care && <div className="mt-3 space-y-2 border-t border-outline-ghost/15 pt-3">{policyParagraphs(care, locale).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>}</details>
+          <div className="mt-auto border-t border-outline-ghost/15 pt-3 text-xs leading-5 text-text-secondary">
+            {care && <p>{locale === 'es' ? 'Cuidado opcional: ' : 'Optional care: '}{carePrice(care, locale)}.</p>}
+          </div>
+          <button type="button" disabled={!ready} aria-pressed={active} aria-label={`${locale === 'es' ? 'Comprar' : 'Buy'} ${paquete.nombre[locale]}`} onClick={() => select(paquete)} className="button-primary mt-4 w-full">{locale === 'es' ? 'Comprar' : 'Buy'}</button>
+        </article>;
+      })}
+    </div>
+    <p className="text-xs leading-5 text-text-secondary">{locale === 'es' ? 'Hosting inicial y garantía: 30 días desde la entrega. Luego: cuidado con aceptación expresa y fecha acordada, o transferencia. Sin cobros automáticos. Dominio anual, IA/API, licencias y comisiones de terceros aparte.' : 'Initial hosting and warranty: 30 days from delivery. Then: care with explicit acceptance and an agreed start date, or transfer. No automatic billing. Annual domain, AI/API, licenses and third-party fees are separate.'}</p>
+    {selected && <section ref={checkoutRef} tabIndex={-1} aria-labelledby="web-checkout-title" className="max-w-2xl scroll-mt-28 focus:outline-none">
+      <h2 id="web-checkout-title" className="mb-3 text-lg font-medium">{locale === 'es' ? 'Confirmá el alcance' : 'Confirm the scope'}</h2>
+      <PackageCard locale={locale} paquete={selected} extras={servicio.extras} configuration={configuration} onConfigurationChange={setConfiguration} compact />
+    </section>}
+  </div>;
 
   return <div className="space-y-8">
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" role="group" aria-label={labels.choose}>

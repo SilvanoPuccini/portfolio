@@ -14,11 +14,12 @@ const render_ = async (slug: string, locale = 'es') =>
   render(await ServicioPage({ params: Promise.resolve({ locale, slug }) }));
 
 describe('la ficha de un servicio', () => {
-  it('encabeza con el problema y la promesa', async () => {
+  it('shows a compact product header without the inline demo or promotional sections', async () => {
     await render_('web');
-    const servicio = servicioPorSlug('web')!;
-    expect(screen.getByText(servicio.problema.es)).toBeInTheDocument();
-    expect(screen.getByText(servicio.promesa.es)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Una web para tu negocio' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Comprar/ })).toHaveLength(3);
+    expect(screen.queryByText(/Bruma/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Ver ejemplo|Explorar/ })).not.toBeInTheDocument();
   });
 
   it('muestra los paquetes de ese servicio y ninguno de otro', async () => {
@@ -37,12 +38,13 @@ describe('la ficha de un servicio', () => {
   it('dice a dónde ir si este servicio no es el que necesita', async () => {
     await render_('web');
     const servicio = servicioPorSlug('web')!;
-    expect(screen.getByText(servicio.derivaciones[0].caso.es)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: new RegExp(servicio.derivaciones[0].caso.es) })).toBeInTheDocument();
   });
 
   it('en inglés se lee en inglés', async () => {
     await render_('web', 'en');
-    expect(screen.getByText(servicioPorSlug('web')!.promesa.en)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'A website for your business' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Buy/ })).toHaveLength(3);
   });
 
   it('un slug viejo redirige al nuevo en vez de romper los links publicados', async () => {
