@@ -37,6 +37,10 @@ const triedModels = () => getGenerativeModel.mock.calls.map(([config]) => config
 describe('geminiModels', () => {
   afterEach(() => vi.unstubAllEnvs());
 
+  it('deja gemini-2.5-flash al final: sigue andando en cuentas viejas', () => {
+    expect(DEFAULT_GEMINI_MODELS.at(-1)).toBe('gemini-2.5-flash');
+  });
+
   it('usa la cadena por defecto si no hay GEMINI_MODEL', () => {
     vi.stubEnv('GEMINI_MODEL', '');
     expect(geminiModels()).toEqual(DEFAULT_GEMINI_MODELS);
@@ -127,11 +131,44 @@ describe('callGeminiJson', () => {
     expect(triedModels()).toEqual([gone, ...rest, rest[0]]);
   });
 
-  it('corta en seco con un error de cuota para que el seam lo desvíe a Groq', async () => {
-    generateContent.mockRejectedValueOnce(httpError(429, 'Resource exhausted: quota'));
+  it('si un modelo se queda sin cuota (429) pasa al siguiente Gemini, no a Groq', async () => {
+    generateContent
+      .mockRejectedValueOnce(httpError(429, 'Resource exhausted: quota'))
+      .mockResolvedValueOnce(ok());
+
+    const result = await callGeminiJson<{ ok: string }>('system', 'input', SCHEMA);
+
+    expect(result.data).toEqual({ ok: 'OK' });
+    expect(triedModels()).toEqual(DEFAULT_GEMINI_MODELS.slice(0, 2));
+  });
+
+  it('con toda la cadena sin cuota sube el 429 sin esperar, para que el seam vaya a Groq', async () => {
+    DEFAULT_GEMINI_MODELS.forEach(() => generateContent.mockRejectedValueOnce(httpError(429, 'quota')));
 
     await expect(callGeminiJson('system', 'input', SCHEMA)).rejects.toThrow(/quota/);
-    expect(triedModels()).toEqual([DEFAULT_GEMINI_MODELS[0]]);
+    expect(triedModels()).toEqual(DEFAULT_GEMINI_MODELS);
+  });
+
+  it('si la cadena termina entre modelos retirados y sin cuota, sube el de cuota', async () => {
+    const [first, ...rest] = DEFAULT_GEMINI_MODELS;
+    generateContent.mockRejectedValueOnce(httpError(429, `quota for ${first}`));
+    rest.forEach((model) => generateContent.mockRejectedValueOnce(httpError(404, `models/${model} not found`)));
+
+    await expect(callGeminiJson('system', 'input', SCHEMA)).rejects.toThrow(/quota/);
+  });
+
+  it('no vuelve a probar en la vuelta siguiente un modelo sin cuota', async () => {
+    vi.useFakeTimers();
+    const [exhausted, ...rest] = DEFAULT_GEMINI_MODELS;
+    generateContent.mockRejectedValueOnce(httpError(429, 'quota'));
+    rest.forEach(() => generateContent.mockRejectedValueOnce(httpError(503, 'high demand')));
+    generateContent.mockResolvedValueOnce(ok());
+
+    const pending = callGeminiJson<{ ok: string }>('system', 'input', SCHEMA);
+    await vi.runAllTimersAsync();
+
+    await expect(pending).resolves.toMatchObject({ data: { ok: 'OK' } });
+    expect(triedModels()).toEqual([exhausted, ...rest, rest[0]]);
   });
 
   it('no enmascara un error que no se resuelve cambiando de modelo', async () => {

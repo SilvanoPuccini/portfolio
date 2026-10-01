@@ -8,11 +8,17 @@ import { jsonrepair } from 'jsonrepair';
  */
 
 /**
- * La cadena de modelos, del preferido al último respaldo. `gemini-2.5-flash`
- * salió porque Google ya no lo ofrece a cuentas nuevas: cuando lo apaguen para
- * todas, el circuito entero (hilos, comprobantes, secretaria) se caía junto.
+ * La cadena de modelos, del preferido al último respaldo. Cada modelo tiene su
+ * propia cuota, así que agotar uno no agota el siguiente. `gemini-2.5-flash`
+ * va último: Google ya no lo da a cuentas nuevas, pero en las viejas sigue
+ * andando, y si lo apagan su 404 solo lo saltea.
  */
-export const DEFAULT_GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+export const DEFAULT_GEMINI_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-2.5-flash',
+];
 
 /** Vueltas completas a la cadena cuando todos los modelos están saturados. */
 const MAX_ROUNDS = 3;
@@ -65,10 +71,14 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 type ModelInput = Parameters<ReturnType<ReturnType<typeof client>['getGenerativeModel']>['generateContent']>[0];
 
 /**
- * Recorre la cadena de modelos. Un 404 o un 503 pasan al siguiente modelo sin
- * esperar; solo si la cadena entera está saturada se espera el backoff y se da
- * otra vuelta. Los de cuota se cortan en seco para que el seam los desvíe a
- * Groq, y cualquier otro error sube tal cual: cambiar de modelo no lo arregla.
+ * Recorre la cadena de modelos en cascada. Un 404, un 503 o un 429 pasan al
+ * siguiente modelo sin esperar: la cuota es por modelo, así que el agotado se
+ * saca de la cadena y el resto sigue. Solo si los que quedan están saturados
+ * se espera el backoff y se da otra vuelta.
+ *
+ * Si la cadena se termina y alguno cayó por cuota, sube ese error: es la señal
+ * para que el seam pase a Groq. Cualquier otro error sube tal cual, porque
+ * cambiar de modelo no lo arregla.
  */
 async function generateJson<T>(
   system: string,
@@ -81,6 +91,7 @@ async function generateJson<T>(
   const retired = new Set<string>();
 
   let lastError: Error | null = null;
+  let quotaError: Error | null = null;
   for (let round = 0; round < MAX_ROUNDS && retired.size < models.length; round++) {
     if (BACKOFF_MS[round]) await sleep(BACKOFF_MS[round]);
     for (const name of models) {
@@ -97,7 +108,11 @@ async function generateJson<T>(
         return { data: JSON.parse(jsonrepair(text)) as T, tokens };
       } catch (reason) {
         lastError = reason instanceof Error ? reason : new Error(String(reason));
-        if (isQuotaError(reason)) throw lastError;
+        if (isQuotaError(reason)) {
+          quotaError = lastError;
+          retired.add(name);
+          continue;
+        }
         if (isModelUnavailable(lastError)) {
           retired.add(name);
           continue;
@@ -106,7 +121,7 @@ async function generateJson<T>(
       }
     }
   }
-  throw lastError ?? new Error('[x/gemini] Sin respuesta');
+  throw quotaError ?? lastError ?? new Error('[x/gemini] Sin respuesta');
 }
 
 /** Una llamada a Gemini que devuelve JSON según el esquema declarado. */
