@@ -6,6 +6,7 @@ export const maxDuration = 60;
 import { isAuthorized } from '@/lib/admin-auth';
 import { callJson } from '@/lib/x/providers';
 import { callGroqJson } from '@/lib/x/groq';
+import { geminiModels } from '@/lib/x/gemini.client';
 import { SchemaType, type Schema } from '@google/generative-ai';
 
 /** Schema trivial para probar el seam con la misma mecánica del circuito real. */
@@ -14,15 +15,6 @@ const SEAM_TEST_SCHEMA: Schema = {
   properties: { ok: { type: SchemaType.STRING } },
   required: ['ok'],
 };
-
-const MODELS_TO_TEST = [
-  'gemini-2.5-flash',
-  'gemini-2.5-pro',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-];
 
 /** El modelo exacto que usa el failover de cuota de src/lib/x/providers.ts. */
 const GROQ_MODEL = 'openai/gpt-oss-120b';
@@ -143,8 +135,12 @@ export async function GET(req: NextRequest) {
   }
 
   const results: Record<string, string> = {};
-  for (const model of MODELS_TO_TEST) {
-    results[model] = await testModel(apiKey, model);
+  // La cadena real del circuito, en el orden en que la recorre (GEMINI_MODEL
+  // primero si está fijado). Otra lista mediría modelos que nunca se usan.
+  const models = geminiModels();
+  for (const [index, model] of models.entries()) {
+    const role = index === 0 ? 'preferido' : `respaldo ${index}`;
+    results[`${model} (${role})`] = await testModel(apiKey, model);
   }
 
   const groqApiKey = process.env.GROQ_API_KEY;

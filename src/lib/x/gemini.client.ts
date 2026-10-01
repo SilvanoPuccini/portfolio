@@ -7,9 +7,26 @@ import { jsonrepair } from 'jsonrepair';
  * en providers.ts.
  */
 
-const MODEL = 'gemini-2.5-flash';
-const MAX_ATTEMPTS = 3;
+/**
+ * La cadena de modelos, del preferido al último respaldo. `gemini-2.5-flash`
+ * salió porque Google ya no lo ofrece a cuentas nuevas: cuando lo apaguen para
+ * todas, el circuito entero (hilos, comprobantes, secretaria) se caía junto.
+ */
+export const DEFAULT_GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+
+/** Vueltas completas a la cadena cuando todos los modelos están saturados. */
+const MAX_ROUNDS = 3;
 const BACKOFF_MS = [0, 8_000, 20_000];
+
+/**
+ * `GEMINI_MODEL` fija el preferido sin tocar código; el resto de la cadena
+ * queda detrás como respaldo para que un modelo caído no tumbe el circuito.
+ */
+export function geminiModels(): string[] {
+  const preferred = process.env.GEMINI_MODEL?.trim();
+  if (!preferred) return [...DEFAULT_GEMINI_MODELS];
+  return [preferred, ...DEFAULT_GEMINI_MODELS.filter((model) => model !== preferred)];
+}
 
 function client() {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
@@ -25,6 +42,13 @@ export function isRetryable(error: Error): boolean {
   return ['503', '429', 'unavailable', 'overloaded', 'high demand'].some((s) => message.includes(s));
 }
 
+/** El modelo no existe o fue retirado: reintentarlo no sirve, hay que saltarlo. */
+export function isModelUnavailable(error: Error): boolean {
+  if ((error as { status?: number }).status === 404) return true;
+  const message = error.message.toLowerCase();
+  return ['404', 'not found', 'no longer available'].some((s) => message.includes(s));
+}
+
 /**
  * Errores de cuota del proveedor activo. Son los ÚNICOS que disparan el
  * failover: un 401 o un error de contenido no se resuelven cambiando de motor.
@@ -38,46 +62,69 @@ export function isQuotaError(error: unknown): boolean {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+type ModelInput = Parameters<ReturnType<ReturnType<typeof client>['getGenerativeModel']>['generateContent']>[0];
+
 /**
- * Una llamada a Gemini, con retry interno para los errores que se recuperan
- * solos (503, cola de demanda). Los de cuota se cortan en seco para que el
- * seam los desvíe a Groq sin esperar el backoff.
+ * Recorre la cadena de modelos. Un 404 o un 503 pasan al siguiente modelo sin
+ * esperar; solo si la cadena entera está saturada se espera el backoff y se da
+ * otra vuelta. Los de cuota se cortan en seco para que el seam los desvíe a
+ * Groq, y cualquier otro error sube tal cual: cambiar de modelo no lo arregla.
  */
-export async function callGeminiJson<T>(
+async function generateJson<T>(
   system: string,
-  input: string,
   schema: Schema,
+  temperature: number,
+  content: ModelInput,
 ): Promise<{ data: T; tokens: number }> {
-  const model = client().getGenerativeModel({
-    model: MODEL,
-    systemInstruction: system,
-    generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 0.9 },
-  });
+  const genAI = client();
+  const models = geminiModels();
+  const retired = new Set<string>();
 
   let lastError: Error | null = null;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    if (BACKOFF_MS[attempt]) await sleep(BACKOFF_MS[attempt]);
-    try {
-      const result = await model.generateContent(input);
-      const text = result.response.text();
-      const tokens = result.response.usageMetadata?.totalTokenCount ?? 0;
-      return { data: JSON.parse(jsonrepair(text)) as T, tokens };
-    } catch (reason) {
-      lastError = reason instanceof Error ? reason : new Error(String(reason));
-      if (isQuotaError(reason)) throw lastError;
-      if (!isRetryable(lastError)) throw lastError;
+  for (let round = 0; round < MAX_ROUNDS && retired.size < models.length; round++) {
+    if (BACKOFF_MS[round]) await sleep(BACKOFF_MS[round]);
+    for (const name of models) {
+      if (retired.has(name)) continue;
+      const model = genAI.getGenerativeModel({
+        model: name,
+        systemInstruction: system,
+        generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature },
+      });
+      try {
+        const result = await model.generateContent(content);
+        const text = result.response.text();
+        const tokens = result.response.usageMetadata?.totalTokenCount ?? 0;
+        return { data: JSON.parse(jsonrepair(text)) as T, tokens };
+      } catch (reason) {
+        lastError = reason instanceof Error ? reason : new Error(String(reason));
+        if (isQuotaError(reason)) throw lastError;
+        if (isModelUnavailable(lastError)) {
+          retired.add(name);
+          continue;
+        }
+        if (!isRetryable(lastError)) throw lastError;
+      }
     }
   }
   throw lastError ?? new Error('[x/gemini] Sin respuesta');
 }
 
+/** Una llamada a Gemini que devuelve JSON según el esquema declarado. */
+export async function callGeminiJson<T>(
+  system: string,
+  input: string,
+  schema: Schema,
+): Promise<{ data: T; tokens: number }> {
+  return generateJson<T>(system, schema, 0.9, input);
+}
+
 /**
  * Lo mismo, pero mirando un archivo.
  *
- * Gemini lee imágenes y PDF si van como `inlineData` en base64. Comparte el
- * retry y el contrato de JSON con la llamada de texto porque los errores del
- * proveedor son los mismos: duplicar el backoff acá terminaría con dos
- * políticas distintas para el mismo 503.
+ * Gemini lee imágenes y PDF si van como `inlineData` en base64. Comparte la
+ * cadena de modelos y el retry con la llamada de texto porque los errores del
+ * proveedor son los mismos: duplicarlos terminaría con dos políticas distintas
+ * para el mismo 503.
  *
  * La temperatura va en cero: de un comprobante no se quiere creatividad, se
  * quiere lo que dice.
@@ -88,28 +135,8 @@ export async function callGeminiVision<T>(
   instruccion: string,
   schema: Schema,
 ): Promise<{ data: T; tokens: number }> {
-  const model = client().getGenerativeModel({
-    model: MODEL,
-    systemInstruction: system,
-    generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 0 },
-  });
-
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    if (BACKOFF_MS[attempt]) await sleep(BACKOFF_MS[attempt]);
-    try {
-      const result = await model.generateContent([
-        { inlineData: { data: archivo.datos, mimeType: archivo.tipo } },
-        instruccion,
-      ]);
-      const text = result.response.text();
-      const tokens = result.response.usageMetadata?.totalTokenCount ?? 0;
-      return { data: JSON.parse(jsonrepair(text)) as T, tokens };
-    } catch (reason) {
-      lastError = reason instanceof Error ? reason : new Error(String(reason));
-      if (isQuotaError(reason)) throw lastError;
-      if (!isRetryable(lastError)) throw lastError;
-    }
-  }
-  throw lastError ?? new Error('[x/gemini] Sin respuesta');
+  return generateJson<T>(system, schema, 0, [
+    { inlineData: { data: archivo.datos, mimeType: archivo.tipo } },
+    instruccion,
+  ]);
 }
