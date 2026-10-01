@@ -1,0 +1,149 @@
+---
+title: 'VPS, PaaS, BaaS y serverless: qué delegás y qué sigue siendo tuyo'
+date: '2026-10-11'
+category: 'Criterio'
+displayCategory: 'Criterio'
+excerpt: 'Una plataforma puede hacerse cargo del servidor. La decisión sobre quién puede ver una historia clínica o qué pasa cuando un cobro llega dos veces sigue perteneciendo al sistema que construiste. Elegir nube también es decidir dónde termina el trabajo del proveedor y empieza el tuyo.'
+featured: false
+linkedinCarousel: false
+readingTime: '12 min'
+keyword: 'Nube'
+ogImage: '/api/og/vps-paas-baas-y-serverless'
+---
+
+Una plataforma puede hacerse cargo del servidor. La decisión sobre quién puede ver una historia clínica o qué pasa cuando un cobro llega dos veces sigue perteneciendo al sistema que construiste. Elegir nube también es decidir dónde termina el trabajo del proveedor y empieza el tuyo.
+
+Después de empaquetar una aplicación aparece una pregunta que parece más simple de lo que es: dónde la subo. Hay una oferta para cada necesidad y un botón que promete resolver el deploy. El problema es que esos botones no están vendiendo todos lo mismo.
+
+En la nota anterior hablé de Docker como contrato de ejecución: una manera de describir qué necesita el código para correr. Ahora toca elegir quién sostiene ese entorno y qué otras capacidades conviene contratar.
+
+## Desde dónde comparo estas opciones
+
+En mis proyectos conviven tres decisiones: usar una plataforma administrada, ejecutar contenedores sobre un servidor propio y conectar una interfaz con servicios administrados de backend.
+
+No llegué a esas alternativas buscando completar una colección de tecnologías. En un caso pesaba reducir el mantenimiento de una sola aplicación. En otro necesitaba controlar un entorno con más procesos. En un tercero éramos dos personas y construir autenticación, almacenamiento y tiempo real habría consumido una parte enorme del proyecto.
+
+El criterio cambia cuando también sos quien opera lo que escribe. Tener una posibilidad técnica no significa que convenga asumir su mantenimiento en ese producto.
+
+Esta comparación está pensada para ese escenario: un desarrollador o un equipo chico que necesita entregar, sostener y modificar un sistema. La pregunta central es qué trabajo acepta conservar y qué condiciones acepta a cambio de delegarlo.
+
+## Las cuatro etiquetas no describen la misma cosa
+
+Un VPS es un servidor privado virtual: una porción de infraestructura sobre la que podés administrar un sistema operativo. PaaS significa plataforma como servicio: una capa preparada para desplegar aplicaciones sin gestionar directamente toda la infraestructura subyacente. La distinción entre infraestructura y plataforma forma parte de los modelos de servicio definidos por NIST. [La definición de computación en la nube de NIST permite ubicar esas responsabilidades.](https://csrc.nist.gov/pubs/sp/800/145/final)
+
+BaaS, backend como servicio, se refiere a capacidades de aplicación ya ofrecidas: autenticación, almacenamiento, acceso a datos u otras funciones, según el producto. Por ejemplo, la arquitectura de Supabase combina PostgreSQL con servicios de autenticación, almacenamiento y tiempo real. [Su documentación muestra cómo se relacionan esas piezas.](https://supabase.com/docs/guides/getting-started/architecture)
+
+Serverless describe un modelo donde delegás la gestión de servidores para ejecutar una carga. Las funciones son una expresión habitual, pero la etiqueta también aparece en otros servicios. El comportamiento y la facturación dependen del producto y del plan; no alcanza con leer “serverless” para asumir costo cero en reposo o capacidad ilimitada. [Azure Functions, por ejemplo, ofrece distintas opciones de alojamiento para ejecutar funciones.](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview)
+
+Por eso estas opciones pueden combinarse. Podés tener una API en una plataforma, autenticación administrada y una función que procesa eventos. También podés ejecutar esa API en un VPS y contratar la base de datos por separado.
+
+La combinación tiene que responder a una necesidad. Cada servicio incorporado agrega también una frontera que después hay que diagnosticar.
+
+| Modelo | Qué contratás principalmente | Qué decisión sigue de tu lado |
+|---|---|---|
+| VPS autoadministrado | Recursos de un servidor virtual | Cómo instalar, desplegar y mantener tus procesos |
+| PaaS | Un entorno administrado para aplicaciones | Cómo se configura y funciona tu aplicación |
+| BaaS | Capacidades de backend preparadas | Cómo representan las reglas y permisos del producto |
+| Serverless | Ejecución con gestión de servidores delegada | Cómo responde el código a eventos, límites y fallos |
+
+La tabla resume el enfoque. El reparto exacto siempre depende del servicio contratado; un VPS con administración incluida, por ejemplo, cambia parte de esa carga.
+
+Si se baja un nivel más, el reparto se ve por capas. El proveedor sube más o menos según el modelo, pero hay dos capas a las que no llega en ninguno.
+
+<CloudResponsibilityBlock />
+
+## VPS: el control viene acompañado de trabajo
+
+En un VPS autoadministrado podés elegir cómo organizar los procesos, qué versiones instalar y cómo conectar las piezas. Ese margen resulta útil cuando las necesidades del sistema no entran cómodamente en las convenciones de una plataforma.
+
+Es el intercambio que acepté al usar contenedores sobre un servidor propio. Quería previsibilidad en la ejecución y asumí que había más infraestructura para atender.
+
+Docker ayuda a describir los procesos, pero el servidor sigue necesitando mantenimiento. La separación importa porque es fácil automatizar el arranque y sentir que la operación quedó resuelta. Una aplicación también necesita espacio disponible, accesos controlados y una forma de recuperar lo que guarda.
+
+En el modelo de infraestructura como servicio, administrar el sistema operativo invitado y el software instalado suele ser responsabilidad del cliente. [AWS explica ese reparto en su modelo de responsabilidad compartida.](https://aws.amazon.com/compliance/shared-responsibility-model/)
+
+La consecuencia de negocio es que el costo del VPS incluye atención. Una factura reducida puede ser una buena decisión, pero para compararla necesito sumar las horas que esa infraestructura requiere.
+
+Tampoco asumiría que disponer de más control vuelve mejor una arquitectura. Si no hay una necesidad concreta detrás, puedo terminar administrando posibilidades que el producto nunca usa.
+
+## PaaS: aceptar convenciones para concentrarse en la aplicación
+
+Una plataforma administrada reduce decisiones de infraestructura y ofrece un camino definido para construir y desplegar. A cambio, el proyecto tiene que encajar en sus formas de ejecución y en sus límites.
+
+En mi caso, para una aplicación elegí ese intercambio porque operar toda la infraestructura por mi cuenta habría agregado trabajo recurrente. Gané una superficie menor de administración y acepté las convenciones de la plataforma.
+
+La comodidad se nota al repetir entregas. Un proveedor como Render puede coordinar construcción, arranque y comprobaciones del despliegue según la configuración del servicio. Eso facilita el procedimiento, pero depende de que indiquemos correctamente qué construir y cómo comprobar el proceso. [Su documentación de despliegues describe esas etapas.](https://render.com/docs/deploys)
+
+Hay preguntas que siguen siendo del proyecto: qué variable falta, qué operación consume recursos, cómo se aplica una migración o qué pasa con una tarea larga. Delegar la infraestructura no convierte un comportamiento incorrecto de la aplicación en un problema del proveedor.
+
+La limitación aparece cuando necesitás una capacidad que la plataforma no ofrece, o la ofrece de una forma que te obliga a cambiar el diseño. Antes de descartarla miraría cuánto cuesta esa adaptación frente a administrar la alternativa. El control adicional tiene que resolver algo que importe.
+
+## BaaS: el backend existe, aunque escribas menos de él
+
+Contratar autenticación o almacenamiento puede ahorrar una cantidad importante de trabajo. En el proyecto que construimos de a dos, delegar esas capacidades permitió dedicar tiempo a la lógica propia.
+
+Pero la regla de negocio no queda definida porque exista una tabla, una sesión o una API preparada.
+
+Pensemos en un sistema con información de varias organizaciones. Que un usuario haya iniciado sesión responde quién es. Todavía falta decidir a qué organización pertenece, qué registros puede consultar y cuáles puede modificar. Si esa comprobación vive únicamente en la interfaz, otra forma de llamar al servicio puede saltearla.
+
+La autorización tiene que aplicarse en una capa confiable. En un servicio basado en PostgreSQL, las políticas de seguridad por fila pueden formar parte de esa solución. Hay que diseñarlas y probarlas: el proveedor no deduce los permisos de tu negocio. [La documentación de Row Level Security de Supabase explica cómo vincular acceso a datos y políticas.](https://supabase.com/docs/guides/database/postgres/row-level-security)
+
+Este modelo también cambia dónde buscás un fallo. Ya me pasó con un problema de acceso a un servicio administrado: el repositorio estaba bien y revertir código no habría resuelto nada. El diagnóstico exigía mirar la relación entre cuentas y servicios.
+
+Ese es un costo real de delegar. Parte de la explicación del sistema queda en configuraciones externas al repositorio y necesita su propia documentación.
+
+## Serverless: una ejecución breve puede tener consecuencias duraderas
+
+Una función que recibe un evento parece una unidad sencilla: llega algo, se ejecuta código y termina. La dificultad aparece cuando esa ejecución modifica el negocio.
+
+Tomemos un ejemplo didáctico: una notificación de pago. Si el mismo evento llega dos veces, el sistema debería reconocerlo antes de duplicar una operación. La cantidad de veces que se ejecutó una función no puede decidir cuántas veces se acredita un pago.
+
+La idempotencia permite que repetir una solicitud o evento no produzca un efecto adicional indebido. También importan los límites de concurrencia y la capacidad de los servicios a los que llama la función: aumentar ejecuciones puede trasladar el cuello de botella a la base de datos. [AWS incluye estas consideraciones en sus recomendaciones para Lambda.](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
+
+<IdempotentEventBlock />
+
+Para evaluar este modelo miraría la duración del trabajo, la frecuencia, el estado que necesita conservar y el comportamiento frente a errores. Una tarea aislada y disparada por eventos plantea un problema distinto de un proceso que debe mantenerse activo permanentemente.
+
+La promesa de delegar servidores es útil. Lo que no se delega es la arquitectura de la operación: qué se repite, qué se guarda y qué significa haber terminado. Eso sigue necesitando una decisión explícita.
+
+## La factura visible no es el costo completo
+
+Comparar solamente el precio de entrada deja afuera diferencias que después pesan todos los meses.
+
+En un VPS, parte del costo aparece como administración propia. En una plataforma puede aparecer al sumar procesos o recursos. En servicios administrados puede depender del almacenamiento, las consultas o la transferencia. En funciones, del patrón de ejecución y de las dependencias que consumen. No hay una fórmula única para todas las ofertas.
+
+Desde mi experiencia comercial, un servicio barato que obliga a dedicarle tiempo de manera imprevisible puede terminar saliendo caro. Y pagar más por una plataforma puede tener sentido si libera horas que el producto necesita en otra parte.
+
+| Pregunta | Qué permite comparar |
+|---|---|
+| ¿Qué queda funcionando cuando nadie usa el sistema? | Capacidad permanente frente a demanda variable |
+| ¿Qué recurso crece con cada usuario? | Datos, archivos, consultas, eventos o transferencia |
+| ¿Dónde miro cuando falla una operación? | Cantidad de servicios y accesos necesarios para diagnosticar |
+| ¿Qué necesito para recuperar el sistema? | Datos, configuración, permisos y procedimiento |
+| ¿Qué tendría que mover para cambiar de proveedor? | Dependencias que exceden el código |
+
+No usaría esta tabla para elegir automáticamente. La usaría para obligarme a explicar la elección con el proyecto adelante.
+
+## Salir de un proveedor también forma parte de entrar
+
+La portabilidad del código es solo una parte de la salida. Los datos, los archivos, las identidades, las políticas y las integraciones también tienen que encontrar un destino.
+
+Una imagen Docker puede facilitar el traslado de la aplicación y, al mismo tiempo, esa aplicación puede depender de una capacidad específica del proveedor. Son dos decisiones distintas.
+
+Eso no convierte la dependencia en un error. Si una capacidad administrada ahorra semanas y permite entregar, puede justificar perfectamente el vínculo. Lo que necesito es poder nombrar qué estoy aceptando.
+
+En mis decisiones anteriores, las alternativas descartadas también eran defendibles. Podía administrar más infraestructura, mantener una aplicación dentro de una plataforma o escribir capacidades que terminé contratando. Cada camino habría cambiado dónde se iba el tiempo del proyecto.
+
+La pregunta que queda abierta es cuándo cambia esa relación. Un servicio que resolvió bien el inicio puede seguir siendo correcto durante años, o empezar a condicionar una necesidad central. Ese cambio hay que reconocerlo con evidencia: costo, limitación operativa o dificultad para evolucionar una regla del negocio.
+
+## La decisión que quiero poder explicar
+
+Después de elegir un modelo, quiero poder responder tres cosas: qué mantiene el proveedor, qué mantengo yo y dónde empieza el diagnóstico cuando el usuario no puede completar una operación.
+
+Esas respuestas valen más que decir que el proyecto está “en la nube”. También permiten elegir una combinación sin convertir el sistema en una colección de paneles.
+
+En la próxima nota voy a llevar esta distinción a opciones concretas: Vercel, Render, Railway y Supabase. La comparación va a partir del tipo de proyecto y de sus restricciones, con estas responsabilidades ya separadas.
+
+---
+
+Dónde termina el trabajo del proveedor y dónde empieza el tuyo es una de las fronteras que documento en El Radar: qué resuelve cada decisión, qué condiciones introduce y cuándo vale la pena revisarla. Si querés seguir la serie, suscribite acá abajo.

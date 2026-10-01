@@ -136,6 +136,20 @@ export const TECH_ICONS: Record<string, TechIcon> = {
       </svg>
     ),
   },
+  /*
+   * Concepto del post de modelos de nube. Una nube partida por una línea
+   * punteada: arriba lo que se delega, abajo lo que sigue siendo tuyo.
+   */
+  Nube: {
+    color: "#C9D1D9",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <path d="M7 17.5a4.5 4.5 0 0 1-.6-8.96A5.5 5.5 0 0 1 17 8.2a4.65 4.65 0 0 1 0 9.3H7Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+        <path d="M5 13h14" stroke="currentColor" strokeWidth="1.2" strokeDasharray="1.6 1.6" opacity=".6" />
+        <path d="M9 21h6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    ),
+  },
   Vite: {
     color: "#A259FF",
     icon: (
