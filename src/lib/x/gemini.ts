@@ -14,6 +14,14 @@ import type { XAngle, XEvidence, XProvider } from './types';
  * justo lo que rompe un circuito que corre sin nadie mirando.
  */
 
+/**
+ * Por qué bloqueó el escritor, como código cerrado. REPETITION es la señal de
+ * que el ángulo está agotado: el orquestador la convierte en la misma línea que
+ * el REPETITION del crítico y el servicio pasa al siguiente ángulo del plan.
+ */
+export const WRITER_BLOCK_CODES = ['REPETITION', 'MISSING_INPUT', 'NO_MATERIAL'] as const;
+export type WriterBlockCode = (typeof WRITER_BLOCK_CODES)[number];
+
 type JsonResult<T> = { data: T; tokens: number; provider: XProvider };
 
 // ── 1. El guion de la semana ────────────────────────────────────────
@@ -87,6 +95,7 @@ const DRAFT_SCHEMA: Schema = {
       },
     },
     block_reasons: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    block_code: { type: SchemaType.STRING, enum: [...WRITER_BLOCK_CODES], format: 'enum' },
   },
   required: ['status', 'thesis', 'tweets', 'reply_with_link', 'evidence', 'block_reasons'],
 };
@@ -98,6 +107,8 @@ export interface XDraft {
   reply_with_link: string;
   evidence: XEvidence[];
   block_reasons: string[];
+  /** Solo si bloquea. Es lo que el servicio lee: el texto del motivo no se interpreta. */
+  block_code?: WriterBlockCode;
 }
 
 export interface WriteParams {

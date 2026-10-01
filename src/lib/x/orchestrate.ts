@@ -155,7 +155,12 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
     lastDraft = draft;
 
     if (draft.status === 'blocked') {
-      const reasons = draft.block_reasons;
+      // Si el escritor bloquea por repetición, el ángulo está agotado igual que
+      // cuando lo marca el crítico: misma línea al frente para que el servicio
+      // pruebe el siguiente ángulo en vez de quemar la fila en `error`.
+      const reasons = draft.block_code === 'REPETITION'
+        ? [REPETITION_BLOCK_REASON, ...draft.block_reasons]
+        : draft.block_reasons;
       await params.onAttempt?.({
         at: new Date().toISOString(),
         attempt: n,

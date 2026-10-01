@@ -79,6 +79,50 @@ describe('orchestrateThread', () => {
     expect(gemini.writeThread).toHaveBeenCalledTimes(1);
   });
 
+  it('trata el bloqueo del escritor por repetición igual que el REPETITION del crítico', async () => {
+    gemini.writeThread.mockResolvedValue({
+      data: draft({
+        status: 'blocked',
+        tweets: [],
+        block_code: 'REPETITION',
+        block_reasons: ['El anchor del segundo deploy ya salió en otro hilo de la semana.'],
+      }),
+      tokens: 1,
+      provider: 'gemini',
+    });
+
+    const result = await orchestrateThread(params);
+
+    expect(result.outcome).toBe('blocked');
+    if (result.outcome === 'blocked') {
+      expect(result.reasons).toEqual([
+        REPETITION_BLOCK_REASON,
+        'El anchor del segundo deploy ya salió en otro hilo de la semana.',
+      ]);
+    }
+    expect(gemini.critique).not.toHaveBeenCalled();
+  });
+
+  it('un bloqueo del escritor por otro motivo no se disfraza de repetición', async () => {
+    gemini.writeThread.mockResolvedValue({
+      data: draft({
+        status: 'blocked',
+        tweets: [],
+        block_code: 'NO_MATERIAL',
+        block_reasons: ['El artículo no tiene ejemplos para este ángulo.'],
+      }),
+      tokens: 1,
+      provider: 'gemini',
+    });
+
+    const result = await orchestrateThread(params);
+
+    expect(result.outcome).toBe('blocked');
+    if (result.outcome === 'blocked') {
+      expect(result.reasons).toEqual(['El artículo no tiene ejemplos para este ángulo.']);
+    }
+  });
+
   it('no corta por REPETITION cuando el crítico aprueba pese a todo', async () => {
     gemini.writeThread.mockResolvedValue({ data: draft(), tokens: 1, provider: 'gemini' });
     gemini.critique.mockResolvedValue({

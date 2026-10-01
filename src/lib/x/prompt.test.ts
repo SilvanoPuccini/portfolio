@@ -76,6 +76,16 @@ describe('writerSystemPrompt', () => {
   });
 });
 
+describe('writerSystemPrompt: bloqueo', () => {
+  it('pide un block_code cerrado para que el servicio distinga la repetición', () => {
+    const system = writerSystemPrompt();
+    expect(system).toContain('block_code');
+    for (const code of ['REPETITION', 'MISSING_INPUT', 'NO_MATERIAL']) {
+      expect(system).toContain(code);
+    }
+  });
+});
+
 describe('writerInput', () => {
   it('mantiene el contrato de entrada: artículo, plan y ángulo elegido', () => {
     const input = JSON.parse(writerInput({

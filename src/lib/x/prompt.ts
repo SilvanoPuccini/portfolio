@@ -152,13 +152,17 @@ BLOQUEO
 Si falta el artículo, el ángulo o el perfil, devolvé blocked. También si no hay
 material para desarrollar el ángulo sin repetir ni inventar. No rellenes para
 llegar a cuatro posts.
+Al bloquear, block_code dice por qué:
+  · REPETITION: el ángulo ya lo cubre already_published_this_week.
+  · MISSING_INPUT: falta el artículo, el ángulo o el perfil.
+  · NO_MATERIAL: el artículo no alcanza para el ángulo sin inventar.
 
 SALIDA
 Devolvé únicamente un objeto JSON con las claves: status, thesis, tweets,
-reply_with_link, evidence, block_reasons.
+reply_with_link, evidence, block_reasons y, si bloqueás, block_code.
 Si bloqueás: status "blocked", tweets vacío, reply_with_link null,
-block_reasons con motivos concretos. Nunca devuelvas un hilo publicable junto
-con un bloqueo.
+block_code y block_reasons con motivos concretos. Nunca devuelvas un hilo
+publicable junto con un bloqueo.
 `.trim();
 }
 
