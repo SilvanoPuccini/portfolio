@@ -68,6 +68,13 @@ export function isQuotaError(error: unknown): boolean {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** `model` es el que respondió de verdad: con la cascada no siempre es el preferido. */
+export interface GeminiResult<T> {
+  data: T;
+  tokens: number;
+  model: string;
+}
+
 type ModelInput = Parameters<ReturnType<ReturnType<typeof client>['getGenerativeModel']>['generateContent']>[0];
 
 /**
@@ -85,7 +92,7 @@ async function generateJson<T>(
   schema: Schema,
   temperature: number,
   content: ModelInput,
-): Promise<{ data: T; tokens: number }> {
+): Promise<GeminiResult<T>> {
   const genAI = client();
   const models = geminiModels();
   const retired = new Set<string>();
@@ -105,7 +112,7 @@ async function generateJson<T>(
         const result = await model.generateContent(content);
         const text = result.response.text();
         const tokens = result.response.usageMetadata?.totalTokenCount ?? 0;
-        return { data: JSON.parse(jsonrepair(text)) as T, tokens };
+        return { data: JSON.parse(jsonrepair(text)) as T, tokens, model: name };
       } catch (reason) {
         lastError = reason instanceof Error ? reason : new Error(String(reason));
         if (isQuotaError(reason)) {
@@ -129,7 +136,7 @@ export async function callGeminiJson<T>(
   system: string,
   input: string,
   schema: Schema,
-): Promise<{ data: T; tokens: number }> {
+): Promise<GeminiResult<T>> {
   return generateJson<T>(system, schema, 0.9, input);
 }
 
@@ -149,7 +156,7 @@ export async function callGeminiVision<T>(
   archivo: { datos: string; tipo: string },
   instruccion: string,
   schema: Schema,
-): Promise<{ data: T; tokens: number }> {
+): Promise<GeminiResult<T>> {
   return generateJson<T>(system, schema, 0, [
     { inlineData: { data: archivo.datos, mimeType: archivo.tipo } },
     instruccion,

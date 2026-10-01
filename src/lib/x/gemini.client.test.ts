@@ -78,7 +78,7 @@ describe('callGeminiJson', () => {
 
     const result = await callGeminiJson<{ ok: string }>('system', 'input', SCHEMA);
 
-    expect(result).toEqual({ data: { ok: 'OK' }, tokens: 7 });
+    expect(result).toEqual({ data: { ok: 'OK' }, tokens: 7, model: DEFAULT_GEMINI_MODELS[0] });
     expect(triedModels()).toEqual([DEFAULT_GEMINI_MODELS[0]]);
   });
 
@@ -91,6 +91,15 @@ describe('callGeminiJson', () => {
 
     expect(result.data).toEqual({ ok: 'OK' });
     expect(triedModels()).toEqual(DEFAULT_GEMINI_MODELS.slice(0, 2));
+  });
+
+  it('informa qué modelo respondió cuando la cascada llega al último', async () => {
+    DEFAULT_GEMINI_MODELS.slice(0, -1).forEach(() => generateContent.mockRejectedValueOnce(httpError(429, 'quota')));
+    generateContent.mockResolvedValueOnce(ok());
+
+    const result = await callGeminiJson<{ ok: string }>('system', 'input', SCHEMA);
+
+    expect(result.model).toBe('gemini-2.5-flash');
   });
 
   it('pasa al siguiente modelo sin esperar si el actual está saturado (503)', async () => {
@@ -113,7 +122,7 @@ describe('callGeminiJson', () => {
     const pending = callGeminiJson<{ ok: string }>('system', 'input', SCHEMA);
     await vi.runAllTimersAsync();
 
-    await expect(pending).resolves.toEqual({ data: { ok: 'OK' }, tokens: 7 });
+    await expect(pending).resolves.toEqual({ data: { ok: 'OK' }, tokens: 7, model: DEFAULT_GEMINI_MODELS[0] });
     expect(triedModels()).toEqual([...DEFAULT_GEMINI_MODELS, DEFAULT_GEMINI_MODELS[0]]);
   });
 

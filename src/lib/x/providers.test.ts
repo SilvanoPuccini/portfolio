@@ -13,6 +13,7 @@ vi.mock('./gemini.client', () => ({
 
 vi.mock('./groq', () => ({
   callGroqJson: mocks.callGroqJson,
+  GROQ_MODEL: 'openai/gpt-oss-120b',
 }));
 
 import { afterEach, beforeEach } from 'vitest';
@@ -27,6 +28,25 @@ describe('callJson — failover Gemini→Groq', () => {
 
   afterEach(() => {
     delete process.env.GROQ_API_KEY;
+  });
+
+  it('devuelve el modelo de Gemini que respondió', async () => {
+    mocks.callGeminiJson.mockResolvedValue({ data: { ok: true }, tokens: 3, model: 'gemini-2.5-flash' });
+
+    const result = await callJson<{ ok: boolean }>('sys', 'input', {} as never);
+
+    expect(result).toMatchObject({ provider: 'gemini', model: 'gemini-2.5-flash' });
+  });
+
+  it('con failover informa el modelo de Groq', async () => {
+    process.env.GROQ_API_KEY = 'key-test';
+    mocks.isQuotaError.mockReturnValue(true);
+    mocks.callGeminiJson.mockRejectedValue(Object.assign(new Error('[x/gemini] 429'), { status: 429 }));
+    mocks.callGroqJson.mockResolvedValue({ data: { ok: true }, tokens: 10 });
+
+    const result = await callJson<{ ok: boolean }>('sys', 'input', {} as never);
+
+    expect(result).toMatchObject({ provider: 'groq', model: 'openai/gpt-oss-120b' });
   });
 
   it('usa Groq cuando Gemini devuelve cuota agotada y Groq responde', async () => {

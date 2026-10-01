@@ -5,7 +5,7 @@ export const maxDuration = 60;
 
 import { isAuthorized } from '@/lib/admin-auth';
 import { callJson } from '@/lib/x/providers';
-import { callGroqJson } from '@/lib/x/groq';
+import { callGroqJson, GROQ_MODEL } from '@/lib/x/groq';
 import { geminiModels } from '@/lib/x/gemini.client';
 import { SchemaType, type Schema } from '@google/generative-ai';
 
@@ -15,9 +15,6 @@ const SEAM_TEST_SCHEMA: Schema = {
   properties: { ok: { type: SchemaType.STRING } },
   required: ['ok'],
 };
-
-/** El modelo exacto que usa el failover de cuota de src/lib/x/providers.ts. */
-const GROQ_MODEL = 'openai/gpt-oss-120b';
 
 async function testModel(apiKey: string, model: string): Promise<string> {
   try {
@@ -117,7 +114,12 @@ async function testSeam(): Promise<string> {
       'Responde una sola palabra: OK',
       SEAM_TEST_SCHEMA,
     );
-    return `✅ ${result.provider === 'groq' ? 'FAILOVER ACTIVO — salió por Groq' : 'salió por Gemini'} — "${result.data?.ok ?? '?'}"`;
+    const models = geminiModels();
+    const index = models.indexOf(result.model);
+    const via = result.provider === 'groq'
+      ? `FAILOVER ACTIVO — salió por Groq (${result.model})`
+      : `salió por ${result.model}${index > 0 ? ` (respaldo ${index}: la cascada saltó ${index} modelo${index > 1 ? 's' : ''})` : ' (preferido)'}`;
+    return `✅ ${via} — "${result.data?.ok ?? '?'}"`;
   } catch (reason) {
     const msg = reason instanceof Error ? reason.message : String(reason);
     return `❌ el seam relanzó el error original (provider no probado): ${msg.slice(0, 160)}`;

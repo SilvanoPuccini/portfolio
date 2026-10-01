@@ -1,5 +1,5 @@
 import type { Schema } from '@google/generative-ai';
-import { callGroqJson } from './groq';
+import { callGroqJson, GROQ_MODEL } from './groq';
 import { callGeminiJson, isQuotaError } from './gemini.client';
 import type { XProvider } from './types';
 
@@ -20,6 +20,8 @@ export interface JsonCallResult<T> {
   data: T;
   tokens: number;
   provider: XProvider;
+  /** El modelo exacto que respondió, para saber hasta dónde cayó la cascada. */
+  model: string;
 }
 
 /**
@@ -81,7 +83,7 @@ export async function callJson<T>(
     try {
       const result = await callGroqJson<T>({ system, input, schema, apiKey: groqApiKey });
       console.warn('[x/providers] Cuota de Gemini agotada, la llamada salió por Groq.');
-      return { ...result, provider: 'groq' as const };
+      return { ...result, provider: 'groq' as const, model: GROQ_MODEL };
     } catch (groqError) {
       // Antes esto relanzaba el error ORIGINAL de Gemini: enmascaraba la
       // causa real (límite de Groq) y hacía creer que el failover no entraba.

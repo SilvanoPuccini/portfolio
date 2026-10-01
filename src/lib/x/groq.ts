@@ -10,7 +10,7 @@ import { jsonrepair } from 'jsonrepair';
  */
 
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'openai/gpt-oss-120b';
+export const GROQ_MODEL = 'openai/gpt-oss-120b';
 
 /** Traduce el Schema de Gemini (SchemaType, PascalCase) a JSON Schema plano. */
 export function toJsonSchema(schema: Schema): Record<string, unknown> {
@@ -72,7 +72,7 @@ export async function callGroqJson<T>(params: {
       'Authorization': `Bearer ${params.apiKey}`,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: GROQ_MODEL,
       temperature: 0.9,
       messages: [
         { role: 'system', content: params.system },
@@ -92,7 +92,7 @@ export async function callGroqJson<T>(params: {
   const raw = await response.text();
   if (!response.ok) {
     throw Object.assign(
-      new Error(`[x/groq] ${MODEL} → ${response.status}: ${raw.slice(0, 300)}`),
+      new Error(`[x/groq] ${GROQ_MODEL} → ${response.status}: ${raw.slice(0, 300)}`),
       {
         status: response.status,
         detail: raw.slice(0, 400),
