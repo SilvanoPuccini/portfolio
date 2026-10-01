@@ -3,6 +3,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import remarkGfm from 'remark-gfm';
 import { DownloadGuides, Eyebrow, ImageShot, Row, Zoomable } from './PostRich';
 import { CodeBlock } from './CodeBlock';
+import { PostLink } from './PostLink';
 import { DevelopmentCycleDiagram, TestingQaDiagram } from './diagrams/DevelopmentCycleDiagrams';
 import { CierreDiagram } from './diagrams/CierreDiagram';
 import {
@@ -27,7 +28,7 @@ import { DockerBoundariesBlock, DockerContractBlock } from './diagrams/DockerDia
 import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
-  DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock,
+  DownloadGuides, Eyebrow, ImageShot, Row, Zoomable, pre: CodeBlock, a: PostLink,
   DevelopmentCycleDiagram, TestingQaDiagram, CierreDiagram,
   StackDiagramBlock, CommandsDiagramBlock, CloneToPublishDiagramBlock, WarpBlocksDiagramBlock,
   PromptDetailDiagramBlock, EditorWslDiagramBlock, ModelSwapDiagramBlock, VerificationDiagramBlock,
