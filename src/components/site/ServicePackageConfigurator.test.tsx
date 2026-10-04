@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
-import { servicioPorSlug } from '@/content/servicios';
+import { PUBLIC_SERVICIOS, servicioPorSlug } from '@/content/servicios';
 import ServicePackageConfigurator from './ServicePackageConfigurator';
 
 const web = servicioPorSlug('web')!;
@@ -66,16 +66,31 @@ it('shows material costs before purchase and keeps full scope collapsed', () => 
   expect(screen.getAllByText(/USD 40 every 3 months/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/USD 60 per month/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/USD 90 per month/).length).toBeGreaterThan(0);
-  expect(screen.getByText(/^Initial hosting and warranty/)).toHaveTextContent('explicit acceptance');
-  expect(screen.getByText(/Annual domain/)).toHaveTextContent('AI/API');
-  for (const summary of screen.getAllByText('Full scope')) expect(summary.closest('details')).not.toHaveAttribute('open');
+  expect(screen.getAllByText(/^Initial hosting and warranty/).length).toBe(3);
+  expect(screen.getAllByText(/Annual domain/).length).toBe(3);
+  for (const summary of screen.getAllByText('Scope and terms')) expect(summary.closest('details')).not.toHaveAttribute('open');
 });
 
-it('leaves other services on the existing configurator with mandatory extras', () => {
+it('uses the compact configurator for automation while preserving mandatory extras', () => {
   render(<ServicePackageConfigurator locale="es" servicio={servicioPorSlug('automatizacion')!} />);
-  const group = screen.getByRole('group', { name: /Elegí un paquete/ });
-  fireEvent.click(within(group).getByRole('button', { name: /Una automatización/ }));
+  const group = screen.getByRole('group', { name: /Paquetes de Automatización/ });
+  fireEvent.click(within(group).getByRole('button', { name: /Comprar Una automatización/ }));
   expect(screen.getByRole('checkbox', { name: /Plan de automatización/ })).toBeChecked();
   expect(screen.getByRole('checkbox', { name: /Plan de automatización/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /Contratar y firmar/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Continuar/ })).toBeInTheDocument();
+});
+
+it.each(PUBLIC_SERVICIOS.filter((service) => service.paquetes.length > 0))('renders only the real %s package actions without an automatic order', (service) => {
+  const fetchMock = vi.fn();
+  vi.stubGlobal('fetch', fetchMock);
+  render(<ServicePackageConfigurator locale="es" servicio={service} />);
+  for (const pkg of service.paquetes) {
+    const card = screen.getByRole('heading', { name: pkg.nombre.es }).closest('article')!;
+    if (pkg.precioUsd === null || pkg.recurrente) {
+      expect(within(card).getByRole('link', { name: 'Solicitar cotización' })).toHaveAttribute('href', `/es/services/agendar?service=${service.slug}&paquete=${pkg.slug}`);
+    } else {
+      expect(screen.getByRole('button', { name: `Comprar ${pkg.nombre.es}` })).toBeInTheDocument();
+    }
+  }
+  expect(fetchMock).not.toHaveBeenCalled();
 });

@@ -1,5 +1,13 @@
 # Sell the outcome, show the work, keep the costs clear
 
+## Compact purchase UX checkpoint — 2026-10-03
+
+The six public service pages now share one compact, problem-led composition: service-specific promise and benefits, a small illustrative icon, public package cards, and a selected-scope panel only when a fixed-price package is chosen. Custom systems remain a written-quote consultation. Quoted packages and care plans take the existing consultation route with service and package context; they are not presented as immediate checkouts. Fixed-price purchases still require the real qualification answers and order API before the existing contract and manual-payment flow. Required extras remain visible in the selected panel. No delivery engine, price change, live payment, email, or production deployment is implied.
+
+The design research used [Designjoy's process and pricing presentation](https://www.designjoy.co/) and [ManyPixels' plan comparison](https://www.manypixels.co/pricing) as hierarchy references only: outcome first, a short plan comparison, and one main action per offer. This implementation does **not** adopt their branding, unlimited-service claims, subscription mechanics, or prices. The catalog and `service-policy.ts` remain the sources of offer and care facts. The earlier Bruma showcase remains separate and is not a step in purchase.
+
+Local proof: the service-page, configurator, and package-card unit suites passed (38 tests after the six-family page check); downstream intake/order suites passed (47 tests). TypeScript, targeted ESLint, and diff checks passed. Local Chromium readback of Web at 390px and 1440px found three package actions and no horizontal overflow; care showed three quote actions. The dev screenshot carried a Next.js warning overlay because Google Fonts could not be fetched in the restricted environment, so typography/polish need review in a normal networked preview. Production integrations remain separate acceptance work.
+
 **Status:** Web/Landing implementation authorized and in progress; production deployment not performed.
 **Recorded:** 2026-09-27.
 **First slice:** Benefits-led Web/Landing service page and fictional Bruma preview/demo adapted from the LANIN editorial design reference.

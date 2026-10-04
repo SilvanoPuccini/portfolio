@@ -150,7 +150,7 @@ export default function PackageCard({
   // Con una respuesta fuera de alcance no se vende: se deriva.
   const vende = !aCotizar && !destino && !paquete.recurrente;
 
-  const agendarHref = `/${locale}/services/agendar?paquete=${paquete.slug}`;
+  const agendarHref = `/${locale}/services/agendar?service=${paquete.servicio}&paquete=${paquete.slug}`;
 
   const precio = paquete.recurrente && carePlan ? carePrice(carePlan, locale) : aCotizar
     ? paquete.desdeUsd
@@ -242,7 +242,7 @@ export default function PackageCard({
         )}
       </div>}
 
-      {!compact && extras.length > 0 && (
+      {(!compact || paquete.servicio !== 'web') && extras.length > 0 && (
         <fieldset className="mt-6 border-t border-outline-ghost/10 pt-4">
           <legend className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
             {labels.extras}

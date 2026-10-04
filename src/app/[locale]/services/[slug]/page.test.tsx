@@ -9,14 +9,25 @@ vi.mock('next/navigation', () => ({
 import { redirect } from 'next/navigation';
 import ServicioPage from './page';
 import { servicioPorSlug } from '@/content/servicios';
+import { PUBLIC_SERVICIOS } from '@/content/servicios';
 
 const render_ = async (slug: string, locale = 'es') =>
   render(await ServicioPage({ params: Promise.resolve({ locale, slug }) }));
 
 describe('la ficha de un servicio', () => {
+  it.each(PUBLIC_SERVICIOS)('keeps the compact service-to-offer path for %s', async (servicio) => {
+    await render_(servicio.slug);
+    expect(screen.getByRole('heading', { level: 1, name: servicio.problema.es })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Beneficios' })).toBeInTheDocument();
+    if (servicio.paquetes.length) {
+      expect(screen.getByRole('group', { name: new RegExp(servicio.nombre.es) })).toBeInTheDocument();
+    } else {
+      expect(screen.getByRole('link', { name: 'Solicitar cotización' })).toHaveAttribute('href', `/es/services/agendar?service=${servicio.slug}`);
+    }
+  });
   it('shows a compact product header without the inline demo or promotional sections', async () => {
     await render_('web');
-    expect(screen.getByRole('heading', { level: 1, name: 'Una web para tu negocio' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: servicioPorSlug('web')!.problema.es })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Comprar/ })).toHaveLength(3);
     expect(screen.queryByText(/Bruma/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Ver ejemplo|Explorar/ })).not.toBeInTheDocument();
@@ -32,7 +43,7 @@ describe('la ficha de un servicio', () => {
     await render_('sistema');
     const servicio = servicioPorSlug('sistema')!;
     expect(screen.getByText(servicio.porQueNoTienePrecio!.es)).toBeInTheDocument();
-    expect(screen.getAllByRole('link', { name: /agendar/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: /Solicitar cotización/i })).toHaveAttribute('href', '/es/services/agendar?service=sistema');
   });
 
   it('dice a dónde ir si este servicio no es el que necesita', async () => {
@@ -43,7 +54,7 @@ describe('la ficha de un servicio', () => {
 
   it('en inglés se lee en inglés', async () => {
     await render_('web', 'en');
-    expect(screen.getByRole('heading', { name: 'A website for your business' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: servicioPorSlug('web')!.problema.en })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Buy/ })).toHaveLength(3);
   });
 

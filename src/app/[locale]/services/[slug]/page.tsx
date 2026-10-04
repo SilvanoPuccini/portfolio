@@ -1,12 +1,9 @@
-import { CARE_PLANS, policyParagraphs } from '@/content/service-policy';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowRight, Check } from 'lucide-react';
+import { Check, ClipboardCheck, Globe, LayoutDashboard, ShieldCheck, ShoppingBag, Workflow, type LucideIcon } from 'lucide-react';
 
 import ServicePackageConfigurator from '@/components/site/ServicePackageConfigurator';
-import PageHero from '@/components/site/PageHero';
-import Reveal, { RevealGroup } from '@/components/site/Reveal';
 import {
   ALIAS_SERVICIOS,
   PUBLIC_SERVICIOS,
@@ -25,6 +22,7 @@ import { resolveLocale } from '@/lib/i18n';
  */
 
 type Params = Promise<{ locale: string; slug: string }>;
+const visualIcons: Record<string, LucideIcon> = { Globe, ShoppingBag, LayoutDashboard, Workflow, ClipboardCheck, ShieldCheck };
 
 const copy = {
   es: {
@@ -94,15 +92,20 @@ export default async function ServicioPage({ params }: { params: Params }) {
   const labels = copy[currentLocale];
   const agendarHref = `/${currentLocale}/services/agendar?service=${servicio.slug}`;
 
-  if (servicio.slug === 'web') return (
-    <section className="site-container py-10 sm:py-14" aria-labelledby="web-title">
-      <Link href={`/${currentLocale}/services`} className="text-sm text-text-secondary hover:text-text-primary">← {labels.volver}</Link>
-      <header className="mb-7 mt-6 max-w-2xl">
+  return (
+    <section className="site-container py-10 sm:py-14" aria-labelledby="service-title">
+      <nav aria-label={currentLocale === 'es' ? 'Ubicación' : 'Breadcrumb'} className="text-sm text-text-secondary"><Link href={`/${currentLocale}/services`} className="hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary">← {labels.volver}</Link><span className="mx-2" aria-hidden="true">/</span><span aria-current="page">{servicio.nombre[currentLocale]}</span></nav>
+      <header className="mb-7 mt-6 grid items-center gap-5 md:grid-cols-[minmax(0,1fr)_11rem]">
+       <div className="max-w-2xl">
         <p className="technical-label">{servicio.nombre[currentLocale]}</p>
-        <h1 id="web-title" className="mt-3 text-3xl font-medium tracking-tight sm:text-4xl">{currentLocale === 'es' ? 'Una web para tu negocio' : 'A website for your business'}</h1>
-        <p className="mt-3 text-sm leading-6 text-text-secondary">{currentLocale === 'es' ? 'Elegí tu paquete. Confirmá el alcance, revisá el contrato y pagá.' : 'Choose your package. Confirm the scope, review the contract and pay.'}</p>
+        <h1 id="service-title" className="mt-3 text-3xl font-medium tracking-tight sm:text-4xl">{servicio.problema[currentLocale]}</h1>
+        <p className="mt-3 text-sm leading-6 text-text-secondary">{servicio.promesa[currentLocale]}</p>
+       </div>
+       <div className="hidden h-36 items-center justify-center border border-outline-ghost/15 bg-brand-primary/[0.04] md:flex" aria-hidden="true">{(() => { const Icon = visualIcons[servicio.icono] ?? Globe; return <Icon className="h-12 w-12 text-brand-primary" strokeWidth={1.25} />; })()}</div>
       </header>
-      <div id="packages"><ServicePackageConfigurator locale={currentLocale} servicio={servicio} /></div>
+      <ul className="mb-7 grid gap-3 border-y border-outline-ghost/15 py-5 sm:grid-cols-3" aria-label={currentLocale === 'es' ? 'Beneficios' : 'Benefits'}>{servicio.paraQuien[currentLocale].slice(0, 3).map((item) => <li key={item} className="flex gap-2 text-sm leading-6 text-text-secondary"><Check className="mt-1 h-4 w-4 shrink-0 text-brand-primary" aria-hidden="true" />{item}</li>)}</ul>
+      <p className="mb-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-text-secondary" aria-label={currentLocale === 'es' ? 'Etapas del pedido' : 'Order steps'}><span><b className="mr-2 font-mono text-brand-primary">01</b>{currentLocale === 'es' ? 'Elegí el alcance' : 'Choose the scope'}</span><span><b className="mr-2 font-mono text-brand-primary">02</b>{currentLocale === 'es' ? 'Respondé lo necesario' : 'Answer what is needed'}</span><span><b className="mr-2 font-mono text-brand-primary">03</b>{currentLocale === 'es' ? 'Revisá el acuerdo' : 'Review the agreement'}</span></p>
+      <div id="packages" className="scroll-mt-28"><h2 className="mb-5 text-xl font-medium">{servicio.paquetes.length ? labels.paquetes : labels.sinPaquetes}</h2>{servicio.paquetes.length ? <ServicePackageConfigurator locale={currentLocale} servicio={servicio} /> : <div className="max-w-2xl border border-outline-ghost/15 p-6"><p className="text-sm leading-6 text-text-secondary">{servicio.porQueNoTienePrecio?.[currentLocale]}</p><Link href={agendarHref} className="button-primary mt-5 inline-flex">{currentLocale === 'es' ? 'Solicitar cotización' : 'Request a quote'}</Link></div>}</div>
       <details className="mt-8 border-t border-outline-ghost/15 pt-4 text-sm text-text-secondary">
         <summary className="cursor-pointer">{labels.derivaciones}</summary>
         <ul className="mt-3 space-y-2">{servicio.derivaciones.map((item) => <li key={item.label[currentLocale]}><Link href={hrefDelDestino(item.hacia, currentLocale)} className="underline">{item.caso[currentLocale]} — {item.label[currentLocale]}</Link></li>)}</ul>
@@ -110,92 +113,4 @@ export default async function ServicioPage({ params }: { params: Params }) {
     </section>
   );
 
-  return (
-    <>
-      <PageHero
-        eyebrow={servicio.nombre[currentLocale]}
-        title={servicio.problema[currentLocale]}
-        subtitle={<p>{servicio.promesa[currentLocale]}</p>}
-        actions={
-          <>
-            <Link href={servicio.paquetes.length ? "#packages" : agendarHref} className="button-primary w-full gap-2 sm:w-auto">
-              <span>{servicio.paquetes.length ? (currentLocale === 'es' ? 'Ver paquetes y precios' : 'See packages and prices') : labels.agendar}</span>
-              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-            </Link>
-            <Link href={`/${currentLocale}/services`} className="button-secondary w-full sm:w-auto">
-              {labels.volver}
-            </Link>
-          </>
-        }
-      />
-
-
-      <section className="site-container py-12 sm:py-16">
-        <div className="space-y-12">
-          <Reveal as="div" className="grid gap-5 border-y border-outline-ghost/15 py-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
-            <p className="technical-label">{labels.paraQuien}</p>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {servicio.paraQuien[currentLocale].map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-sm leading-6 text-text-secondary">
-                  <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-
-          <div id="packages" className="min-w-0 scroll-mt-40">
-            {servicio.slug === 'sistema' && <div className="mb-6 space-y-2 text-sm leading-6 text-text-secondary">
-              {policyParagraphs(CARE_PLANS.custom, currentLocale).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-            </div>}
-            {servicio.paquetes.length > 0 ? (
-              <>
-                <p className="technical-label">{labels.paquetes}</p>
-                <div className="mt-5"><ServicePackageConfigurator locale={currentLocale} servicio={servicio} /></div>
-              </>
-            ) : (
-              <Reveal as="div" className="surface-panel border border-outline-ghost/10 px-6 py-8">
-                <p className="technical-label">{labels.sinPaquetes}</p>
-                <p className="mt-4 text-base leading-7 text-text-secondary">
-                  {servicio.porQueNoTienePrecio?.[currentLocale]}
-                </p>
-                <Link href={agendarHref} className="button-primary mt-6 inline-flex gap-2">
-                  <span>{labels.agendar}</span>
-                  <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                </Link>
-              </Reveal>
-            )}
-          </div>
-        </div>
-      </section>
-
-
-      {servicio.derivaciones.length > 0 && (
-        <section className="site-container pb-16 sm:pb-20">
-          <p className="technical-label">{labels.derivaciones}</p>
-          <RevealGroup className="mt-5 grid gap-3 sm:grid-cols-2">
-            {servicio.derivaciones.map((derivacion) => (
-              <Reveal key={derivacion.label[currentLocale]} as="div">
-                <Link
-                  href={hrefDelDestino(derivacion.hacia, currentLocale)}
-                  className="card-interactive-soft flex h-full items-center justify-between gap-4 border border-outline-ghost/10 bg-[rgb(var(--surface)/0.55)] px-5 py-4"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-sm leading-6 text-text-secondary">
-                      {derivacion.caso[currentLocale]}
-                    </span>
-                    <span className="mt-1 block text-base font-medium text-text-primary">
-                      {derivacion.label[currentLocale]}
-                    </span>
-                  </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-text-tertiary" aria-hidden="true" />
-                </Link>
-              </Reveal>
-            ))}
-          </RevealGroup>
-          <p className="mt-8 max-w-2xl text-sm leading-6 text-text-tertiary">{labels.cierre}</p>
-        </section>
-      )}
-    </>
-  );
 }
