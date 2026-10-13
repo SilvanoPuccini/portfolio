@@ -27,6 +27,7 @@ import { CheckoutGapBlock, DeliveryStagesBlock, RollbackOptionsBlock } from './d
 import { DockerBoundariesBlock, DockerContractBlock } from './diagrams/DockerDiagrams';
 import { CloudResponsibilityBlock, IdempotentEventBlock } from './diagrams/CloudModelsDiagrams';
 import { PlatformComboBlock, PlatformFitBlock } from './diagrams/PlatformsDiagrams';
+import { SignalLadderBlock, UsefulAlertBlock } from './diagrams/AfterDeployDiagrams';
 import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
@@ -41,6 +42,7 @@ const mdxComponents = {
   DockerContractBlock, DockerBoundariesBlock,
   CloudResponsibilityBlock, IdempotentEventBlock,
   PlatformFitBlock, PlatformComboBlock,
+  SignalLadderBlock, UsefulAlertBlock,
 };
 
 const mdxOptions = {

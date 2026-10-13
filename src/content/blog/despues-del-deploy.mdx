@@ -1,0 +1,105 @@
+---
+title: 'Después del deploy: cómo saber si tu producto sigue funcionando'
+date: '2026-10-25'
+category: 'Criterio'
+displayCategory: 'Criterio'
+excerpt: 'Que la página abra no significa que el usuario pueda completar lo que vino a hacer. Un formulario que no envía, un mail que no sale o un cobro que no se registra pueden pasar semanas sin que nadie lo note. Saber si tu producto funciona es decidir qué preguntas hacerle y quién se entera cuando la respuesta es no.'
+featured: false
+linkedinCarousel: false
+readingTime: '8 min'
+keyword: 'Monitoreo'
+ogImage: '/api/og/despues-del-deploy'
+---
+
+Que la página abra no significa que el usuario pueda completar lo que vino a hacer. Un formulario que no envía, un mail que no sale o un cobro que no se registra pueden pasar semanas sin que nadie lo note. Saber si tu producto funciona es decidir qué preguntas hacerle y quién se entera cuando la respuesta es no.
+
+Esta nota cierra el recorrido de octubre. Empecé con Docker como contrato de ejecución, separé qué delegás en cada modelo de nube y repartí las piezas de una aplicación entre plataformas. Todo eso termina en el mismo momento: el deploy sale bien, la URL responde y parece que el trabajo terminó.
+
+Ahí empieza la parte que menos se planifica.
+
+## El deploy exitoso es una afirmación chica
+
+Cuando una plataforma marca un deploy como exitoso, está diciendo algo concreto: el build terminó, el proceso arrancó y, si lo configuraste, respondió a un chequeo de salud. Es información valiosa. También es mucho menos de lo que parece.
+
+No dice que la conexión con el proveedor de mails funcione. No dice que la variable de entorno del medio de pago sea la de producción. No dice que una migración haya dejado los datos como la aplicación los espera. Todo eso puede estar roto con un deploy en verde.
+
+El problema no es técnico, es de expectativa. Si la única señal que mirás es la del deploy, vas a enterarte de los demás fallos por el canal más caro: un cliente que te escribe para decir que algo no anda. O peor, uno que no te escribe y se va.
+
+## Cuatro preguntas distintas
+
+Me sirve pensar el monitoreo como una serie de preguntas, ordenadas desde la más barata de responder hasta la que más se acerca a lo que importa.
+
+<SignalLadderBlock />
+
+**¿La web abre?** Un servicio externo que pide la página cada pocos minutos y avisa si no responde. Es lo primero que conviene tener porque es simple y detecta la caída total. Pero una home que carga no dice nada sobre el formulario de contacto.
+
+**¿Las rutas críticas responden?** Acá entran los errores y la latencia de la API. Las plataformas suelen mostrar logs y métricas de cada función o servicio. La guía de monitoreo de Google para sistemas en producción propone mirar cuatro señales: latencia, tráfico, errores y saturación. [El capítulo del libro de SRE las explica.](https://sre.google/sre-book/monitoring-distributed-systems/) Son un buen punto de partida, siempre que las mires por ruta y no como un promedio de todo el sistema.
+
+**¿El flujo se completa?** Una ruta puede responder 200 y aun así no hacer lo que tiene que hacer. Un recorrido de punta a punta, como registrarse, pedir algo y recibir la confirmación, es la forma de comprobar que las piezas siguen conectadas entre sí. Puede ser una prueba automatizada que corre después de cada deploy o un recorrido manual con una lista escrita.
+
+**¿El negocio se mueve?** La última pregunta no la contesta ninguna herramienta de la plataforma. Si un sitio recibe en promedio varios contactos por semana y hace diez días que no entra ninguno, algo pasó. Puede ser el mercado, o puede ser que el formulario dejó de guardar. Las otras señales no lo van a ver si cada pieza, por separado, parece sana.
+
+## Fallar a medias es el caso difícil
+
+Una caída total se nota. Lo que cuesta detectar es la operación que se completa a medias: una parte se hizo y otra no.
+
+En este sitio pasa con la publicación de las notas. Cada mañana una tarea programada revisa si hay una nota aprobada para ese día. Si la hay, la publica y después manda el newsletter a los suscriptores. Son dos pasos que pueden fallar por separado.
+
+El orden lo elegí a propósito. Primero se verifica que el archivo de la nota exista, porque publicar algo sin contenido deja una ruta rota y un mail apuntando a la nada. Después se cambia el estado a publicado, y solo si ese cambio ocurre se manda el mail. Si el envío falla, la nota queda publicada y el mail queda marcado como pendiente, para que el próximo intento lo reenvíe sin volver a publicar.
+
+Ese diseño no evita el fallo. Lo que hace es dejarlo visible y recuperable: hay un estado que dice qué se hizo y qué falta. Sin ese registro, la única forma de saber si los suscriptores recibieron la nota sería preguntarles.
+
+La lección general es que el monitoreo empieza en el modelo de datos. Si una operación de varios pasos no guarda en qué paso quedó, no hay herramienta externa que pueda decírtelo después.
+
+## Cuando falta información, no asumas lo mejor
+
+Hay otra decisión que tomé en el mismo sitio y que vale para cualquier producto. Las notas programadas se ocultan hasta su fecha consultando la base de datos. ¿Qué pasa si esa consulta falla?
+
+La respuesta fácil sería mostrar todo, para que el sitio no se vea vacío. La que elegí es la opuesta: si no puedo leer el estado, uso la última lectura buena o me quedo con la regla más restrictiva, que es no mostrar nada cuya fecha no haya llegado. Prefiero que falte una nota un rato a publicar antes de tiempo algo que todavía no estaba listo.
+
+Cada sistema tiene que decidir hacia dónde falla. Un sistema de permisos que no puede verificar un acceso debería negarlo. Un cobro que no sabe si ya se procesó debería frenar antes de duplicarlo. Esa decisión forma parte del diseño, y conviene tomarla antes de que el fallo la tome por vos.
+
+## Una alerta útil tiene una acción detrás
+
+Una vez que medís cosas, aparece la tentación de avisar sobre todas. El resultado suele ser una bandeja llena de notificaciones que nadie lee, y la alerta importante se pierde entre las demás.
+
+<UsefulAlertBlock />
+
+La prueba que uso es simple: si después de leer la alerta no sé qué hacer, no es una alerta. Puede ser un dato interesante para revisar en un tablero, pero no tiene que interrumpir a nadie.
+
+El enfoque que propone Google para alertas parte de lo que siente el usuario: avisar cuando se está consumiendo el margen de error aceptable, no cada vez que un indicador técnico se mueve. [Su guía de alertas basadas en objetivos de servicio lo desarrolla.](https://sre.google/workbook/alerting-on-slos/) No hace falta adoptar todo el marco para quedarse con la idea central: una alerta existe para que alguien haga algo.
+
+En el panel de este sitio las alertas son reglas explícitas: un contacto nuevo que lleva más de 48 horas sin respuesta, una propuesta enviada que pasó cinco días sin contestar, un contrato firmado que todavía no se cobró. Ninguna depende de un modelo de IA. Una alerta que a veces llega y a veces no, porque se agotó una cuota, no es confiable justo el día que más importa. La IA puede resumir la lista después; construirla, no.
+
+## Saber qué camino tomó el sistema
+
+Hay un tipo de fallo que no se ve como error: el sistema funcionó, pero por el camino de respaldo.
+
+En el sitio tengo un flujo que genera textos con un modelo de lenguaje y, si el primero no responde por cuota, prueba con otros. Durante un tiempo eso funcionó en silencio. El texto salía, así que nada parecía roto. El problema era que no sabía cuántas veces estaba usando el respaldo ni con qué calidad.
+
+La corrección fue registrar qué modelo respondió en cada caso. No cambió el comportamiento, cambió lo que podía ver. Un respaldo que se activa todos los días deja de ser un respaldo: es el camino principal, con otro costo y otro resultado.
+
+Lo mismo pasa con reintentos, colas y degradaciones. Si tu sistema tiene un plan B, necesitás saber cuándo lo usa.
+
+## Lo mínimo que tendría desde el primer día
+
+Para un proyecto chico no hace falta una plataforma de observabilidad completa. Hace falta poder contestar las cuatro preguntas con algo concreto:
+
+| Pregunta | Lo mínimo | Quién se entera |
+|---|---|---|
+| ¿La web abre? | Chequeo externo cada pocos minutos | Quien opera el sitio |
+| ¿Las rutas críticas responden? | Logs con errores por ruta, revisados después de cada deploy | Quien hizo el deploy |
+| ¿El flujo se completa? | Un recorrido de punta a punta escrito y repetible | Quien hizo el deploy |
+| ¿El negocio se mueve? | Un conteo semanal contra lo esperado | Quien es dueño del producto |
+
+Si más adelante el sistema crece, el estándar abierto de OpenTelemetry organiza estas señales en trazas, métricas y logs, y permite cambiar de proveedor sin reescribir la instrumentación. [Su documentación explica cada tipo de señal.](https://opentelemetry.io/docs/concepts/signals/) Pero ninguna herramienta reemplaza la decisión previa: qué preguntas le hacés al producto y qué hacés cuando la respuesta es no.
+
+## Lo que quiero poder decir el lunes
+
+Después de un deploy quiero poder afirmar algo más que "subió". Quiero poder decir que el flujo principal se completó, que las tareas programadas corrieron, que no hay operaciones a medias esperando y que, si algo se rompe esta semana, me voy a enterar antes que el cliente.
+
+Con esto cierro la serie de infraestructura y operación. En noviembre la conversación baja a lo que sostiene todo lo anterior: los datos. La próxima nota es sobre PostgreSQL y por qué el modelo de datos también es una decisión de producto.
+
+---
+
+Qué preguntas hacerle a un sistema y qué hacer con la respuesta es parte de lo que documento en El Radar: decisiones técnicas con su costo, su condición y su momento de revisión. Si querés seguir la serie, suscribite acá abajo.
