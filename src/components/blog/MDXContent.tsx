@@ -26,6 +26,7 @@ import { BackendLineupBlock, BackendComplexityBlock } from './diagrams/BackendSt
 import { CheckoutGapBlock, DeliveryStagesBlock, RollbackOptionsBlock } from './diagrams/DeliveryDiagrams';
 import { DockerBoundariesBlock, DockerContractBlock } from './diagrams/DockerDiagrams';
 import { CloudResponsibilityBlock, IdempotentEventBlock } from './diagrams/CloudModelsDiagrams';
+import { PlatformComboBlock, PlatformFitBlock } from './diagrams/PlatformsDiagrams';
 import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
@@ -39,6 +40,7 @@ const mdxComponents = {
   DeliveryStagesBlock, RollbackOptionsBlock, CheckoutGapBlock,
   DockerContractBlock, DockerBoundariesBlock,
   CloudResponsibilityBlock, IdempotentEventBlock,
+  PlatformFitBlock, PlatformComboBlock,
 };
 
 const mdxOptions = {

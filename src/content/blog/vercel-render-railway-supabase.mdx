@@ -1,0 +1,119 @@
+---
+title: 'Vercel, Render, Railway y Supabase: qué parte de tu arquitectura resuelve cada una'
+date: '2026-10-18'
+category: 'Criterio'
+displayCategory: 'Criterio'
+excerpt: 'Comparar plataformas como si compitieran por el mismo lugar lleva a elegir mal. Una aplicación tiene piezas con necesidades distintas: una interfaz que responde rápido, un trabajo que tarda, datos que no pueden perderse. La pregunta útil no es cuál es la mejor, sino dónde va cada pieza.'
+featured: false
+linkedinCarousel: false
+readingTime: '9 min'
+keyword: 'Plataformas'
+ogImage: '/api/og/vercel-render-railway-supabase'
+---
+
+Comparar plataformas como si compitieran por el mismo lugar lleva a elegir mal. Una aplicación tiene piezas con necesidades distintas: una interfaz que responde rápido, un trabajo que tarda, datos que no pueden perderse. La pregunta útil no es cuál es la mejor, sino dónde va cada pieza.
+
+En la nota anterior separé responsabilidades: qué sostiene el proveedor y qué sigue siendo tuyo en un VPS, una plataforma, un backend como servicio o una función. Ahora toca bajar esa distinción a cuatro nombres que aparecen en casi cualquier conversación sobre dónde publicar un proyecto: Vercel, Render, Railway y Supabase.
+
+No voy a hacer un ranking. Voy a mirar qué tipo de trabajo resuelve cada una con naturalidad y en qué momento empezás a pelear contra su forma de funcionar.
+
+## Primero, las piezas
+
+Antes de abrir cualquier panel conviene listar qué tiene tu aplicación. No en términos de tecnologías, sino de comportamiento:
+
+- **Interfaz:** páginas y recursos que el navegador pide y que tienen que llegar rápido.
+- **API de request corto:** recibe una solicitud, consulta algo, responde y termina.
+- **Proceso siempre encendido:** un worker que toma tareas de una cola, un servidor de websockets propio, un consumidor de eventos.
+- **Tarea programada:** algo que corre a una hora fija, como un resumen diario o una publicación.
+- **Datos:** la base, sus backups y la forma de recuperarla.
+- **Archivos y cuentas:** lo que suben los usuarios y cómo se identifican.
+
+Esa lista ya descarta la mitad de las discusiones. Si tu proyecto es una interfaz con una API corta y una base, la comparación es una. Si tiene un worker que procesa durante minutos, es otra.
+
+<PlatformFitBlock />
+
+## Vercel: la interfaz y el request que termina rápido
+
+Vercel está pensada alrededor del frontend. Construye la aplicación, sirve la interfaz cerca del usuario y ejecuta el código de servidor como funciones que se invocan por request. Con un framework como Next.js, el camino del repositorio a una URL pública es corto, y cada cambio puede tener su propia vista previa antes de llegar a producción.
+
+Ese modelo tiene una consecuencia directa: el código de servidor vive mientras dura la solicitud. Las funciones tienen una duración máxima que depende de la configuración y del plan. [La documentación de Vercel detalla esos límites.](https://vercel.com/docs/functions/limitations) Para responder un formulario o consultar la base alcanza de sobra. Para generar un reporte pesado o mantener una conexión abierta durante horas, no es el lugar.
+
+Este mismo sitio corre así. La interfaz y las rutas de la API están en Vercel, y hay tareas programadas que la plataforma dispara invocando una ruta a una hora fija: por ejemplo, la que revisa cada mañana si hay una nota aprobada para publicar. [Los cron jobs de Vercel funcionan de esa manera.](https://vercel.com/docs/cron-jobs) La tarea sigue siendo una función: tiene que hacer su trabajo y terminar dentro del mismo límite.
+
+Vercel también ofrece almacenamiento y bases de datos, propios o a través de integraciones. Que estén a un clic no los convierte en el centro de su producto. Si los usás, conviene leer qué servicio hay detrás y quién lo opera.
+
+## Render: servicios que siguen encendidos
+
+Render se parece más a lo que muchos imaginan cuando piensan en un servidor, pero sin administrarlo. Podés desplegar un servicio web, un sitio estático, un worker que no recibe tráfico HTTP, una tarea programada o una base PostgreSQL, cada uno como una pieza separada.
+
+La diferencia importante frente a Vercel es el proceso que no termina. Un worker en segundo plano puede quedarse escuchando una cola y tomar trabajo cuando llega. [Render documenta ese tipo de servicio por separado.](https://render.com/docs/background-workers) Eso cambia el diseño: la API puede aceptar el pedido, encolarlo y responder enseguida, mientras el worker lo procesa sin apuro.
+
+Hay un detalle que conviene conocer antes y no después. El sistema de archivos de un servicio es efímero: lo que escribís en disco se pierde en el próximo deploy, salvo que agregues un disco persistente, que tiene sus propias condiciones. [Su documentación sobre discos lo explica.](https://render.com/docs/disks) Si tu aplicación guarda archivos subidos por usuarios “en una carpeta”, ese es el primer lugar donde se rompe.
+
+Como conté en la nota anterior, para una de mis aplicaciones elegí una plataforma de este tipo justamente para dejar de administrar infraestructura. Lo que no delegué fue entender cómo arranca el servicio, qué variables necesita y qué hace cuando una migración falla.
+
+## Railway: un proyecto como un conjunto de servicios
+
+Railway organiza todo alrededor de un proyecto que agrupa servicios: tu aplicación, una base, un worker, un servicio construido desde una imagen de Docker. Se conectan por una red privada y se ven juntos en un mismo lienzo. Para quien viene de escribir un `docker-compose` y quiere algo parecido sin operar el servidor, ese modelo resulta familiar.
+
+El cobro está atado principalmente al consumo de recursos. Eso es cómodo para un proyecto que arranca chico y puede ser una sorpresa cuando un proceso consume más de lo esperado. La pregunta de la nota anterior sigue aplicando: qué recurso crece con cada usuario y qué queda funcionando cuando nadie usa el sistema.
+
+Como en Render, el disco de un servicio no es el lugar para datos que tienen que sobrevivir a un deploy. Para eso existen los volúmenes, que se montan en un servicio y tienen sus propias reglas. [Railway explica cómo funcionan.](https://docs.railway.com/reference/volumes)
+
+Render y Railway se superponen bastante. La elección entre las dos suele depender menos de una capacidad faltante y más de cómo preferís organizar los servicios, cómo te resulta el modelo de cobro y qué tan cómodo te queda diagnosticar ahí.
+
+## Supabase: no es un lugar para tu aplicación, es un lugar para tus datos
+
+Supabase juega en otra categoría. No viene a reemplazar a Vercel, Render ni Railway: ofrece una base PostgreSQL con autenticación, almacenamiento de archivos, tiempo real y funciones alrededor. Tu interfaz y tu API pueden estar en cualquiera de las otras y usar Supabase como backend de datos.
+
+Este sitio también lo usa así. La agenda de publicación, los contactos y los archivos privados viven en Supabase, y el acceso pasa por rutas del servidor que validan antes de tocar nada. Ningún dato sensible se consulta directamente desde el navegador. Esa decisión no la tomó la plataforma: la tuve que diseñar.
+
+Hay un punto técnico que conviene resolver temprano si combinás Supabase con funciones. Cada invocación puede abrir su propia conexión a la base, y con tráfico concurrente eso se multiplica. Supabase ofrece formas de conexión mediante un pooler pensadas para ese escenario. [Su guía de conexión explica cuál usar según el caso.](https://supabase.com/docs/guides/database/connecting-to-postgres)
+
+Y una advertencia que repito porque es la que más cuesta: que exista autenticación no significa que existan permisos. Saber quién es el usuario no responde qué registros puede ver. Esa regla tiene que estar en una capa confiable, como las políticas por fila de PostgreSQL o el servidor, y tiene que probarse.
+
+## Combinar está bien si podés explicar cada frontera
+
+En la práctica, muchas arquitecturas terminan repartidas: la interfaz en Vercel, un worker en Render o Railway, los datos en Supabase. No hay nada de malo en eso. Cada servicio está haciendo lo que mejor hace.
+
+<PlatformComboBlock />
+
+El costo está en las fronteras. Cada plataforma agrega un panel, una factura, un lugar donde guardar variables de entorno y un lugar más donde mirar cuando algo falla. Si un usuario no puede descargar su reporte, el problema puede estar en la API, en la cola, en el worker o en los permisos del archivo, y cada uno vive en un lugar distinto.
+
+Por eso no sumaría un servicio solo porque tiene un plan gratuito o porque lo vi en un tutorial. Lo sumaría cuando una pieza del producto lo necesita y puedo decir qué ganaría si no lo usara.
+
+## Siete cosas que revisaría antes de desplegar
+
+No sirve como checklist universal, pero cubre los errores que más se repiten cuando una aplicación pasa de la computadora local a una plataforma:
+
+| Pregunta | Por qué importa |
+|---|---|
+| ¿Cuánto puede durar un request o una ejecución? | Define si un trabajo largo entra o necesita un worker |
+| ¿El disco sobrevive a un deploy? | Archivos guardados en una carpeta pueden desaparecer |
+| ¿Cómo se conecta a la base con tráfico concurrente? | Las funciones pueden agotar conexiones si no hay pooler |
+| ¿Dónde viven las variables de entorno de cada servicio? | Una variable faltante en producción es un deploy roto |
+| ¿Qué pasa si una tarea programada falla? | Sin reintento ni aviso, el error pasa desapercibido |
+| ¿Cómo hago un backup y cómo lo restauro? | Tener copias no sirve si nunca probaste volver |
+| ¿Qué crece en la factura cuando crecen los usuarios? | El precio de entrada no dice cómo escala el costo |
+
+La sexta es la que más se posterga. Las plataformas de datos suelen ofrecer copias automáticas según el plan. [Supabase describe las suyas en su documentación de backups.](https://supabase.com/docs/guides/platform/backups) Pero la pregunta real es otra: cuánto tardarías en volver a tener el sistema funcionando y qué información estarías dispuesto a perder.
+
+## Cómo decidiría en tres escenarios
+
+**Una landing con formulario de contacto.** Vercel o el sitio estático de Render resuelven todo. Si los contactos tienen que guardarse, una tabla en Supabase alcanza. Agregar un worker acá sería administrar una pieza que el producto no pide.
+
+**Un SaaS chico con usuarios y datos por organización.** La interfaz y la API en Vercel, y Supabase para autenticación y datos. Lo que más tiempo merece no es la plataforma, sino las políticas de acceso: que cada organización vea solo lo suyo, probado con más de una cuenta.
+
+**Un sistema que procesa archivos o genera reportes pesados.** La API sigue respondiendo rápido, pero el trabajo largo se va a un worker en Render o Railway. Los archivos y el estado de cada tarea quedan guardados fuera del worker, para que un reinicio no borre el progreso.
+
+En los tres casos la plataforma se elige después de nombrar las piezas. Si empezás por la plataforma, terminás adaptando el producto a lo que ofrece.
+
+## Lo que quiero poder explicar después
+
+Elegir dónde publicar no termina en el deploy exitoso. Quiero poder decir qué pieza vive en cada lugar, qué límite tiene cada una y dónde empiezo a buscar cuando algo deja de responder.
+
+Ese último punto es el tema de la próxima nota: después del deploy, cómo saber si tu producto sigue funcionando. Que la página abra no significa que el usuario pueda completar lo que vino a hacer.
+
+---
+
+Dónde va cada pieza y qué condiciones acepta al ir ahí es una de las decisiones que documento en El Radar: qué resuelve, qué cuesta y cuándo conviene revisarla. Si querés seguir la serie, suscribite acá abajo.
