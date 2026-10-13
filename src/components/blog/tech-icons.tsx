@@ -150,6 +150,36 @@ export const TECH_ICONS: Record<string, TechIcon> = {
       </svg>
     ),
   },
+  /*
+   * Concepto del post de plataformas. Cuatro casilleros con uno resaltado:
+   * cada pieza de la aplicación tiene un lugar donde encaja mejor.
+   */
+  Plataformas: {
+    color: "#C9D1D9",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <rect x="3" y="3" width="8" height="8" rx="1.6" stroke="currentColor" strokeWidth="1.3" opacity=".55" />
+        <rect x="13" y="3" width="8" height="8" rx="1.6" stroke="currentColor" strokeWidth="1.3" opacity=".55" />
+        <rect x="3" y="13" width="8" height="8" rx="1.6" stroke="currentColor" strokeWidth="1.3" opacity=".55" />
+        <rect x="13" y="13" width="8" height="8" rx="1.6" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M15.5 17h3M17 15.5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  /*
+   * Concepto del post de después del deploy. Una línea de pulso sobre una
+   * pantalla: el sitio no solo tiene que abrir, tiene que seguir latiendo.
+   */
+  Monitoreo: {
+    color: "#C9D1D9",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <rect x="2.5" y="4" width="19" height="13" rx="1.6" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M5 11h3l1.5-3 2.5 6 2-4.5 1.2 1.5H19" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9 20.5h6M12 17v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" opacity=".55" />
+      </svg>
+    ),
+  },
   Vite: {
     color: "#A259FF",
     icon: (
