@@ -20,6 +20,25 @@ export interface ValidationIssue {
   problem: string;
 }
 
+/** Ignore cosmetic differences, but do not equate shared topics with repetition. */
+export function validateOriginality(tweets: string[], approvedThreads: string[][]): ValidationIssue[] {
+  const normalize = (text: string) => text.normalize('NFC').toLowerCase()
+    .replace(/[.!?¿¡,:;…"'“”‘’()[\]{}]/gu, ' ').replace(/\s+/gu, ' ').trim();
+  const hook = normalize(tweets[0]?.trim().split(/\r?\n/)[0] ?? '');
+  const body = normalize(tweets.join(' '));
+  const issues: ValidationIssue[] = [];
+  if (hook && approvedThreads.some((previous) =>
+    normalize(previous[0]?.trim().split(/\r?\n/)[0] ?? '') === hook)) {
+    issues.push({ code: 'DUPLICATE_HOOK', target: 'tweet_1',
+      problem: 'El título o gancho ya aparece en un hilo aprobado. Escribí una apertura distinta, sin cambios cosméticos.' });
+  }
+  if (body && approvedThreads.some((previous) => normalize(previous.join(' ')) === body)) {
+    issues.push({ code: 'DUPLICATE_THREAD', target: 'thread',
+      problem: 'El hilo completo ya aparece en un hilo aprobado. Cambiá el desarrollo, el ejemplo y la conclusión; el tema puede repetirse.' });
+  }
+  return issues;
+}
+
 /**
  * X no cuenta caracteres, cuenta "peso": los emoji y varios alfabetos valen 2,
  * y toda URL vale 23 fijos sin importar su largo. Por eso el conteo lo hace la

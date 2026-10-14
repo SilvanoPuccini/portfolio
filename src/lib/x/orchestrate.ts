@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { critique, writeThread, type XCritique, type XDraft } from './gemini';
-import { validateThread } from './validate';
+import { validateOriginality, validateThread } from './validate';
 import { MAX_REWRITE_HISTORY, type XAngle, type XProvider, type XRewriteHistoryEntry } from './types';
 
 /**
@@ -39,6 +39,8 @@ export interface OrchestrateParams {
   selectedAngleId: string;
   publishedThisWeek: string[];
   allowedUrls: string[];
+  /** Approved history across articles, used for deterministic duplicate checks. */
+  approvedThreads?: string[][];
   /** Historial ya persistido de corridas anteriores. Se suma a los fixes. */
   history?: XRewriteHistoryEntry[];
   /** Persiste una entrada histórica apenas termina cada intento. */
@@ -172,7 +174,10 @@ export async function orchestrateThread(params: OrchestrateParams): Promise<Orch
       return { outcome: 'blocked', reasons, attempts: n, tokens, lastDraft, provider };
     }
 
-    const validation = validateThread(draft.tweets, draft.reply_with_link, params.allowedUrls);
+    const validation = [
+      ...validateThread(draft.tweets, draft.reply_with_link, params.allowedUrls),
+      ...validateOriginality(draft.tweets, params.approvedThreads ?? []),
+    ];
 
     const reviewed = await withQuotaRetry('crítica', () => critique({
       draft,

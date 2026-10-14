@@ -1,10 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import { allowedUrls } from './repository';
-import { validateThread, weightedLength } from './validate';
+import { validateThread, validateOriginality, weightedLength } from './validate';
 
 const OK_URL = 'https://www.silvanopuccini.dev/es/';
 const ALLOWED = [OK_URL];
 const REPLY = `Lo escribí completo acá: ${OK_URL}`;
+
+describe('validateOriginality', () => {
+  it('rejects a repeated opening despite case, unicode, punctuation and spacing changes', () => {
+    expect(validateOriginality(['  ¿CÓMO desplegar?\nNew material', 'A new example'],
+      [['Cómo   desplegar!\nOlder material', 'An older example']]))
+      .toContainEqual(expect.objectContaining({ code: 'DUPLICATE_HOOK', target: 'tweet_1' }));
+  });
+
+  it('rejects a complete repeated thread even if tweet boundaries change', () => {
+    expect(validateOriginality(['New hook', 'Same body'], [['New hook Same body']]))
+      .toContainEqual(expect.objectContaining({ code: 'DUPLICATE_THREAD' }));
+  });
+
+  it('allows the same topic with a distinct opening and treatment', () => {
+    expect(validateOriginality(['Deploy without downtime', 'Use readiness checks'],
+      [['Deploy rollbacks', 'Restore the previous release']])).toEqual([]);
+    expect(validateOriginality([], [[]])).toEqual([]);
+    expect(validateOriginality(['C++ in production', 'A C++ example'],
+      [['C# in production', 'A C# example']])).toEqual([]);
+  });
+});
 
 /** Hilo mínimo válido: gancho corto, cuatro posts, sin links ni tics. */
 function goodThread(): string[] {

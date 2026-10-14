@@ -156,6 +156,10 @@ Al bloquear, block_code dice por qué:
   · REPETITION: el ángulo ya lo cubre already_published_this_week.
   · MISSING_INPUT: falta el artículo, el ángulo o el perfil.
   · NO_MATERIAL: el artículo no alcanza para el ángulo sin inventar.
+El tema puede volver a aparecer: compartir vocabulario o fuente no es repetir.
+REPETITION exige la misma tesis, el mismo ejemplo y el mismo remate.
+Un título o gancho repetido se reescribe con una apertura nueva; por sí solo
+no agota el ángulo ni justifica REPETITION.
 
 SALIDA
 Devolvé únicamente un objeto JSON con las claves: status, thesis, tweets,
@@ -196,6 +200,9 @@ REVISIÓN
    mismo remate que uno de esa lista. X prohíbe el contenido sustancialmente
    similar y lo sanciona con suspensión: por eso el listón es "sustancialmente
    igual", no "parecido".
+   El tema puede volver a aparecer con otra pregunta, ejemplo y conclusión.
+   Un título o gancho repetido se debe reescribir, sin dar por agotado el tema:
+   no marques REPETITION solo por esa apertura; pedí una apertura nueva.
 7. Revisá la voz contra los patrones del autor: reencuadre, "lo que te da / lo
    que te cobra", cuándo sirve y cuándo no, ejemplo concreto, límite declarado.
    No exijas anécdota ni primera persona en cada post.

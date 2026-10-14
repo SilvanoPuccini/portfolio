@@ -44,6 +44,7 @@ function renderRow(
     expanded={false}
     onToggle={vi.fn()}
     onGenerate={vi.fn()}
+    onReplan={onChangeStatus}
     onSave={vi.fn()}
     onSaveDate={vi.fn()}
     onPublish={vi.fn()}
@@ -57,6 +58,19 @@ function renderRow(
 }
 
 describe('XThreadRow status controls', () => {
+  it('offers replanning instead of rewriting an exhausted plan', () => {
+    const onReplan = renderRow('error', vi.fn(), { last_error:
+      'Los 4 ángulos del plan ya están cubiertos por hilos aprobados de la semana. Replanificá la semana o usá otro post.' });
+    expect(screen.queryByRole('button', { name: 'Reescribir' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Replanificar hilo' }));
+    expect(onReplan).toHaveBeenCalledOnce();
+  });
+
+  it('keeps ordinary editorial errors rewriteable', () => {
+    renderRow('error', vi.fn(), { last_error: 'Missing evidence' });
+    expect(screen.getByRole('button', { name: 'Reescribir' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Replanificar hilo' })).toBeNull();
+  });
   it('distinguishes API publishing from manual status marking', () => {
     const onChangeStatus = renderRow('preaprobado');
 

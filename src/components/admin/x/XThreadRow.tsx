@@ -5,6 +5,7 @@ import { CopyIconButton, ConfirmIconButton, IconButton, ChevronIcon, CrossIcon }
 import { StatusPill } from '@/components/admin/StatusPill';
 import { c, tint } from '@/components/admin/tokens';
 import { CREDITS_DEPLETED_MESSAGE } from '@/lib/x/client';
+import { canReplanThread, isPlanExhausted, PLAN_EXHAUSTED_PREFIX } from '@/lib/x/generation-state';
 import { weightedLength } from '@/lib/x/validate';
 import type { XThreadListItem, XThread, XThreadStatus } from '@/lib/x/types';
 
@@ -69,13 +70,14 @@ function TweetBox({ index, value, onChange, onRemove }: {
  * Una fila por turno de publicación. Igual que en la agenda: todo lo que se le
  * puede hacer al hilo se hace acá, sin ir a otra pantalla.
  */
-export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onSave, onSaveDate, onPublish, onChangeStatus, onDelete, onMarkRemoved, busy, autopilot }: {
+export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate, onReplan, onSave, onSaveDate, onPublish, onChangeStatus, onDelete, onMarkRemoved, busy, autopilot }: {
   item: XThreadListItem;
   expanded: boolean;
   full?: XThread;
   warning?: string | null;
   onToggle: () => void;
   onGenerate: () => void | Promise<unknown>;
+  onReplan?: () => void | Promise<unknown>;
   onSave: (tweets: string[], reply: string) => Promise<boolean>;
   onSaveDate: (scheduledAt: string) => Promise<boolean>;
   onPublish: () => void | Promise<unknown>;
@@ -101,6 +103,7 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
   const dirty = draft !== null || reply !== null;
   const allText = [...tweets, replyText].join('\n\n');
   const noCredits = item.last_error === CREDITS_DEPLETED_MESSAGE;
+  const exhausted = isPlanExhausted(item.last_error);
   // Preaprobar/publicar a mano exige aprobación previa: la huella la deja la
   // generación o el guardado. Solo la fila ya publicada escapa (published_at
   // ya existe y siguió de marca anti-republish cuando bajó de estado).
@@ -150,7 +153,12 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
       <StatusPill tone={tone} label={LABEL[item.status]} />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-        {(item.status === 'planificado' || item.status === 'error') &&
+        {item.status === 'error' && exhausted
+          ? actionButton('Replanificar hilo', () => { void onReplan?.(); }, c.ready, {
+            disabled: !onReplan || !canReplanThread(item),
+            title: 'Busca nuevos ángulos para este hilo sin cambiar su fecha ni los hilos aprobados. Después se puede escribir y validar.',
+          })
+          : (item.status === 'planificado' || item.status === 'error') &&
           actionButton(busy ? 'Trabajando...' : item.status === 'error' ? 'Reescribir' : 'Escribir', onGenerate, c.ready)}
 
         {item.status === 'planificado' && actionButton('Marcar preaprobado', () => onChangeStatus('preaprobado'), c.ready, {
@@ -275,15 +283,17 @@ export function XThreadRow({ item, expanded, full, warning, onToggle, onGenerate
         border: `1px solid ${c.late}`, background: tint(c.late, '0f'), color: c.late,
       }}>
         {item.status === 'error' && <p style={{ margin: '0 0 4px', fontWeight: 700 }}>
-          La IA rechazo este hilo{item.generation_attempts > 0 && ` (${item.generation_attempts} ${item.generation_attempts === 1 ? 'intento' : 'intentos'})`}.
+          {exhausted ? 'Plan agotado' : 'La IA rechazó este hilo'}{item.generation_attempts > 0 && ` (${item.generation_attempts} ${item.generation_attempts === 1 ? 'intento acumulado' : 'intentos acumulados'})`}.
         </p>}
         <p style={{ margin: 0, opacity: 0.92 }}>
           {item.status === 'error'
-            ? 'Aprieta Reescribir para que trabaje sobre esta devolucion.'
+            ? exhausted
+              ? 'Usá Replanificar hilo para buscar otro desarrollo. Si el artículo no ofrece material nuevo, usá otro post. No se publicará sin validación.'
+              : 'Usá Reescribir para trabajar sobre esta devolución.'
             : item.last_error}
         </p>
         {item.status === 'error' && item.last_error && <p style={{ margin: '6px 0 0', opacity: 0.75, whiteSpace: 'pre-wrap' }}>
-          {item.last_error.split(' | ').map((reason) => `· ${reason}`).join('\n')}
+          {item.last_error.replace(PLAN_EXHAUSTED_PREFIX, '').split(' | ').map((reason) => `· ${reason}`).join('\n')}
         </p>}
       </div>}
 

@@ -539,6 +539,7 @@ function XPageContent() {
               warning={warnings[item.id] ? warnings[item.id] : null}
               onToggle={() => open(item.id)}
               onGenerate={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/generate`, { method: 'POST' }))}
+              onReplan={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/replan`, { method: 'POST' }))}
               onPublish={() => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}/publish`, { method: 'POST' }))}
               onChangeStatus={(status) => act(item.id, () => fetch(`/api/admin/x-threads/${item.id}`, {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json' },

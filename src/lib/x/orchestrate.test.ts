@@ -7,7 +7,8 @@ const gemini = vi.hoisted(() => ({
 }));
 
 vi.mock('./gemini', () => gemini);
-vi.mock('./validate', () => ({
+vi.mock('./validate', async (importOriginal) => ({
+  ...await importOriginal<typeof import('./validate')>(),
   validateThread: () => [],
   weightedLength: () => ({ length: 0, valid: true }),
 }));
@@ -51,6 +52,29 @@ describe('orchestrateThread', () => {
   beforeEach(() => {
     gemini.writeThread.mockReset();
     gemini.critique.mockReset();
+  });
+
+  it('cannot approve a duplicate hook even when the critic approves; sends corrections to the writer', async () => {
+    gemini.writeThread.mockResolvedValue({ data: draft(), tokens: 1, provider: 'gemini' });
+    gemini.critique.mockResolvedValue({ data: { verdict: 'approved', issues: [], summary: 'OK' }, tokens: 1 });
+    const result = await orchestrateThread({ ...params,
+      approvedThreads: [['El costo de la libertad.\nDifferent body', 'Different example']],
+    });
+    expect(result.outcome).toBe('blocked');
+    expect(gemini.writeThread).toHaveBeenCalledTimes(MAX_ATTEMPTS);
+    expect(gemini.writeThread.mock.calls[1][0].fixes.join(' ')).toContain('gancho');
+    expect(gemini.critique.mock.calls[0][0].validationReport).toContainEqual(
+      expect.objectContaining({ code: 'DUPLICATE_HOOK' }));
+  });
+
+  it('cannot approve a complete duplicate with different tweet boundaries', async () => {
+    const written = draft();
+    gemini.writeThread.mockResolvedValue({ data: written, tokens: 1, provider: 'gemini' });
+    gemini.critique.mockResolvedValue({ data: { verdict: 'approved', issues: [], summary: 'OK' }, tokens: 1 });
+    const result = await orchestrateThread({ ...params, approvedThreads: [[written.tweets.join(' ')]] });
+    expect(result.outcome).toBe('blocked');
+    expect(gemini.critique.mock.calls[0][0].validationReport).toContainEqual(
+      expect.objectContaining({ code: 'DUPLICATE_THREAD' }));
   });
 
   it('corta apenas el crítico marca REPETITION, sin quemar intentos de reescritura', async () => {

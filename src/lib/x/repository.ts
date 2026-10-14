@@ -39,6 +39,23 @@ export async function getThread(id: string): Promise<XThread | null> {
   return data;
 }
 
+/** Exact-content checks span all articles; keep thread boundaries and paginate. */
+export async function approvedThreadTexts(exceptId: string): Promise<string[][]> {
+  const threads: string[][] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await getSupabaseAdmin()
+      .from('x_threads').select('id, tweets')
+      .in('status', ['preaprobado', 'publicado']).is('deleted_at', null)
+      .order('id').range(offset, offset + pageSize - 1);
+    if (error) throw new Error(error.message);
+    for (const row of data ?? []) {
+      if (row.id !== exceptId) threads.push(((row.tweets ?? []) as { text: string }[]).map((tweet) => tweet.text));
+    }
+    if ((data?.length ?? 0) < pageSize) return threads;
+  }
+}
+
 /**
  * Los hilos APROBADOS de la misma semana del post. Es lo que recibe el
  * generador para no repetirse: X sanciona el contenido sustancialmente

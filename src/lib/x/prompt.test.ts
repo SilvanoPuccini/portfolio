@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { allowedUrls } from './repository';
-import { planWeekInput, planWeekSystem, writerInput, writerSystemPrompt } from './prompt';
+import { criticSystemPrompt, planWeekInput, planWeekSystem, writerInput, writerSystemPrompt } from './prompt';
+
+it('allows recurring topics without permitting duplicate threads or opening hooks', () => {
+  for (const prompt of [writerSystemPrompt(), criticSystemPrompt()]) {
+    expect(prompt).toContain('El tema puede volver a aparecer');
+    expect(prompt).toContain('misma tesis');
+    expect(prompt).toContain('gancho repetido');
+  }
+});
 
 describe('planWeekSystem', () => {
   it('pide anclar cada ángulo a un dato concreto del artículo', () => {

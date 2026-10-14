@@ -4,10 +4,11 @@ import {
   CREDITS_DEPLETED_MESSAGE, isCreditsDepletedError, publishThread, threadUrl,
 } from './client';
 import { planWeek } from './gemini';
+import { canReplanThread, PLAN_EXHAUSTED_PREFIX } from './generation-state';
 import { fingerprint, orchestrateThread, REPETITION_BLOCK_REASON } from './orchestrate';
 import { validateThread, weightedLength } from './validate';
 import {
-  allowedUrls, appendRewriteHistory, createThread, createWeek, recentAngles, rejectedAngles, siblingsOf, updateThread,
+  allowedUrls, approvedThreadTexts, appendRewriteHistory, createThread, createWeek, recentAngles, rejectedAngles, siblingsOf, updateThread,
 } from './repository';
 import { xScheduleFor } from './scheduling';
 import { MAX_REWRITE_HISTORY, type XAngle, type XRewriteHistoryEntry, type XThread } from './types';
@@ -216,6 +217,25 @@ export async function planWeekFor(postSlug: string) {
   return { threads: rows, angles, tokens, provider };
 }
 
+/** Explicit recovery: replace only this failed slot, never insert another week. */
+export async function replanThread(thread: XThread) {
+  if (!canReplanThread(thread)) throw new Error('Este hilo no tiene un plan agotado recuperable.');
+  const article = await loadArticle(thread.post_slug);
+  const recent = await recentAngles(12);
+  const rejected = await rejectedAngles(8);
+  const exhausted = planFor(thread).map((angle) =>
+    `${angle.summary} | ${angle.question}: agotado por repetición; buscar un desarrollo distinto, no otro nombre para la misma idea.`);
+  const { data } = await planWeek(article.raw_title, article.raw_content, recent, [...rejected, ...exhausted]);
+  const angle = data.angles[0];
+  if (!angle) throw new Error('El artículo no dio otro ángulo distinto. Usá otro post; no se modificó este hilo.');
+  return updateThread(thread.id, {
+    plan: data.angles, angle_id: angle.id, angle_summary: `${angle.summary} | ${angle.question}`,
+    rewrite_history: [], status: 'planificado', last_error: null,
+    tweets: [], thesis: null, reply_with_link: null, evidence: [],
+    approved_fingerprint: null, pre_approved_at: null,
+  });
+}
+
 /**
  * Escribe y valida el texto de un hilo. Deja el resultado en la fila.
  *
@@ -227,6 +247,7 @@ export async function planWeekFor(postSlug: string) {
 export async function generateThread(thread: XThread) {
   const article = await loadArticle(thread.post_slug);
   const siblings = await siblingsOf(thread.post_slug, thread.id);
+  const approvedThreads = await approvedThreadTexts(thread.id);
   const plan = planFor(thread);
   const articleUrl = `https://www.silvanopuccini.dev/es/blog/${article.post_slug}`;
   const authorizedUrls = [...new Set([...allowedUrls(), articleUrl])];
@@ -252,7 +273,11 @@ export async function generateThread(thread: XThread) {
       : [];
     const persistAttempt = async (entry: XRewriteHistoryEntry) => {
       history = appendRewriteHistory(history, entry);
-      await updateThread(thread.id, { rewrite_history: history });
+      // Identity and feedback must describe the same angle, including on failure.
+      await updateThread(thread.id, {
+        angle_id: angle.id, angle_summary: `${angle.summary} | ${angle.question}`,
+        rewrite_history: history,
+      });
     };
 
     const result = await orchestrateThread({
@@ -262,6 +287,7 @@ export async function generateThread(thread: XThread) {
       angles: plan,
       selectedAngleId: angle.id,
       publishedThisWeek: siblings,
+      approvedThreads,
       allowedUrls: authorizedUrls,
       history,
       onAttempt: persistAttempt,
@@ -316,8 +342,8 @@ export async function generateThread(thread: XThread) {
     status: 'error',
     generation_attempts: thread.generation_attempts + totalAttempts,
     last_error: hasStoredPlan
-      ? `Los ${planOrder.length} ángulos del plan ya están cubiertos por hilos aprobados de la semana. Replanificá la semana o usá otro post.`
-      : 'Esta fila no tiene el guion de la semana guardado: se probó un solo ángulo reconstruido desde su resumen. Replanificá la semana del post para que tenga los cuatro ángulos.',
+      ? `${PLAN_EXHAUSTED_PREFIX}Los ${planOrder.length} ángulos del plan fueron rechazados por repetición. Replanificá este hilo o usá otro post.`
+      : `${PLAN_EXHAUSTED_PREFIX}Esta fila no tiene el guion guardado y el único ángulo reconstruido fue rechazado por repetición. Replanificá este hilo o usá otro post.`,
     tweets: [],
     approved_fingerprint: null,
   });

@@ -107,6 +107,8 @@ Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY
 - Los estados manuales son controlados: `planificado → preaprobado → publicado`, con retorno `publicado → preaprobado`. La recuperación desde `error` exige una huella de aprobación o una publicación previa.
 - **Publicar ahora** llama a la API de X. **Marcar publicado** solo registra una publicación hecha afuera del panel y fija `published_at`. Esa marca se conserva al volver a preaprobado porque es la barrera que impide que el cron publique el hilo otra vez.
 - Agenda enlaza cada pieza de X como `/admin/x?thread=<id>`; la pantalla abre, enfoca y desplaza hasta el hilo solicitado sin alterar el uso normal del listado.
+- **Replanificar hilo** recupera un plan agotado (también en filas antiguas): `POST /api/admin/x-threads/<id>/replan` reemplaza solo el plan de esa fila y limpia su historial. Conserva fecha e intentos acumulados, no crea turnos ni modifica hilos aprobados/publicados. Si no hay material nuevo o falla el proveedor, no cambia la fila. Después se usa **Escribir**, o el piloto sigue su circuito normal.
+- Cada intento guarda juntos el ángulo y su devolución, para no reutilizar correcciones de otro ángulo. La generación compara títulos/ganchos y texto completo con el historial aprobado de todos los artículos (sin diferencias cosméticas); compartir tema sigue permitido. Las paráfrasis de la misma tesis, ejemplo y conclusión las revisa el crítico. Este control adicional se aplica a la generación con IA, no al guardado manual de texto.
 
 ### LinkedIn editorial library deployment
 

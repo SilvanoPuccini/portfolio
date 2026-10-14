@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/supabase', () => ({ getSupabaseAdmin: vi.fn() }));
 
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { appendRewriteHistory, siblingsOf } from './repository';
+import { appendRewriteHistory, approvedThreadTexts, siblingsOf } from './repository';
 import { MAX_REWRITE_HISTORY, type XRewriteHistoryEntry } from './types';
 
 function entry(attempt: number): XRewriteHistoryEntry {
@@ -15,6 +15,24 @@ function entry(attempt: number): XRewriteHistoryEntry {
     verdict: 'rewrite',
   };
 }
+
+describe('approvedThreadTexts', () => {
+  it('loads all approved history across articles, excludes the current row, and retains thread boundaries', async () => {
+    const range = vi.fn().mockResolvedValue({ data: [
+      { id: 'self', tweets: [{ text: 'ignore' }] },
+      { id: 'other', tweets: [{ text: 'Old hook' }, { text: 'Old body' }] },
+    ], error: null });
+    const order = vi.fn().mockReturnValue({ range });
+    const is = vi.fn().mockReturnValue({ order });
+    const inFn = vi.fn().mockReturnValue({ is });
+    const select = vi.fn().mockReturnValue({ in: inFn });
+    vi.mocked(getSupabaseAdmin).mockReturnValue({ from: vi.fn(() => ({ select })) } as never);
+    expect(await approvedThreadTexts('self')).toEqual([['Old hook', 'Old body']]);
+    expect(inFn).toHaveBeenCalledWith('status', ['preaprobado', 'publicado']);
+    expect(is).toHaveBeenCalledWith('deleted_at', null);
+    expect(order).toHaveBeenCalledWith('id');
+  });
+});
 
 describe('appendRewriteHistory', () => {
   it('appends a new entry to the history', () => {
