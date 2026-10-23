@@ -1,4 +1,5 @@
 import { createHmac, randomBytes } from 'node:crypto';
+import { CREDITS_DEPLETED_MESSAGE } from './messages';
 
 /**
  * Cliente de X: firma OAuth 1.0a y publica hilos.
@@ -122,7 +123,7 @@ export function isCreditsDepletedError(reason: unknown): reason is XCreditsDeple
 }
 
 /** Mensaje estable para el panel: el hilo no se publica desde acá, se copia. */
-export const CREDITS_DEPLETED_MESSAGE = 'Sin crédito en X: copiá y publicá a mano.';
+export { CREDITS_DEPLETED_MESSAGE };
 
 async function request<T>(method: 'GET' | 'POST' | 'DELETE', path: string, credentials: XCredentials, body?: unknown): Promise<T> {
   const url = `${API}${path}`;

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CopyIconButton, ConfirmIconButton, IconButton, ChevronIcon, CrossIcon } from '@/components/admin/IconButton';
 import { StatusPill } from '@/components/admin/StatusPill';
 import { c, tint } from '@/components/admin/tokens';
-import { CREDITS_DEPLETED_MESSAGE } from '@/lib/x/client';
+import { CREDITS_DEPLETED_MESSAGE } from '@/lib/x/messages';
 import { canReplanThread, isPlanExhausted, PLAN_EXHAUSTED_PREFIX } from '@/lib/x/generation-state';
 import { weightedLength } from '@/lib/x/validate';
 import type { XThreadListItem, XThread, XThreadStatus } from '@/lib/x/types';

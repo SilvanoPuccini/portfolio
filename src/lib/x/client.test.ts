@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  XCreditsDepletedError, buildSignature, isCreditsDepletedError, percentEncode, threadUrl,
+  CREDITS_DEPLETED_MESSAGE, XCreditsDepletedError, buildSignature, isCreditsDepletedError, percentEncode, threadUrl,
 } from './client';
+import { CREDITS_DEPLETED_MESSAGE as browserCreditNotice } from './messages';
+
+describe('credit notice compatibility', () => {
+  it('preserves the existing server export and browser message value', () => {
+    expect(CREDITS_DEPLETED_MESSAGE).toBe(browserCreditNotice);
+    expect(CREDITS_DEPLETED_MESSAGE).toBe('Sin crédito en X: copiá y publicá a mano.');
+  });
+});
 
 /**
  * Vector fijo para comprobar la firma sin tocar la red. El valor esperado se
