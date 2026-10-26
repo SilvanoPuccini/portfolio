@@ -51,16 +51,6 @@ export const projects: Project[] = [
       demo: "https://ferrelonstock.onrender.com",
       repo: "https://github.com/SilvanoPuccini/ferrelonstock",
     },
-    demoAccess: {
-      es: {
-        label: "Credenciales demo",
-        credentials: "admin / FerrelonAdmin2026!",
-      },
-      en: {
-        label: "Demo credentials",
-        credentials: "admin / FerrelonAdmin2026!",
-      },
-    },
     media: {
       cover: "/projects/ferrelonstock.png",
       alt: {
@@ -478,16 +468,6 @@ export const projects: Project[] = [
     links: {
       demo: "https://ferrestock-accu.onrender.com",
       repo: "https://github.com/SilvanoPuccini/ferrestock",
-    },
-    demoAccess: {
-      es: {
-        label: "Usuarios demo",
-        credentials: "admin_demo / Admin12345!",
-      },
-      en: {
-        label: "Demo users",
-        credentials: "admin_demo / Admin12345!",
-      },
     },
     media: {
       cover: "https://res.cloudinary.com/dukgz1lpn/image/upload/v1775621645/Inicio-FerreStock_tp9n5y.png",
