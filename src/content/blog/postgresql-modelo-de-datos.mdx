@@ -1,0 +1,108 @@
+---
+title: 'PostgreSQL: el modelo de datos también es una decisión de producto'
+date: '2026-11-01'
+category: 'Producto'
+displayCategory: 'Producto'
+excerpt: 'Un pedido puede seguir existiendo y haber perdido la información necesaria para explicar lo que se vendió. Si su precio depende siempre del catálogo actual, cambiar el catálogo también puede cambiar la lectura de una operación anterior.'
+featured: false
+linkedinCarousel: false
+readingTime: '6 min'
+keyword: 'PostgreSQL'
+ogImage: '/api/og/postgresql-modelo-de-datos'
+---
+
+Un pedido puede seguir existiendo y haber perdido la información necesaria para explicar lo que se vendió. Si su precio depende siempre del catálogo actual, cambiar el catálogo también puede cambiar la lectura de una operación anterior.
+
+La dificultad empieza antes de escribir SQL. Necesitamos decidir qué información representa el presente y qué hechos debe conservar el producto.
+
+Después de hablar de operación, vuelvo al interior del sistema. La base de datos es parte de cómo una aplicación conserva su significado cuando el código, los usuarios y las reglas cambian.
+
+## Desde qué necesidad empiezo
+
+FerrelonStock es un e-commerce construido con Django y PostgreSQL. PediaCore reúne turnos e información clínica. Son dominios distintos, pero ambos obligan a pensar qué datos explican una operación.
+
+Los ejemplos de esta nota son didácticos. No describen el esquema exacto ni una modificación realizada en esos proyectos.
+
+Antes de crear tablas, escribiría qué hechos registra el producto, qué cambia con el tiempo, qué debe conservarse y qué estados serían inválidos. Las entidades aparecen al ordenar esas preguntas.
+
+| Pregunta | Decisión que ayuda a tomar |
+|---|---|
+| ¿Qué ocurrió? | Qué operación necesita identidad propia |
+| ¿Qué puede cambiar? | Qué dato describe un estado actual |
+| ¿Qué necesito explicar después? | Qué información histórica conservar |
+| ¿Qué nunca debería pasar? | Qué restricción requiere una garantía |
+
+La tabla sirve para conversar con quien conoce el proceso. Una pantalla muestra campos; la conversación permite descubrir qué significa cada uno.
+
+## El precio actual y el precio acordado
+
+En un pedido didáctico, conservaría el vínculo al producto y definiría qué precio se captura al confirmar la venta.
+
+El vínculo permite reconocer la identidad del catálogo. El valor acordado permite explicar la operación aunque el catálogo evolucione. Duplicar un dato puede ser intencional si representa otro momento y otra responsabilidad.
+
+<PriceHistoryBlock />
+
+Eso necesita una regla: cuándo se toma el valor, quién puede corregirlo y qué pasa si la operación se cancela. Una columna por sí sola no resuelve esas preguntas.
+
+El mismo razonamiento alcanza nombres de documentos, condiciones comerciales o información requerida para una auditoría. La historia necesaria depende del riesgo y del uso, no de guardar cada cambio indefinidamente.
+
+## Las relaciones también expresan permisos posibles
+
+Pensemos en una persona que participa en varias organizaciones. Si el modelo guarda una sola organización dentro del usuario, puede bloquear una necesidad real.
+
+Una membresía permite representar cada participación y sus atributos. Si el rol cambia entre organizaciones, pertenece a esa participación en el ejemplo.
+
+<MembershipModelBlock />
+
+La cardinalidad deja de ser un detalle académico: condiciona qué cuentas se crean, qué muestra la interfaz y qué excepciones aparecen en el backend.
+
+No construiría una relación más flexible solamente por imaginar todos los futuros. Definiría el siguiente cambio probable y la necesidad confirmada.
+
+## Qué garantías aporta PostgreSQL
+
+La base permite expresar restricciones. NOT NULL impide ausencia en un campo obligatorio; UNIQUE protege una combinación; una clave foránea conserva una referencia válida; CHECK expresa una condición sobre la fila. [La documentación de PostgreSQL explica esas garantías y sus límites.](https://www.postgresql.org/docs/current/ddl-constraints.html)
+
+Una restricción útil tiene significado de producto. Por ejemplo, una única membresía por persona y organización puede impedir duplicados. No define qué permisos tiene esa persona ni quién puede crear el vínculo.
+
+La aplicación también valida para dar respuestas comprensibles. La base conserva una garantía cuando los datos llegan desde otra entrada o coinciden operaciones.
+
+| Regla didáctica | Capa que revisaría |
+|---|---|
+| Cantidad requerida y válida | Entrada y restricción de datos |
+| Referencia a un producto existente | Integridad de la relación |
+| Operación permitida para una persona | Autorización confiable |
+| Varios cambios que deben confirmarse juntos | Límite transaccional |
+
+La ubicación de una regla depende de lo que protege. Repetir una comprobación puede ser deliberado si cada capa tiene una función distinta.
+
+## Una transacción tiene un límite
+
+Si varios cambios locales representan una sola operación, una transacción permite confirmarlos como conjunto. [PostgreSQL presenta las transacciones como una unidad de trabajo que se confirma o descarta.](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+
+Ese límite no incluye automáticamente un servicio externo. Guardar un pedido y acreditar un pago en otro sistema requieren coordinación y recuperación.
+
+Tampoco elegir una base transaccional elimina los conflictos entre operaciones. El diseño necesita reconocer qué información compiten por cambiar y qué garantía se espera.
+
+## Modelar también es elegir consultas
+
+Quiero poder responder preguntas concretas: qué compró una persona, qué precio se acordó, qué quedó pendiente y qué cambió de estado.
+
+Escribir esas consultas temprano puede revelar que falta una relación o que un atributo tiene un significado ambiguo. Los índices se revisan después con el patrón de acceso y la evidencia de uso.
+
+Un reporte que pide reconstruir el negocio desde cadenas libres o campos mezclados está mostrando una consecuencia del modelo.
+
+## Evolucionar sin perder significado
+
+Una migración cambia estructuras y puede cambiar interpretaciones. Revisaría los datos existentes, los valores que no cumplen la regla nueva y la compatibilidad con el código desplegado.
+
+Separar el cambio en etapas puede ayudar cuando existen versiones distintas ejecutándose al mismo tiempo. La elección tiene un costo de transición y una verificación propia.
+
+## La pregunta que queda abierta
+
+La tensión es cuánto historial conservar y cuánto costo aceptar para poder explicar el producto. Cada dato adicional requiere acceso, mantenimiento y una política de conservación.
+
+Mi criterio es poder nombrar qué hecho representa, cuándo cambia y qué operación lo necesita. La próxima semana voy a separar otra frontera: reconocer a una persona y decidir qué puede hacer sobre esos datos.
+
+---
+
+El Radar es donde documento decisiones técnicas y su impacto en el producto: qué resuelven, qué condiciones introducen y cuándo vale la pena revisarlas. Si querés seguir la serie, podés suscribirte acá abajo.

@@ -28,6 +28,7 @@ import { DockerBoundariesBlock, DockerContractBlock } from './diagrams/DockerDia
 import { CloudResponsibilityBlock, IdempotentEventBlock } from './diagrams/CloudModelsDiagrams';
 import { PlatformComboBlock, PlatformFitBlock } from './diagrams/PlatformsDiagrams';
 import { SignalLadderBlock, UsefulAlertBlock } from './diagrams/AfterDeployDiagrams';
+import { PriceHistoryBlock, MembershipModelBlock } from './diagrams/PostgreSQLDiagrams';
 import { StackReferenceTable } from './diagrams/StackReferenceTable';
 
 const mdxComponents = {
@@ -43,6 +44,7 @@ const mdxComponents = {
   CloudResponsibilityBlock, IdempotentEventBlock,
   PlatformFitBlock, PlatformComboBlock,
   SignalLadderBlock, UsefulAlertBlock,
+  PriceHistoryBlock, MembershipModelBlock,
 };
 
 const mdxOptions = {
