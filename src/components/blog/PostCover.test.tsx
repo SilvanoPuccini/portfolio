@@ -3,6 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { PostCover } from './PostCover';
 
 describe('PostCover', () => {
+  it.each(['card', 'featured'] as const)('shows the PostgreSQL icon above its name in a %s cover', (variant) => {
+    const { container } = render(
+      <PostCover title="El modelo de datos" category="Producto" keyword="PostgreSQL" variant={variant} />,
+    );
+    const keyword = screen.getByText('PostgreSQL');
+    expect(keyword.previousElementSibling?.querySelector('svg')).toBeTruthy();
+    expect(container.querySelectorAll('svg[viewBox="0 0 24 24"]')).toHaveLength(1);
+    expect(screen.getByText('Producto')).toHaveClass('text-indigo-400');
+  });
+
   it('shows every tool of a comparison, not just the first one', () => {
     // Un post que compara cuatro herramientas con el logo de una sola
     // desorienta: el lector cree que el post es sobre esa.
